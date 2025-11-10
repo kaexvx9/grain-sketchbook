@@ -53,7 +53,8 @@ to acknowledge the ache, upbeat enough to guide with grace.
    iCloud creation, 2FA with Google Authenticator.
    - Suggest community apprenticeships for those budgeting for the tools.
     - Fresh macOS setup: install Xcode CLT (`xcode-select --install`),
-      Homebrew, `git`, and GitHub CLI (`brew install git gh`), then install
+      Homebrew, `git`, and GitHub CLI (`brew install git gh`),
+      then install
       Cursor.
 9. **Poetry & Waterbending**
    - Sprinkle ASCII art of bending motions in comments.
@@ -70,17 +71,21 @@ to acknowledge the ache, upbeat enough to guide with grace.
     - CLI demo in `ray_app.zig` now walks air → water → rollback → 
     earth → rollback → earth.
 12. **TigerStyle Naming Pass**
-    - Rename public functions to snake_case so `zig build validate` passes
+    - Rename public functions to snake_case so `zig build validate` 
+    passes
     grainvalidate checks.
-    - Extract shared RNG helpers so no function drifts past 70 bonded lines.
+    - Extract shared RNG helpers so no function drifts past 70 bonded 
+    lines.
 13. **Grain Foundations Alignment**
     - Study `vendor/grain-foundations` to adopt `GrainDevName` and
     `GrainSpace` for workspace discovery.
     - Document how the foundation modules shape Ray’s shared structs.
 14. **Grainstore Mirrors**
-    - Adapt grainmirror’s layout for `grainstore/{platform}/{org}/{repo}`
+    - Adapt grainmirror’s layout for `grainstore/{platform}/{org}/
+    {repo}`
     under `xy/grainstore`.
-    - Decide which legacy ideas (Rust/Steel tooling) we retire while we stay
+    - Decide which legacy ideas (Rust/Steel tooling) we retire while we 
+    stay
     all-in on Zig.
 
 ## Immediate TODO
@@ -187,5 +192,6 @@ Each step depends on the previous one’s output; progressing in order
 guarantees that later artifacts (tweet threads, Tahoe configs,
 repo packaging) inherit the stabilized grammar and deterministic tooling 
 choices.
+
 
 

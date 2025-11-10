@@ -23,6 +23,9 @@ Matklad-style data-driven tests keep refactors fearless. I wrap prose to
 - **Grainmirror Pattern Study** — I am adopting the
   `grainstore/{platform}/{org}/{repo}` hierarchy while retiring any
   Rust/Steel automation in favor of Zig tools.
+- **Declarative Brewfile Setup** — Inspired by Matthias Portzel’s
+  Homebrew workflow, I plan to codify macOS dependencies in a Brewfile so
+  the bootstrap remains deterministic and TigerStyle-clear.
 
 ## Workflow Loop
 1. **Draft in Docs** — add plan items to `docs/ray.md`, wrap with
@@ -41,6 +44,8 @@ Matklad-style data-driven tests keep refactors fearless. I wrap prose to
   for shared struct consistency.
 - Expand the CLI experience so rollbacks, grainstore scaffolding, and
   doc wrapping all ship via `zig build` targets.
+- Capture a Brewfile under version control so fresh machines get the
+  exact Homebrew + CLI stack via `brew bundle` with explicit comments.
 
 Glow G2 keeps the tempo calm: test, wrap, validate, document. Every pass
 brings Ray closer to the ethical Tahoe terminal we envisioned.
