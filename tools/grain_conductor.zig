@@ -98,10 +98,7 @@ fn run_link(
     allocator: std.mem.Allocator,
     manifest_path: ?[]const u8,
 ) !void {
-    const manifest_entries = [_]GrainStore.ManifestEntry{
-        .{ .platform = "github", .org = "tigerbeetle", .repo = "tigerbeetle" },
-        .{ .platform = "codeberg", .org = "river", .repo = "river" },
-    };
+    const manifest_entries = @import("../src/grain_manifest.zig").entries;
 
     var store = try GrainStore.init(allocator, "@kae3g");
     defer store.deinit();

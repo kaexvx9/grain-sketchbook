@@ -87,8 +87,8 @@ to acknowledge the ache, upbeat enough to guide with grace.
     - Adapt grainmirror’s layout for `grainstore/{platform}/{org}/
     {repo}`
       under `xy/grainstore`.
-    - Populate static Zig manifest entries (later castable over the wire)
-      instead of relying on JSON manifests.
+    - Populate static Zig manifest entries (`src/grain_manifest.zig`)
+      later castable over the wire instead of relying on JSON manifests.
 15. **Grain Conductor CLI**
     - Implement `zig build conduct` to expose `grain conduct brew|link|
       edit|make`.
@@ -199,6 +199,7 @@ Each step depends on the previous one’s output; progressing in order
 guarantees that later artifacts (tweet threads, Tahoe configs,
 repo packaging) inherit the stabilized grammar and deterministic tooling 
 choices.
+
 
 
 

@@ -31,7 +31,7 @@ flows. First wave:
 | ---------------------------------- | ---------------------------------------------------------------- |
 | `conduct brew`                     | Run Brewfile sync (`brew bundle --cleanup --file=Brewfile`) and upgrade casks. |
 | `conduct brew --assume-yes`        | Non-interactive mode for CI or scripted bootstrap.               |
-| `conduct link`                     | Symlink home dotfiles from `vendor/grain-foundations` into place and provision static GrainStore entries. |
+| `conduct link`                     | Symlink home dotfiles from `vendor/grain-foundations` into place and provision static entries from `src/grain_manifest.zig`. |
 | `conduct link --manifest=path`     | Flag accepted for future network re-casting, currently ignored.  |
 | `conduct edit`                     | Open the Grain workspace in Cursor (or fallback editor).         |
 | `conduct make`                     | Build/install helper tools (future `grain conduct` subcommands). |
@@ -51,7 +51,7 @@ assertions.
    - Add `Brewfile` listing CLI tools (Homebrew, git, gh, Cursor, Zig).
    - Document usage in onboarding section.
 4. **Grainstore Sync Prototype**
-   - Extend `GrainStore` with static manifest entries (compiled arrays).
+   - Extend `GrainStore` with static manifest entries (`src/grain_manifest.zig`).
    - Mirror code into `grainstore/{platform}/{org}/{repo}`; plan network casting later.
 5. **GUI / Nostr Roadmap**
    - Begin mapping River-inspired compositor tasks into actionable
