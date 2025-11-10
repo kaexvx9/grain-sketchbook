@@ -37,6 +37,8 @@
 - Prototype a `riverctl`-style Zig API for Moonglow keybindings (focus swap, layout cycle).
 - Spike a GUI pane showing Nostr feed slices using the current `[N]ZigTweet` structures.
 - Identify security boundaries for sandboxing (entitlements, process separation) before Metal work.
+- Integrate TigerBank transaction dashboards once `grain conduct mmt` 
+  is capable of broadcasting payloads.
 
 [^river-overview]: River project overview and build requirements, including dynamic tiling focus and
                    Zig 0.15 toolchain updates, in *River README* (Codeberg, 2025-08-30)  

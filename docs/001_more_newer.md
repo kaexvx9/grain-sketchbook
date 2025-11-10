@@ -26,6 +26,8 @@ We keep the `[2 | 1 | 1]` envelope intact while growing new limbs.
   [^vegan-tiger].
 - **TahoeSandbox Stub** — `src/tahoe_window.zig` now holds a placeholder
   Mach/Metal host ready for the GUI spike.
+- **TigerBank Spec** — `docs/nostr_mmt_tigerbank.md` defines the Nostr +
+  TigerBeetle + MMT payment flow with Alpenglow-style consensus.
 
 ## Grain Conductor (Command Suite)
 We reimagine Matklad’s `config` tool in Zig as **Grain Conductor** —
@@ -63,6 +65,7 @@ assertions.
    - Begin mapping River-inspired compositor tasks into actionable
      prototypes (`docs/gui_research.md` → issues/tasks). First stub lives
      in `src/tahoe_window.zig`.
+   - Align the new `grain conduct mmt` stub with TigerBank ledger logic.
 
 ## Tests & Tooling Targets
 | Command               | Purpose                                      |

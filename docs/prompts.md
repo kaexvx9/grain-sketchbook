@@ -8,6 +8,35 @@ pub const PromptEntry = struct {
 };
 
 pub const PROMPTS = [_]PromptEntry{
+    .{ .id = 47, .timestamp = null, .content =
+        \\design a nostr payment system by a labeled TigerBeetle -
+        protocol debit/credit fiat currency
+        \\where it is a globally referentially transparent URL-
+        safe name where it is `~{nostr-npub}/{User-
+        \\generated chosen title}` and the interactive and non-
+        interactive CLI includes the option for an
+        \\additional flag which can both send a casted typed Zig raw byte 
+        output following the struct that
+        \\includes the payload of the chosen user title name of their 
+        currency (inspired by MMT) so that
+        \\any of our nostr users can create their own MMT currency as 
+        their own central bank with
+        \\unlimited money reserve control and supply increasing 
+        decreasing at any time and an interest
+        \\rate policy for loans and a tax collection mechanism that 
+        follows a newly created Zig smart
+        \\contract consensus protocol which implements Solana Alpenglow 
+        https://www.anza.xyz/blog/
+        \\alpenglow-a-new-consensus-for-solana  but in Zig
+        \\
+        \\infuse our prompt into our ray if you will allow it  and then 
+        you may begin after printing me an
+        \\acknolwedgement and chart course and populating my Cursor to-
+        do list ,  and finally ensuring our
+        \\entire chat history is accurate in our outputs.md and 
+        prompts.md both , and our code is
+        \\currently committed to upstream origin main
+    },
     .{ .id = 46, .timestamp = null, .content =
         \\sounds great.  keep it tiger style crossed with boldness 
         crossed with under_160_char ray_160 crossed with ASCII avatar 
@@ -335,6 +364,7 @@ pub const PROMPTS = [_]PromptEntry{
 pub const PROMPT_COUNT = PROMPTS.len;
 pub const latest = PROMPTS[0];
 ```
+
 
 
 

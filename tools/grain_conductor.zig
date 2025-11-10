@@ -8,6 +8,7 @@ const usage =
     \\  grain conduct brew [--assume-yes]
     \\  grain conduct link [--manifest=path.json]
     \\  grain conduct manifest
+    \\  grain conduct mmt [--npub=hex --title=name --emit-raw --mint=amount --burn=amount]
     \\  grain conduct edit
     \\  grain conduct make
     \\  grain conduct help
@@ -64,6 +65,8 @@ pub fn main() !void {
         try run_edit();
     } else if (std.mem.eql(u8, subcommand, "manifest")) {
         try run_manifest();
+    } else if (std.mem.eql(u8, subcommand, "mmt")) {
+        try run_mmt(allocator, &args);
     } else if (std.mem.eql(u8, subcommand, "make")) {
         try run_make();
     } else if (std.mem.eql(u8, subcommand, "help")) {
@@ -186,4 +189,77 @@ fn run_manifest() !void {
             .{ idx, entry.platform, entry.org, entry.repo },
         );
     }
+}
+
+fn run_mmt(allocator: std.mem.Allocator, args: *std.process.ArgIterator) !void {
+    const MMTPayload = @import("../src/nostr_mmt.zig");
+
+    var npub_hex: ?[]const u8 = null;
+    var title: ?[]const u8 = null;
+    var emit_raw = false;
+    var action: MMTPayload.Action = .{ .mint = 0 };
+    var policy = MMTPayload.Policy{ .base_rate_bps = 0, .tax_rate_bps = 0 };
+
+    while (args.next()) |arg| {
+        if (std.mem.startsWith(u8, arg, "--npub=")) {
+            npub_hex = arg["--npub=".len..];
+        } else if (std.mem.startsWith(u8, arg, "--title=")) {
+            title = arg["--title=".len..];
+        } else if (std.mem.startsWith(u8, arg, "--mint=")) {
+            action = .{ .mint = try parseU128(arg["--mint=".len..]) };
+        } else if (std.mem.startsWith(u8, arg, "--burn=")) {
+            action = .{ .burn = try parseU128(arg["--burn=".len..]) };
+        } else if (std.mem.eql(u8, arg, "--emit-raw")) {
+            emit_raw = true;
+        } else if (std.mem.startsWith(u8, arg, "--base-rate=")) {
+            policy.base_rate_bps = try parseI32(arg["--base-rate=".len..]);
+        } else if (std.mem.startsWith(u8, arg, "--tax-rate=")) {
+            policy.tax_rate_bps = try parseI32(arg["--tax-rate=".len..]);
+        } else {
+            return error.UnknownFlag;
+        }
+    }
+
+    if (npub_hex == null or title == null) {
+        try std.io.getStdOut().writeAll("Interactive MMT mode coming soon. Provide --npub and --title for non-interactive usage.\n");
+        return;
+    }
+
+    var npub = try parseNpubHex(npub_hex.?);
+    defer allocator.free(npub);
+
+    var payload = MMTPayload.MMTCurrencyPayload{
+        .npub = npub[0..32].*,
+        .title = title.?,
+        .policy = policy,
+        .action = action,
+    };
+
+    if (emit_raw) {
+        const bytes = try payload.toBytes(allocator);
+        defer allocator.free(bytes);
+        try std.io.getStdOut().writer().print("raw bytes ({d}): {x}\n", .{ bytes.len, bytes });
+    } else {
+        try std.io.getStdOut().writeAll("MMT command captured (no relay submission yet).\n");
+    }
+}
+
+fn parseU128(slice: []const u8) !u128 {
+    return std.fmt.parseInt(u128, slice, 10);
+}
+
+fn parseI32(slice: []const u8) !i32 {
+    return std.fmt.parseInt(i32, slice, 10);
+}
+
+fn parseNpubHex(slice: []const u8) ![]u8 {
+    if (slice.len != 64) {
+        return error.InvalidNpubLength;
+    }
+    var bytes = std.heap.page_allocator.alloc(u8, 32) catch return error.OutOfMemory;
+    var i: usize = 0;
+    while (i < 32) : (i += 1) {
+        bytes[i] = try std.fmt.parseInt(u8, slice[i * 2 .. i * 2 + 2], 16);
+    }
+    return bytes;
 }
