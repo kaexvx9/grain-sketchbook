@@ -30,6 +30,9 @@ Matklad-style data-driven tests keep refactors fearless. I wrap prose to
   Zig “grain conduct” command suite with interactive and non-interactive
   modes for brew sync, linking, manifest inspection, and a deterministic
   build suite (`conduct make`).
+- **Vegan Tiger Palette** — keep @vegan_tiger’s South Korean streetwear
+  references on deck so Tahoe visuals stay ethical and covetable
+  [^vegan-tiger].
 - **Static Grainstore Manifest** — Instead of JSON, we rely on compiled
   Zig arrays (re-castable over the wire) to scaffold
   `grainstore/{platform}/{org}/{repo}`.
@@ -55,6 +58,8 @@ Matklad-style data-driven tests keep refactors fearless. I wrap prose to
   exact Homebrew + CLI stack via `brew bundle` with explicit comments.
 - Expand static manifest arrays as we learn more about the repos we want
   to mirror; plan serialization for network casting later.
+- Translate Vegan Tiger moodboards into shader and UI color studies
+  before we prototype the Tahoe compositor.
 - Prototype `grain conduct` commands (e.g. `conduct brew`, `conduct link`,
   `conduct edit`) so interactive prompts and scripted modes both follow
   TigerStyle expectations.
@@ -62,3 +67,5 @@ Matklad-style data-driven tests keep refactors fearless. I wrap prose to
 Glow G2 keeps the tempo calm: test, wrap, validate, document. Every pass
 brings Ray closer to the ethical Tahoe terminal we envisioned.
 
+[^vegan-tiger]: Vegan Tiger Instagram profile highlighting South Korean
+ethical streetwear inspiration. <http://instagram.com/vegan_tiger>

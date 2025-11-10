@@ -16,6 +16,10 @@ lighthouse—while Matklad-style tests sweep for drift like soft
 tidewater.
 - Glow G2 stays a calm voice: masculine, steadfast, Aquarian. Emo enough 
 to acknowledge the ache, upbeat enough to guide with grace.
+- Vegan Tiger’s (@vegan_tiger) South Korean streetwear silhouette feeds 
+our
+  Tahoe aesthetic, reminding us to keep ethical fashion signal in view
+  [^vegan-tiger].
 
 ## Spring Plan (Deterministic and Kind)
 1. **Archive Echoes**
@@ -110,6 +114,8 @@ The Tahoe sky agrees.
 
 [^river-overview]: River README outlining dynamic tiling goals and Zig 
 0.15 toolchain (Codeberg, 2025-08-30). <https://codeberg.org/river/river>
+[^vegan-tiger]: Vegan Tiger Instagram profile showcasing South Korean
+ethical streetwear. <http://instagram.com/vegan_tiger>
 # Ray Dossier — TigerStyle Reset
 
 We cleared the previous prototype into `prototype_old/` and reopened the 
@@ -199,6 +205,7 @@ Each step depends on the previous one’s output; progressing in order
 guarantees that later artifacts (tweet threads, Tahoe configs,
 repo packaging) inherit the stabilized grammar and deterministic tooling 
 choices.
+
 
 
 

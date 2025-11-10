@@ -21,6 +21,9 @@ We keep the `[2 | 1 | 1]` envelope intact while growing new limbs.
 - **Mac Interaction Literacy** — respect the “Mac way” (document focus,
   drag/drop, menu exploration) while we introduce Grain Tahoe ideas
   [^macos-tips].
+- **Vegan Tiger Signals** — fold in @vegan_tiger’s South Korean streetwear
+  cues so the Grain terminal keeps a covetable ethical fashion pulse
+  [^vegan-tiger].
 
 ## Grain Conductor (Command Suite)
 We reimagine Matklad’s `config` tool in Zig as **Grain Conductor** —
@@ -78,4 +81,6 @@ and Grain Conductor make it reproducible.
 
 [^brewfile]: [Declarative package management with a Brewfile](https://matthiasportzel.com/brewfile/)
 [^macos-tips]: [macOS Tips](https://blog.xoria.org/macos-tips/)
+[^vegan-tiger]: Vegan Tiger Instagram profile highlighting South Korean
+ethical streetwear inspiration. <http://instagram.com/vegan_tiger>
 
