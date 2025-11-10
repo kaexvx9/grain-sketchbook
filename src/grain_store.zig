@@ -81,3 +81,38 @@ pub const GrainStore = struct {
         }
     }
 };
+
+test "grainstore sync manifest entries" {
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    const allocator = std.testing.allocator;
+
+    const original = try std.fs.cwd().realpathAlloc(allocator, ".");
+    defer allocator.free(original);
+    defer std.os.chdir(original) catch {};
+    try std.os.chdir(tmp.dir.path.?);
+
+    var store = try GrainStore.init(allocator, "@test");
+    defer store.deinit();
+
+    const base_dir = try allocator.dupe(u8, "grainstore");
+    defer allocator.free(base_dir);
+    store.base_dir = base_dir;
+
+    const platforms = [_][]const u8{ "codeberg", "github", "gitab" };
+    try store.ensure_platforms(&platforms);
+
+    const manifest_entries = @import("grain_manifest.zig").entries;
+    try store.sync_manifest_entries(manifest_entries[0..]);
+
+    for (manifest_entries) |entry| {
+        const path = try std.fmt.allocPrint(
+            allocator,
+            "grainstore/{s}/{s}/{s}",
+            .{ entry.platform, entry.org, entry.repo },
+        );
+        defer allocator.free(path);
+        try tmp.dir.access(path, .{});
+    }
+}
