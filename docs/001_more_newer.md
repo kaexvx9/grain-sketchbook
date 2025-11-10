@@ -24,6 +24,8 @@ We keep the `[2 | 1 | 1]` envelope intact while growing new limbs.
 - **Vegan Tiger Signals** — fold in @vegan_tiger’s South Korean streetwear
   cues so the Grain terminal keeps a covetable ethical fashion pulse
   [^vegan-tiger].
+- **TahoeSandbox Stub** — `src/tahoe_window.zig` now holds a placeholder
+  Mach/Metal host ready for the GUI spike.
 
 ## Grain Conductor (Command Suite)
 We reimagine Matklad’s `config` tool in Zig as **Grain Conductor** —
@@ -59,7 +61,8 @@ assertions.
    - Mirror code into `grainstore/{platform}/{org}/{repo}`; plan network casting later.
 5. **GUI / Nostr Roadmap**
    - Begin mapping River-inspired compositor tasks into actionable
-     prototypes (`docs/gui_research.md` → issues/tasks).
+     prototypes (`docs/gui_research.md` → issues/tasks). First stub lives
+     in `src/tahoe_window.zig`.
 
 ## Tests & Tooling Targets
 | Command               | Purpose                                      |

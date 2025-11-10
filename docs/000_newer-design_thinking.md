@@ -60,6 +60,7 @@ Matklad-style data-driven tests keep refactors fearless. I wrap prose to
   to mirror; plan serialization for network casting later.
 - Translate Vegan Tiger moodboards into shader and UI color studies
   before we prototype the Tahoe compositor.
+- Flesh out the new `TahoeSandbox` stub (`src/tahoe_window.zig`) into a real Mach/Metal window.
 - Prototype `grain conduct` commands (e.g. `conduct brew`, `conduct link`,
   `conduct edit`) so interactive prompts and scripted modes both follow
   TigerStyle expectations.

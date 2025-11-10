@@ -45,7 +45,9 @@ our
    - Design a self-contained compositor (River ideas, Zig runtime) with 
    scripted Moonglow keymaps.
    - Keep every allocation explicit and bounded; static buffers where 
-   possible.
+     possible.
+    - Current placeholder lives in `src/tahoe_window.zig`; next step is
+      replacing stubs with Mach/Metal window glue.
 7. **Grain Social Terminal**
    - Represent social data as typed Zig arrays (e.g. `[N]ZigTweet`).
    - Fuzz 11 random `npub`s per run (per 2025 spec) to mimic real relay 
@@ -205,6 +207,8 @@ Each step depends on the previous one’s output; progressing in order
 guarantees that later artifacts (tweet threads, Tahoe configs,
 repo packaging) inherit the stabilized grammar and deterministic tooling 
 choices.
+
+
 
 
 

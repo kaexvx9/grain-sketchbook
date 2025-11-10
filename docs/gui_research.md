@@ -33,6 +33,7 @@
 
 ## Next Actions
 - Draft a minimal compositor loop using Mach/Metal that can host one Grain terminal pane.
+- Placeholder `TahoeSandbox` module (`src/tahoe_window.zig`) created; wire real Mach/Metal window logic here.
 - Prototype a `riverctl`-style Zig API for Moonglow keybindings (focus swap, layout cycle).
 - Spike a GUI pane showing Nostr feed slices using the current `[N]ZigTweet` structures.
 - Identify security boundaries for sandboxing (entitlements, process separation) before Metal work.
