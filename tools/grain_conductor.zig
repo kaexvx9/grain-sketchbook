@@ -134,7 +134,18 @@ fn run_edit() !void {
 }
 
 fn run_make() !void {
-    try std.io.getStdOut().writeAll("`grain conduct make` is a placeholder for future tool builds.\n");
+    const commands = [_][]const []const u8{
+        &.{ "zig", "build", "test" },
+        &.{ "zig", "build", "wrap-docs" },
+        &.{ "zig", "build", "validate" },
+        &.{ "zig", "build", "thread" },
+    };
+
+    for (commands) |cmd| {
+        try spawn_and_log(cmd);
+    }
+
+    try std.io.getStdOut().writeAll("build automation finished.\n");
 }
 
 fn spawn_and_log(argv: []const []const u8) !void {

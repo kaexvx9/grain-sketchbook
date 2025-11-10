@@ -92,8 +92,8 @@ to acknowledge the ache, upbeat enough to guide with grace.
 15. **Grain Conductor CLI**
     - Implement `zig build conduct` to expose `grain conduct brew|link|
       manifest|edit|make`.
-    - Support interactive prompts with `--assume-yes` flags for scripted
-      usage.
+    - `conduct make` runs the deterministic Zig build suite (tests,
+      wrap-docs, validate, thread) so we keep TigerStyle guarantees.
 
 ## Immediate TODO
 - [x] Rehydrate source snippets from archives.
@@ -199,6 +199,7 @@ Each step depends on the previous one’s output; progressing in order
 guarantees that later artifacts (tweet threads, Tahoe configs,
 repo packaging) inherit the stabilized grammar and deterministic tooling 
 choices.
+
 
 
 

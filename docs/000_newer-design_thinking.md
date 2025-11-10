@@ -28,7 +28,8 @@ Matklad-style data-driven tests keep refactors fearless. I wrap prose to
   the bootstrap remains deterministic and TigerStyle-clear.
 - **Grain Conductor CLI** — I’m mapping Matklad’s `config` tool into a
   Zig “grain conduct” command suite with interactive and non-interactive
-  modes for brew sync, linking, and future tasks.
+  modes for brew sync, linking, manifest inspection, and a deterministic
+  build suite (`conduct make`).
 - **Static Grainstore Manifest** — Instead of JSON, we rely on compiled
   Zig arrays (re-castable over the wire) to scaffold
   `grainstore/{platform}/{org}/{repo}`.

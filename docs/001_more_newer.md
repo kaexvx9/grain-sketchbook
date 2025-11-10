@@ -35,7 +35,7 @@ flows. First wave:
 | `conduct link --manifest=path`     | Flag accepted for future network re-casting, currently ignored.  |
 | `conduct manifest`                 | Print the static manifest entries to stdout for inspection.      |
 | `conduct edit`                     | Open the Grain workspace in Cursor (or fallback editor).         |
-| `conduct make`                     | Build/install helper tools (future `grain conduct` subcommands). |
+| `conduct make`                     | Run a deterministic build suite (`zig build test`, `wrap-docs`, `validate`, `thread`). |
 
 Interactive mode prompts (with yes/no guards); non-interactive mode uses
 flags for CI or scripted bootstrap. Errors bubble with TigerStyle
