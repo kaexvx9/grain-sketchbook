@@ -91,7 +91,7 @@ to acknowledge the ache, upbeat enough to guide with grace.
       later castable over the wire instead of relying on JSON manifests.
 15. **Grain Conductor CLI**
     - Implement `zig build conduct` to expose `grain conduct brew|link|
-      edit|make`.
+      manifest|edit|make`.
     - Support interactive prompts with `--assume-yes` flags for scripted
       usage.
 
@@ -199,6 +199,7 @@ Each step depends on the previous one’s output; progressing in order
 guarantees that later artifacts (tweet threads, Tahoe configs,
 repo packaging) inherit the stabilized grammar and deterministic tooling 
 choices.
+
 
 
 

@@ -33,6 +33,7 @@ flows. First wave:
 | `conduct brew --assume-yes`        | Non-interactive mode for CI or scripted bootstrap.               |
 | `conduct link`                     | Symlink home dotfiles from `vendor/grain-foundations` into place and provision static entries from `src/grain_manifest.zig`. |
 | `conduct link --manifest=path`     | Flag accepted for future network re-casting, currently ignored.  |
+| `conduct manifest`                 | Print the static manifest entries to stdout for inspection.      |
 | `conduct edit`                     | Open the Grain workspace in Cursor (or fallback editor).         |
 | `conduct make`                     | Build/install helper tools (future `grain conduct` subcommands). |
 

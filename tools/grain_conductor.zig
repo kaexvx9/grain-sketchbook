@@ -7,6 +7,7 @@ const usage =
     \\Usage:
     \\  grain conduct brew [--assume-yes]
     \\  grain conduct link [--manifest=path.json]
+    \\  grain conduct manifest
     \\  grain conduct edit
     \\  grain conduct make
     \\  grain conduct help
@@ -61,6 +62,8 @@ pub fn main() !void {
         try run_link(allocator, manifest_path);
     } else if (std.mem.eql(u8, subcommand, "edit")) {
         try run_edit();
+    } else if (std.mem.eql(u8, subcommand, "manifest")) {
+        try run_manifest();
     } else if (std.mem.eql(u8, subcommand, "make")) {
         try run_make();
     } else if (std.mem.eql(u8, subcommand, "help")) {
@@ -160,4 +163,16 @@ fn spawn_process(argv: []const []const u8) !u8 {
 
 fn file_exists(path: []const u8) bool {
     return std.fs.cwd().access(path, .{}) catch false;
+}
+
+fn run_manifest() !void {
+    const entries = @import("../src/grain_manifest.zig").entries;
+    var stdout = std.io.getStdOut().writer();
+    try stdout.print("GrainStore static manifest ({d} entries)\n", .{entries.len});
+    for (entries, 0..) |entry, idx| {
+        try stdout.print(
+            "  [{d}] {s}/{s}/{s}\n",
+            .{ idx, entry.platform, entry.org, entry.repo },
+        );
+    }
 }
