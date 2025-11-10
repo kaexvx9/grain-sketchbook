@@ -54,7 +54,8 @@ our
    chatter.
    - Bring TigerBank online: `docs/nostr_mmt_tigerbank.md` +
    `grain conduct mmt`
-     define the MMT currency layer using Alpenglow-inspired rounds.
+     now logs through `tigerbank_client.zig` stubs while we wire the real 
+     IO.
 8. **Onboarding & Care**
    - Encourage paper-written passphrases like `this-password-im-typing-
    Now-9`.
@@ -210,6 +211,7 @@ Each step depends on the previous one’s output; progressing in order
 guarantees that later artifacts (tweet threads, Tahoe configs,
 repo packaging) inherit the stabilized grammar and deterministic tooling 
 choices.
+
 
 
 

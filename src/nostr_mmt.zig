@@ -73,3 +73,4 @@ test "MMT payload serialization" {
     defer std.testing.allocator.free(bytes);
     try std.testing.expect(bytes.len > 0);
 }
+

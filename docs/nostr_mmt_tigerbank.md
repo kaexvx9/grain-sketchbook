@@ -62,8 +62,11 @@ This payload can be serialized to raw bytes for relay transmission or TigerBeetl
 - Offers options: mint, burn, loan, collect tax.
 - Confirms and submits via TigerBeetle client + Nostr relay.
 
-`grain conduct mmt --npub=<npub> --title=<name> --mint=1000 --policy=... --emit-raw`
+`grain conduct mmt --npub=<npub> --title=<name> --mint=1000 --policy=... --cluster=host:port --relay=wss://node --emit-raw`
 - Non-interactive mode. `--emit-raw` prints the serialized `MMTCurrencyPayload` for piped usage.
+- `--cluster=` can be repeated to list TigerBeetle endpoints; `--relay=` can be repeated for Nostr relays.
+- Without endpoints the stub still performs validation but skips network IO (emits a warning).
+- TigerBank CLI uses `tigerbank_client.zig` to walk endpoints and print deterministic transmission logs until real IO hooks replace the stubs.
 
 ## Consensus Sketch
 - Implement Rotor-style dissemination: each validator relays erasure-coded payload slices.

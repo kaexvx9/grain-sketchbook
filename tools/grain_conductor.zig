@@ -193,12 +193,17 @@ fn run_manifest() !void {
 
 fn run_mmt(allocator: std.mem.Allocator, args: *std.process.ArgIterator) !void {
     const MMTPayload = @import("../src/nostr_mmt.zig");
+    const TigerBank = @import("../src/tigerbank_client.zig");
 
     var npub_hex: ?[]const u8 = null;
     var title: ?[]const u8 = null;
     var emit_raw = false;
     var action: MMTPayload.Action = .{ .mint = 0 };
     var policy = MMTPayload.Policy{ .base_rate_bps = 0, .tax_rate_bps = 0 };
+    var cluster = std.ArrayListUnmanaged(TigerBank.ClusterEndpoint){};
+    var relays = std.ArrayListUnmanaged(TigerBank.RelayEndpoint){};
+    defer cluster.deinit(allocator);
+    defer relays.deinit(allocator);
 
     while (args.next()) |arg| {
         if (std.mem.startsWith(u8, arg, "--npub=")) {
@@ -215,6 +220,19 @@ fn run_mmt(allocator: std.mem.Allocator, args: *std.process.ArgIterator) !void {
             policy.base_rate_bps = try parseI32(arg["--base-rate=".len..]);
         } else if (std.mem.startsWith(u8, arg, "--tax-rate=")) {
             policy.tax_rate_bps = try parseI32(arg["--tax-rate=".len..]);
+        } else if (std.mem.startsWith(u8, arg, "--cluster=")) {
+            const endpoint_slice = arg["--cluster=".len..];
+            const sep = std.mem.indexOfScalar(u8, endpoint_slice, ':') orelse return error.InvalidClusterFormat;
+            const host = try allocator.dupe(u8, endpoint_slice[0..sep]);
+            const port_slice = endpoint_slice[sep + 1 ..];
+            const port = try std.fmt.parseInt(u16, port_slice, 10);
+            try cluster.append(
+                allocator,
+                .{ .host = host, .port = port },
+            );
+        } else if (std.mem.startsWith(u8, arg, "--relay=")) {
+            const url = try allocator.dupe(u8, arg["--relay=".len..]);
+            try relays.append(allocator, .{ .url = url });
         } else {
             return error.UnknownFlag;
         }
@@ -240,7 +258,27 @@ fn run_mmt(allocator: std.mem.Allocator, args: *std.process.ArgIterator) !void {
         defer allocator.free(bytes);
         try std.io.getStdOut().writer().print("raw bytes ({d}): {x}\n", .{ bytes.len, bytes });
     } else {
-        try std.io.getStdOut().writeAll("MMT command captured (no relay submission yet).\n");
+        const client = TigerBank.Client.init(allocator, cluster.items, relays.items);
+        const bytes = try payload.toBytes(allocator);
+        defer allocator.free(bytes);
+        var client_copy = client;
+        const submit_result = client_copy.submitTigerBeetle(bytes);
+        if (submit_result) |_| {} else |err| {
+            if (err == error.NoClusterEndpoints) {
+                try std.io.getStdOut().writeAll("TigerBank: no cluster endpoints; skipped TigerBeetle submission.\n");
+            } else {
+                return err;
+            }
+        }
+        try client_copy.broadcastRelays(bytes);
+        try std.io.getStdOut().writeAll("TigerBank stub submission complete.\n");
+    }
+
+    for (cluster.items) |entry| {
+        allocator.free(entry.host);
+    }
+    for (relays.items) |entry| {
+        allocator.free(entry.url);
     }
 }
 
