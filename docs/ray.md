@@ -218,6 +218,16 @@ V Mainboard](https://frame.work/products/deep-computing-risc-v-mainboard)
 13](https://frame.work/blog/risc-v-mainboard-for-framework-laptop-13-is-
 now-available)
 
+20. **Pre-VPS Queue (Hold Tight for Atlanta)**
+    1. Scaffold `src/kernel/` locally—`main.zig`, `syscall_table.zig`,
+       `devx/abi.zig`—plus `kernel/link.ld` and `scripts/qemu_rv64.sh`
+       so `zig build kernel-rv64` works before the VPS unlocks.
+    2. Journal bootloader research in `docs/boot/notes.md`, capturing the
+       OpenSBI ➝ U-Boot baseline and Zig/Rust payload ambitions.
+    3. Extend `grain conduct` with `make kernel-rv64` / `run kernel-rv64`
+       (stub remote exec until the droplet is live).
+
+
 
 
 

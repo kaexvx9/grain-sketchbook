@@ -88,6 +88,16 @@
 - Reserve `docs/boot/` for bootloader experiments (Zig SBI payloads,
   Rust handoffs) once the vendor firmware exposes stable hooks.
 
+## 13. Pre-VPS Work Queue
+1. Scaffold the kernel tree locally: create `src/kernel/main.zig`,
+   `src/kernel/syscall_table.zig`, `src/kernel/devx/abi.zig`, plus
+   `kernel/link.ld` and `scripts/qemu_rv64.sh` placeholders so
+   `zig build kernel-rv64` compiles ahead of remote access.
+2. Capture bootloader research in `docs/boot/notes.md`, reflecting the
+   OpenSBI ➝ U-Boot baseline and future Zig/Rust payload goals.
+3. Extend `grain conduct` with `make kernel-rv64` and `run kernel-rv64`
+   subcommands (remote runner can be stubbed until the VPS is online).
+
 [^dcroma]: [DeepComputing DC-ROMA RISC-V Mainboard](https://deepcomputing.io/product/dc-roma-risc-v-mainboard/)
 [^framework-mainboard]: [Framework Marketplace – DeepComputing RISC-V Mainboard](https://frame.work/products/deep-computing-risc-v-mainboard)
 [^framework-blog]: [Framework Blog: RISC-V Mainboard for Framework Laptop 13](https://frame.work/blog/risc-v-mainboard-for-framework-laptop-13-is-now-available)
