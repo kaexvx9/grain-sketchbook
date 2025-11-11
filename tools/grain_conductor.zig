@@ -14,7 +14,7 @@ const usage =
     \\  grain conduct edit
     \\  grain conduct make
     \\  grain conduct make kernel-rv64
-    \\  grain conduct run kernel-rv64
+    \\  grain conduct run kernel-rv64 [--gdb]
     \\  grain conduct report kernel-rv64
     \\  grain conduct help
     \\
@@ -95,7 +95,19 @@ pub fn main() !void {
         const maybe_target = args.next();
         if (maybe_target) |target| {
             if (std.mem.eql(u8, target, "kernel-rv64")) {
-                try run_run_kernel_rv64();
+                var gdb_mode = false;
+                while (args.next()) |flag| {
+                    if (std.mem.eql(u8, flag, "--gdb")) {
+                        gdb_mode = true;
+                    } else {
+                        try std.io.getStdErr().writer().print(
+                            "unknown run flag: {s}\n",
+                            .{flag},
+                        );
+                        return error.UnknownFlag;
+                    }
+                }
+                try run_run_kernel_rv64(gdb_mode);
             } else {
                 try std.io.getStdErr().writer().print(
                     "unknown run target: {s}\n",
@@ -218,7 +230,7 @@ fn run_make_kernel_rv64() !void {
     };
 }
 
-fn run_run_kernel_rv64() !void {
+fn run_run_kernel_rv64(gdb_mode: bool) !void {
     const script_path = "scripts/qemu_rv64.sh";
     if (!file_exists(script_path)) {
         try std.io.getStdOut().writeAll(
@@ -274,7 +286,13 @@ fn run_run_kernel_rv64() !void {
     defer log_file.close();
     try log_file.writeAll(captured.items);
 
-    try std.io.getStdOut().writer().print("log saved to {s}\n", .{log_path});
+    const stdout_writer = std.io.getStdOut().writer();
+    try stdout_writer.print("log saved to {s}\n", .{log_path});
+    if (gdb_mode) {
+        try stdout_writer.writeAll(
+            "gdb stub: once remote QEMU exposes port 1234, run scripts/riscv_gdb.sh\n",
+        );
+    }
 }
 
 fn run_report_kernel_rv64() !void {
