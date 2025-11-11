@@ -13,6 +13,8 @@ const usage =
     \\  grain conduct ai [--tool=cursor|claude --arg=\"...\"]
     \\  grain conduct edit
     \\  grain conduct make
+    \\  grain conduct make kernel-rv64
+    \\  grain conduct run kernel-rv64
     \\  grain conduct help
     \\
 ;
@@ -72,9 +74,38 @@ pub fn main() !void {
     } else if (std.mem.eql(u8, subcommand, "cdn")) {
         try run_cdn(allocator, &args);
     } else if (std.mem.eql(u8, subcommand, "make")) {
-        try run_make();
+        const maybe_target = args.next();
+        if (maybe_target) |target| {
+            if (std.mem.eql(u8, target, "kernel-rv64")) {
+                try run_make_kernel_rv64();
+            } else {
+                try std.io.getStdErr().writer().print(
+                    "unknown make target: {s}\n",
+                    .{target},
+                );
+                return error.UnknownSubcommand;
+            }
+        } else {
+            try run_make();
+        }
     } else if (std.mem.eql(u8, subcommand, "ai")) {
         try run_ai(allocator, &args);
+    } else if (std.mem.eql(u8, subcommand, "run")) {
+        const maybe_target = args.next();
+        if (maybe_target) |target| {
+            if (std.mem.eql(u8, target, "kernel-rv64")) {
+                try run_run_kernel_rv64();
+            } else {
+                try std.io.getStdErr().writer().print(
+                    "unknown run target: {s}\n",
+                    .{target},
+                );
+                return error.UnknownSubcommand;
+            }
+        } else {
+            try std.io.getStdErr().writeAll("run requires a target (e.g. kernel-rv64)\n");
+            return error.UnknownSubcommand;
+        }
     } else if (std.mem.eql(u8, subcommand, "help")) {
         try std.io.getStdOut().writeAll(usage);
     } else {
@@ -155,6 +186,38 @@ fn run_make() !void {
     }
 
     try std.io.getStdOut().writeAll("build automation finished.\n");
+}
+
+fn run_make_kernel_rv64() !void {
+    const cmd = &.{ "zig", "build", "kernel-rv64" };
+    spawn_and_log(cmd) catch |err| switch (err) {
+        error.SubprocessFailed => {
+            try std.io.getStdErr().writeAll(
+                "zig build kernel-rv64 failed (target missing or build error); stub run.\n",
+            );
+            return err;
+        },
+        else => return err,
+    };
+}
+
+fn run_run_kernel_rv64() !void {
+    const script_path = "scripts/qemu_rv64.sh";
+    if (!file_exists(script_path)) {
+        try std.io.getStdOut().writeAll(
+            "scripts/qemu_rv64.sh not found; remote execution stub pending VPS approval.\n",
+        );
+        return;
+    }
+    spawn_and_log(&.{script_path}) catch |err| switch (err) {
+        error.SubprocessFailed => {
+            try std.io.getStdErr().writeAll(
+                "qemu_rv64.sh exited with an error; check kernel image and script configuration.\n",
+            );
+            return err;
+        },
+        else => return err,
+    };
 }
 
 fn spawn_and_log(argv: []const []const u8) !void {
