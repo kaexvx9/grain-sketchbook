@@ -8,7 +8,21 @@
 - Extended `grain conduct` with `make kernel-rv64`, `run kernel-rv64`,
   and `report kernel-rv64`; runs capture logs under `logs/kernel/`.
 
-## 2. RISC-V Kernel Airlift
+## 2. Tooling Prep (Waiting for VPS)
+- Draft `scripts/vpn_rsync.sh` to push `xy/` → remote `~/grain-rv64/`
+  with deterministic excludes once the droplet unlocks.
+- Script `scripts/riscv_gdb.sh` for `gdb-multiarch` attach (`target
+  remote :1234`) and document usage in `docs/boot/notes.md`.
+- Add `grain conduct run kernel-rv64 --gdb` wrapper once the remote
+  listener is available (stub locally until the VPS approves).
+
+## 3. Kernel Spine
+- Enrich `_start` with a fake trap handler and panic logger that prints
+  into the boot log so QEMU runs show structure before real drivers land.
+- Wire the syscall table into the stub to prove number/name plumbing.
+- Capture a sample trace under `logs/kernel/boot-simulated.log`.
+
+## 4. Kernel Lab Notebook
 - Stand up the Ubuntu 24.04 VPS, sync via `scripts/vpn_rsync.sh`, and
   emit `out/kernel/grain-rv64.bin` with `zig build kernel-rv64`.
 - Provide `scripts/qemu_rv64.sh` and `scripts/riscv_gdb.sh` for headless
@@ -19,8 +33,6 @@
   emerging for JH7110/Framework boards) and stash GRUB-compatible payload
   experiments in `docs/boot/` [^dcroma] [^framework-mainboard]
   [^framework-blog].
-
-## 3. Kernel Lab Notebook
 - Collect boot traces in `logs/kernel/`, capture crash dumps, and note
   recovery learnings in `docs/boot/notes.md`.
 - Introduce `grain conduct report kernel-rv64` to summarize latest boots.
