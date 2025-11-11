@@ -77,6 +77,25 @@ pub fn build(b: *std.Build) void {
     const run_wrap_docs = b.addRunArtifact(wrap_docs_exe);
     wrap_docs_step.dependOn(&run_wrap_docs.step);
 
+    const kernel_target = std.Target.Query{
+        .cpu_arch = .riscv64,
+        .os_tag = .freestanding,
+        .abi = .none,
+    };
+    const kernel_resolved = b.resolveTargetQuery(kernel_target);
+
+    const kernel_exe = b.addExecutable(.{
+        .name = "grain-rv64",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/kernel/main.zig"),
+            .target = kernel_resolved,
+            .optimize = optimize,
+        }),
+    });
+    const kernel_install = b.addInstallArtifact(kernel_exe, .{});
+    const kernel_step = b.step("kernel-rv64", "Build Grain RISC-V kernel image");
+    kernel_step.dependOn(&kernel_install.step);
+
     const validate_src_exe = b.addExecutable(.{
         .name = "validate_src",
         .root_module = b.createModule(.{
