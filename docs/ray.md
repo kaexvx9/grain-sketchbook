@@ -21,184 +21,102 @@ our
   Tahoe aesthetic, reminding us to keep ethical fashion signal in view
   [^vegan-tiger].
 
-## Spring Plan (Deterministic and Kind)
-1. **Archive Echoes**
-   - Pull lessons from `prototype_old/` and stories from `prototype_older/
-   `.
-2. **Timestamp Glow**
-   - Runtime `Timestamp` structs live in `src/ray.zig`;
-   fuzz tests (an LCG stitched in Zig) ensure the grammar walks safely.
-   - Document results in `tests-experiments/000.md`.
-3. **Prompt Ledger**
-   - `docs/prompts.md` now owns a descending `PROMPTS` array of 
-   `PromptEntry { id, timestamp, content }`.
-   - `latest` points at the newest record for O(1) append joy.
-4. **Thread Weaver**
-   - `tools/thread_slicer.zig` splits `docs/ray.md` into numbered 160-
-   char tweet blocks.
-   - Wired as `zig build thread`.
-5. **GUI & Compositor Study**
-   - Note: Mach engine, zgui, Zig-gamedev, River’s philosophy [^river-
-   overview].
-   - Hammerspoon/QEMU parallels logged in `docs/gui_research.md`.
+## Ray Mission Ladder (Deterministic & Kind)
+1. **Pre-VPS Launchpad**
+   - Scaffold `src/kernel/` (`main.zig`, `syscall_table.zig`,
+     `devx/abi.zig`), `kernel/link.ld`, and `scripts/qemu_rv64.sh` so
+     `zig build kernel-rv64` already compiles.
+   - Journal bootloader research in `docs/boot/notes.md`, tracking the
+     OpenSBI ➝ U-Boot baseline and our Zig/Rust payload ambitions.
+   - Extend `grain conduct` with `make kernel-rv64` / `run kernel-rv64`
+     (stub remote exec until the droplet is live).
+2. **RISC-V Kernel Airlift**
+   - Mirror `docs/plan.md` §12: remote Ubuntu 24.04 host, rsync scripts,
+     and deterministic build steps targeting `out/kernel/grain-rv64.bin`.
+   - QEMU harness (`scripts/qemu_rv64.sh`) plus
+     `scripts/riscv_gdb.sh` keep boots and postmortems reproducible.
+   - Syscall table + safety lattice (`kernel/syscall_table.zig`,
+     guard pages, deterministic allocators, structured crash logs)
+     ensure Zig stdlib and compiler ergonomics land clean.
+   - Boot chain: OpenSBI ➝ U-Boot today, with coreboot + EDK2 ports
+     emerging for JH7110/Framework boards—keep GRUB-friendly payloads
+     and Zig SBI experiments in `docs/boot/` [^dcroma]
+     [^framework-mainboard] [^framework-blog].
+3. **Kernel Lab Notebook**
+   - Route boot traces into `logs/kernel/`, archive crash dumps, and
+     annotate recovery lessons in `docs/boot/notes.md`.
+   - Script `grain conduct report kernel-rv64` to summarize latest boots
+     for Ray acceptance.
+4. **Grain Conductor & Pottery**
+   - `zig build conduct` drives `grain conduct brew|link|manifest|edit|
+     make|ai|contracts|mmt|cdn` with TigerStyle determinism.
+   - Pottery abstractions schedule CDN kilns, ledger mints, and AI
+     copilots while staying within static allocation vows.
+5. **Grain Social Terminal**
+   - Typed Zig arrays represent social data; fuzz 11 random `npub`s per
+     run to stress Nostr relays.
+   - TigerBank flows (`docs/nostr_mmt_tigerbank.md`,
+     `tigerbank_client.zig`, `grain conduct mmt|cdn`) share encoders via
+     `src/contracts.zig` and secrets via `src/grainvault.zig`.
+   - DM interface (`src/dm.zig`) handles X25519 + ChaCha20-Poly1305
+     envelopes; GrainLoop, Graindaemon, GrainBuffer, and GrainLoom stitch
+     UDP events, supervision, and sticky read-only panes.
 6. **Tahoe Sandbox**
-   - Design a self-contained compositor (River ideas, Zig runtime) with 
-   scripted Moonglow keymaps.
-   - Keep every allocation explicit and bounded; static buffers where 
-     possible.
-    - Current placeholder lives in `src/tahoe_window.zig`; next step is
-      replacing stubs with Mach/Metal window glue.
-7. **Grain Social Terminal**
-   - Represent social data as typed Zig arrays (e.g. `[N]ZigTweet`).
-   - Fuzz 11 random `npub`s per run (per 2025 spec) to mimic real relay 
-   chatter.
-   - Bring TigerBank online: `docs/nostr_mmt_tigerbank.md` +
-   `grain conduct mmt`
-     now logs through `tigerbank_client.zig` stubs while we wire the real 
-     IO.
-   - CDN kiln: `grain conduct cdn` emits fixed-size subscription bytes
-     (basic → ultra) for selling Ghostty-ready data bundles.
-   - Shared encoders live in `src/contracts.zig`; `src/nostr_mmt.zig` and
-   `src/tigerbank_cdn.zig` reuse the same settlement buffers while
-   `src/grainvault.zig` supplies overlapping key material.
-   - `src/grain_lattice.zig` freezes the Djinn/Alpenglow DAG spec so 
-   tests,
-   docs, and Cursor prompts all reference the same architecture 
-   blueprint.
-   - Next ridge: upgrade `tigerbank_client.zig` with a transport strategy
-     (debug vs TCP) and surface the selector via `grain conduct`.
-   - DM interface: `src/dm.zig` encrypts direct messages (X25519 +
-     ChaCha20-Poly1305) and tracks conversation state for GUI panes.
-   - GrainLoop: `src/grain_loop.zig` mirrors TigerBeetle's io_uring rigor
-     with a static UDP event queue so musl builds get libuv-
-     like ergonomics.
-   - Graindaemon: `src/graindaemon.zig` channels s6 supervision into a
-     typed state machine that steers the `xy` space via Glow G2 guidance.
-   - GrainBuffer: `src/grain_buffer.zig` keeps command/status regions
-     sticky-read-only à la Matklad’s Emacs insight so Ghostty’s Ray 
-     pane
-     can interweave human + daemon edits without drift [^readonly].
-   - GrainLoom: `src/grain_loom.zig` is our single-threaded Grain network
-     loom—daemon, loop, and buffer stitched together for Ghostty-
-     era app
-     building inspired by Matklad’s vibe terminal [^vibe-terminal].
-  - GrainAurora UI: `src/grain_aurora.zig`, `src/grain_route.zig`, and
-    `src/grain_orchestrator.zig` scaffold the Svelte-like Tahoe GUI with
-    routing, agents, and determinism; roadmap tracked in `docs/plan.md`.
-   - Deterministic recovery: script a single-copy rebuild flow (GrainLoom 
-   +
-     Graindaemon + contracts) so one surviving replica can restore peers
-     without guesswork [^jepsen-tb].
-   - Bounded retries: clients treat transient vs fatal errors explicitly;
-     no infinite retry loops—log, escalate, or halt per Jepsen guidance
+   - Evolve `src/tahoe_window.zig` into a River-inspired compositor with
+     Moonglow keymaps and explicit memory boundaries.
+7. **GUI & Compositor Study**
+   - Keep surveying Mach engine, zgui, Zig-gamedev, River philosophy, and
+     Hammerspoon/QEMU parallels (`docs/gui_research.md`).
+8. **Grain Aurora UI**
+   - `src/grain_aurora.zig`, `src/grain_route.zig`, and
+     `src/grain_orchestrator.zig` deliver deterministic rendering,
+     routing, and agent orchestration; roadmap tracked in `docs/plan.md`.
+   - Deterministic recovery: single-copy rebuild flow (GrainLoom +
+     Graindaemon + contracts) and bounded retries per Jepsen guidance
      [^jepsen-tb].
-  - RISC-V kernel link: draft a Zig syscall interface binding our future
-    Grain monolith kernel to GrainLoom userspace so Ray terminals stay
-    portable across bare-metal deployments.
-
-8. **Onboarding & Care**
-   - Encourage paper-written passphrases like `this-password-im-typing-
-   Now-9`.
-   - Walk users through Cursor Ultra sign-up, GitHub + Gmail +
-   iCloud creation, 2FA with Google Authenticator.
-   - Suggest community apprenticeships for those budgeting for the tools.
-   - Fresh macOS setup: install Xcode CLT (`xcode-select --install`),
-   Homebrew, `git`, and GitHub CLI (`brew install git gh`), then install
-   Cursor.
-  - Install Ghostty (`brew install ghostty` or `zig build -Drelease-
-    safe`) and wire configs from `xy/dotfiles/tahoe/ghostty/`.
-   - Mirror `{teamtreasure02}/grainvault`, export `CURSOR_API_TOKEN`,
-   `CLAUDE_CODE_API_TOKEN`, and let `grain conduct ai` spawn Cursor /
-   Claude copilots via Ghostty tabs—these same keys encrypt settlement
-   envelopes before they leave the workstation.
-   - Track dependencies in `Brewfile`; run `brew bundle install --cleanup
-    --file=Brewfile` so every machine converges on the same toolset.
-  - Publish the 12-part documentary series now archived at
-    `prototype_old/docs/design/` and keep each chapter wrapped at
-    73 columns.
-9. **Poetry & Waterbending**
-   - Sprinkle ASCII art of bending motions in comments.
-   - Quote Helen Atthowe’s *The Ecological Farm* and gentle lines from 
-   modern lyric journals—PG-rated, searching, sincere.
-10. **Delta Checks**
-    - Keep `docs/ray.md` current, `docs/prompts.md` in sync,
-    and tests green (`zig fmt`, `zig build test`).
-    - Sync `ray_160.md` after each meaningful edit via `zig build 
-    thread`.
-11. **Rollback Ritual**
-    - `RayTraining` mirrors a nixos-rebuild rollback: switch disciplines, 
-    revert, and reapply earth safely.
-    - CLI demo in `ray_app.zig` now walks air → water → rollback → 
-    earth → rollback → earth.
-12. **TigerStyle Naming Pass**
-    - Rename public functions to snake_case so `zig build validate` 
-    passes
-    grainvalidate checks.
-    - Extract shared RNG helpers so no function drifts past 70 bonded 
-    lines.
-13. **Grain Foundations Alignment**
-    - Study `vendor/grain-foundations` to adopt `GrainDevName` and
-    `GrainSpace` for workspace discovery.
-    - Document how the foundation modules shape Ray’s shared structs.
-14. **Grainstore Mirrors**
-    - Adapt grainmirror’s layout for `grainstore/{platform}/{org}/
-    {repo}`
-      under `xy/grainstore`.
-    - Populate static Zig manifest entries (`src/grain_manifest.zig`)
-      later castable over the wire instead of relying on JSON manifests.
-15. **Grain Conductor CLI**
-    - Implement `zig build conduct` to expose `grain conduct brew|link|
-      manifest|edit|make`.
-    - `conduct make` runs the deterministic Zig build suite (tests,
-      wrap-docs, validate, thread) so we keep TigerStyle guarantees.
-    - Ship `zig build graindaemon -- --watch xy` to inspect daemon state
-      transitions and allocator ceilings from the command line.
-16. **Grain Pottery & Vault**
-    - Shape Grain Pottery abstractions to schedule CDN kilns, ledger
-      mints, and AI copilots without breaking static allocation vows.
-    - `src/grainvault.zig` reads secrets from the mirrored GrainVault
-      repository so no keys land in-tree.
-17. **Grain Lattice + Matklad Loop**
-   - `src/grain_lattice.zig` documents the Solana Alpenglow-inspired DAG +
-   virtual voting flow (codename Grain Lattice).
-   - Matklad fuzzing now spans `contracts.zig`, `nostr_mmt.zig`,
-   `tigerbank_cdn.zig`, `grain_lattice.zig`, and RNG utilities via `zig 
-   build test` and `tests-experiments/000.md`.
-   - Future: expose `grain conduct contracts` to sample envelopes and 
-   feed
-   Cursor/Claude scripts through GrainVault credentials for encrypted
-   end-to-end rehearsals.
-18. **Documentary Chronicle**
-    - Maintain `docs/doc.md` as the living single-file handbook while the
-      original 12-part arc rests in `prototype_old/docs/design/` for
-      archeology.
-
-19. **RISC-V Kernel Airlift**
-    - Mirror `docs/plan.md` §12: remote Ubuntu 24.04 host,
-      and rsync scripts that keep `xy/` synced to `~/grain-rv64/`.
-    - `zig build kernel-rv64` emits a static `riscv64-freestanding`
-      monolith via `kernel/link.ld` and drops the image at
-      `out/kernel/grain-rv64.bin`.
-    - QEMU harness (`scripts/qemu_rv64.sh`) boots the binary headless
-      with serial + telnet monitor; `scripts/riscv_gdb.sh` attaches
-      `gdb-multiarch` for postmortem replay.
-    - Syscall table lives in `kernel/syscall_table.zig`, shaped so Zig
-      stdlib calls (`std.fs`, `std.time`, `std.os`) map cleanly onto
-      bounded kernel services with explicit errno handoffs.
-    - Safety lattice toggles guard pages, deterministic allocators, and
-      structured crash reporters so developers read kernel panics as
-      easily as Zig stack traces.
-    - `kernel/devx/abi.zig` codifies startup glue so the compiler’s
-      freestanding runtime can share `_start`, panic handlers, and dbg
-      writers without drift.
-    - `grain conduct make kernel-rv64` (build + rsync) and
-      `grain conduct run kernel-rv64` (SSH + QEMU) enforce TigerStyle
-      command determinism while Ray logs each boot trace under
-      `logs/kernel/`.
-    - Boot chain assumptions: OpenSBI ➝ U-Boot today, with coreboot +
-      EDK2 ports emerging for JH7110/Framework-class boards; keep
-      GRUB-compatible images handy while we prototype Zig SBI payloads
-      in `docs/boot/` [^dcroma][^framework-mainboard][^framework-blog].
+9. **Onboarding & Care**
+   - Guard passwords (`this-password-im-typing-Now-9`), cover Cursor
+     Ultra, GitHub/Gmail/iCloud onboarding, 2FA, and Ghostty setup.
+   - Mirror GrainVault, export API tokens, and run `brew bundle` for
+     convergent tooling.
+10. **Poetry & Waterbending**
+    - Lace ASCII bending art and Helen Atthowe quotes throughout code and
+      docs—emo, PG, sincere.
+11. **Thread Weaver**
+    - `tools/thread_slicer.zig` + `zig build thread` keep `docs/ray.md`
+      mirrored as `docs/ray_160.md` tweet threads with 160-char bounds.
+12. **Prompt Ledger**
+    - `docs/prompts.md` holds descending `PROMPTS`; new entries append at
+      index 0 for O(1) joy.
+13. **Timestamp Glow**
+    - `src/ray.zig` keeps runtime timestamps validated by fuzz tests,
+      with findings logged in `tests-experiments/000.md`.
+14. **Archive Echoes**
+    - Maintain the archive rotation (`prototype_oldest/`,
+      `prototype_older/`, `prototype_old/`) so each climb stays 
+      auditable.
+15. **Delta Checks**
+    - Keep Ray, prompts, outputs, and tests aligned (`zig build test`,
+      `zig build wrap-docs`).
+16. **Rollback Ritual**
+    - `RayTraining` mirrors nixos-style rollback; `ray_app.zig` demos air
+      → water → rollback → earth.
+17. **TigerStyle Naming Pass**
+    - Enforce snake_case APIs, 70-line function caps, and shared RNG
+      helpers for grainvalidate compliance.
+18. **Grain Foundations Alignment**
+    - Study `vendor/grain-foundations` (`GrainDevName`, `GrainSpace`) and
+      document how they shape Ray structs.
+19. **Grainstore Mirrors**
+    - Maintain `grainstore/{platform}/{org}/{repo}` layout and static Zig
+      manifests (`src/grain_manifest.zig`).
+20. **Grain Lattice + Matklad Loop**
+    - `src/grain_lattice.zig` captures the Djinn/Alpenglow DAG; Matklad
+      fuzzing covers contracts, TigerBank modules, lattice, and RNG.
+      Future: `grain conduct contracts` for encrypted rehearsal flows.
+21. **Documentary Chronicle**
+    - `docs/doc.md` remains the living handbook while the 12-part arc
+      rests in `prototype_old/docs/design/`.
 
 [^readonly]: [Matklad, "Readonly Characters Are a Big Deal"](https://
 matklad.github.io/2025/11/10/readonly-characters.html)
@@ -218,14 +136,7 @@ V Mainboard](https://frame.work/products/deep-computing-risc-v-mainboard)
 13](https://frame.work/blog/risc-v-mainboard-for-framework-laptop-13-is-
 now-available)
 
-20. **Pre-VPS Queue (Hold Tight for Atlanta)**
-    1. Scaffold `src/kernel/` locally—`main.zig`, `syscall_table.zig`,
-       `devx/abi.zig`—plus `kernel/link.ld` and `scripts/qemu_rv64.sh`
-       so `zig build kernel-rv64` works before the VPS unlocks.
-    2. Journal bootloader research in `docs/boot/notes.md`, capturing the
-       OpenSBI ➝ U-Boot baseline and Zig/Rust payload ambitions.
-    3. Extend `grain conduct` with `make kernel-rv64` / `run kernel-rv64`
-       (stub remote exec until the droplet is live).
+
 
 
 

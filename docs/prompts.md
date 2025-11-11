@@ -8,6 +8,80 @@ pub const PromptEntry = struct {
 };
 
 pub const PROMPTS = [_]PromptEntry{
+    .{ .id = 80, .timestamp = null, .content =
+        \\begin that
+    },
+    .{ .id = 79, .timestamp = null, .content =
+        \\would you like to rewrite or refactor our Ray and Plan with our 
+        latest chart course from beginning to end starting now ,
+        not losing any of the long-term goals of these existing documents 
+        ?
+    },
+    .{ .id = 78, .timestamp = null, .content =
+        \\should our Ray encapsulate our entire mission from beginning to 
+        end always no matter if we have completed the steps or not?  or 
+        should we only look ahead now towards the future,
+        i.e. should Step 1 always be the first step we ever did ?  or 
+        Should Step 1 always be the step we are planning to take next ?
+        \\
+        effectively I want Ray and Plan to be synonyms ,
+        it's nice to have two words for the same thing with different 
+        emotional human semantic meaning  ('accept the Ray' ,
+        'implement the Plan' )
+    },
+    .{ .id = 77, .timestamp = null, .content =
+        \\great.
+        \\
+        what is Step 1 currently in the Ray, and does it align with the 
+        steps we just generated ?  what is the right order for our 
+        project engineering procedure ?
+    },
+    .{ .id = 76, .timestamp = null, .content =
+        \\let's rename move our entire `prototype_older` to 
+        `prototype_oldest` , rename move `prototype_old` to a new freed 
+        `prototype_older` , and then copy our entire root project 
+        structure maintaining its exact form and all files recursively in 
+        a new freed `prototype_old` .
+        \\
+        \\
+        This will checkmark our work, and we will begin more work after 
+        this 
+    },
+    .{ .id = 75, .timestamp = null, .content =
+        \\Okay I have to take a break from this VPS work until I hear 
+        back from them .  I requested a server in Atlanta  (Republican 
+        governor) 
+        \\
+        \
+        what should we work on next 
+    },
+    .{ .id = 74, .timestamp = null, .content =
+        \\Great I submitted that
+        \\
+        \
+
+I'm requesting the Premium Intel choice wth NVMe (Matklad would approve) ,
+would I want either 1x SSD 2x SSD or 5x SSD ?
+    },
+    .{ .id = 73, .timestamp = null, .content =
+        \\```
+        \\\nRequest access
+
+Please explain, in a few sentences, how you plan to use higher tier 
+Droplets. The more specific you are, the faster we can respond.
+        \\\n        ```
+        \\
+        \
+Can you write a message for me to submit to Digital Ocean here ?
+    },
+    .{ .id = 72, .timestamp = null, .content =
+        \\is it easy to upgrade the size from the first to the second if 
+        and when we need to ?
+    },
+    .{ .id = 71, .timestamp = null, .content =
+        \\what size VPS do you recommend ?  I am thinking DigitalOcean to 
+        keep it simple ,  for Ubuntu 24.04 LTS
+    },
     .{ .id = 69, .timestamp = null, .content =
         \\let's infuse these choices in that exact order into our Ray and 
         Plan then accept the implementation of the Ray 
@@ -513,6 +587,8 @@ pub const PROMPTS = [_]PromptEntry{
 pub const PROMPT_COUNT = PROMPTS.len;
 pub const latest = PROMPTS[0];
 ```
+
+
 
 
 
