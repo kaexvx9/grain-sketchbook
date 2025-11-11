@@ -8,14 +8,10 @@
 - Extended `grain conduct` with `make kernel-rv64`, `run kernel-rv64`,
   and `report kernel-rv64`; runs capture logs under `logs/kernel/`.
 
-## 2. Tooling Prep (done, awaiting VPS / Framework 13)
-- `scripts/vpn_rsync.sh` stages repo syncs to `~/grain-rv64/` while
-  skipping `.git/`, `zig-out/`, `logs/kernel/`, and `prototypes/`.
-- `scripts/riscv_gdb.sh` primes `gdb-multiarch` to attach with
-  `target remote :1234`; instructions captured in `docs/boot/notes.md`.
-- `grain conduct run kernel-rv64 --gdb` toggles the helper locally and
-  reminds us to attach once the droplet—or the Framework 13 RISC-V board—
-  exposes the port.
+## 2. Tooling Prep (paused)
+- QEMU + rsync scripts are staged, but kernel work is on hold until the
+  Framework 13 RISC-V board or VPS is ready; focus shifts to macOS Tahoe
+  Aurora tasks for now.
 
 ## 3. Kernel Spine
 - Enrich `_start` with a fake trap handler and panic logger that prints
@@ -23,12 +19,8 @@
 - Wire the syscall table into the stub to prove number/name plumbing.
 - Capture a sample trace under `logs/kernel/boot-simulated.log`.
 
-## 4. Kernel Lab Notebook
-- Use the Framework 16 (Ubuntu) to run `zig build kernel-rv64` + QEMU
-  locally while hardware + VPS approvals are pending; once the Framework
-  13 RISC-V board lands, repeat on-device.
-- Provide `scripts/qemu_rv64.sh` and `scripts/riscv_gdb.sh` for headless
-  boots and postmortems.
+- QEMU testing deferred: record outstanding scripts in `docs/boot/notes.md`
+  and resume once hardware/approvals arrive.
 - Harden kernel ergonomics for Zig stdlib: explicit syscall table,
   guard-page toggles, deterministic allocators, structured crash dumps.
 - Track firmware expectations (OpenSBI ➝ U-Boot today, coreboot + EDK2

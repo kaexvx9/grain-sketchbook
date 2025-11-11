@@ -5,8 +5,8 @@
    native macOS window (traffic lights + menu) while keeping Zig memory
    explicit. Also document that the same Aurora engine compiles without
    Cocoa on Framework 13/16 and other hosts.
-2. Use the Framework 16 (Ubuntu) for QEMU testing until the Framework 13
-   RISC-V mainboard arrives, then repeat on-device; VPS becomes optional.
+2. Defer QEMU testing until Framework 13 or VPS is ready; meanwhile keep
+   notes in `docs/boot/notes.md` and focus on macOS Tahoe Aurora work.
 3. Implement Grain Pottery kiln orchestration and GrainVault secrets
    wiring.
 4. Harden Graindaemon transport backends (TCP, debug) and expose CLI

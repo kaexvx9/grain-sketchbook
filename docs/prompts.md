@@ -8,6 +8,10 @@ pub const PromptEntry = struct {
 };
 
 pub const PROMPTS = [_]PromptEntry{
+    .{ .id = 87, .timestamp = null, .content =
+        \\accept a reorientation of our zig and ray for current work via 
+        macos tahoe postponing qemu work 
+    },
     .{ .id = 86, .timestamp = null, .content =
         \\implement 
     },
@@ -605,6 +609,7 @@ Can you write a message for me to submit to Digital Ocean here ?
 pub const PROMPT_COUNT = PROMPTS.len;
 pub const latest = PROMPTS[0];
 ```
+
 
 
 

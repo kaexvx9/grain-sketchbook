@@ -7,14 +7,10 @@
 - Future experiments: author Zig SBI payloads and Rust hand-off stages.
   Track prototypes here before wiring them into `grain conduct`.
 
-## Waiting-for-VPS Toolkit
-- `scripts/vpn_rsync.sh user@remote` syncs the repo to `~/grain-rv64/`
-  while skipping `.git/`, `zig-out/`, `logs/kernel/`, and local
-  prototypes. Run after each commit once the tunnel is live.
-- `scripts/qemu_rv64.sh` remains the local harness; `grain conduct run
-  kernel-rv64 --gdb` logs output and reminds us to attach the debugger.
-- `scripts/riscv_gdb.sh` primes `gdb-multiarch` with `zig-out/bin/grain-rv64`
-  and `target remote :1234`. Use once the remote QEMU exposes the port.
+## Kernel Toolkit Status
+- QEMU, rsync, and gdb scripts are staged; pause until a Framework 13
+  RISC-V board or VPS is live. Focus on macOS Tahoe Aurora work in the
+  interim.
 
 ## TODO
 - flesh out trap/interrupt logging in `src/kernel/main.zig` before
