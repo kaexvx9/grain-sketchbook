@@ -15,6 +15,7 @@ const usage =
     \\  grain conduct make
     \\  grain conduct make kernel-rv64
     \\  grain conduct run kernel-rv64
+    \\  grain conduct report kernel-rv64
     \\  grain conduct help
     \\
 ;
@@ -104,6 +105,22 @@ pub fn main() !void {
             }
         } else {
             try std.io.getStdErr().writeAll("run requires a target (e.g. kernel-rv64)\n");
+            return error.UnknownSubcommand;
+        }
+    } else if (std.mem.eql(u8, subcommand, "report")) {
+        const maybe_target = args.next();
+        if (maybe_target) |target| {
+            if (std.mem.eql(u8, target, "kernel-rv64")) {
+                try run_report_kernel_rv64();
+            } else {
+                try std.io.getStdErr().writer().print(
+                    "unknown report target: {s}\n",
+                    .{target},
+                );
+                return error.UnknownSubcommand;
+            }
+        } else {
+            try std.io.getStdErr().writeAll("report requires a target (e.g. kernel-rv64)\n");
             return error.UnknownSubcommand;
         }
     } else if (std.mem.eql(u8, subcommand, "help")) {
@@ -209,15 +226,96 @@ fn run_run_kernel_rv64() !void {
         );
         return;
     }
-    spawn_and_log(&.{script_path}) catch |err| switch (err) {
-        error.SubprocessFailed => {
-            try std.io.getStdErr().writeAll(
-                "qemu_rv64.sh exited with an error; check kernel image and script configuration.\n",
-            );
-            return err;
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+    const allocator = gpa.allocator();
+
+    var process = std.ChildProcess.init(&.{script_path}, allocator);
+    process.stdin_behavior = .Inherit;
+    process.stdout_behavior = .Pipe;
+    process.stderr_behavior = .Inherit;
+    defer process.deinit();
+
+    try process.spawn();
+
+    const stdout_pipe = process.stdout orelse return error.InvalidPipe;
+    var reader = stdout_pipe.reader();
+    var buf: [4096]u8 = undefined;
+    var captured = std.ArrayList(u8).init(allocator);
+    defer captured.deinit();
+
+    const out_writer = std.io.getStdOut().writer();
+
+    while (true) {
+        const read_len = reader.read(&buf) catch |err| switch (err) {
+            error.EndOfStream => 0,
+            else => return err,
+        };
+        if (read_len == 0) break;
+        try captured.appendSlice(buf[0..read_len]);
+        try out_writer.writeAll(buf[0..read_len]);
+    }
+
+    const status = try process.wait();
+    if (status != 0) {
+        try std.io.getStdErr().writeAll(
+            "qemu_rv64.sh exited with an error; check kernel image and script configuration.\n",
+        );
+        return error.SubprocessFailed;
+    }
+
+    const logs_dir = "logs/kernel";
+    try std.fs.cwd().makePath(logs_dir);
+    const timestamp = std.time.timestamp();
+    const log_path = try std.fmt.allocPrint(allocator, "{s}/boot-{d}.log", .{ logs_dir, timestamp });
+    defer allocator.free(log_path);
+
+    const log_file = try std.fs.cwd().createFile(log_path, .{});
+    defer log_file.close();
+    try log_file.writeAll(captured.items);
+
+    try std.io.getStdOut().writer().print("log saved to {s}\n", .{log_path});
+}
+
+fn run_report_kernel_rv64() !void {
+    const logs_dir = "logs/kernel";
+    var dir = std.fs.cwd().openDir(logs_dir, .{ .iterate = true }) catch |err| switch (err) {
+        error.FileNotFound => {
+            try std.io.getStdOut().writeAll("no kernel logs yet. run `grain conduct run kernel-rv64` first.\n");
+            return;
         },
         else => return err,
     };
+    defer dir.close();
+
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+    const allocator = gpa.allocator();
+
+    var latest_name: ?[]const u8 = null;
+    var iterator = dir.iterate();
+    while (iterator.next() catch null) |entry| {
+        if (entry.kind == .File) {
+            if (latest_name == null or std.mem.lessThan(u8, latest_name.?, entry.name)) {
+                if (latest_name) |old| allocator.free(old);
+                latest_name = try allocator.dupe(u8, entry.name);
+            }
+        }
+    }
+
+    if (latest_name == null) {
+        try std.io.getStdOut().writeAll("no kernel logs yet. run `grain conduct run kernel-rv64` first.\n");
+        return;
+    }
+
+    const file_path = try std.fmt.allocPrint(allocator, "{s}/{s}", .{ logs_dir, latest_name.? });
+    defer allocator.free(file_path);
+
+    const data = try std.fs.cwd().readFileAlloc(allocator, file_path, std.math.maxInt(usize));
+    defer allocator.free(data);
+
+    try std.io.getStdOut().writer().print("latest kernel log: {s}\n", .{file_path});
+    try std.io.getStdOut().writeAll(data);
 }
 
 fn spawn_and_log(argv: []const []const u8) !void {
