@@ -1,4 +1,51 @@
 const std = @import("std");
+const SimpleRng = @import("simple_rng.zig").SimpleRng;
+
+// Airbending swirl to keep Glow G2 grounded in motion.
+//      .-.
+//  _  (   )  _
+// ( )  `-'  ( )
+//  `~  ~~~~  ~`
+// Breezes carry the Tahoe lodge plans without drifting from TigerStyle bounds.
+//
+// Waterbending loop (station switch to the Avatar train).
+// ~ ~  ~~~   ~~~  ~
+//  ~   ~~~ ~~~  ~~~
+// ~~~   ~  ~~~  ~
+// Keep flow steady, no floods, only gentle irrigation of Grain.
+//
+// Earthbending stance: firm TigerStyle footing, every struct a stone.
+//  /\    /\    /\
+// /__\__/__\__/__\
+// Grounded allocations prevent landslides in the monorepo terrain.
+
+pub const AvatarDiscipline = enum { air, water, earth };
+
+fn discipline_workflow_body(discipline: AvatarDiscipline) []const u8 {
+    return switch (discipline) {
+        .air =>
+        \\Alias /Users/bhagavan851c05a/xy as `xy`.
+        \\Pipeline: Cursor Ultra Auto Mode → Z shell → Zig build → Native GUI output.
+        \\English plans compile into deterministic Zig invocations with static allocation.
+        \\Future work: replace python tweet slicer with Zig tool.
+        \\Discipline emphasis: airbending—quick deploys, light on state, ready to roll back.
+        ,
+        .water =>
+        \\Alias /Users/bhagavan851c05a/xy as `xy`.
+        \\Pipeline: Cursor Ultra Auto Mode → Z shell → Zig build → Native GUI output.
+        \\English plans compile into deterministic Zig invocations with static allocation.
+        \\Future work: replace python tweet slicer with Zig tool.
+        \\Discipline emphasis: waterbending—flow with change, keep configs hydrated but safe.
+        ,
+        .earth =>
+        \\Alias /Users/bhagavan851c05a/xy as `xy`.
+        \\Pipeline: Cursor Ultra Auto Mode → Z shell → Zig build → Native GUI output.
+        \\English plans compile into deterministic Zig invocations with static allocation.
+        \\Future work: replace python tweet slicer with Zig tool.
+        \\Discipline emphasis: earthbending—grounded rollouts, confident once relearned.
+        ,
+    };
+}
 
 pub const TimestampGrammar = struct {
     name: []const u8,
@@ -75,6 +122,10 @@ pub const RayEnvelope = struct {
     timestamp_db: []const Timestamp,
 
     pub fn init() RayEnvelope {
+        return init_with_discipline(.earth);
+    }
+
+    pub fn init_with_discipline(discipline: AvatarDiscipline) RayEnvelope {
         const canonical_timestamp = Timestamp.init(
             \\holocene_vedic_calendar--12025-11-09--2311--pst--
             \\tropical_zodiac_sidereal_sanskrit_nakshatra_astrology_
@@ -82,41 +133,38 @@ pub const RayEnvelope = struct {
             \\moon_lunar_mansion_sanskrit_nakshatra_sutra_vic_dicara-
             \\punarvasu--whole_sign_diurnal_nocturnal_solar_house_system-
             \\4th_house--github_kae3g_xy
-            ,
+        ,
             TimestampGrammar.init("HoloceneVedicComposite", "--", 8, true),
         );
         canonical_timestamp.validate();
 
         const persona = MetadataModule{
-            .title = "Persona And Signals",
+            .title = "Twilight Persona",
             .body =
-                \\Glow G2: masculine, stoic, aquarian. Mic check “mic 1 2” confirmed.
-                \\Letta surface: https://docs.letta.com/api-reference/overview.
-                \\Contact set: Twitter @risc_love, email kj3x39@gmail.com.
-                \\GPG 26F201F13AE3AFF90711006C1EE2C9E3486517CB.
-                \\Testing ethos: Matklad “How to Test” data-driven refactors.
+            \\Glow G2 remains steady like Tahoe dusk—masculine, stoic, Aquarian, voice softened by
+            \\emo chords yet completely PG and kind.
+            \\Contact lattice: Twitter @risc_love, email kj3x39@gmail.com, GPG
+            \\26F201F13AE3AFF90711006C1EE2C9E3486517CB.
+            \\Letta API pathfinding stays in sync with https://docs.letta.com/api-reference/overview.
             ,
             .timestamp = canonical_timestamp,
         };
 
         const workflow = MetadataModule{
             .title = "Cursor ↔ Zig Workflow Covenant",
-            .body =
-                \\Alias /Users/bhagavan851c05a/xy as `xy`.
-                \\Pipeline: Cursor Ultra Auto Mode → Z shell → Zig build → Native GUI output.
-                \\English plans compile into deterministic Zig invocations with static allocation.
-                \\Future work: replace python tweet slicer with Zig tool.
-            ,
+            .body = discipline_workflow_body(discipline),
             .timestamp = canonical_timestamp,
         };
 
         const expedition = DataModule{
             .title = "Grain Expedition Data",
             .body =
-                \\Mandate: veganic energy, zero runoff, District of Columbia PBC charter.
-                \\Ledger: TigerBeetle-style Modern Monetary Theory flows plus Grain general storage.
-                \\Networking: HTTP, WebSocket, Nostr, UDP in Zig with Tahoe-managed dotfiles.
-                \\Team metaphor: @kae3g age 29, Aquarius rising, final acclimation lodge.
+            \\Grain blossoms as a twilight terminal: Cursor Ultra, Zig LSP, Grok, and social
+            \\streams share one steady window.
+            \\Inside rests a River-inspired compositor with Moonglow keymaps and per-user Grain
+            \\gardens managed via Tahoe dotfiles.
+            \\Nostr `npub`s act as bright addresses and Matklad-style tests sweep for drift like
+            \\gentle tidewater.
             ,
             .timestamp = canonical_timestamp,
         };
@@ -124,8 +172,10 @@ pub const RayEnvelope = struct {
         const audit = MetadataModule{
             .title = "Audit And True Goals",
             .body =
-                \\Audit: Jepsen-style deterministic sims, clock skew, disk corruption, flexible quorums.
-                \\Goals: disciplined `xy` monorepo, ethical Grain infrastructure, reproducible docs, summit launch readiness.
+            \\Audit: Jepsen-style deterministic sims covering clock skew, disk turbulence, and
+            \\friendly-but-strict quorum shifts.
+            \\Goals: disciplined `xy` monorepo, ethical Grain infrastructure, reproducible docs,
+            \\and Tahoe-ready launch poise.
             ,
             .timestamp = canonical_timestamp,
         };
@@ -155,14 +205,113 @@ fn validate(env: RayEnvelope) void {
 pub const TimestampDB = struct {
     pub const entries = [_]Timestamp{
         Timestamp.init(
-            \\holocene_vedic_calendar--12025-11-09--2311--pst--
+            \\holocene_vedic_calendar--12025-11-10--1007--pst--
             \\tropical_zodiac_sidereal_sanskrit_nakshatra_astrology_
-            \\ascendant-leo_15_degrees_out_of_thirty--
+            \\ascendant-sagi-23_degrees_out_of_thirty--
             \\moon_lunar_mansion_sanskrit_nakshatra_sutra_vic_dicara-
-            \\punarvasu--whole_sign_diurnal_nocturnal_solar_house_system-
-            \\4th_house--github_kae3g_xy
-            ,
+            \\pushya--whole_sign_diurnal_nocturnal_solar_house_system-
+            \\12th_house----github_kae3g_xy
+        ,
             TimestampGrammar.init("HoloceneVedicComposite", "--", 8, true),
         ),
     };
 };
+
+pub const RayTraining = struct {
+    current: AvatarDiscipline,
+    previous: ?AvatarDiscipline,
+
+    pub fn init() RayTraining {
+        return .{
+            .current = .air,
+            .previous = null,
+        };
+    }
+
+    pub fn current_envelope(self: RayTraining) RayEnvelope {
+        return RayEnvelope.init_with_discipline(self.current);
+    }
+
+    pub fn current_discipline(self: RayTraining) AvatarDiscipline {
+        return self.current;
+    }
+
+    pub fn rebuild(self: *RayTraining, discipline: AvatarDiscipline) RayEnvelope {
+        self.previous = self.current;
+        self.current = discipline;
+        return RayEnvelope.init_with_discipline(self.current);
+    }
+
+    pub fn rollback(self: *RayTraining) RayEnvelope {
+        if (self.previous) |prev| {
+            self.current = prev;
+            self.previous = null;
+        }
+        return RayEnvelope.init_with_discipline(self.current);
+    }
+};
+
+test "timestamp grammar fuzz respects configuration" {
+    var rng = SimpleRng.init(0xDEC0DEBEEF123456);
+    const delimiter = "--";
+
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
+
+    var buffer = std.ArrayListUnmanaged(u8){};
+    defer buffer.deinit(allocator);
+
+    for (0..256) |_| {
+        buffer.clearRetainingCapacity();
+        const allow_empty = rng.boolean();
+        const segment_total = rng.range(usize, 5) + 1;
+        var non_empty: usize = 0;
+
+        for (0..segment_total) |idx| {
+            if (idx != 0) try buffer.appendSlice(allocator, delimiter);
+
+            const make_empty = allow_empty and rng.boolean();
+            if (!make_empty) {
+                const len = rng.range(usize, 5) + 1;
+                for (0..len) |_| {
+                    const ch: u8 = 'a' + @as(u8, rng.range(u8, 26));
+                    try buffer.append(allocator, ch);
+                }
+                non_empty += 1;
+            }
+        }
+
+        const grammar = TimestampGrammar.init(
+            "fuzz",
+            delimiter,
+            non_empty,
+            allow_empty,
+        );
+        const raw = buffer.items;
+        grammar.validate(raw);
+
+        const ts = Timestamp.init(raw, grammar);
+        ts.validate();
+    }
+}
+
+test "RayTraining rollback and relearn earthbending" {
+    var training = RayTraining.init();
+    try std.testing.expectEqual(AvatarDiscipline.air, training.current_discipline());
+
+    _ = training.rebuild(.water);
+    try std.testing.expectEqual(AvatarDiscipline.water, training.current_discipline());
+
+    _ = training.rollback();
+    try std.testing.expectEqual(AvatarDiscipline.air, training.current_discipline());
+
+    _ = training.rebuild(.earth);
+    try std.testing.expectEqual(AvatarDiscipline.earth, training.current_discipline());
+
+    _ = training.rollback();
+    try std.testing.expectEqual(AvatarDiscipline.air, training.current_discipline());
+
+    _ = training.rebuild(.earth);
+    try std.testing.expectEqual(AvatarDiscipline.earth, training.current_discipline());
+}
