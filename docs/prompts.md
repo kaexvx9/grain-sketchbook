@@ -8,6 +8,11 @@ pub const PromptEntry = struct {
 };
 
 pub const PROMPTS = [_]PromptEntry{
+    .{ .id = 64, .timestamp = null, .content =
+        \\we need unit tests and refactoring of our outputs.md pipeline 
+        showing that the array is
+        \\descending not ascending ,  please check the file now
+    },
     .{ .id = 63, .timestamp = null, .content =
         \\write this to a `docs/plan.md` file and implement the plan
     },
@@ -480,6 +485,8 @@ pub const PROMPTS = [_]PromptEntry{
 pub const PROMPT_COUNT = PROMPTS.len;
 pub const latest = PROMPTS[0];
 ```
+
+
 
 
 

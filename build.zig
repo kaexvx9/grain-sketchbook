@@ -232,6 +232,14 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
+    const outputs_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("tests/unit/outputs_desc_order.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    });
+
     const graindaemon_cli = b.addExecutable(.{
         .name = "graindaemon",
         .root_module = b.createModule(.{
@@ -290,4 +298,6 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_orchestrator_tests.step);
     const run_riscv_tests = b.addRunArtifact(riscv_tests);
     test_step.dependOn(&run_riscv_tests.step);
+    const run_outputs_tests = b.addRunArtifact(outputs_tests);
+    test_step.dependOn(&run_outputs_tests.step);
 }
