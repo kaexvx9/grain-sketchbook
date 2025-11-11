@@ -265,6 +265,20 @@ pub fn build(b: *std.Build) void {
     run_aurora.addArg("sample.aurora");
     aurora_assets_step.dependOn(&run_aurora.step);
 
+    const extract_outputs = b.addExecutable(.{
+        .name = "extract_outputs",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("tools/extract_outputs.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    });
+    b.installArtifact(extract_outputs);
+    const extract_step = b.step("extract-outputs", "Count '**Cursor**' markers in export");
+    const run_extract = b.addRunArtifact(extract_outputs);
+    run_extract.addArg("--help");
+    extract_step.dependOn(&run_extract.step);
+
     const test_step = b.step("test", "Run Ray plan tests");
     const run_ray_tests = b.addRunArtifact(ray_tests);
     test_step.dependOn(&run_ray_tests.step);
