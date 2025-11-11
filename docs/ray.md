@@ -35,19 +35,21 @@ our
    - `scripts/vpn_rsync.sh` syncs `xy/` → `~/grain-rv64/
    ` with deterministic
      excludes ready for the droplet.
-   - `scripts/riscv_gdb.sh` launches `gdb-multiarch` with the kernel 
-   image
-     and `target remote :1234`; notes live in `docs/boot/notes.md`.
+   - `scripts/riscv_gdb.sh` launches `gdb-multiarch` with the kernel
+     image and `target remote :1234`; notes live in `docs/boot/notes.md`.
    - `grain conduct run kernel-rv64 --gdb` now toggles the helper locally
-     and reminds us to attach once the VPS exposes the port.
+     and reminds us to attach once the VPS or Framework 13 board exposes
+     the port.
 3. **Kernel Spine**
    - Flesh `_start` with a trap handler, panic logger, and syscall-table
      wiring so QEMU logs show structure even before the VPS boots.
    - Capture an example trace under `logs/kernel/boot-simulated.log` and
      note expectations in `docs/boot/notes.md`.
 4. **RISC-V Kernel Airlift**
-   - Mirror `docs/plan.md` §12: remote Ubuntu 24.04 host, rsync scripts,
-     and deterministic build steps targeting `out/kernel/grain-rv64.bin`.
+   - Mirror `docs/plan.md` §12: remote Ubuntu 24.04 host (or Framework 
+   16
+     Ubuntu for local QEMU) and deterministic build steps targeting
+     `out/kernel/grain-rv64.bin`.
    - QEMU harness (`scripts/qemu_rv64.sh`) plus
      `scripts/riscv_gdb.sh` keep boots and postmortems reproducible.
    - Syscall table + safety lattice (`kernel/syscall_table.zig`,
@@ -155,6 +157,7 @@ V Mainboard](https://frame.work/products/deep-computing-risc-v-mainboard)
 [^framework-blog]: [Framework Blog: RISC-V Mainboard for Framework Laptop 
 13](https://frame.work/blog/risc-v-mainboard-for-framework-laptop-13-is-
 now-available)
+
 
 
 

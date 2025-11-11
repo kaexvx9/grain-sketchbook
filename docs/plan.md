@@ -8,13 +8,14 @@
 - Extended `grain conduct` with `make kernel-rv64`, `run kernel-rv64`,
   and `report kernel-rv64`; runs capture logs under `logs/kernel/`.
 
-## 2. Tooling Prep (done, awaiting VPS)
+## 2. Tooling Prep (done, awaiting VPS / Framework 13)
 - `scripts/vpn_rsync.sh` stages repo syncs to `~/grain-rv64/` while
   skipping `.git/`, `zig-out/`, `logs/kernel/`, and `prototypes/`.
 - `scripts/riscv_gdb.sh` primes `gdb-multiarch` to attach with
   `target remote :1234`; instructions captured in `docs/boot/notes.md`.
 - `grain conduct run kernel-rv64 --gdb` toggles the helper locally and
-  reminds us to attach once the droplet exposes the port.
+  reminds us to attach once the droplet—or the Framework 13 RISC-V board—
+  exposes the port.
 
 ## 3. Kernel Spine
 - Enrich `_start` with a fake trap handler and panic logger that prints
@@ -23,8 +24,9 @@
 - Capture a sample trace under `logs/kernel/boot-simulated.log`.
 
 ## 4. Kernel Lab Notebook
-- Stand up the Ubuntu 24.04 VPS, sync via `scripts/vpn_rsync.sh`, and
-  emit `out/kernel/grain-rv64.bin` with `zig build kernel-rv64`.
+- Use the Framework 16 (Ubuntu) to run `zig build kernel-rv64` + QEMU
+  locally while hardware + VPS approvals are pending; once the Framework
+  13 RISC-V board lands, repeat on-device.
 - Provide `scripts/qemu_rv64.sh` and `scripts/riscv_gdb.sh` for headless
   boots and postmortems.
 - Harden kernel ergonomics for Zig stdlib: explicit syscall table,
