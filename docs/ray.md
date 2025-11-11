@@ -69,9 +69,10 @@ our
      copilots while staying within static allocation vows.
 7. **Tahoe Sandbox**
    - Evolve `src/tahoe_window.zig` into a River-inspired compositor with
-     Moonglow keymaps, explicit memory boundaries, and native macOS 
-     window
-     chrome (traffic lights + Aurora menu bar).
+     Moonglow keymaps, explicit memory boundaries, and a thin Cocoa 
+     bridge
+     so we obtain native traffic lights + Aurora menu bar without leaking
+     dynamic allocation into the Zig runtime.
 8. **GUI & Compositor Study**
    - Keep surveying Mach engine, zgui, Zig-gamedev, River philosophy, and
      Hammerspoon/QEMU parallels (`docs/gui_research.md`).
@@ -154,6 +155,7 @@ V Mainboard](https://frame.work/products/deep-computing-risc-v-mainboard)
 [^framework-blog]: [Framework Blog: RISC-V Mainboard for Framework Laptop 
 13](https://frame.work/blog/risc-v-mainboard-for-framework-laptop-13-is-
 now-available)
+
 
 
 

@@ -79,7 +79,9 @@ leveraging Zig GUIs (Mach, zgui, zig-gamedev).
   validation.
 
 ## 12 Roadmap
-1. Replace Tahoe Sandbox stubs with Mach/Metal windowing.
+1. Replace Tahoe Sandbox stubs with a thin Cocoa shim that gives Aurora a
+   native macOS window (traffic lights + menu) while keeping Zig memory
+   explicit.
 2. Implement Grain Pottery kiln orchestration and GrainVault secrets
    wiring.
 3. Harden Graindaemon transport backends (TCP, debug) and expose CLI

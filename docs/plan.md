@@ -45,8 +45,9 @@
 
 ## 5. Tahoe Sandbox
 - Grow `src/tahoe_window.zig` into a River-inspired compositor with
-  Moonglow keymaps, explicit allocation bounds, and native macOS window
-  chrome (traffic lights, menu bar shell).
+  Moonglow keymaps, explicit allocation bounds, and a thin Cocoa bridge
+  that provides native macOS window chrome (traffic lights + Aurora menu)
+  while keeping Zig memory management explicit.
 
 ## 6. GUI & Compositor Study
 - Keep researching Mach engine, zgui, Zig-gamedev, River philosophy, and
