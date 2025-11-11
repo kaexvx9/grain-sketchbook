@@ -23,6 +23,35 @@ Matklad-style data-driven tests keep refactors fearless. I wrap prose to
 - **Grainmirror Pattern Study** — I am adopting the
   `grainstore/{platform}/{org}/{repo}` hierarchy while retiring any
   Rust/Steel automation in favor of Zig tools.
+- **Ghostty Terminal Cadence** — Ghostty (Zig terminal) is our daily
+  glasshouse; install via Brew or source, theme it Vegan Tiger, and launch
+  `grain conduct ai` sessions inside.
+- **GrainVault Secrets** — Secrets live outside the repo. `src/grainvault.zig`
+  expects `CURSOR_API_TOKEN` and `CLAUDE_CODE_API_TOKEN` from the mirrored
+  `{teamtreasure02}/grainvault` store.
+- **Settlement Contracts** — `src/contracts.zig` collapses TigerBank MMT/CDN
+  encoders and optional inventory/sales/payroll ledgers into one static
+  interface.
+- **Grain Lattice Spec** — `src/grain_lattice.zig` freezes Djinn’s DAG
+  architecture for deterministic referencing and Matklad-style tests.
+- **Documentary Chronicle** — `docs/doc-series/` hosts a 12-part series
+  tracking intro → roadmap; each chapter stays under 73 columns so it
+  flows with the rest of the plan.
+- **Direct Messages Module** — `src/dm.zig` couples X25519 key exchange
+  with ChaCha20-Poly1305 to power Nostr-style DMs in the upcoming GUI.
+- **GrainBuffer** — `src/grain_buffer.zig` brings sticky read-only spans
+  to the Ray terminal so command/status behave like Matklad’s Emacs
+  dream.
+- **GrainLoom** — `src/grain_loom.zig` is the general Grain network loom
+  linking daemon, loop, and buffer for single-threaded builds.
+- **Deterministic Recovery** — storyboard one-survivor rebuild workflows
+  in Grain Conductor to match Jepsen-grade safety guarantees.
+- **Bounded Retries** — clients must cap retries and surface faults; no
+  infinite loops against TigerBank services.
+- **Aurora Framework** — Svelte-like GrainAurora/Route/Orchestrator
+  scaffolding captured in `docs/plan.md` with a stub preprocessor tool.
+- **Unified Docs** — `docs/doc.md` folds the narrative into one file while
+  the original series lives at `prototype_old/docs/design/` for history.
 - **Declarative Brewfile Setup** — Inspired by Matthias Portzel’s
   Homebrew workflow, I plan to codify macOS dependencies in a Brewfile so
   the bootstrap remains deterministic and TigerStyle-clear.
@@ -63,6 +92,12 @@ Matklad-style data-driven tests keep refactors fearless. I wrap prose to
 - Flesh out the new `TahoeSandbox` stub (`src/tahoe_window.zig`) into a real Mach/Metal window.
 - Shape the TigerBank Nostr + TigerBeetle payment protocol (`docs/nostr_mmt_tigerbank.md`)
   and fold its CLI stubs into `grain conduct`, now driven by `tigerbank_client.zig`.
+- Finalize CDN bundle automation via `grain conduct cdn` with static buffer
+  encoders so Ghostty panes can purchase bandwidth kiln-by-kiln.
+- Harden `grain conduct ai` so Cursor CLI / Claude Code spawn through
+  Ghostty tabs with GrainVault-fed keys.
+- Hook Matklad fuzzers across `contracts.zig`, `grain_lattice.zig`, and the
+  CLI to keep the enveloped codecs honest.
 - Prototype `grain conduct` commands (e.g. `conduct brew`, `conduct link`,
   `conduct edit`) so interactive prompts and scripted modes both follow
   TigerStyle expectations.

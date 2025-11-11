@@ -9,6 +9,8 @@ const usage =
     \\  grain conduct link [--manifest=path.json]
     \\  grain conduct manifest
     \\  grain conduct mmt [--npub=hex --title=name --emit-raw --mint=amount --burn=amount]
+    \\  grain conduct cdn [--npub=hex --tier=basic|pro|premier|ultra --start=unix --seats=count --autopay --emit-raw]
+    \\  grain conduct ai [--tool=cursor|claude --arg=\"...\"]
     \\  grain conduct edit
     \\  grain conduct make
     \\  grain conduct help
@@ -67,8 +69,12 @@ pub fn main() !void {
         try run_manifest();
     } else if (std.mem.eql(u8, subcommand, "mmt")) {
         try run_mmt(allocator, &args);
+    } else if (std.mem.eql(u8, subcommand, "cdn")) {
+        try run_cdn(allocator, &args);
     } else if (std.mem.eql(u8, subcommand, "make")) {
         try run_make();
+    } else if (std.mem.eql(u8, subcommand, "ai")) {
+        try run_ai(allocator, &args);
     } else if (std.mem.eql(u8, subcommand, "help")) {
         try std.io.getStdOut().writeAll(usage);
     } else {
@@ -200,10 +206,10 @@ fn run_mmt(allocator: std.mem.Allocator, args: *std.process.ArgIterator) !void {
     var emit_raw = false;
     var action: MMTPayload.Action = .{ .mint = 0 };
     var policy = MMTPayload.Policy{ .base_rate_bps = 0, .tax_rate_bps = 0 };
-    var cluster = std.ArrayListUnmanaged(TigerBank.ClusterEndpoint){};
-    var relays = std.ArrayListUnmanaged(TigerBank.RelayEndpoint){};
-    defer cluster.deinit(allocator);
-    defer relays.deinit(allocator);
+    var cluster_storage: [8]TigerBank.ClusterEndpoint = undefined;
+    var cluster_len: usize = 0;
+    var relay_storage: [8]TigerBank.RelayEndpoint = undefined;
+    var relay_len: usize = 0;
 
     while (args.next()) |arg| {
         if (std.mem.startsWith(u8, arg, "--npub=")) {
@@ -223,16 +229,18 @@ fn run_mmt(allocator: std.mem.Allocator, args: *std.process.ArgIterator) !void {
         } else if (std.mem.startsWith(u8, arg, "--cluster=")) {
             const endpoint_slice = arg["--cluster=".len..];
             const sep = std.mem.indexOfScalar(u8, endpoint_slice, ':') orelse return error.InvalidClusterFormat;
-            const host = try allocator.dupe(u8, endpoint_slice[0..sep]);
             const port_slice = endpoint_slice[sep + 1 ..];
             const port = try std.fmt.parseInt(u16, port_slice, 10);
-            try cluster.append(
-                allocator,
-                .{ .host = host, .port = port },
-            );
+            if (cluster_len >= cluster_storage.len) return error.TooManyClusterEndpoints;
+            cluster_storage[cluster_len] = .{
+                .host = endpoint_slice[0..sep],
+                .port = port,
+            };
+            cluster_len += 1;
         } else if (std.mem.startsWith(u8, arg, "--relay=")) {
-            const url = try allocator.dupe(u8, arg["--relay=".len..]);
-            try relays.append(allocator, .{ .url = url });
+            if (relay_len >= relay_storage.len) return error.TooManyRelays;
+            relay_storage[relay_len] = .{ .url = arg["--relay=".len..] };
+            relay_len += 1;
         } else {
             return error.UnknownFlag;
         }
@@ -253,16 +261,15 @@ fn run_mmt(allocator: std.mem.Allocator, args: *std.process.ArgIterator) !void {
         .action = action,
     };
 
+    var buffer: [MMTPayload.MMTCurrencyPayload.max_encoded_len]u8 = undefined;
+    const encoded = try payload.encode(&buffer);
+
     if (emit_raw) {
-        const bytes = try payload.toBytes(allocator);
-        defer allocator.free(bytes);
-        try std.io.getStdOut().writer().print("raw bytes ({d}): {x}\n", .{ bytes.len, bytes });
+        try std.io.getStdOut().writer().print("raw bytes ({d}): {x}\n", .{ encoded.len, encoded });
     } else {
-        const client = TigerBank.Client.init(allocator, cluster.items, relays.items);
-        const bytes = try payload.toBytes(allocator);
-        defer allocator.free(bytes);
+        const client = TigerBank.Client.init(allocator, cluster_storage[0..cluster_len], relay_storage[0..relay_len]);
         var client_copy = client;
-        const submit_result = client_copy.submitTigerBeetle(bytes);
+        const submit_result = client_copy.submitTigerBeetle(encoded);
         if (submit_result) |_| {} else |err| {
             if (err == error.NoClusterEndpoints) {
                 try std.io.getStdOut().writeAll("TigerBank: no cluster endpoints; skipped TigerBeetle submission.\n");
@@ -270,16 +277,149 @@ fn run_mmt(allocator: std.mem.Allocator, args: *std.process.ArgIterator) !void {
                 return err;
             }
         }
-        try client_copy.broadcastRelays(bytes);
+        try client_copy.broadcastRelays(encoded);
         try std.io.getStdOut().writeAll("TigerBank stub submission complete.\n");
     }
+}
 
-    for (cluster.items) |entry| {
-        allocator.free(entry.host);
+fn run_cdn(allocator: std.mem.Allocator, args: *std.process.ArgIterator) !void {
+    const TigerBank = @import("../src/tigerbank_client.zig");
+    const CDN = @import("../src/tigerbank_cdn.zig");
+
+    var npub_hex: ?[]const u8 = null;
+    var tier_str: ?[]const u8 = null;
+    var start_timestamp: ?u64 = null;
+    var seats: u16 = 1;
+    var autopay = false;
+    var emit_raw = false;
+
+    var cluster_storage: [8]TigerBank.ClusterEndpoint = undefined;
+    var cluster_len: usize = 0;
+    var relay_storage: [8]TigerBank.RelayEndpoint = undefined;
+    var relay_len: usize = 0;
+
+    while (args.next()) |arg| {
+        if (std.mem.startsWith(u8, arg, "--npub=")) {
+            npub_hex = arg["--npub=".len..];
+        } else if (std.mem.startsWith(u8, arg, "--tier=")) {
+            tier_str = arg["--tier=".len..];
+        } else if (std.mem.startsWith(u8, arg, "--start=")) {
+            start_timestamp = try std.fmt.parseInt(u64, arg["--start=".len..], 10);
+        } else if (std.mem.startsWith(u8, arg, "--seats=")) {
+            seats = try std.fmt.parseInt(u16, arg["--seats=".len..], 10);
+        } else if (std.mem.eql(u8, arg, "--autopay")) {
+            autopay = true;
+        } else if (std.mem.eql(u8, arg, "--emit-raw")) {
+            emit_raw = true;
+        } else if (std.mem.startsWith(u8, arg, "--cluster=")) {
+            const endpoint_slice = arg["--cluster=".len..];
+            const sep = std.mem.indexOfScalar(u8, endpoint_slice, ':') orelse return error.InvalidClusterFormat;
+            const port_slice = endpoint_slice[sep + 1 ..];
+            const port = try std.fmt.parseInt(u16, port_slice, 10);
+            if (cluster_len >= cluster_storage.len) return error.TooManyClusterEndpoints;
+            cluster_storage[cluster_len] = .{
+                .host = endpoint_slice[0..sep],
+                .port = port,
+            };
+            cluster_len += 1;
+        } else if (std.mem.startsWith(u8, arg, "--relay=")) {
+            if (relay_len >= relay_storage.len) return error.TooManyRelays;
+            relay_storage[relay_len] = .{ .url = arg["--relay=".len..] };
+            relay_len += 1;
+        } else {
+            return error.UnknownFlag;
+        }
     }
-    for (relays.items) |entry| {
-        allocator.free(entry.url);
+
+    if (npub_hex == null or tier_str == null or start_timestamp == null) {
+        try std.io.getStdOut().writeAll(
+            "CDN mode requires --npub, --tier, and --start (unix timestamp).\n",
+        );
+        return;
     }
+
+    var npub = try parseNpubHex(npub_hex.?);
+    defer allocator.free(npub);
+
+    const tier = try parseTier(tier_str.?);
+
+    var request = CDN.SubscriptionRequest{
+        .tier = tier,
+        .subscriber_npub = npub[0..32].*,
+        .start_timestamp_seconds = start_timestamp.?,
+        .seats = seats,
+        .autopay_enabled = autopay,
+    };
+
+    var buffer: [CDN.SubscriptionRequest.encoded_len]u8 = undefined;
+    const encoded = try request.encode(&buffer);
+
+    if (emit_raw) {
+        try std.io.getStdOut().writer().print("raw bytes ({d}): {x}\n", .{ encoded.len, encoded });
+        return;
+    }
+
+    const client = TigerBank.Client.init(allocator, cluster_storage[0..cluster_len], relay_storage[0..relay_len]);
+    var client_copy = client;
+    const submit_result = client_copy.submitTigerBeetle(encoded);
+    if (submit_result) |_| {} else |err| {
+        if (err == error.NoClusterEndpoints) {
+            try std.io.getStdOut().writeAll("TigerBank: no cluster endpoints; skipped TigerBeetle submission.\n");
+        } else {
+            return err;
+        }
+    }
+    try client_copy.broadcastRelays(encoded);
+    try std.io.getStdOut().writeAll("TigerBank CDN stub submission complete.\n");
+}
+
+fn run_ai(allocator: std.mem.Allocator, args: *std.process.ArgIterator) !void {
+    const GrainVault = @import("../src/grainvault.zig");
+
+    var tool: ?[]const u8 = null;
+    var extras = std.ArrayListUnmanaged([]const u8){};
+    defer extras.deinit(allocator);
+
+    while (args.next()) |arg| {
+        if (std.mem.startsWith(u8, arg, "--tool=")) {
+            tool = arg["--tool=".len..];
+        } else if (std.mem.startsWith(u8, arg, "--arg=")) {
+            try extras.append(allocator, arg["--arg=".len..]);
+        } else {
+            return error.UnknownFlag;
+        }
+    }
+
+    if (tool == null) {
+        try std.io.getStdOut().writeAll("AI mode requires --tool=cursor or --tool=claude.\n");
+        return;
+    }
+
+    var vault = GrainVault.Vault.initFromEnv(allocator) catch |err| switch (err) {
+        GrainVault.MissingSecret => {
+            try std.io.getStdOut().writeAll(
+                "GrainVault secrets missing. Mirror `{teamtreasure02}/grainvault` and export CURSOR_API_TOKEN / CLAUDE_CODE_API_TOKEN.\n",
+            );
+            return;
+        },
+        else => return err,
+    };
+    defer vault.deinit(allocator);
+
+    const extras_slice = try extras.toOwnedSlice(allocator);
+    defer allocator.free(extras_slice);
+
+    var argv: []const []const u8 = switch (tool.?) {
+        "cursor" => try vault.cursorCommandArgs(extras_slice, allocator),
+        "claude" => try vault.claudeCommandArgs(extras_slice, allocator),
+        else => {
+            try std.io.getStdOut().writeAll("Unknown tool. Choose cursor or claude.\n");
+            return;
+        },
+    };
+    defer allocator.free(argv);
+
+    try spawn_and_log(argv);
 }
 
 fn parseU128(slice: []const u8) !u128 {
@@ -300,4 +440,13 @@ fn parseNpubHex(slice: []const u8) ![]u8 {
         bytes[i] = try std.fmt.parseInt(u8, slice[i * 2 .. i * 2 + 2], 16);
     }
     return bytes;
+}
+
+fn parseTier(raw: []const u8) !@import("../src/tigerbank_cdn.zig").Tier {
+    const CDN = @import("../src/tigerbank_cdn.zig");
+    if (std.mem.eql(u8, raw, "basic")) return CDN.Tier.basic;
+    if (std.mem.eql(u8, raw, "pro")) return CDN.Tier.pro;
+    if (std.mem.eql(u8, raw, "premier")) return CDN.Tier.premier;
+    if (std.mem.eql(u8, raw, "ultra")) return CDN.Tier.ultra;
+    return error.InvalidTier;
 }

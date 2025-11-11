@@ -37,6 +37,51 @@ pub const OUTPUTS = [_]OutputEntry{
             \\Extended TigerBank: added `tigerbank_client.zig`, enhanced `grain conduct mmt` with cluster
             \\and relay flags, refreshed docs, and regenerated ray threads for the new submission flow.
     },
+    .{
+        .id = 4,
+        .timestamp = null,
+        .content =
+            \\Completed recursion iteration 0: overhauled raw-byte encoders (MMT + CDN), added Ghostty
+            \\/ GrainVault automation via `grain conduct ai`, documented Ghostty setup, updated Ray docs,
+            \\ran wrap/test/thread/validate, and set the recursion counter to 1.
+    },
+    .{
+        .id = 5,
+        .timestamp = null,
+        .content =
+            \\Processed the contracts/grainvault alignment: refreshed Ray + Continuum plans with Grain
+            \\Lattice references, noted Matklad coverage, logged prompts/outputs, and prepared the next
+            \\recursion loop with shared settlement codecs and cursor TODO cadence.
+    },
+    .{
+        .id = 6,
+        .timestamp = null,
+        .content =
+            \\Authored a 12-part documentary series in `docs/doc-series/`, covering intro, architecture,
+            \\use cases, manuals, prompt & ASCII libraries, testing, GUI plans, and the roadmap; wrapped
+            \\each file and logged the new prompt entry.
+    },
+    .{
+        .id = 7,
+        .timestamp = null,
+        .content =
+            \\Implemented `src/dm.zig` (X25519 + ChaCha20-Poly1305), added tests, updated Ray and
+            \\documentary notes, and noted the upcoming transport work—GUI ready for DM flows.
+    },
+    .{
+        .id = 8,
+        .timestamp = null,
+        .content =
+            \\Named the GrainLoom framework, wired Graindaemon CLI + read-only buffers, merged the
+            \\doc-series into `docs/doc.md`, and tightened Jepsen-aligned recovery + retry guidance.
+    },
+    .{
+        .id = 9,
+        .timestamp = null,
+        .content =
+            \\Drafted `docs/plan.md`, scaffolded GrainAurora/Route/Orchestrator modules, added the
+            \\Aurora preprocessor stub, and linked RISC-V syscalls plus Tahoe docs to the new plan.
+    },
 };
 
 pub const OUTPUT_COUNT = OUTPUTS.len;

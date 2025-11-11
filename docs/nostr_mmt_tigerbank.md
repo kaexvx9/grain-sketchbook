@@ -28,10 +28,12 @@ When broadcasting currency operations in non-interactive CLI mode, a typed paylo
 
 ```zig
 pub const MMTCurrencyPayload = struct {
-    npub: [32]u8,              // binary Nostr public key
-    title: []const u8,         // UTF-8 user currency title
-    policy: Policy,            // interest + tax rules
-    action: Action,            // supply adjustment or loan/tax event
+    npub: [32]u8,
+    title: []const u8,
+    policy: Policy,
+    action: Action,
+    pub const max_title_len: usize = 96;
+    pub fn encode(self: MMTCurrencyPayload, buffer: []u8) ![]const u8;
 };
 
 pub const Policy = struct {
@@ -53,20 +55,59 @@ pub const LoanTerms = struct {
 };
 ```
 
-This payload can be serialized to raw bytes for relay transmission or TigerBeetle posting.
+Payloads now encode into stack-local fixed buffers (`max_encoded_len = 192` bytes) to honor
+TigerStyle’s single-thread determinism and grainwrap/grainvalidate limits. Titles longer than
+96 bytes are rejected at the CLI boundary.
 
 ## CLI Workflow
-`grain conduct mmt` (interactive)
-- Prompts for Nostr npub (paste or fetch from config).
-- Prompts for currency title and policy parameters.
-- Offers options: mint, burn, loan, collect tax.
-- Confirms and submits via TigerBeetle client + Nostr relay.
+- `grain conduct mmt` (interactive) retains the staged prompts for npub, title, policy, and
+  actions. The non-interactive path consolidates to stack buffers:
 
-`grain conduct mmt --npub=<npub> --title=<name> --mint=1000 --policy=... --cluster=host:port --relay=wss://node --emit-raw`
-- Non-interactive mode. `--emit-raw` prints the serialized `MMTCurrencyPayload` for piped usage.
-- `--cluster=` can be repeated to list TigerBeetle endpoints; `--relay=` can be repeated for Nostr relays.
-- Without endpoints the stub still performs validation but skips network IO (emits a warning).
-- TigerBank CLI uses `tigerbank_client.zig` to walk endpoints and print deterministic transmission logs until real IO hooks replace the stubs.
+```
+grain conduct mmt \
+  --npub=<npub_hex> \
+  --title=<name> \
+  --mint=1000 \
+  --cluster=host:port \
+  --relay=wss://node \
+  --emit-raw
+```
+
+- `--cluster=` and `--relay=` can repeat up to eight entries each; any overflow trips an explicit
+  `TooManyClusterEndpoints`/`TooManyRelays` error.
+- `--emit-raw` prints the packed bytes without contacting TigerBeetle.
+- Without endpoints the stub validates, warns, and returns.
+- `grain conduct cdn` mirrors the behaviour for TigerBank CDN bundles:
+
+```
+grain conduct cdn \
+  --npub=<npub_hex> \
+  --tier=premier \
+  --start=1700000000 \
+  --seats=4 \
+  --autopay \
+  --cluster=host:port \
+  --relay=wss://node
+```
+
+- `tigerbank_cdn.zig` defines the 32-byte npub + 12-byte metadata layout (fixed 44 bytes) and
+  enforces autopay flags for subscription automation.
+- Both commands route through `tigerbank_client.zig`, which still logs deterministic messages until
+  the real network plumbing (TigerBeetle RPC / Nostr POST) is grafted in.
+- Shared codecs now live in `src/contracts.zig`; both CLI paths alias
+  `SettlementContracts` so optional inventory/sales/payroll ledgers can
+  reuse the same buffers.
+- Architecture overview recorded in `src/grain_lattice.zig` for tests and
+  documentation introspection.
+- Encryption: `src/grainvault.zig` provides Cursor/Claude API keys—the same
+  secrets sign and encrypt settlement envelopes before they leave Ghostty.
+
+## AI & CLI Automation
+- `grain conduct ai` loads API secrets from `grainvault.zig` (mirrored from
+  `{teamtreasure02}/grainvault`) via the `CURSOR_API_TOKEN` and `CLAUDE_CODE_API_TOKEN` environment
+  variables, then spawns either Cursor CLI or Claude Code with static argument lists.
+- Secrets are never embedded in the repo; the stub exits with `MissingSecret` if the environment
+  has not been initialised.
 
 ## Consensus Sketch
 - Implement Rotor-style dissemination: each validator relays erasure-coded payload slices.
@@ -85,6 +126,8 @@ This payload can be serialized to raw bytes for relay transmission or TigerBeetl
 - Integrate with GUI TahoeSandbox for visual dashboards.
 - Extend CLI to broadcast to multiple relays simultaneously.
 - Formal verification of interest/tax smart contracts.
+- Wire TigerBank CDN bundles into the Grain Pottery abstraction so CDN “kilns” can be scheduled
+  alongside currency issuance tasks.
 
 [^alpenglow]: Quentin Kniep, Kobi Sliwinski, Roger Wattenhofer, “Alpenglow: A New Consensus for Solana,” Anza Technology Blog, 19 May 2025. <https://www.anza.xyz/blog/alpenglow-a-new-consensus-for-solana>
 

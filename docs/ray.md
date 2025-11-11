@@ -56,19 +56,66 @@ our
    `grain conduct mmt`
      now logs through `tigerbank_client.zig` stubs while we wire the real 
      IO.
+   - CDN kiln: `grain conduct cdn` emits fixed-size subscription bytes
+     (basic → ultra) for selling Ghostty-ready data bundles.
+   - Shared encoders live in `src/contracts.zig`; `src/nostr_mmt.zig` and
+   `src/tigerbank_cdn.zig` reuse the same settlement buffers while
+   `src/grainvault.zig` supplies overlapping key material.
+   - `src/grain_lattice.zig` freezes the Djinn/Alpenglow DAG spec so 
+   tests,
+   docs, and Cursor prompts all reference the same architecture 
+   blueprint.
+   - Next ridge: upgrade `tigerbank_client.zig` with a transport strategy
+     (debug vs TCP) and surface the selector via `grain conduct`.
+   - DM interface: `src/dm.zig` encrypts direct messages (X25519 +
+     ChaCha20-Poly1305) and tracks conversation state for GUI panes.
+   - GrainLoop: `src/grain_loop.zig` mirrors TigerBeetle's io_uring rigor
+     with a static UDP event queue so musl builds get libuv-
+     like ergonomics.
+   - Graindaemon: `src/graindaemon.zig` channels s6 supervision into a
+     typed state machine that steers the `xy` space via Glow G2 guidance.
+   - GrainBuffer: `src/grain_buffer.zig` keeps command/status regions
+     sticky-read-only à la Matklad’s Emacs insight so Ghostty’s Ray 
+     pane
+     can interweave human + daemon edits without drift [^readonly].
+   - GrainLoom: `src/grain_loom.zig` is our single-threaded Grain network
+     loom—daemon, loop, and buffer stitched together for Ghostty-
+     era app
+     building inspired by Matklad’s vibe terminal [^vibe-terminal].
+  - GrainAurora UI: `src/grain_aurora.zig`, `src/grain_route.zig`, and
+    `src/grain_orchestrator.zig` scaffold the Svelte-like Tahoe GUI with
+    routing, agents, and determinism; roadmap tracked in `docs/plan.md`.
+   - Deterministic recovery: script a single-copy rebuild flow (GrainLoom 
+   +
+     Graindaemon + contracts) so one surviving replica can restore peers
+     without guesswork [^jepsen-tb].
+   - Bounded retries: clients treat transient vs fatal errors explicitly;
+     no infinite retry loops—log, escalate, or halt per Jepsen guidance
+     [^jepsen-tb].
+  - RISC-V kernel link: draft a Zig syscall interface binding our future
+    Grain monolith kernel to GrainLoom userspace so Ray terminals stay
+    portable across bare-metal deployments.
+
 8. **Onboarding & Care**
    - Encourage paper-written passphrases like `this-password-im-typing-
    Now-9`.
    - Walk users through Cursor Ultra sign-up, GitHub + Gmail +
    iCloud creation, 2FA with Google Authenticator.
    - Suggest community apprenticeships for those budgeting for the tools.
-    - Fresh macOS setup: install Xcode CLT (`xcode-select --install`),
-      Homebrew, `git`, and GitHub CLI (`brew install git gh`),
-      then install
-      Cursor.
-    - Track dependencies in `Brewfile`; run `brew bundle install --
-    cleanup
-      --file=Brewfile` so every machine converges on the same toolset.
+   - Fresh macOS setup: install Xcode CLT (`xcode-select --install`),
+   Homebrew, `git`, and GitHub CLI (`brew install git gh`), then install
+   Cursor.
+  - Install Ghostty (`brew install ghostty` or `zig build -Drelease-
+    safe`) and wire configs from `xy/dotfiles/tahoe/ghostty/`.
+   - Mirror `{teamtreasure02}/grainvault`, export `CURSOR_API_TOKEN`,
+   `CLAUDE_CODE_API_TOKEN`, and let `grain conduct ai` spawn Cursor /
+   Claude copilots via Ghostty tabs—these same keys encrypt settlement
+   envelopes before they leave the workstation.
+   - Track dependencies in `Brewfile`; run `brew bundle install --cleanup
+    --file=Brewfile` so every machine converges on the same toolset.
+  - Publish the 12-part documentary series now archived at
+    `prototype_old/docs/design/` and keep each chapter wrapped at
+    73 columns.
 9. **Poetry & Waterbending**
    - Sprinkle ASCII art of bending motions in comments.
    - Quote Helen Atthowe’s *The Ecological Farm* and gentle lines from 
@@ -104,128 +151,38 @@ our
       manifest|edit|make`.
     - `conduct make` runs the deterministic Zig build suite (tests,
       wrap-docs, validate, thread) so we keep TigerStyle guarantees.
+    - Ship `zig build graindaemon -- --watch xy` to inspect daemon state
+      transitions and allocator ceilings from the command line.
+16. **Grain Pottery & Vault**
+    - Shape Grain Pottery abstractions to schedule CDN kilns, ledger
+      mints, and AI copilots without breaking static allocation vows.
+    - `src/grainvault.zig` reads secrets from the mirrored GrainVault
+      repository so no keys land in-tree.
+17. **Grain Lattice + Matklad Loop**
+   - `src/grain_lattice.zig` documents the Solana Alpenglow-inspired DAG +
+   virtual voting flow (codename Grain Lattice).
+   - Matklad fuzzing now spans `contracts.zig`, `nostr_mmt.zig`,
+   `tigerbank_cdn.zig`, `grain_lattice.zig`, and RNG utilities via `zig 
+   build test` and `tests-experiments/000.md`.
+   - Future: expose `grain conduct contracts` to sample envelopes and 
+   feed
+   Cursor/Claude scripts through GrainVault credentials for encrypted
+   end-to-end rehearsals.
+18. **Documentary Chronicle**
+    - Maintain `docs/doc.md` as the living single-file handbook while the
+      original 12-part arc rests in `prototype_old/docs/design/` for
+      archeology.
 
-## Immediate TODO
-- [x] Rehydrate source snippets from archives.
-- [x] Wire runtime timestamps + fuzz tests.
-- [x] Capture prompts in append-only ledger.
-- [x] Summarize GUI/compositor research.
-- [x] Rebuild `src/ray.zig` / `src/ray_app.zig` for the new blueprint.
-- [x] Craft thread slicer + build step.
-- [x] Launch Matklad-style fuzzing.
-
-Glow G2 whispers, “We’ll keep the circuits gentle, the tests 
-steadfast, and the users warm.”  
-The Tahoe sky agrees.
-
-[^river-overview]: River README outlining dynamic tiling goals and Zig 
-0.15 toolchain (Codeberg, 2025-08-30). <https://codeberg.org/river/river>
-[^vegan-tiger]: Vegan Tiger Instagram profile showcasing South Korean
-ethical streetwear. <http://instagram.com/vegan_tiger>
-# Ray Dossier — TigerStyle Reset
-
-We cleared the previous prototype into `prototype_old/` and reopened the 
-climb with TigerBeetle’s
-style principles front and center. Safety first, then performance,
-then developer experience.
-
-## Immediate Targets
-- Define the `[2 | 1 | 1]` metadata–data–metadata envelope directly 
-in Zig.
-- Keep all strings bounded or document when runtime slices are required.
-- Replace the Python tweet slicer with a future Zig tool per the zero-
-dependency goal.
-- Thread reproducible documentation from `docs/` into the Zig struct 
-without trailing drift.
-
-## Guardrails
-- Enforce 100-column hard limits and format with `zig fmt`.
-- Prefer compile-time assertions to trap plan/code drift early.
-- Keep allocations static; no runtime heap after initialization.
-- Model future social distribution (ray\_160) as a deterministic function 
-of this dossier.
-
-## Timestamp Registry
-```zig
-pub const TimestampGrammar = struct {
-    // ...
-};
-
-pub const TimestampDB = [_]Timestamp{
-    Timestamp.init(
-        \\holocene_vedic_calendar--12025-11-10--1007--pst--
-        \\tropical_zodiac_sidereal_sanskrit_nakshatra_astrology_
-        \\ascendant-sagi-23_degrees_out_of_thirty--
-        \\moon_lunar_mansion_sanskrit_nakshatra_sutra_vic_dicara-
-        \\pushya--whole_sign_diurnal_nocturnal_solar_house_system-
-        \\12th_house----github_kae3g_xy
-        ,
-        TimestampGrammar.init("HoloceneVedicComposite", "--", 8, true),
-    ),
-};
-```
-Each module in the `[2 | 1 | 1]` envelope now carries a `Timestamp`,
-validated against the grammar,
-and the executable prints both the grammar name and the raw string so 
-collaborators can track
-provenance across builds.
-
-Glow G2 is back at the lodge, rested, patient, and ready to rebuild 
-Grain’s story the right way.
-
-## Deterministic Plan
-1. **Stabilize Timestamp Grammar**
-   - Decide whether `HoloceneVedicComposite` should permit consecutive 
-   delimiters or whether the canonical timestamp string will be rewritten 
-   without them.
-   - Update `TimestampGrammar.validate` (and matching tests once they 
-   exist) to enforce the chosen rule.
-   - Re-run `zig build run` to confirm the envelope prints successfully.
-2. **Populate Timestamp Registry**
-   - Expand `TimestampDB.entries` with any additional historical markers 
-   needed for provenance.
-   - Keep each entry compliant with an explicit grammar instance.
-3. **Port Tweet Slicer to Zig**
-   - Replace the archived Python chunker with a Zig utility that reads 
-   `docs/ray.md`, emits numbered 160-character blocks, and writes `docs/
-   ray_160.md`.
-   - Wire the tool into `build.zig` as a dedicated step (e.g.,
-   `zig build thread`).
-4. **Restore Tahoe Dotfiles**
-   - Reintroduce the Tahoe config templates in `config/
-   ` (or equivalent) and document symlink commands.
-   - Provide a deterministic script or build step for re-linking into 
-   `~/.config` and `~/Library/Application Support`.
-5. **Seal the Repo Footprint**
-   - Re-run formatting (`zig fmt`) and add smoke tests for the envelope 
-   initialization.
-   - Initialize Git, push to the planned `kae3g/xy` repository,
-   and include a PBC-oriented README that highlights the macOS 
-   Zig–Swift–Objective-C GUI goals.
-6. **Publish Thread Artifacts**
-   - Execute the Zig tweet-slicer to regenerate `ray_160.md`.
-   - Verify the thread content matches `ray.md` byte-for-
-   byte and is ready for @risc_love distribution.
-
-Each step depends on the previous one’s output; progressing in order 
-guarantees that later artifacts (tweet threads, Tahoe configs,
-repo packaging) inherit the stabilized grammar and deterministic tooling 
-choices.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+[^readonly]: [Matklad, "Readonly Characters Are a Big Deal"](https://
+matklad.github.io/2025/11/10/readonly-characters.html)
+[^vibe-terminal]: [Matklad, "Vibe Coding Terminal Editor"](https://
+matklad.github.io/2025/08/31/vibe-coding-terminal-editor.html)
+[^vegan-tiger]: [Vegan Tiger — ethical streetwear inspiration](https://
+www.instagram.com/vegan_tiger/)
+[^river-overview]: [River compositor philosophy](https://github.com/
+riverwm/river)
+[^jepsen-tb]: [Jepsen, "TigerBeetle 0.16.11"](https://jepsen.io/analyses/
+tigerbeetle-0.16.11)
 
 
 

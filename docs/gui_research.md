@@ -40,6 +40,9 @@
 - Integrate TigerBank transaction dashboards once `grain conduct mmt` 
   is capable of broadcasting payloads. `tigerbank_client.zig` currently
   prints deterministic logs we can surface in a developer console widget.
+- Add Ghostty automation hooks so `grain conduct ai --tool=cursor` /
+  `--tool=claude` can launch copilots inside Tahoe panes with GrainVault
+  keys loaded from the mirrored secrets store.
 
 [^river-overview]: River project overview and build requirements, including dynamic tiling focus and
                    Zig 0.15 toolchain updates, in *River README* (Codeberg, 2025-08-30)  
