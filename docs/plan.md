@@ -45,7 +45,8 @@
 
 ## 5. Tahoe Sandbox
 - Grow `src/tahoe_window.zig` into a River-inspired compositor with
-  Moonglow keymaps and explicit allocation bounds.
+  Moonglow keymaps, explicit allocation bounds, and native macOS window
+  chrome (traffic lights, menu bar shell).
 
 ## 6. GUI & Compositor Study
 - Keep researching Mach engine, zgui, Zig-gamedev, River philosophy, and
@@ -55,6 +56,8 @@
 - Advance `src/grain_aurora.zig`, `src/grain_route.zig`, and
   `src/grain_orchestrator.zig`; maintain roadmap in `docs/plan.md`.
 - Script deterministic recovery + bounded retries (Jepsen lessons).
+- Integrate a color filter layer with a Flux-style “Darkroom” preset and
+  hook it to the Aurora menu for quick toggles.
 
 ## 8. Grain Social Terminal
 - Keep social data typed in Zig, fuzz 11 `npub`s per run, and deepen
