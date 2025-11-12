@@ -13,7 +13,33 @@
 // Date: 2025-11-10
 // Operator: Glow G2 (Stoic Aquarian cadence)
 const std = @import("std");
-const SimpleRng = @import("../src/simple_rng.zig").SimpleRng;
+
+// SimpleRng: inline copy for test (avoiding module path issues).
+const SimpleRng = struct {
+    state: u64,
+
+    pub fn init(seed: u64) SimpleRng {
+        return .{ .state = seed };
+    }
+
+    fn next(self: *SimpleRng) u64 {
+        self.state = self.state *% 6364136223846793005 +% 1;
+        return self.state;
+    }
+
+    pub fn boolean(self: *SimpleRng) bool {
+        return (self.next() & 1) == 1;
+    }
+
+    pub fn range(self: *SimpleRng, comptime T: type, upper: T) T {
+        return self.uint_less_than(T, upper);
+    }
+
+    pub fn uint_less_than(self: *SimpleRng, comptime T: type, bound: T) T {
+        return @intCast(self.next() % @as(u64, bound));
+    }
+};
+
 const Window = @import("../src/platform/macos_tahoe/window.zig").Window;
 
 test "003 fuzz: window buffer operations with random data" {
@@ -28,11 +54,6 @@ test "003 fuzz: window buffer operations with random data" {
     const iterations = 100;
     var iteration: u32 = 0;
     while (iteration < iterations) : (iteration += 1) {
-        // Generate random window dimensions (within static buffer limits).
-        const max_width: u32 = 1024;
-        const max_height: u32 = 768;
-        const width = rng.range(u32, max_width - 1) + 1; // 1-1023
-        const height = rng.range(u32, max_height - 1) + 1; // 1-767
 
         // Generate random title (1-64 chars).
         const title_len = rng.range(u32, 64) + 1;
@@ -302,9 +323,9 @@ test "003 fuzz: buffer bounds safety" {
     // Test: Random valid accesses.
     var iteration: u32 = 0;
     while (iteration < 1000) : (iteration += 1) {
-        const x = rng.range(u32, width);
-        const y = rng.range(u32, height);
-        const offset = (@as(usize, y) * @as(usize, width) + @as(usize, x)) * 4;
+        const rand_x = rng.range(u32, width);
+        const rand_y = rng.range(u32, height);
+        const offset = (@as(usize, rand_y) * @as(usize, width) + @as(usize, rand_x)) * 4;
 
         // Assert: offset is within bounds.
         std.debug.assert(offset + 3 < buffer_size);

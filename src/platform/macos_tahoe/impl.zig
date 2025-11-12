@@ -26,7 +26,7 @@ fn init(allocator: std.mem.Allocator, title: []const u8) !*anyopaque {
     std.debug.assert(title.len <= 256);
     // Single pointer to Window: allocated on heap, returned as single pointer.
     const window = try allocator.create(Window);
-    window.* = try Window.init(allocator, title);
+    window.* = Window.init(allocator, title);
     // Assert postcondition: window must be initialized.
     std.debug.assert(window.rgba_buffer.len > 0);
     std.debug.assert(window.width > 0);
@@ -63,7 +63,7 @@ fn show(impl: *anyopaque) !void {
     std.debug.assert(window.rgba_buffer.len > 0);
     std.debug.assert(window.width > 0);
     std.debug.assert(window.height > 0);
-    try window.show();
+    window.show();
 }
 
 /// Get macOS platform buffer: single pointer to type-erased window, returns slice.

@@ -135,3 +135,17 @@ pub fn objc_msgSendNSString(class: *const anyopaque, sel: c.SEL, utf8: [*c]const
     return objc_msgSend_wrapper_string(class, sel, utf8);
 }
 
+/// Typed objc_msgSend wrapper: returns NSRect by value.
+/// Why: Methods like bounds return NSRect struct by value (in registers on arm64).
+extern fn objc_msgSend_returns_NSRect(receiver: *const anyopaque, selector: c.SEL) NSRect;
+
+/// Get NSRect return value from objc_msgSend.
+pub fn objc_msgSendNSRect(receiver: *const anyopaque, sel: c.SEL) NSRect {
+    // Assert: receiver and selector must be valid.
+    const receiverPtrValue = @intFromPtr(receiver);
+    std.debug.assert(receiverPtrValue != 0);
+    std.debug.assert(sel != null);
+    
+    return objc_msgSend_returns_NSRect(receiver, sel);
+}
+

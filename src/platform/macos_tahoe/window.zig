@@ -33,7 +33,15 @@ pub const Window = struct {
     const Self = @This();
 
     pub fn init(allocator: std.mem.Allocator, title: []const u8) Self {
-        return Self{
+        // Assert: title must be valid (non-empty, reasonable length).
+        std.debug.assert(title.len > 0);
+        std.debug.assert(title.len <= 1024);
+        
+        // Assert: allocator must be valid (non-null pointer).
+        const allocator_ptr = @intFromPtr(allocator.ptr);
+        std.debug.assert(allocator_ptr != 0);
+        
+        const self = Self{
             .title = title,
             .allocator = allocator,
             .width = 1024,
@@ -43,66 +51,54 @@ pub const Window = struct {
             .ns_view = null,
             .ns_app = null,
         };
+        
+        // Assert postcondition: dimensions must be valid.
+        std.debug.assert(self.width > 0);
+        std.debug.assert(self.height > 0);
+        std.debug.assert(self.width <= 1024);
+        std.debug.assert(self.height <= 768);
+        
+        // Assert: buffer size matches dimensions.
+        const expected_buffer_size = @as(usize, self.width) * @as(usize, self.height) * 4;
+        std.debug.assert(self.rgba_buffer.len == expected_buffer_size);
+        std.debug.assert(self.rgba_buffer.len % 4 == 0);
+        
+        return self;
     }
 
     pub fn deinit(self: *Self) void {
+        // Assert precondition: self pointer must be valid.
+        const self_ptr = @intFromPtr(self);
+        std.debug.assert(self_ptr != 0);
+        
         // Assert precondition: buffer must be valid.
         std.debug.assert(self.rgba_buffer.len > 0);
         std.debug.assert(self.rgba_buffer.len % 4 == 0);
-        // Assert: static buffer should match expected size.
         const expected_buffer_size = @as(usize, self.width) * @as(usize, self.height) * 4;
-        if (self.rgba_buffer.len != expected_buffer_size) {
-            std.debug.panic("Window.deinit: buffer size mismatch. Expected {d}, got {d}", .{ expected_buffer_size, self.rgba_buffer.len });
-        }
         std.debug.assert(self.rgba_buffer.len == expected_buffer_size);
 
         // Release Cocoa objects: single pointers, explicit cleanup.
-        // Assert: ns_view pointer must be valid if not null.
         if (self.ns_view) |view| {
             const viewPtrValue = @intFromPtr(view);
-            if (viewPtrValue == 0) {
-                std.debug.panic("Window.deinit: ns_view pointer is NULL", .{});
-            }
             std.debug.assert(viewPtrValue != 0);
             const releaseSel = c.sel_getUid("release");
-            if (releaseSel == null) {
-                std.debug.panic("Window.deinit: release selector not found", .{});
-            }
             std.debug.assert(releaseSel != null);
             cocoa.objc_msgSendVoid0(@ptrCast(view), releaseSel);
         }
-        // Assert: ns_window pointer must be valid if not null.
         if (self.ns_window) |window| {
             const windowPtrValue = @intFromPtr(window);
-            if (windowPtrValue == 0) {
-                std.debug.panic("Window.deinit: ns_window pointer is NULL", .{});
-            }
             std.debug.assert(windowPtrValue != 0);
             const closeSel = c.sel_getUid("close");
             const releaseSel = c.sel_getUid("release");
-            if (closeSel == null) {
-                std.debug.panic("Window.deinit: close selector not found", .{});
-            }
-            if (releaseSel == null) {
-                std.debug.panic("Window.deinit: release selector not found", .{});
-            }
             std.debug.assert(closeSel != null);
             std.debug.assert(releaseSel != null);
             cocoa.objc_msgSendVoid0(@ptrCast(window), closeSel);
             cocoa.objc_msgSendVoid0(@ptrCast(window), releaseSel);
         }
 
-        // Note: rgba_buffer is statically allocated, no need to free.
-        // Assert postcondition: struct is cleared.
         self.* = undefined;
     }
 
-    /// Show macOS window: initialize NSApplication, create NSWindow and NSView.
-    /// Why: macOS apps require NSApplication to be initialized before creating windows.
-    /// 
-    /// Pointer design (TigerStyle single-level only):
-    /// - `self: *Self`: Single pointer to Window struct.
-    /// - Returns: void (errors via panic).
     pub fn show(self: *Self) void {
         // Assert precondition: title must be valid.
         std.debug.assert(self.title.len > 0);
@@ -113,221 +109,124 @@ pub const Window = struct {
 
         // Initialize NSApplication: get shared instance.
         const NSApplicationClass = c.objc_getClass("NSApplication");
-        // Assert: NSApplication class must be available.
-        if (NSApplicationClass == null) {
-            std.debug.panic("NSApplication class not found. objc_getClass(\"NSApplication\") returned NULL.", .{});
-        }
         std.debug.assert(NSApplicationClass != null);
         const sharedAppSel = c.sel_getUid("sharedApplication");
-        // Assert: selector must be valid.
-        if (sharedAppSel == null) {
-            std.debug.panic("sharedApplication selector not found. sel_getUid returned NULL.", .{});
-        }
         std.debug.assert(sharedAppSel != null);
         const sharedApp_opt = cocoa.objc_msgSend0(@ptrCast(NSApplicationClass), sharedAppSel);
-        // Assert: sharedApplication must succeed.
-        if (sharedApp_opt == null) {
-            std.debug.panic("NSApplication sharedApplication returned NULL. Class: {*}, selector: {*}", .{ NSApplicationClass, sharedAppSel });
-        }
         std.debug.assert(sharedApp_opt != null);
         const sharedApp: *c.objc_object = @ptrCast(@alignCast(sharedApp_opt.?));
-        // Assert: unwrapped pointer must be valid.
         std.debug.assert(@intFromPtr(sharedApp) != 0);
 
-        // Create NSWindow: initWithContentRect:styleMask:backing:defer:.
+        // Create NSWindow.
         const NSWindowClass = c.objc_getClass("NSWindow");
-        // Assert: NSWindow class must be available.
-        if (NSWindowClass == null) {
-            std.debug.panic("NSWindow class not found. objc_getClass(\"NSWindow\") returned NULL.", .{});
-        }
         std.debug.assert(NSWindowClass != null);
         const allocSel = c.sel_getUid("alloc");
-        // Assert: selector must be valid.
-        if (allocSel == null) {
-            std.debug.panic("alloc selector not found. sel_getUid returned NULL.", .{});
-        }
         std.debug.assert(allocSel != null);
         const window_opt = cocoa.objc_msgSend0(@ptrCast(NSWindowClass), allocSel);
-        // Assert: alloc must succeed.
-        if (window_opt == null) {
-            std.debug.panic("NSWindow alloc returned NULL. Class: {*}, selector: {*}", .{ NSWindowClass, allocSel });
-        }
         std.debug.assert(window_opt != null);
         const window: *c.objc_object = @ptrCast(@alignCast(window_opt.?));
-        // Assert: unwrapped pointer must be valid.
         std.debug.assert(@intFromPtr(window) != 0);
 
-        // Create content rect: NSRect with origin and size.
+        // Create content rect.
         const contentRect = cocoa.NSRect{
-            .origin = cocoa.NSRect.Origin{
+            .origin = .{
                 .x = 100.0,
                 .y = 100.0,
             },
-            .size = cocoa.NSRect.Size{
+            .size = .{
                 .width = @as(f64, @floatFromInt(self.width)),
                 .height = @as(f64, @floatFromInt(self.height)),
             },
         };
 
-        // Initialize window: initWithContentRect:styleMask:backing:defer:.
-        // Style mask: NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask = 15.
+        // Initialize window.
         const initSel = c.sel_getUid("initWithContentRect:styleMask:backing:defer:");
-        // Assert: selector must be valid.
-        if (initSel == null) {
-            std.debug.panic("initWithContentRect:styleMask:backing:defer: selector not found. sel_getUid returned NULL.", .{});
-        }
         std.debug.assert(initSel != null);
-        // Style mask: NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask = 15.
         const styleMask: usize = 15;
-        // Backing: NSBackingStoreBuffered = 2.
         const backing: usize = 2;
-        // Defer flag: false (create immediately).
         const deferFlag: bool = false;
         const nsWindow_opt = cocoa.objc_msgSend4(@ptrCast(window), initSel, contentRect, styleMask, backing, deferFlag);
-        // Assert: init must succeed.
-        if (nsWindow_opt == null) {
-            std.debug.panic("NSWindow initWithContentRect returned NULL. Window: {*}, selector: {*}, rect: {{x={d}, y={d}, w={d}, h={d}}}", .{ window, initSel, contentRect.origin.x, contentRect.origin.y, contentRect.size.width, contentRect.size.height });
-        }
         std.debug.assert(nsWindow_opt != null);
         const nsWindow: *c.objc_object = @ptrCast(@alignCast(nsWindow_opt.?));
-        // Assert: unwrapped pointer must be valid.
         std.debug.assert(@intFromPtr(nsWindow) != 0);
 
-        // Set window title: setTitle:.
+        // Set window title.
         const setTitleSel = c.sel_getUid("setTitle:");
-        // Assert: selector must be valid.
-        if (setTitleSel == null) {
-            std.debug.panic("setTitle: selector not found. sel_getUid returned NULL.", .{});
-        }
         std.debug.assert(setTitleSel != null);
-        cocoa.objc_msgSendString(@ptrCast(nsWindow), setTitleSel, self.title.ptr);
+        const title_cstr = std.fmt.allocPrint(self.allocator, "{s}\x00", .{self.title}) catch |err| {
+            std.debug.panic("Failed to allocate title string: {s}", .{@errorName(err)});
+        };
+        defer self.allocator.free(title_cstr);
+        const NSStringClass = c.objc_getClass("NSString");
+        std.debug.assert(NSStringClass != null);
+        const stringWithUTF8StringSel = c.sel_getUid("stringWithUTF8String:");
+        std.debug.assert(stringWithUTF8StringSel != null);
+        const title_nsstring_opt = cocoa.objc_msgSendNSString(@ptrCast(NSStringClass), stringWithUTF8StringSel, title_cstr.ptr);
+        std.debug.assert(title_nsstring_opt != null);
+        const title_nsstring: *c.objc_object = @ptrCast(@alignCast(title_nsstring_opt.?));
+        cocoa.objc_msgSendVoid1(@ptrCast(nsWindow), setTitleSel, title_nsstring);
 
-        // Create NSView: single pointer to view object.
-        const NSViewClass = c.objc_getClass("NSView");
-        // Assert: NSView class must be available.
-        if (NSViewClass == null) {
-            std.debug.panic("NSView class not found. objc_getClass(\"NSView\") returned NULL.", .{});
-        }
-        std.debug.assert(NSViewClass != null);
-        const view_opt = cocoa.objc_msgSend0(@ptrCast(NSViewClass), allocSel);
-        // Assert: alloc must succeed.
-        if (view_opt == null) {
-            std.debug.panic("NSView alloc returned NULL. Class: {*}, selector: {*}", .{ NSViewClass, allocSel });
-        }
-        std.debug.assert(view_opt != null);
-        const view: *c.objc_object = @ptrCast(@alignCast(view_opt.?));
-        // Assert: unwrapped pointer must be valid.
-        std.debug.assert(@intFromPtr(view) != 0);
-        const viewInitSel = c.sel_getUid("initWithFrame:");
-        // Assert: selector must be valid.
-        if (viewInitSel == null) {
-            std.debug.panic("initWithFrame: selector not found. sel_getUid returned NULL.", .{});
-        }
-        std.debug.assert(viewInitSel != null);
-        const nsView_opt = cocoa.objc_msgSend1(@ptrCast(view), viewInitSel, contentRect);
-        // Assert: init must succeed.
-        if (nsView_opt == null) {
-            std.debug.panic("NSView initWithFrame returned NULL. View: {*}, selector: {*}, rect: {{x={d}, y={d}, w={d}, h={d}}}", .{ view, viewInitSel, contentRect.origin.x, contentRect.origin.y, contentRect.size.width, contentRect.size.height });
-        }
-        std.debug.assert(nsView_opt != null);
-        const nsView: *c.objc_object = @ptrCast(@alignCast(nsView_opt.?));
-        // Assert: unwrapped pointer must be valid.
-        std.debug.assert(@intFromPtr(nsView) != 0);
+        // Create NSImageView (specialized view for displaying images).
+        const NSImageViewClass = c.objc_getClass("NSImageView");
+        std.debug.assert(NSImageViewClass != null);
+        const imageView_opt = cocoa.objc_msgSend0(@ptrCast(NSImageViewClass), allocSel);
+        std.debug.assert(imageView_opt != null);
+        const imageView: *c.objc_object = @ptrCast(@alignCast(imageView_opt.?));
+        std.debug.assert(@intFromPtr(imageView) != 0);
+        const imageViewInitSel = c.sel_getUid("initWithFrame:");
+        std.debug.assert(imageViewInitSel != null);
+        const nsImageView_opt = cocoa.objc_msgSend1(@ptrCast(imageView), imageViewInitSel, contentRect);
+        std.debug.assert(nsImageView_opt != null);
+        const nsImageView: *c.objc_object = @ptrCast(@alignCast(nsImageView_opt.?));
+        std.debug.assert(@intFromPtr(nsImageView) != 0);
         
-        // Enable layer-backed view BEFORE setting as content view.
-        // This ensures the layer is created and ready for Core Graphics drawing.
-        const setWantsLayerSel = c.sel_getUid("setWantsLayer:");
-        if (setWantsLayerSel == null) {
-            std.debug.panic("setWantsLayer: selector not found", .{});
-        }
-        cocoa.objc_msgSendVoidBool(@ptrCast(nsView), setWantsLayerSel, true);
-        std.debug.print("[window] Enabled layer-backed view.\n", .{});
+        // Note: NSImageView will use default scaling (proportional scaling).
+        // We can configure this later if needed.
         
-        // Set view as content view: single pointer assignment.
+        // Set image view as content view.
         const setContentViewSel = c.sel_getUid("setContentView:");
-        cocoa.objc_msgSendVoid1(@ptrCast(nsWindow), setContentViewSel, nsView);
+        std.debug.assert(setContentViewSel != null);
+        cocoa.objc_msgSendVoid1(@ptrCast(nsWindow), setContentViewSel, nsImageView);
         
-        // Note: Layer will be created lazily when first accessed.
-        // We'll access it in present() after the window is shown.
-        
-        // Store pointers: single-level only.
+        // Store pointers (store imageView as ns_view since it's still an NSView).
         self.ns_window = nsWindow;
-        self.ns_view = nsView;
+        self.ns_view = nsImageView;
         self.ns_app = sharedApp;
         
-        // Show window: makeKeyAndOrderFront.
+        // Show window.
         const makeKeySel = c.sel_getUid("makeKeyAndOrderFront:");
+        std.debug.assert(makeKeySel != null);
         cocoa.objc_msgSendVoid0(@ptrCast(nsWindow), makeKeySel);
         
-        // Activate application: bring to front.
+        // Activate application.
         const activateSel = c.sel_getUid("activateIgnoringOtherApps:");
+        std.debug.assert(activateSel != null);
         cocoa.objc_msgSendVoidBool(@ptrCast(sharedApp), activateSel, true);
-        
-        // Assert postcondition: window and view must be set.
-        // Assert: ns_window and ns_view are non-optional pointers, so we just acknowledge their existence.
-        _ = self.ns_window;
-        _ = self.ns_view;
     }
 
-    /// Get RGBA buffer: returns slice of static buffer.
-    /// Why: Platform abstraction - Aurora needs access to pixel buffer.
-    /// 
-    /// Pointer design (TigerStyle single-level only):
-    /// - `self: *Self`: Single pointer to Window struct.
-    /// - Returns: slice of static buffer (no allocation).
     pub fn getBuffer(self: *Self) []u8 {
         // Assert precondition: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
-        if (self_ptr == 0) {
-            std.debug.panic("Window.getBuffer: self pointer is NULL", .{});
-        }
         std.debug.assert(self_ptr != 0);
-        // Assert precondition: buffer must be initialized.
-        if (self.rgba_buffer.len == 0) {
-            std.debug.panic("Window.getBuffer: rgba_buffer is empty", .{});
-        }
         std.debug.assert(self.rgba_buffer.len > 0);
-        if (self.rgba_buffer.len % 4 != 0) {
-            std.debug.panic("Window.getBuffer: rgba_buffer length ({d}) is not divisible by 4", .{self.rgba_buffer.len});
-        }
         std.debug.assert(self.rgba_buffer.len % 4 == 0);
         const expected_size = @as(usize, self.width) * @as(usize, self.height) * 4;
-        if (self.rgba_buffer.len != expected_size) {
-            std.debug.panic("Window.getBuffer: buffer size mismatch. Expected {d}, got {d}", .{ expected_size, self.rgba_buffer.len });
-        }
         std.debug.assert(self.rgba_buffer.len == expected_size);
-        // Return slice of static buffer: use & to get pointer to array.
         return &self.rgba_buffer;
     }
 
-    /// Present macOS window: draw RGBA buffer to view using NSImage.
-    /// Why: Create NSImage from CGImage and draw it to the view.
-    /// 
-    /// Pointer design (TigerStyle single-level only):
-    /// - `self: *Self`: Single pointer to Window struct.
-    /// - `self.ns_view`: Single pointer to NSView (nullable).
-    /// - `self.rgba_buffer`: Static buffer containing RGBA pixels.
     pub fn present(self: *Self) !void {
         // Assert precondition: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
-        if (self_ptr == 0) {
-            std.debug.panic("Window.present: self pointer is NULL", .{});
-        }
         std.debug.assert(self_ptr != 0);
         if (self_ptr < 0x1000) {
             std.debug.panic("Window.present: self pointer is suspiciously small: 0x{x}", .{self_ptr});
         }
         
         // Assert precondition: view must be initialized.
-        if (self.ns_view == null) {
-            std.debug.panic("Window.present: ns_view is NULL. Call show() first.", .{});
-        }
         std.debug.assert(self.ns_view != null);
         const view = self.ns_view.?;
         const view_ptr = @intFromPtr(view);
-        if (view_ptr == 0) {
-            std.debug.panic("Window.present: view pointer is NULL after unwrap", .{});
-        }
         std.debug.assert(view_ptr != 0);
         if (view_ptr < 0x1000) {
             std.debug.panic("Window.present: view pointer is suspiciously small: 0x{x}", .{view_ptr});
@@ -338,66 +237,39 @@ pub const Window = struct {
         
         // Assert precondition: buffer must be valid.
         std.debug.assert(self.rgba_buffer.len > 0);
-        if (self.rgba_buffer.len == 0) {
-            std.debug.panic("Window.present: rgba_buffer is empty", .{});
-        }
-        if (self.rgba_buffer.len % 4 != 0) {
-            std.debug.panic("Window.present: rgba_buffer length ({d}) is not divisible by 4", .{self.rgba_buffer.len});
-        }
         std.debug.assert(self.rgba_buffer.len % 4 == 0);
         const expected_buffer_size = @as(usize, self.width) * @as(usize, self.height) * 4;
-        if (self.rgba_buffer.len != expected_buffer_size) {
-            std.debug.panic("Window.present: buffer size mismatch. Expected {d}, got {d}", .{ expected_buffer_size, self.rgba_buffer.len });
-        }
         std.debug.assert(self.rgba_buffer.len == expected_buffer_size);
-        
-        // Assert: dimensions must be valid.
         std.debug.assert(self.width > 0);
         std.debug.assert(self.height > 0);
-        if (self.width == 0 or self.height == 0) {
-            std.debug.panic("Window.present: invalid dimensions: {d}x{d}", .{ self.width, self.height });
-        }
         
         std.debug.print("[window] Presenting buffer to view at: 0x{x}, buffer size: {d} bytes\n", .{ view_ptr, self.rgba_buffer.len });
         
-        // Create CGImage from RGBA buffer using Core Graphics.
+        // Create CGImage from RGBA buffer.
         const cg_image = try createCGImageFromBuffer(&self.rgba_buffer, self.width, self.height);
         defer releaseCGImage(cg_image);
         
         // Assert: CGImage must be valid.
         const cg_image_ptr = @intFromPtr(cg_image);
-        if (cg_image_ptr == 0) {
-            std.debug.panic("Window.present: cg_image pointer is NULL", .{});
-        }
         std.debug.assert(cg_image_ptr != 0);
         if (cg_image_ptr < 0x1000) {
             std.debug.panic("Window.present: cg_image pointer is suspiciously small: 0x{x}", .{cg_image_ptr});
         }
         
-        // Create NSImage from CGImage using C helper function.
+        // Create NSImage from CGImage.
         std.debug.print("[window] Creating NSImage from CGImage (using C wrapper)...\n", .{});
         const width_f64 = @as(f64, @floatFromInt(self.width));
         const height_f64 = @as(f64, @floatFromInt(self.height));
-        
-        // Assert: dimensions must be positive floats.
         std.debug.assert(width_f64 > 0.0);
         std.debug.assert(height_f64 > 0.0);
-        if (width_f64 <= 0.0 or height_f64 <= 0.0) {
-            std.debug.panic("Window.present: invalid float dimensions: {d}x{d}", .{ width_f64, height_f64 });
-        }
         
+        // Use extern function declared at top level.
         const nsImage_opt = createNSImageFromCGImage(cg_image, width_f64, height_f64);
-        if (nsImage_opt == null) {
-            std.debug.panic("Window.present: createNSImageFromCGImage returned NULL. CGImage: 0x{x}, size: {d}x{d}", .{ cg_image_ptr, width_f64, height_f64 });
-        }
         std.debug.assert(nsImage_opt != null);
         const nsImage: *c.objc_object = @ptrCast(@alignCast(nsImage_opt.?));
         
         // Assert: NSImage pointer must be valid.
         const nsImage_ptr = @intFromPtr(nsImage);
-        if (nsImage_ptr == 0) {
-            std.debug.panic("Window.present: nsImage pointer is NULL after unwrap", .{});
-        }
         std.debug.assert(nsImage_ptr != 0);
         if (nsImage_ptr < 0x1000) {
             std.debug.panic("Window.present: nsImage pointer is suspiciously small: 0x{x}", .{nsImage_ptr});
@@ -407,181 +279,96 @@ pub const Window = struct {
         }
         std.debug.print("[window] Created NSImage at: 0x{x}\n", .{nsImage_ptr});
         
-        // Draw NSImage to view using lockFocus and drawInRect:.
-        const lockFocusSel = c.sel_getUid("lockFocus");
-        if (lockFocusSel == null) {
-            std.debug.panic("Window.present: lockFocus selector not found", .{});
-        }
-        std.debug.assert(lockFocusSel != null);
-        cocoa.objc_msgSendVoid0(@ptrCast(view), lockFocusSel);
-        
-        // Get view bounds for drawing.
-        const boundsSel = c.sel_getUid("bounds");
-        if (boundsSel == null) {
-            std.debug.panic("Window.present: bounds selector not found", .{});
-        }
-        std.debug.assert(boundsSel != null);
-        const bounds_opt = cocoa.objc_msgSend0(@ptrCast(view), boundsSel);
-        if (bounds_opt == null) {
-            std.debug.panic("Window.present: view.bounds returned NULL. View: 0x{x}", .{view_ptr});
-        }
-        std.debug.assert(bounds_opt != null);
-        const bounds_ptr: *cocoa.NSRect = @ptrCast(@alignCast(bounds_opt.?));
-        
-        // Assert: bounds pointer must be valid.
-        const bounds_ptr_val = @intFromPtr(bounds_ptr);
-        if (bounds_ptr_val == 0) {
-            std.debug.panic("Window.present: bounds_ptr is NULL", .{});
-        }
-        std.debug.assert(bounds_ptr_val != 0);
-        if (bounds_ptr_val < 0x1000) {
-            std.debug.panic("Window.present: bounds_ptr is suspiciously small: 0x{x}", .{bounds_ptr_val});
-        }
-        
-        const bounds = bounds_ptr.*;
-        
-        // Assert: bounds must be valid (non-negative size).
-        std.debug.assert(bounds.size.width >= 0.0);
-        std.debug.assert(bounds.size.height >= 0.0);
-        if (bounds.size.width < 0.0 or bounds.size.height < 0.0) {
-            std.debug.panic("Window.present: invalid bounds size: {d}x{d}", .{ bounds.size.width, bounds.size.height });
-        }
-        
-        // Draw image: drawInRect: (takes NSRect by value, returns void).
-        // Note: We need a wrapper for void return with NSRect argument.
-        // For now, use objc_msgSend1 and ignore the return value.
-        const drawInRectSel = c.sel_getUid("drawInRect:");
-        if (drawInRectSel == null) {
-            std.debug.panic("Window.present: drawInRect: selector not found", .{});
-        }
-        std.debug.assert(drawInRectSel != null);
-        // drawInRect: returns void, but objc_msgSend1 returns ?*c.objc_object.
-        // We'll ignore the return value since drawInRect: returns void.
-        _ = cocoa.objc_msgSend1(@ptrCast(nsImage), drawInRectSel, bounds);
-        
-        // Unlock focus.
-        const unlockFocusSel = c.sel_getUid("unlockFocus");
-        if (unlockFocusSel == null) {
-            std.debug.panic("Window.present: unlockFocus selector not found", .{});
-        }
-        std.debug.assert(unlockFocusSel != null);
-        cocoa.objc_msgSendVoid0(@ptrCast(view), unlockFocusSel);
+        // Set image on NSImageView (much simpler than drawing manually).
+        const setImageSel = c.sel_getUid("setImage:");
+        std.debug.assert(setImageSel != null);
+        cocoa.objc_msgSendVoid1(@ptrCast(view), setImageSel, nsImage);
         
         // Mark view as needing display.
         const setNeedsDisplaySel = c.sel_getUid("setNeedsDisplay:");
-        if (setNeedsDisplaySel == null) {
-            std.debug.panic("Window.present: setNeedsDisplay: selector not found", .{});
-        }
         std.debug.assert(setNeedsDisplaySel != null);
         cocoa.objc_msgSendVoidBool(@ptrCast(view), setNeedsDisplaySel, true);
         
-        std.debug.print("[window] Drew NSImage to view.\n", .{});
+        std.debug.print("[window] Set NSImage on NSImageView.\n", .{});
     }
     
-    /// Create CGImage from RGBA buffer using Core Graphics.
-    /// Returns: CGImageRef (opaque pointer).
-    /// Note: Caller must call releaseCGImage when done.
     fn createCGImageFromBuffer(buffer: []const u8, width: u32, height: u32) !*anyopaque {
-        std.debug.print("[window] Creating CGImage: {d}x{d}, buffer: {d} bytes\n", .{ width, height, buffer.len });
-        
-        // Assert: buffer must match dimensions.
+        // Assert: parameters must be valid.
+        std.debug.assert(buffer.len > 0);
+        std.debug.assert(width > 0);
+        std.debug.assert(height > 0);
         const expected_size = @as(usize, width) * @as(usize, height) * 4;
-        if (buffer.len != expected_size) {
-            std.debug.panic("createCGImageFromBuffer: buffer size mismatch. Expected {d}, got {d}", .{ expected_size, buffer.len });
-        }
         std.debug.assert(buffer.len == expected_size);
+        std.debug.assert(buffer.len % 4 == 0);
+        
+        std.debug.print("[window] Creating CGImage: {d}x{d}, buffer: {d} bytes\n", .{ width, height, buffer.len });
         
         // Create CGColorSpace for RGB.
         const rgb_color_space = cg.CGColorSpaceCreateDeviceRGB();
-        if (rgb_color_space == null) {
-            std.debug.panic("createCGImageFromBuffer: CGColorSpaceCreateDeviceRGB returned NULL", .{});
-        }
+        std.debug.assert(rgb_color_space != null);
         defer cg.CGColorSpaceRelease(rgb_color_space);
         
-        // Create CGDataProvider from our buffer.
-        // Note: The buffer must remain valid for the lifetime of the image.
-        // Since we're using a static buffer in the Window struct, this is safe.
+        // Create CGDataProvider from buffer.
         const data_provider = cg.CGDataProviderCreateWithData(
-            null, // info pointer
-            buffer.ptr, // data pointer
-            buffer.len, // size
-            null, // release callback (we manage memory ourselves)
+            null,
+            buffer.ptr,
+            buffer.len,
+            null,
         );
-        if (data_provider == null) {
-            std.debug.panic("createCGImageFromBuffer: CGDataProviderCreateWithData returned NULL", .{});
-        }
+        std.debug.assert(data_provider != null);
         defer cg.CGDataProviderRelease(data_provider);
         
-        // Create CGImage from data provider.
-        // Format: RGBA, 8 bits per component, 32 bits per pixel.
-        // Note: kCGImageAlphaPremultipliedLast means RGBA format (alpha last).
-        // kCGBitmapByteOrder32Big means big-endian byte order.
+        // Create CGImage.
         const cg_image = cg.CGImageCreate(
-            width, // width
-            height, // height
-            8, // bitsPerComponent
-            32, // bitsPerPixel (8 bits * 4 components)
-            width * 4, // bytesPerRow (RGBA = 4 bytes per pixel)
-            rgb_color_space, // colorspace
-            cg.kCGImageAlphaPremultipliedLast | cg.kCGBitmapByteOrder32Big, // bitmapInfo
-            data_provider, // provider
-            null, // decode array
-            false, // shouldInterpolate
-            cg.kCGRenderingIntentDefault, // intent
+            width,
+            height,
+            8,
+            32,
+            width * 4,
+            rgb_color_space,
+            cg.kCGImageAlphaPremultipliedLast | cg.kCGBitmapByteOrder32Big,
+            data_provider,
+            null,
+            false,
+            cg.kCGRenderingIntentDefault,
         );
         
-        if (cg_image == null) {
-            std.debug.panic("createCGImageFromBuffer: CGImageCreate returned NULL", .{});
+        std.debug.assert(cg_image != null);
+        
+        const cg_image_ptr = @intFromPtr(cg_image);
+        std.debug.assert(cg_image_ptr != 0);
+        if (cg_image_ptr < 0x1000) {
+            std.debug.panic("createCGImageFromBuffer: cg_image pointer is suspiciously small: 0x{x}", .{cg_image_ptr});
         }
         
-        std.debug.print("[window] Created CGImage at: 0x{x}\n", .{@intFromPtr(cg_image)});
+        std.debug.print("[window] Created CGImage at: 0x{x}\n", .{cg_image_ptr});
         return @ptrCast(cg_image);
     }
     
-    /// Release CGImage.
     fn releaseCGImage(cg_image: *anyopaque) void {
-        // Assert: CGImage pointer must be valid.
         const cg_image_ptr = @intFromPtr(cg_image);
-        if (cg_image_ptr == 0) {
-            std.debug.panic("releaseCGImage: cg_image pointer is NULL", .{});
-        }
         std.debug.assert(cg_image_ptr != 0);
         if (cg_image_ptr < 0x1000) {
             std.debug.panic("releaseCGImage: cg_image pointer is suspiciously small: 0x{x}", .{cg_image_ptr});
         }
-        
         std.debug.print("[window] Releasing CGImage at: 0x{x}\n", .{cg_image_ptr});
         cg.CGImageRelease(@ptrCast(cg_image));
     }
     
-    /// Run NSApplication event loop: blocks until app terminates.
-    /// Why: macOS apps need an event loop to process window events, keyboard input, etc.
-    /// Pointer design (TigerStyle single-level only):
-    /// - `self: *Self`: Single pointer to Window struct.
     pub fn runEventLoop(self: *Self) void {
         // Assert precondition: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
-        if (self_ptr == 0) {
-            std.debug.panic("Window.runEventLoop: self pointer is NULL", .{});
-        }
         std.debug.assert(self_ptr != 0);
         if (self_ptr < 0x1000) {
             std.debug.panic("Window.runEventLoop: self pointer is suspiciously small: 0x{x}", .{self_ptr});
         }
         
         // Assert precondition: app must be initialized.
-        if (self.ns_app == null) {
-            std.debug.panic("Window.runEventLoop: ns_app is NULL. Call show() first.", .{});
-        }
         std.debug.assert(self.ns_app != null);
-        
         const app = self.ns_app.?;
         
         // Assert: app pointer must be valid.
         const app_ptr = @intFromPtr(app);
-        if (app_ptr == 0) {
-            std.debug.panic("Window.runEventLoop: app pointer is NULL after unwrap", .{});
-        }
         std.debug.assert(app_ptr != 0);
         if (app_ptr < 0x1000) {
             std.debug.panic("Window.runEventLoop: app pointer is suspiciously small: 0x{x}", .{app_ptr});
@@ -592,22 +379,16 @@ pub const Window = struct {
         
         std.debug.print("[window] Running NSApplication event loop...\n", .{});
         
-        // Run event loop: run.
+        // Run event loop.
         const runSel = c.sel_getUid("run");
-        if (runSel == null) {
-            std.debug.panic("run selector not found", .{});
-        }
         std.debug.assert(runSel != null);
         
         // Assert: selector pointer must be valid.
         const runSel_ptr = @intFromPtr(runSel);
-        if (runSel_ptr == 0) {
-            std.debug.panic("Window.runEventLoop: runSel pointer is NULL", .{});
-        }
         std.debug.assert(runSel_ptr != 0);
         
         cocoa.objc_msgSendVoid0(@ptrCast(app), runSel);
         
         std.debug.print("[window] NSApplication event loop exited.\n", .{});
     }
-}
+};

@@ -366,7 +366,8 @@ void objc_msgSend_void_1_bool(void* receiver, SEL selector, _Bool arg1) {
 }
 
 // Helper function to create NSImage from CGImage.
-// Why: NSImage's imageWithCGImage:size: needs proper Objective-C calling convention.
+// Why: NSImage doesn't have imageWithCGImage:size: class method.
+// Instead, we create NSBitmapImageRep from CGImage, then create NSImage from that.
 id createNSImageFromCGImage(void* cgImage, double width, double height) {
     if (cgImage == NULL) {
         fprintf(stderr, "[createNSImageFromCGImage] NULL cgImage\n");
@@ -374,6 +375,45 @@ id createNSImageFromCGImage(void* cgImage, double width, double height) {
         return NULL;
     }
     
+    CGImageRef cgImageRef = (CGImageRef)cgImage;
+    
+    // Step 1: Create NSBitmapImageRep from CGImage.
+    Class NSBitmapImageRepClass = objc_getClass("NSBitmapImageRep");
+    if (NSBitmapImageRepClass == NULL) {
+        fprintf(stderr, "[createNSImageFromCGImage] NSBitmapImageRep class not found\n");
+        fflush(stderr);
+        return NULL;
+    }
+    
+    SEL allocSel = sel_registerName("alloc");
+    if (allocSel == NULL) {
+        fprintf(stderr, "[createNSImageFromCGImage] alloc selector not found\n");
+        fflush(stderr);
+        return NULL;
+    }
+    
+    id bitmapRep = ((id (*)(Class, SEL))objc_msgSend)(NSBitmapImageRepClass, allocSel);
+    if (bitmapRep == NULL) {
+        fprintf(stderr, "[createNSImageFromCGImage] NSBitmapImageRep alloc returned NULL\n");
+        fflush(stderr);
+        return NULL;
+    }
+    
+    SEL initWithCGImageSel = sel_registerName("initWithCGImage:");
+    if (initWithCGImageSel == NULL) {
+        fprintf(stderr, "[createNSImageFromCGImage] initWithCGImage: selector not found\n");
+        fflush(stderr);
+        return NULL;
+    }
+    
+    id initializedBitmapRep = ((id (*)(id, SEL, CGImageRef))objc_msgSend)(bitmapRep, initWithCGImageSel, cgImageRef);
+    if (initializedBitmapRep == NULL) {
+        fprintf(stderr, "[createNSImageFromCGImage] NSBitmapImageRep initWithCGImage: returned NULL\n");
+        fflush(stderr);
+        return NULL;
+    }
+    
+    // Step 2: Create NSImage with size.
     Class NSImageClass = objc_getClass("NSImage");
     if (NSImageClass == NULL) {
         fprintf(stderr, "[createNSImageFromCGImage] NSImage class not found\n");
@@ -381,21 +421,62 @@ id createNSImageFromCGImage(void* cgImage, double width, double height) {
         return NULL;
     }
     
-    SEL imageWithCGImageSel = sel_registerName("imageWithCGImage:size:");
-    if (imageWithCGImageSel == NULL) {
-        fprintf(stderr, "[createNSImageFromCGImage] imageWithCGImage:size: selector not found\n");
+    id nsImage = ((id (*)(Class, SEL))objc_msgSend)(NSImageClass, allocSel);
+    if (nsImage == NULL) {
+        fprintf(stderr, "[createNSImageFromCGImage] NSImage alloc returned NULL\n");
         fflush(stderr);
         return NULL;
     }
     
     NSSize size = {width, height};
-    CGImageRef cgImageRef = (CGImageRef)cgImage;
+    SEL initWithSizeSel = sel_registerName("initWithSize:");
+    if (initWithSizeSel == NULL) {
+        fprintf(stderr, "[createNSImageFromCGImage] initWithSize: selector not found\n");
+        fflush(stderr);
+        return NULL;
+    }
     
-    // Call class method: imageWithCGImage:size:
-    id nsImage = ((id (*)(Class, SEL, CGImageRef, NSSize))objc_msgSend)(NSImageClass, imageWithCGImageSel, cgImageRef, size);
+    id initializedImage = ((id (*)(id, SEL, NSSize))objc_msgSend)(nsImage, initWithSizeSel, size);
+    if (initializedImage == NULL) {
+        fprintf(stderr, "[createNSImageFromCGImage] NSImage initWithSize: returned NULL\n");
+        fflush(stderr);
+        return NULL;
+    }
     
-    fprintf(stderr, "[createNSImageFromCGImage] Created NSImage at: %p\n", nsImage);
+    // Step 3: Add bitmap representation to NSImage.
+    SEL addRepresentationSel = sel_registerName("addRepresentation:");
+    if (addRepresentationSel == NULL) {
+        fprintf(stderr, "[createNSImageFromCGImage] addRepresentation: selector not found\n");
+        fflush(stderr);
+        return NULL;
+    }
+    
+    ((void (*)(id, SEL, id))objc_msgSend)(initializedImage, addRepresentationSel, initializedBitmapRep);
+    
+    fprintf(stderr, "[createNSImageFromCGImage] Created NSImage at: %p\n", initializedImage);
     fflush(stderr);
     
-    return nsImage;
+    return initializedImage;
+}
+
+// Helper function to get NSRect return value from objc_msgSend.
+// Why: Methods like bounds return NSRect by value (in registers on arm64), not as object pointers.
+NSRect objc_msgSend_returns_NSRect(void* receiver, SEL selector) {
+    if (receiver == NULL) {
+        fprintf(stderr, "[objc_msgSend_returns_NSRect] NULL receiver\n");
+        fflush(stderr);
+        NSRect empty = {{0, 0}, {0, 0}};
+        return empty;
+    }
+    if (selector == NULL) {
+        fprintf(stderr, "[objc_msgSend_returns_NSRect] NULL selector\n");
+        fflush(stderr);
+        NSRect empty = {{0, 0}, {0, 0}};
+        return empty;
+    }
+    
+    id receiver_id = (id)receiver;
+    // Call objc_msgSend with NSRect return type.
+    // On arm64, structs are returned in registers.
+    return ((NSRect (*)(id, SEL))objc_msgSend)(receiver_id, selector);
 }

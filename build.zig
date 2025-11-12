@@ -416,6 +416,9 @@ pub fn build(b: *std.Build) void {
             .root_source_file = b.path("tests/003_fuzz.zig"),
             .target = target,
             .optimize = optimize,
+            .imports = &.{
+                .{ .name = "ray", .module = ray_module },
+            },
         }),
     });
     const run_fuzz_003_tests = b.addRunArtifact(fuzz_003_tests);
