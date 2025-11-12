@@ -39,9 +39,9 @@
 
 ## 5. Tahoe Sandbox
 - Grow `src/tahoe_window.zig` into a River-inspired compositor with
-  Moonglow keymaps, explicit allocation bounds, and a thin Cocoa bridge
-  that provides native macOS window chrome (traffic lights + Aurora menu)
-  while keeping Zig memory management explicit.
+  Moonglow keymaps, explicit allocation bounds, and the thinnest possible
+  Cocoa shim (Zig `@cImport` calling `NSApplication`, `NSWindow`, and
+  `NSView`). Aurora owns the RGBA buffer; Cocoa just hosts the view.
 
 ## 6. GUI & Compositor Study
 - Keep researching Mach engine, zgui, Zig-gamedev, River philosophy, and
@@ -52,7 +52,7 @@
   `src/grain_orchestrator.zig`; maintain roadmap in `docs/plan.md`.
 - Script deterministic recovery + bounded retries (Jepsen lessons).
 - Integrate a color filter layer with a Flux-style “Darkroom” preset and
-  hook it to the Aurora menu for quick toggles.
+  hook it to the Aurora menu for quick toggles, keeping all filters in Zig.
 
 ## 8. Grain Social Terminal
 - Keep social data typed in Zig, fuzz 11 `npub`s per run, and deepen
