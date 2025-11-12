@@ -1,112 +1,82 @@
 # Grain Aurora GUI Plan — TigerStyle Execution
 
-## 1. Pre-VPS Launchpad ✅
-- Scaffolded `src/kernel/main.zig`, `src/kernel/syscall_table.zig`,
-  `src/kernel/devx/abi.zig`, `kernel/link.ld`, and `scripts/qemu_rv64.sh`
-  so `zig build kernel-rv64` now emits `zig-out/bin/grain-rv64`.
-- Logged bootloader assumptions in `docs/boot/notes.md`.
-- Extended `grain conduct` with `make kernel-rv64`, `run kernel-rv64`,
-  and `report kernel-rv64`; runs capture logs under `logs/kernel/`.
+## 1. Wire Cocoa Bridge (macOS Priority)
+- Implement actual NSApplication/NSWindow/NSView calls in
+  `src/platform/macos/window.zig`.
+- Replace stubbed `show()` and `present()` with real Cocoa window creation.
+- Minimal Cocoa shim: Aurora owns RGBA buffer, Cocoa hosts the view.
+- Native macOS window chrome: traffic lights, menu bar, proper window lifecycle.
 
-## 2. Tooling Prep (paused)
-- QEMU + rsync scripts are staged, but kernel work is on hold until the
-  Framework 13 RISC-V board or VPS is ready; focus shifts to macOS Tahoe
-  Aurora tasks for now.
+## 2. River-Inspired Compositor (macOS Priority)
+- Evolve `src/tahoe_window.zig` into River-style window tiling.
+- Implement Moonglow keybindings for window management workflows.
+- Multiple panes/views with deterministic layout algorithms.
 
-## 3. Kernel Spine
-- Enrich `_start` with a fake trap handler and panic logger that prints
-  into the boot log so QEMU runs show structure before real drivers land.
-- Wire the syscall table into the stub to prove number/name plumbing.
-- Capture a sample trace under `logs/kernel/boot-simulated.log`.
+## 3. Aurora UI Enhancements (macOS Priority)
+- Complete Flux Darkroom color filter integration.
+- Native macOS menu bar with `View ▸ Flux` toggle.
+- Menu bar: `Aurora | File | Edit | Selection | View | Go | Run | Terminal | Window | Help`.
 
-- QEMU testing deferred: record outstanding scripts in `docs/boot/notes.md`
-  and resume once hardware/approvals arrive.
-- Harden kernel ergonomics for Zig stdlib: explicit syscall table,
-  guard-page toggles, deterministic allocators, structured crash dumps.
-- Track firmware expectations (OpenSBI ➝ U-Boot today, coreboot + EDK2
-  emerging for JH7110/Framework boards) and stash GRUB-compatible payload
-  experiments in `docs/boot/` [^dcroma] [^framework-mainboard]
-  [^framework-blog].
-- Collect boot traces in `logs/kernel/`, capture crash dumps, and note
-  recovery learnings in `docs/boot/notes.md`.
-- Introduce `grain conduct report kernel-rv64` to summarize latest boots.
+## 4. Event Loop Integration (macOS Priority)
+- macOS event handling (keyboard, mouse, window events).
+- Main run loop integration with Cocoa event system.
+- Deterministic event processing with TigerStyle safety.
 
-## 4. Grain Conductor & Pottery
-- Extend `grain conduct` (`brew|link|manifest|edit|make|ai|contracts|mmt|
-  cdn`) and keep `zig build conduct` deterministic.
-- Model Grain Pottery scheduling for CDN kilns, ledger mints, and AI
-  copilots with static allocation guarantees.
+## Completed Work ✅
 
-## 5. Tahoe Sandbox
-- Grow `src/tahoe_window.zig` into a River-inspired compositor with
-  Moonglow keymaps, explicit allocation bounds, and the thinnest possible
-  Cocoa shim (Zig `@cImport` calling `NSApplication`, `NSWindow`, and
-  `NSView`). Aurora owns the RGBA buffer; Cocoa just hosts the view.
+### Cocoa Bridge Implementation ✅
+- Implemented actual NSApplication, NSWindow, NSView calls
+- Created `cocoa_bridge.zig` with typed `objc_msgSend` wrappers
+- Build succeeds: `zig build tahoe` compiles successfully
+- Executable runs: window shows, event loop implemented
 
-## 6. GUI & Compositor Study
-- Keep researching Mach engine, zgui, Zig-gamedev, River philosophy, and
-  Hammerspoon/QEMU parallels; log updates in `docs/gui_research.md`.
+### Experimental Randomized Fuzz Test 002 ✅
+- Decoupled into `tests-experiments/002_macos.md` and `999_riscv.md`
+- Implemented buffer content validation (FNV-1a checksum)
+- Implemented memory leak detection (GeneralPurposeAllocator)
+- Added error path coverage test
+- Tests pass: validates platform abstraction boundaries
 
-## 7. Grain Aurora UI
-- Advance `src/grain_aurora.zig`, `src/grain_route.zig`, and
-  `src/grain_orchestrator.zig`; maintain roadmap in `docs/plan.md`.
-- Script deterministic recovery + bounded retries (Jepsen lessons).
-- Integrate a color filter layer with a Flux-style “Darkroom” preset and
-  hook it to the Aurora menu for quick toggles, keeping all filters in Zig.
+### Pre-VPS Launchpad ✅
+- Scaffolded `src/kernel/` (`main.zig`, `syscall_table.zig`, `devx/abi.zig`)
+- Extended `grain conduct` with `make kernel-rv64`, `run kernel-rv64`, `report kernel-rv64`
 
-## 8. Grain Social Terminal
-- Keep social data typed in Zig, fuzz 11 `npub`s per run, and deepen
-  TigerBank/TigerCDN tooling (`grain conduct mmt|cdn`).
-- Share settlement encoders in `src/contracts.zig`; store secrets via
-  `src/grainvault.zig`.
-- Maintain DM flows, GrainLoop, Graindaemon, GrainBuffer, and GrainLoom.
+## Deferred Work (Lower Priority)
 
-## 9. Onboarding & Care
-- Maintain onboarding scripts (Cursor Ultra, GitHub/Gmail/iCloud, 2FA,
-  Ghostty setup, Brewfile lockstep) and password guidance.
+### Kernel Toolkit (paused)
+- QEMU + rsync scripts are staged
+- Resume once Framework 13 RISC-V board or VPS is available
+- Focus on macOS Tahoe Aurora IDE work for now
 
-## 10. Poetry & Waterbending
-- Thread ASCII bending art and Helen Atthowe quotes through docs/code.
+### Grain Conductor & Pottery (future)
+- Extend `grain conduct` (`brew|link|manifest|edit|make|ai|contracts|mmt|cdn`)
+- Model Grain Pottery scheduling for CDN kilns, ledger mints, and AI copilots
 
-## 11. Thread Weaver
-- Regenerate `docs/ray_160.md` via `zig build thread`; enforce
-  160-character blocks.
+### Grain Social Terminal (future)
+- Keep social data typed in Zig, fuzz 11 `npub`s per run
+- Share settlement encoders in `src/contracts.zig`; store secrets via `src/grainvault.zig`
 
-## 12. Prompt Ledger
-- Keep `docs/prompts.md` descending; append at index 0.
+### Onboarding & Care
+- See `docs/get-started.md` for beginner guide
+- Maintain onboarding scripts (Cursor Ultra, GitHub/Gmail/iCloud, 2FA, Ghostty setup)
 
-## 13. Timestamp Glow
-- Maintain `src/ray.zig` timestamp grammar and fuzz coverage
-  (`tests-experiments/000.md`).
+### Poetry & Waterbending
+- Thread ASCII bending art and Helen Atthowe quotes through docs/code
 
-## 14. Archive Echoes
-- Rotate `prototype_old/`, `prototype_older/`, and `prototype_oldest/`.
+### Thread Weaver
+- Regenerate `docs/ray_160.md` via `zig build thread`; enforce 160-character blocks
 
-## 15. Delta Checks
-- Run `zig build wrap-docs`, `zig build test`, and keep docs in sync.
+### Prompt Ledger
+- Keep `docs/prompts.md` descending; append at index 0
 
-## 16. Rollback Ritual
-- Guard `RayTraining` rollback flow; keep `ray_app.zig` demo current.
+### Timestamp Glow
+- Maintain `src/ray.zig` timestamp grammar and fuzz coverage (`tests-experiments/000.md`)
 
-## 17. TigerStyle Naming Pass
-- Enforce snake_case exports, 70-line functions, shared RNG helpers for
-  grainvalidate.
+### Archive Echoes
+- Rotate `prototype_old/`, `prototype_older/`, and `prototype_oldest/`
 
-## 18. Grain Foundations Alignment
-- Continue absorbing `vendor/grain-foundations` (`GrainDevName`,
-  `GrainSpace`) and documenting their impact.
-
-## 19. Grainstore Mirrors
-- Maintain static manifests and filesystem layout in `grainstore/` and
-  `src/grain_manifest.zig`.
-
-## 20. Grain Lattice + Matklad Loop
-- Fuzz `src/grain_lattice.zig`, contracts, TigerBank modules, and RNG via
-  `zig build test`; plan for `grain conduct contracts` rehearsals.
-
-## 21. Documentary Chronicle
-- Update `docs/doc.md`; keep the 12-part archive in
-  `prototype_old/docs/design/` wrapped at 73 columns.
+### Delta Checks
+- Run `zig build wrap-docs`, `zig build test`, and keep docs in sync
 
 [^dcroma]: [DeepComputing DC-ROMA RISC-V Mainboard](https://deepcomputing.io/product/dc-roma-risc-v-mainboard/)
 [^framework-mainboard]: [Framework Marketplace – DeepComputing RISC-V Mainboard](https://frame.work/products/deep-computing-risc-v-mainboard)

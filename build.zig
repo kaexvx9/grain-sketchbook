@@ -227,6 +227,30 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
+    const text_renderer_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/aurora_text_renderer.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    });
+
+    const lsp_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/aurora_lsp.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    });
+
+    const editor_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/aurora_editor.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    });
+
     const route_tests = b.addTest(.{
         .root_module = b.createModule(.{
             .root_source_file = b.path("src/grain_route.zig"),
@@ -298,6 +322,53 @@ pub fn build(b: *std.Build) void {
     run_extract.addArg("--help");
     extract_step.dependOn(&run_extract.step);
 
+    // Tiger Style: Print build progress for visibility.
+    std.debug.print("[build] Creating tahoe executable...\n", .{});
+    
+    const tahoe_app = b.addExecutable(.{
+        .name = "tahoe",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/tahoe_app.zig"),
+            .target = target,
+            .optimize = optimize,
+            // Tiger Style: Zig is strict by default - all safety checks enabled.
+            // No need for additional flags - Zig catches all errors at compile time.
+        }),
+    });
+    
+    std.debug.print("[build] Adding C wrapper source: src/platform/macos_tahoe/objc_wrapper.c\n", .{});
+    // Add C wrapper for objc_msgSend to handle calling convention properly.
+    tahoe_app.addCSourceFiles(.{
+        .files = &.{"src/platform/macos_tahoe/objc_wrapper.c"},
+        .flags = &.{},
+    });
+    
+    std.debug.print("[build] Linking macOS frameworks: AppKit, Foundation, CoreGraphics, QuartzCore\n", .{});
+    // Link macOS frameworks: AppKit and Foundation for Cocoa bridge, CoreGraphics for drawing, QuartzCore for CALayer.
+    tahoe_app.linkFramework("AppKit");
+    tahoe_app.linkFramework("Foundation");
+    tahoe_app.linkFramework("CoreGraphics");
+    tahoe_app.linkFramework("QuartzCore");
+    
+    std.debug.print("[build] Installing tahoe artifact...\n", .{});
+    b.installArtifact(tahoe_app);
+    
+    std.debug.print("[build] Creating tahoe build and run steps...\n", .{});
+    
+    // Separate build step: just compile, don't run.
+    const tahoe_build_step = b.step("tahoe-build", "Build the macOS Tahoe Aurora GUI (without running)");
+    tahoe_build_step.dependOn(b.getInstallStep());
+    
+    // Run step: build and then run the app.
+    const tahoe_step = b.step("tahoe", "Build and run the macOS Tahoe Aurora GUI");
+    const run_tahoe = b.addRunArtifact(tahoe_app);
+    tahoe_step.dependOn(&run_tahoe.step);
+    run_tahoe.step.dependOn(b.getInstallStep());
+    
+    std.debug.print("[build] Tahoe build configuration complete.\n", .{});
+    std.debug.print("[build] Use 'zig build tahoe-build' to compile without running.\n", .{});
+    std.debug.print("[build] Use 'zig build tahoe' to compile and run (will block until app quits).\n", .{});
+
     const test_step = b.step("test", "Run Ray plan tests");
     const run_ray_tests = b.addRunArtifact(ray_tests);
     test_step.dependOn(&run_ray_tests.step);
@@ -325,6 +396,12 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_loom_tests.step);
     const run_aurora_tests = b.addRunArtifact(aurora_tests);
     test_step.dependOn(&run_aurora_tests.step);
+    const run_text_renderer_tests = b.addRunArtifact(text_renderer_tests);
+    test_step.dependOn(&run_text_renderer_tests.step);
+    const run_lsp_tests = b.addRunArtifact(lsp_tests);
+    test_step.dependOn(&run_lsp_tests.step);
+    const run_editor_tests = b.addRunArtifact(editor_tests);
+    test_step.dependOn(&run_editor_tests.step);
     const run_route_tests = b.addRunArtifact(route_tests);
     test_step.dependOn(&run_route_tests.step);
     const run_orchestrator_tests = b.addRunArtifact(orchestrator_tests);
@@ -333,4 +410,14 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_riscv_tests.step);
     const run_outputs_tests = b.addRunArtifact(outputs_tests);
     test_step.dependOn(&run_outputs_tests.step);
+
+    const fuzz_003_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("tests/003_fuzz.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    });
+    const run_fuzz_003_tests = b.addRunArtifact(fuzz_003_tests);
+    test_step.dependOn(&run_fuzz_003_tests.step);
 }

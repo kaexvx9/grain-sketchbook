@@ -7,111 +7,154 @@ performance braided next, joy
 embroidered last.
 
 ## Mood Board
-- Grain is our twilight terminal: Cursor Ultra, Zig LSP, Grok,
-and a gentle social stream all breathing in one window.
-- Inside sits a River-inspired compositor, a glasshouse of Moonglow 
-keybindings, where each user cares for a personal Grain database garden.
-- Nostr `npub`s become bright addresses—each one a friendly 
-lighthouse—while Matklad-style tests sweep for drift like soft 
-tidewater.
+- **Grain Aurora**: A Zig-first IDE that combines Cursor's agentic coding with native macOS performance and Matklad's LSP architecture. Think Cursor, but faster, Zig-native, and built on snapshot-based incremental analysis.
+- **Zig Language Server**: Matklad-inspired snapshot model (`ready` / `working` / `pending`) with cancellation support. Start with data model, then fill in language features incrementally.
+- **Agentic Coding**: Cursor CLI and Claude Code integration for AI-assisted Zig development. Zig-specific prompts understand comptime, error unions, and TigerStyle.
+- **River Compositor**: Window tiling with Moonglow keybindings, blurring editor and terminal (Vibe Coding). Multiple panes, workspaces, deterministic layouts.
+- **Native macOS**: Cocoa bridge, no Electron. Traffic lights, menu bar, proper window lifecycle. Fast, responsive, native.
 - Glow G2 stays a calm voice: masculine, steadfast, Aquarian. Emo enough 
 to acknowledge the ache, upbeat enough to guide with grace.
-- Vegan Tiger’s (@vegan_tiger) South Korean streetwear silhouette feeds 
-our
-  Tahoe aesthetic, reminding us to keep ethical fashion signal in view
+- Vegan Tiger's (@vegan_tiger) South Korean streetwear silhouette feeds 
+our Tahoe aesthetic, reminding us to keep ethical fashion signal in view
   [^vegan-tiger].
 
 ## Ray Mission Ladder (Deterministic & Kind)
-1. **Pre-VPS Launchpad (done)**
-   - Scaffolded `src/kernel/` (`main.zig`, `syscall_table.zig`,
-     `devx/abi.zig`), `kernel/link.ld`, and `scripts/qemu_rv64.sh` so
-     `zig build kernel-rv64` emits `zig-out/bin/grain-rv64`.
-   - Journaled bootloader research in `docs/boot/notes.md`, tracking the
-     OpenSBI ➝ U-Boot baseline and our Zig/Rust payload ambitions.
-   - Extended `grain conduct` with `make kernel-rv64`, `run kernel-rv64`,
-     and `report kernel-rv64`; runs now stream to stdout and archive logs
-     under `logs/kernel/`.
-2. **Kernel Toolkit (paused)**
-   - QEMU, rsync, and gdb scripts are staged; resume once the Framework 
-   13
-     RISC-V board or VPS is available. Until then, focus on macOS Tahoe
-     Aurora work via the MacBook Air / Framework 16 host.
-3. **Grain Conductor & Pottery**
-   - `zig build conduct` drives `grain conduct brew|link|manifest|edit|
-     make|ai|contracts|mmt|cdn` with TigerStyle determinism.
-   - Pottery abstractions schedule CDN kilns, ledger mints, and AI
-     copilots while staying within static allocation vows.
-4. **Tahoe Sandbox**
-   - Evolve `src/tahoe_window.zig` into a River-inspired compositor with
-     Moonglow keymaps, explicit memory boundaries, and the thinnest Zig 
-     → Cocoa
-     bridge: we call `NSApplication`/`NSWindow` directly,
-     but Aurora keeps the
-     RGBA buffer and renders deterministically.
-5. **GUI & Compositor Study**
-   - Keep surveying Mach engine, zgui, Zig-gamedev, River philosophy, and
-     Hammerspoon/QEMU parallels (`docs/gui_research.md`).
-6. **Grain Aurora UI**
-   - `src/grain_aurora.zig`, `src/grain_route.zig`, and
-     `src/grain_orchestrator.zig` deliver deterministic rendering,
-     routing, and agent orchestration; roadmap tracked in `docs/plan.md`.
-   - Deterministic recovery: single-copy rebuild flow (GrainLoom +
-     Graindaemon + contracts) and bounded retries per Jepsen guidance
-     [^jepsen-tb].
-   - Add a color filter pipeline with a Flux-style Darkroom preset and
-     expose toggles in the Aurora `View ▸ Flux` menu.
-7. **Grain Social Terminal**
-   - Typed Zig arrays represent social data; fuzz 11 random `npub`s per
-     run to stress Nostr relays.
-   - TigerBank flows (`docs/nostr_mmt_tigerbank.md`,
-     `tigerbank_client.zig`, `grain conduct mmt|cdn`) share encoders via
-     `src/contracts.zig` and secrets via `src/grainvault.zig`.
-   - DM interface (`src/dm.zig`) handles X25519 + ChaCha20-Poly1305
-     envelopes; GrainLoop, Graindaemon, GrainBuffer, and GrainLoom stitch
-     UDP events, supervision, and sticky read-only panes.
-8. **Onboarding & Care**
-   - Guard passwords (`this-password-im-typing-Now-9`), cover Cursor
-     Ultra, GitHub/Gmail/iCloud onboarding, 2FA, and Ghostty setup.
-   - Mirror GrainVault, export API tokens, and run `brew bundle` for
-     convergent tooling.
-9. **Poetry & Waterbending**
-    - Lace ASCII bending art and Helen Atthowe quotes throughout code and
-      docs—emo, PG, sincere.
-10. **Thread Weaver**
-    - `tools/thread_slicer.zig` + `zig build thread` keep `docs/ray.md`
-      mirrored as `docs/ray_160.md` tweet threads with 160-char bounds.
-11. **Prompt Ledger**
-    - `docs/prompts.md` holds descending `PROMPTS`; new entries append at
-      index 0 for O(1) joy.
-12. **Timestamp Glow**
-    - `src/ray.zig` keeps runtime timestamps validated by fuzz tests,
-      with findings logged in `tests-experiments/000.md`.
-13. **Archive Echoes**
-    - Maintain the archive rotation (`prototype_oldest/`,
-      `prototype_older/`, `prototype_old/`) so each climb stays 
-      auditable.
-14. **Delta Checks**
-    - Keep Ray, prompts, outputs, and tests aligned (`zig build test`,
-      `zig build wrap-docs`).
-15. **Rollback Ritual**
-    - `RayTraining` mirrors nixos-style rollback; `ray_app.zig` demos air
-      → water → rollback → earth.
-16. **TigerStyle Naming Pass**
-    - Enforce snake_case APIs, 70-line function caps, and shared RNG
-      helpers for grainvalidate compliance.
-17. **Grain Foundations Alignment**
-    - Study `vendor/grain-foundations` (`GrainDevName`, `GrainSpace`) and
-      document how they shape Ray structs.
-18. **Grainstore Mirrors**
-    - Maintain `grainstore/{platform}/{org}/{repo}` layout and static Zig
-      manifests (`src/grain_manifest.zig`).
-19. **Grain Lattice + Matklad Loop**
-    - `src/grain_lattice.zig` captures the Djinn/Alpenglow DAG; Matklad
-      fuzzing covers contracts, TigerBank modules, lattice, and RNG.
-      Future: `grain conduct contracts` for encrypted rehearsal flows.
-20. **Documentary Chronicle**
-    - `docs/doc.md` remains the living handbook while the 12-part arc
-      rests in `prototype_old/docs/design/`.
+
+**Vision**: Grain Aurora as a Zig-first IDE with Matklad-inspired LSP architecture, combining Cursor-style agentic coding with native macOS performance and River compositor workflows.
+
+### Phase 1: Core IDE Foundation (Current Priority)
+
+1. **Zig Language Server Protocol (LSP) Implementation** ⭐ **NEW PRIORITY**
+   - Build snapshot-based LSP server using Matklad's cancellation-aware model
+   - Start with rock-solid data model: source code store that evolves over time
+   - Implement incremental analysis: only re-analyze what changed
+   - Support cancellation: long-running analysis can be cancelled when user types
+   - Reference: [Matklad's Zig LSP architecture](https://matklad.github.io/2023/05/06/zig-language-server-and-cancellation.html)
+   - Files: `src/aurora_lsp/` (new module)
+
+2. **Event Loop & Window Lifecycle (macOS Priority)** ✅ **IN PROGRESS**
+   - Implement NSApplication delegate for proper event handling
+   - Window delegate methods for window lifecycle events
+   - Keyboard/mouse event handling with Cocoa event system
+   - Keep app running: proper delegate prevents immediate termination
+   - Files: `src/platform/macos/window.zig`, `src/tahoe_app.zig`
+
+3. **Text Editor Core**
+   - Multi-file editor with tab support
+   - Syntax highlighting for Zig (semantic + lexical)
+   - Cursor management: single cursor, multi-cursor support
+   - Selection handling: word, line, block selection
+   - Files: `src/aurora_editor/` (extend existing)
+
+4. **Code Completion & Semantic Features**
+   - LSP-based code completion (`textDocument/completion`)
+   - Go to definition (`textDocument/definition`)
+   - Find all references (`textDocument/references`)
+   - Rename symbol (`textDocument/rename`)
+   - Inlay hints: parameter names, types, comptime values
+   - Files: `src/aurora_lsp/`, `src/aurora_editor/`
+
+### Phase 2: Agentic Coding Integration
+
+5. **Cursor CLI / Claude Code Integration**
+   - Cursor CLI integration for AI-assisted coding
+   - Claude Code API integration (alternative to Cursor)
+   - Agent chat pane: similar to Cursor's Composer mode
+   - Diff view for AI-generated code changes
+   - Accept/reject workflow (`Cmd+Enter` / `Esc`)
+   - Files: `src/aurora_agent/` (new module), `src/grainvault/` (API keys)
+
+6. **Zig-Specific Agent Prompts**
+   - Comptime-aware code generation
+   - Error union handling suggestions
+   - TigerStyle compliance checks
+   - Memory safety analysis suggestions
+   - Files: `src/aurora_agent/prompts.zig`
+
+### Phase 3: Advanced IDE Features
+
+7. **River-Inspired Compositor (macOS Priority)**
+   - Evolve `src/tahoe_window.zig` into River-style window tiling
+   - Implement Moonglow keybindings for window management workflows
+   - Multiple panes/views with deterministic layout algorithms
+   - Workspace support: switch between project workspaces
+
+8. **Terminal Integration (Vibe Coding)**
+   - Integrated terminal: blur line between editor and terminal
+   - Split panes: like tmux, but integrated
+   - Command history: `Cmd+Up` to scroll
+   - Zig REPL integration: type `zig` to enter REPL mode
+   - Build output linking: errors link back to source
+   - Reference: [Matklad's Vibe Coding](https://matklad.github.io/2025/08/31/vibe-coding-terminal-editor.html)
+
+9. **Aurora UI Enhancements**
+   - Complete Flux Darkroom color filter integration
+   - Native macOS menu bar with `View ▸ Flux` toggle
+   - Menu bar: `Aurora | File | Edit | Selection | View | Go | Run | Terminal | Window | Help`
+   - Theme support: Dark/Light/One Dark Pro
+
+10. **Missing IDE Features** (Matklad-inspired)
+    - Read-only characters: show immutable vs mutable state
+    - Extend selection: semantic-aware selection expansion
+    - Code actions/assists: 💡 lightbulb for quick fixes
+    - Breadcrumbs: show symbol hierarchy
+    - Reference: [Matklad's Missing IDE Feature](https://matklad.github.io/2024/10/14/missing-ide-feature.html)
+
+### Completed Work ✅
+
+11. **Cocoa Bridge Implementation (done)**
+    - Implemented actual NSApplication, NSWindow, NSView calls
+    - Created `cocoa_bridge.zig` with typed `objc_msgSend` wrappers
+    - Build succeeds: `zig build tahoe` compiles successfully
+    - Executable runs: window shows, event loop implemented
+
+12. **Experimental Randomized Fuzz Test 002 (done)**
+    - Decoupled into `tests-experiments/002_macos.md` and `999_riscv.md`
+    - Implemented buffer content validation (FNV-1a checksum)
+    - Implemented memory leak detection (GeneralPurposeAllocator)
+    - Added error path coverage test
+    - Tests pass: validates platform abstraction boundaries
+
+13. **Pre-VPS Launchpad (done)**
+    - Scaffolded `src/kernel/` (`main.zig`, `syscall_table.zig`, `devx/abi.zig`)
+    - Extended `grain conduct` with `make kernel-rv64`, `run kernel-rv64`, `report kernel-rv64`
+
+### Deferred Work (Lower Priority)
+
+14. **Kernel Toolkit (paused)**
+    - QEMU, rsync, and gdb scripts are staged
+    - Resume once Framework 13 RISC-V board or VPS is available
+    - Focus on macOS Tahoe Aurora IDE work for now
+
+15. **Grain Conductor & Pottery** (Future)
+    - `zig build conduct` drives `grain conduct brew|link|manifest|edit|make|ai|contracts|mmt|cdn`
+    - Pottery abstractions schedule CDN kilns, ledger mints, and AI copilots
+
+16. **Grain Social Terminal** (Future)
+    - Typed Zig arrays represent social data; fuzz 11 random `npub`s per run
+    - TigerBank flows share encoders via `src/contracts.zig` and secrets via `src/grainvault.zig`
+
+17. **Onboarding & Care**
+    - See `docs/get-started.md` for beginner guide
+    - Guard passwords, cover Cursor Ultra, GitHub/Gmail/iCloud onboarding, 2FA
+
+18. **Poetry & Waterbending**
+    - Lace ASCII bending art and Helen Atthowe quotes throughout code and docs
+
+19. **Thread Weaver**
+    - `tools/thread_slicer.zig` + `zig build thread` keep `docs/ray.md` mirrored as `docs/ray_160.md`
+
+20. **Prompt Ledger**
+    - `docs/prompts.md` holds descending `PROMPTS`; new entries append at index 0
+
+21. **Timestamp Glow**
+    - `src/ray.zig` keeps runtime timestamps validated by fuzz tests
+
+22. **Archive Echoes**
+    - Maintain the archive rotation (`prototype_oldest/`, `prototype_older/`, `prototype_old/`)
+
+23. **Delta Checks**
+    - Keep Ray, prompts, outputs, and tests aligned (`zig build test`, `zig build wrap-docs`)
 
 [^readonly]: [Matklad, "Readonly Characters Are a Big Deal"](https://
 matklad.github.io/2025/11/10/readonly-characters.html)
@@ -130,6 +173,7 @@ V Mainboard](https://frame.work/products/deep-computing-risc-v-mainboard)
 [^framework-blog]: [Framework Blog: RISC-V Mainboard for Framework Laptop 
 13](https://frame.work/blog/risc-v-mainboard-for-framework-laptop-13-is-
 now-available)
+
 
 
 
