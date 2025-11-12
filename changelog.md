@@ -1,5 +1,19 @@
 # Grain Changelog — Descending Order (Newest First)
 
+## 12025-11-13--1315-pst
+- **macOS Tahoe Window Rendering: Complete Implementation**
+  - Successfully implemented and fixed macOS Tahoe window rendering. The application now displays content correctly in a native macOS window.
+  - **Rewrote `window.zig` from scratch** to resolve persistent parser errors that were blocking compilation
+  - **Fixed NSImage creation**: Replaced non-existent `imageWithCGImage:size:` class method with proper approach using `NSBitmapImageRep.initWithCGImage:` + `NSImage.initWithSize:` + `addRepresentation:`
+  - **Fixed struct return handling**: Added `objc_msgSend_returns_NSRect` C wrapper and `objc_msgSendNSRect` Zig wrapper to properly handle methods like `bounds` that return `NSRect` structs by value (not object pointers)
+  - **Switched to NSImageView**: Replaced manual `lockFocus`/`drawInRect`/`unlockFocus` drawing with `NSImageView.setImage:` for reliable, native image display
+  - **Removed layer-backing**: Disabled `setWantsLayer:` as it conflicts with traditional drawing approaches
+  - Window successfully displays 1024x768 RGBA buffer as dark blue-gray background with white rectangle
+  - All Objective-C runtime calls properly validated with assertions
+  - Static buffer allocation (3MB) eliminates dynamic allocation overhead
+  - Comprehensive error handling and pointer validation throughout
+  - **Result:** Window appears and displays rendered content correctly. Application runs successfully with native macOS GUI.
+
 ## 12025-10-26--1026-pst
 - **Enhanced Assertions & Error Handling**
   - Added comprehensive assertions throughout Cocoa bridge code (`src/platform/macos/window.zig`, `src/platform/macos/cocoa_bridge.zig`)
