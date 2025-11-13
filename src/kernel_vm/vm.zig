@@ -164,7 +164,7 @@ pub const VM = struct {
 
     /// Read instruction at PC (32-bit, little-endian).
     /// Tiger Style: Validate PC, bounds checking, alignment.
-    pub fn fetchInstruction(self: *const Self) VMError!u32 {
+    pub fn fetch_instruction(self: *const Self) VMError!u32 {
         const pc = self.regs.pc;
         
         // Assert: PC must be within memory bounds.
@@ -200,7 +200,7 @@ pub const VM = struct {
         std.debug.assert(pc_before < self.memory_size);
         
         // Fetch instruction at PC.
-        const inst = try self.fetchInstruction();
+        const inst = try self.fetch_instruction();
         
         // Assert: instruction must be valid (not all zeros or all ones).
         std.debug.assert(inst != 0x00000000);
@@ -214,7 +214,7 @@ pub const VM = struct {
         switch (opcode) {
             // LUI (Load Upper Immediate): U-type instruction.
             0b0110111 => {
-                try self.executeLUI(inst);
+                try self.execute_lui(inst);
             },
             // ADDI (Add Immediate): I-type instruction.
             0b0010011 => {
@@ -222,7 +222,7 @@ pub const VM = struct {
                 // For now, handle basic ADDI (funct3 = 0b000).
                 const funct3 = @as(u3, @truncate(inst >> 12));
                 if (funct3 == 0b000) {
-                    try self.executeADDI(inst);
+                    try self.execute_addi(inst);
                 } else {
                     // Unsupported I-type instruction variant.
                     self.state = .errored;
@@ -235,7 +235,7 @@ pub const VM = struct {
                 const funct3 = @as(u3, @truncate(inst >> 12));
                 if (funct3 == 0b010) {
                     // LW (Load Word): Load 32-bit word from memory.
-                    try self.executeLW(inst);
+                    try self.execute_lw(inst);
                 } else {
                     // Unsupported load instruction variant.
                     self.state = .errored;
@@ -248,7 +248,7 @@ pub const VM = struct {
                 const funct3 = @as(u3, @truncate(inst >> 12));
                 if (funct3 == 0b010) {
                     // SW (Store Word): Store 32-bit word to memory.
-                    try self.executeSW(inst);
+                    try self.execute_sw(inst);
                 } else {
                     // Unsupported store instruction variant.
                     self.state = .errored;
@@ -261,7 +261,7 @@ pub const VM = struct {
                 const funct3 = @as(u3, @truncate(inst >> 12));
                 if (funct3 == 0b000) {
                     // BEQ (Branch if Equal): Branch if rs1 == rs2.
-                    try self.executeBEQ(inst);
+                    try self.execute_beq(inst);
                 } else {
                     // Unsupported branch instruction variant.
                     self.state = .errored;
@@ -273,7 +273,7 @@ pub const VM = struct {
             0b1110011 => {
                 const funct3 = @as(u3, @truncate(inst >> 12));
                 if (funct3 == 0b000) {
-                    try self.executeECALL();
+                    try self.execute_ecall();
                 } else {
                     // Unsupported system instruction.
                     self.state = .errored;
@@ -308,7 +308,7 @@ pub const VM = struct {
     /// Execute LUI (Load Upper Immediate) instruction.
     /// Format: LUI rd, imm[31:12]
     /// Why: Separate function for clarity and Tiger Style function length.
-    fn executeLUI(self: *Self, inst: u32) !void {
+    fn execute_lui(self: *Self, inst: u32) !void {
         // Decode: rd = bits [11:7], imm[31:12] = bits [31:12].
         const rd = @as(u5, @truncate(inst >> 7));
         const imm = @as(u32, inst) & 0xFFFFF000; // Extract bits [31:12].
@@ -324,7 +324,7 @@ pub const VM = struct {
     /// Execute ADDI (Add Immediate) instruction.
     /// Format: ADDI rd, rs1, imm[11:0]
     /// Why: Separate function for clarity and Tiger Style function length.
-    fn executeADDI(self: *Self, inst: u32) !void {
+    fn execute_addi(self: *Self, inst: u32) !void {
         // Decode: rd = bits [11:7], rs1 = bits [19:15], imm[11:0] = bits [31:20].
         const rd = @as(u5, @truncate(inst >> 7));
         const rs1 = @as(u5, @truncate(inst >> 15));
@@ -347,7 +347,7 @@ pub const VM = struct {
     /// Format: LW rd, offset(rs1)
     /// Encoding: imm[11:0] | rs1 | 010 | rd | 0000011
     /// Why: Load 32-bit word from memory for kernel data access.
-    fn executeLW(self: *Self, inst: u32) !void {
+    fn execute_lw(self: *Self, inst: u32) !void {
         // Decode: rd = bits [11:7], rs1 = bits [19:15], imm[11:0] = bits [31:20].
         const rd = @as(u5, @truncate(inst >> 7));
         const rs1 = @as(u5, @truncate(inst >> 15));
@@ -398,7 +398,7 @@ pub const VM = struct {
     /// Format: SW rs2, offset(rs1)
     /// Encoding: imm[11:5] | rs2 | rs1 | 010 | imm[4:0] | 0100011
     /// Why: Store 32-bit word to memory for kernel data writes.
-    fn executeSW(self: *Self, inst: u32) !void {
+    fn execute_sw(self: *Self, inst: u32) !void {
         // Decode S-type: rs2 = bits [24:20], rs1 = bits [19:15], imm[11:5] = bits [31:25], imm[4:0] = bits [11:7].
         const rs2 = @as(u5, @truncate(inst >> 20));
         const rs1 = @as(u5, @truncate(inst >> 15));
@@ -449,7 +449,7 @@ pub const VM = struct {
     /// Format: BEQ rs1, rs2, offset
     /// Encoding: imm[12] | imm[10:5] | rs2 | rs1 | 000 | imm[4:1] | imm[11] | 1100011
     /// Why: Conditional branch for kernel control flow.
-    fn executeBEQ(self: *Self, inst: u32) !void {
+    fn execute_beq(self: *Self, inst: u32) !void {
         // Decode B-type: rs2 = bits [24:20], rs1 = bits [19:15], imm[12] = bit [31], imm[10:5] = bits [30:25],
         // imm[4:1] = bits [11:8], imm[11] = bit [7].
         const rs2 = @as(u5, @truncate(inst >> 20));
@@ -509,7 +509,7 @@ pub const VM = struct {
     /// Format: ECALL (no operands, triggers system call).
     /// Why: Handle Grain Basin kernel syscalls via ECALL instruction.
     /// RISC-V calling convention: a7 (x17) = syscall number, a0-a5 (x10-x15) = arguments.
-    fn executeECALL(self: *Self) !void {
+    fn execute_ecall(self: *Self) !void {
         // RISC-V syscall convention: a7 (x17) contains syscall number.
         const syscall_num = self.regs.get(17); // a7 register
         
@@ -548,7 +548,7 @@ pub const VM = struct {
     
     /// Set syscall handler callback.
     /// Why: Allow external syscall handling (e.g., Grain Basin kernel).
-    pub fn setSyscallHandler(self: *Self, handler: *const fn (syscall_num: u32, arg1: u64, arg2: u64, arg3: u64, arg4: u64) u64, user_data: ?*anyopaque) void {
+    pub fn set_syscall_handler(self: *Self, handler: *const fn (syscall_num: u32, arg1: u64, arg2: u64, arg3: u64, arg4: u64) u64, user_data: ?*anyopaque) void {
         self.syscall_handler = handler;
         self.syscall_user_data = user_data;
     }

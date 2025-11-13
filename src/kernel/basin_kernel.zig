@@ -123,7 +123,7 @@ pub const Handle = struct {
     
     /// Check if handle is valid (non-zero).
     /// Why: Explicit validation, prevent use of invalid handles.
-    pub fn isValid(self: Handle) bool {
+    pub fn is_valid(self: Handle) bool {
         return self.value != 0;
     }
     
@@ -212,7 +212,7 @@ pub const BasinKernel = struct {
     
     /// Handle syscall from user space.
     /// Why: Central syscall entry point, validate syscall number and arguments.
-    pub fn handleSyscall(
+    pub fn handle_syscall(
         self: *BasinKernel,
         syscall_num: u32,
         arg1: u64,
@@ -233,30 +233,30 @@ pub const BasinKernel = struct {
         // Route to appropriate syscall handler.
         // Why: Explicit routing, type-safe syscall handling.
         return switch (syscall) {
-            .spawn => self.syscallSpawn(arg1, arg2, arg3, arg4),
-            .exit => self.syscallExit(arg1, arg2, arg3, arg4),
-            .yield => self.syscallYield(arg1, arg2, arg3, arg4),
-            .wait => self.syscallWait(arg1, arg2, arg3, arg4),
-            .map => self.syscallMap(arg1, arg2, arg3, arg4),
-            .unmap => self.syscallUnmap(arg1, arg2, arg3, arg4),
-            .protect => self.syscallProtect(arg1, arg2, arg3, arg4),
-            .channel_create => self.syscallChannelCreate(arg1, arg2, arg3, arg4),
-            .channel_send => self.syscallChannelSend(arg1, arg2, arg3, arg4),
-            .channel_recv => self.syscallChannelRecv(arg1, arg2, arg3, arg4),
-            .open => self.syscallOpen(arg1, arg2, arg3, arg4),
-            .read => self.syscallRead(arg1, arg2, arg3, arg4),
-            .write => self.syscallWrite(arg1, arg2, arg3, arg4),
-            .close => self.syscallClose(arg1, arg2, arg3, arg4),
-            .clock_gettime => self.syscallClockGettime(arg1, arg2, arg3, arg4),
-            .sleep_until => self.syscallSleepUntil(arg1, arg2, arg3, arg4),
-            .sysinfo => self.syscallSysinfo(arg1, arg2, arg3, arg4),
+            .spawn => self.syscall_spawn(arg1, arg2, arg3, arg4),
+            .exit => self.syscall_exit(arg1, arg2, arg3, arg4),
+            .yield => self.syscall_yield(arg1, arg2, arg3, arg4),
+            .wait => self.syscall_wait(arg1, arg2, arg3, arg4),
+            .map => self.syscall_map(arg1, arg2, arg3, arg4),
+            .unmap => self.syscall_unmap(arg1, arg2, arg3, arg4),
+            .protect => self.syscall_protect(arg1, arg2, arg3, arg4),
+            .channel_create => self.syscall_channel_create(arg1, arg2, arg3, arg4),
+            .channel_send => self.syscall_channel_send(arg1, arg2, arg3, arg4),
+            .channel_recv => self.syscall_channel_recv(arg1, arg2, arg3, arg4),
+            .open => self.syscall_open(arg1, arg2, arg3, arg4),
+            .read => self.syscall_read(arg1, arg2, arg3, arg4),
+            .write => self.syscall_write(arg1, arg2, arg3, arg4),
+            .close => self.syscall_close(arg1, arg2, arg3, arg4),
+            .clock_gettime => self.syscall_clock_gettime(arg1, arg2, arg3, arg4),
+            .sleep_until => self.syscall_sleep_until(arg1, arg2, arg3, arg4),
+            .sysinfo => self.syscall_sysinfo(arg1, arg2, arg3, arg4),
         };
     }
     
     // Syscall handlers (stubs for future implementation).
     // Why: Separate functions for each syscall, Tiger Style function length limit.
     
-    fn syscallSpawn(
+    fn syscall_spawn(
         self: *BasinKernel,
         executable: u64,
         args_ptr: u64,
@@ -273,7 +273,7 @@ pub const BasinKernel = struct {
         return BasinError.invalid_syscall;
     }
     
-    fn syscallExit(
+    fn syscall_exit(
         self: *BasinKernel,
         status: u64,
         _arg2: u64,
@@ -294,7 +294,7 @@ pub const BasinKernel = struct {
         return SyscallResult.ok(status);
     }
     
-    fn syscallYield(
+    fn syscall_yield(
         self: *BasinKernel,
         _arg1: u64,
         _arg2: u64,
@@ -314,7 +314,7 @@ pub const BasinKernel = struct {
         return SyscallResult.ok(0);
     }
     
-    fn syscallWait(
+    fn syscall_wait(
         self: *BasinKernel,
         process: u64,
         _arg2: u64,
@@ -331,7 +331,7 @@ pub const BasinKernel = struct {
         return BasinError.invalid_syscall;
     }
     
-    fn syscallMap(
+    fn syscall_map(
         self: *BasinKernel,
         addr: u64,
         size: u64,
@@ -370,7 +370,7 @@ pub const BasinKernel = struct {
         return SyscallResult.ok(addr);
     }
     
-    fn syscallUnmap(
+    fn syscall_unmap(
         self: *BasinKernel,
         region: u64,
         _arg2: u64,
@@ -387,7 +387,7 @@ pub const BasinKernel = struct {
         return BasinError.invalid_syscall;
     }
     
-    fn syscallProtect(
+    fn syscall_protect(
         self: *BasinKernel,
         region: u64,
         flags: u64,
@@ -404,7 +404,7 @@ pub const BasinKernel = struct {
         return BasinError.invalid_syscall;
     }
     
-    fn syscallChannelCreate(
+    fn syscall_channel_create(
         self: *BasinKernel,
         _arg1: u64,
         _arg2: u64,
@@ -421,7 +421,7 @@ pub const BasinKernel = struct {
         return BasinError.invalid_syscall;
     }
     
-    fn syscallChannelSend(
+    fn syscall_channel_send(
         self: *BasinKernel,
         channel: u64,
         data_ptr: u64,
@@ -438,7 +438,7 @@ pub const BasinKernel = struct {
         return BasinError.invalid_syscall;
     }
     
-    fn syscallChannelRecv(
+    fn syscall_channel_recv(
         self: *BasinKernel,
         channel: u64,
         buffer_ptr: u64,
@@ -455,7 +455,7 @@ pub const BasinKernel = struct {
         return BasinError.invalid_syscall;
     }
     
-    fn syscallOpen(
+    fn syscall_open(
         self: *BasinKernel,
         path_ptr: u64,
         path_len: u64,
@@ -472,7 +472,7 @@ pub const BasinKernel = struct {
         return BasinError.invalid_syscall;
     }
     
-    fn syscallRead(
+    fn syscall_read(
         self: *BasinKernel,
         handle: u64,
         buffer_ptr: u64,
@@ -489,7 +489,7 @@ pub const BasinKernel = struct {
         return BasinError.invalid_syscall;
     }
     
-    fn syscallWrite(
+    fn syscall_write(
         self: *BasinKernel,
         handle: u64,
         data_ptr: u64,
@@ -506,7 +506,7 @@ pub const BasinKernel = struct {
         return BasinError.invalid_syscall;
     }
     
-    fn syscallClose(
+    fn syscall_close(
         self: *BasinKernel,
         handle: u64,
         _arg2: u64,
@@ -523,7 +523,7 @@ pub const BasinKernel = struct {
         return BasinError.invalid_syscall;
     }
     
-    fn syscallClockGettime(
+    fn syscall_clock_gettime(
         self: *BasinKernel,
         clock_id: u64,
         _arg2: u64,
@@ -540,7 +540,7 @@ pub const BasinKernel = struct {
         return BasinError.invalid_syscall;
     }
     
-    fn syscallSleepUntil(
+    fn syscall_sleep_until(
         self: *BasinKernel,
         timestamp: u64,
         _arg2: u64,
@@ -557,7 +557,7 @@ pub const BasinKernel = struct {
         return BasinError.invalid_syscall;
     }
     
-    fn syscallSysinfo(
+    fn syscall_sysinfo(
         self: *BasinKernel,
         info_ptr: u64,
         _arg2: u64,

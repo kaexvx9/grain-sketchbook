@@ -80,9 +80,9 @@ pub const TahoeSandbox = struct {
         // Set up event handler (Tiger Style: validate all function pointers).
         const event_handler = events.EventHandler{
             .user_data = &sandbox,
-            .onMouse = handleMouseEvent,
-            .onKeyboard = handleKeyboardEvent,
-            .onFocus = handleFocusEvent,
+            .onMouse = handle_mouse_event,
+            .onKeyboard = handle_keyboard_event,
+            .onFocus = handle_focus_event,
         };
         
         // Assert: event handler function pointers must be valid.
@@ -134,15 +134,15 @@ pub const TahoeSandbox = struct {
     
     /// Handle mouse events: log and process.
     /// Tiger Style: validate user_data pointer, validate event fields.
-    fn handleMouseEvent(user_data: *anyopaque, event: events.MouseEvent) bool {
+    fn handle_mouse_event(user_data: *anyopaque, event: events.MouseEvent) bool {
         // Assert: user_data pointer must be valid (non-zero, aligned).
         const user_data_ptr = @intFromPtr(user_data);
         std.debug.assert(user_data_ptr != 0);
         if (user_data_ptr < 0x1000) {
-            std.debug.panic("handleMouseEvent: user_data pointer is suspiciously small: 0x{x}", .{user_data_ptr});
+            std.debug.panic("handle_mouse_event: user_data pointer is suspiciously small: 0x{x}", .{user_data_ptr});
         }
         if (user_data_ptr % @alignOf(TahoeSandbox) != 0) {
-            std.debug.panic("handleMouseEvent: user_data pointer is not aligned: 0x{x}", .{user_data_ptr});
+            std.debug.panic("handle_mouse_event: user_data pointer is not aligned: 0x{x}", .{user_data_ptr});
         }
         
         // Cast user_data to TahoeSandbox.
@@ -209,15 +209,15 @@ pub const TahoeSandbox = struct {
     
     /// Handle keyboard events: log and process.
     /// Tiger Style: validate user_data pointer, validate event fields.
-    fn handleKeyboardEvent(user_data: *anyopaque, event: events.KeyboardEvent) bool {
+    fn handle_keyboard_event(user_data: *anyopaque, event: events.KeyboardEvent) bool {
         // Assert: user_data pointer must be valid (non-zero, aligned).
         const user_data_ptr = @intFromPtr(user_data);
         std.debug.assert(user_data_ptr != 0);
         if (user_data_ptr < 0x1000) {
-            std.debug.panic("handleKeyboardEvent: user_data pointer is suspiciously small: 0x{x}", .{user_data_ptr});
+            std.debug.panic("handle_keyboard_event: user_data pointer is suspiciously small: 0x{x}", .{user_data_ptr});
         }
         if (user_data_ptr % @alignOf(TahoeSandbox) != 0) {
-            std.debug.panic("handleKeyboardEvent: user_data pointer is not aligned: 0x{x}", .{user_data_ptr});
+            std.debug.panic("handle_keyboard_event: user_data pointer is not aligned: 0x{x}", .{user_data_ptr});
         }
         
         // Cast user_data to TahoeSandbox.
@@ -317,7 +317,7 @@ pub const TahoeSandbox = struct {
                 
                 // Set syscall handler for VM (Grain Basin kernel integration).
                 // Why: Wire VM ECALL instructions to Grain Basin kernel syscalls.
-                vm.setSyscallHandler(TahoeSandbox.handleSyscall, sandbox);
+                vm.set_syscall_handler(TahoeSandbox.handle_syscall, sandbox);
                 
                 std.debug.print("[tahoe_window] Kernel loaded successfully. PC: 0x{X}\n", .{vm.regs.pc});
                 return true;
@@ -434,11 +434,11 @@ pub const TahoeSandbox = struct {
     /// RISC-V calling convention: syscall_num in a7, args in a0-a5, result in a0.
     /// Note: This is a static function that will be called via callback.
     /// TODO: Use user_data to access sandbox instance properly.
-    pub fn handleSyscall(syscall_num: u32, arg1: u64, arg2: u64, arg3: u64, arg4: u64) u64 {
+    pub fn handle_syscall(syscall_num: u32, arg1: u64, arg2: u64, arg3: u64, arg4: u64) u64 {
         // For now, use a simple implementation that calls Basin Kernel.
         // TODO: Access sandbox via user_data when callback supports it.
         var kernel = basin_kernel.BasinKernel{};
-        const result = kernel.handleSyscall(syscall_num, arg1, arg2, arg3, arg4) catch |err| {
+        const result = kernel.handle_syscall(syscall_num, arg1, arg2, arg3, arg4) catch |err| {
             // Return error code (negative value indicates error).
             const error_code = @as(i64, @intCast(@intFromError(err)));
             return @as(u64, @bitCast(-error_code));
@@ -785,13 +785,13 @@ pub const TahoeSandbox = struct {
         std.debug.print("[tahoe_window] Buffer presented to window.\n", .{});
     }
 
-    pub fn toggleFlux(self: *TahoeSandbox, mode: AuroraFilter.Mode) void {
+    pub fn toggle_flux(self: *TahoeSandbox, mode: AuroraFilter.Mode) void {
         self.filter_state.toggle(mode);
     }
     
     /// Start animation loop: sets up timer to call tick() continuously at 60fps.
     /// Tiger Style: validate platform pointers, ensure callback is properly set up.
-    pub fn startAnimationLoop(self: *TahoeSandbox) void {
+    pub fn start_animation_loop(self: *TahoeSandbox) void {
         // Assert: platform must be initialized.
         _ = self.platform.vtable;
         _ = self.platform.impl;
@@ -800,7 +800,7 @@ pub const TahoeSandbox = struct {
         const self_ptr = @intFromPtr(self);
         std.debug.assert(self_ptr != 0);
         if (self_ptr < 0x1000) {
-            std.debug.panic("TahoeSandbox.startAnimationLoop: self pointer is suspiciously small: 0x{x}", .{self_ptr});
+            std.debug.panic("TahoeSandbox.start_animation_loop: self pointer is suspiciously small: 0x{x}", .{self_ptr});
         }
         
         // Create tick callback that calls self.tick().
@@ -833,7 +833,7 @@ pub const TahoeSandbox = struct {
     
     /// Stop animation loop: stops timer.
     /// Tiger Style: validate platform pointers.
-    pub fn stopAnimationLoop(self: *TahoeSandbox) void {
+    pub fn stop_animation_loop(self: *TahoeSandbox) void {
         // Assert: platform must be initialized.
         _ = self.platform.vtable;
         _ = self.platform.impl;
@@ -852,6 +852,6 @@ test "tahoe sandbox lifecycle" {
     defer sandbox.deinit();
     try sandbox.show();
     try sandbox.tick();
-    sandbox.toggleFlux(.darkroom);
+    sandbox.toggle_flux(.darkroom);
     try sandbox.tick();
 }

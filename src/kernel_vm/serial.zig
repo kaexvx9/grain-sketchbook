@@ -50,7 +50,7 @@ pub const SerialOutput = struct {
 
     /// Get serial output as string (for display).
     /// Why: Return serial output for rendering in VM pane.
-    pub fn getOutput(self: *const Self) []const u8 {
+    pub fn get_output(self: *const Self) []const u8 {
         // Return entire buffer (circular buffer, may contain old data).
         // Future: Implement proper circular buffer reading.
         return &self.buffer;
