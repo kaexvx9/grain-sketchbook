@@ -363,7 +363,6 @@ pub const BasinKernel = struct {
         std.debug.assert(self_ptr != 0);
         std.debug.assert(self_ptr % @alignOf(BasinKernel) == 0);
         
-        _ = self;
         _ = _arg4;
         
         // Assert: size must be non-zero and page-aligned.
