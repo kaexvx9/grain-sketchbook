@@ -381,15 +381,15 @@ pub const TahoeSandbox = struct {
     
     /// Handle focus events: log window focus changes.
     /// Tiger Style: validate user_data pointer, validate event fields.
-    fn handleFocusEvent(user_data: *anyopaque, event: events.FocusEvent) bool {
+    fn handle_focus_event(user_data: *anyopaque, event: events.FocusEvent) bool {
         // Assert: user_data pointer must be valid (non-zero, aligned).
         const user_data_ptr = @intFromPtr(user_data);
         std.debug.assert(user_data_ptr != 0);
         if (user_data_ptr < 0x1000) {
-            std.debug.panic("handleFocusEvent: user_data pointer is suspiciously small: 0x{x}", .{user_data_ptr});
+            std.debug.panic("handle_focus_event: user_data pointer is suspiciously small: 0x{x}", .{user_data_ptr});
         }
         if (user_data_ptr % @alignOf(TahoeSandbox) != 0) {
-            std.debug.panic("handleFocusEvent: user_data pointer is not aligned: 0x{x}", .{user_data_ptr});
+            std.debug.panic("handle_focus_event: user_data pointer is not aligned: 0x{x}", .{user_data_ptr});
         }
         
         // Cast user_data to TahoeSandbox.
