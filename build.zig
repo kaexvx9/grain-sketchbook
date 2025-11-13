@@ -103,11 +103,22 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    // RISC-V SBI module (platform runtime services).
+    // Why: Our own Tiger Style SBI wrapper (inspired by CascadeOS/zig-sbi, MIT licensed).
+    const sbi_module = b.addModule("sbi", .{
+        .root_source_file = b.path("src/kernel_vm/sbi.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     // RISC-V VM module for kernel virtualization.
     const kernel_vm_module = b.addModule("kernel_vm", .{
         .root_source_file = b.path("src/kernel_vm/kernel_vm.zig"),
         .target = target,
         .optimize = optimize,
+        .imports = &.{
+            .{ .name = "sbi", .module = sbi_module },
+        },
     });
 
     // Kernel VM test executable (for testing VM functionality).
@@ -367,6 +378,7 @@ pub fn build(b: *std.Build) void {
             .imports = &.{
                 .{ .name = "kernel_vm", .module = kernel_vm_module },
                 .{ .name = "basin_kernel", .module = basin_kernel_module },
+                .{ .name = "sbi", .module = sbi_module },
             },
             // Tiger Style: Zig is strict by default - all safety checks enabled.
             // No need for additional flags - Zig catches all errors at compile time.

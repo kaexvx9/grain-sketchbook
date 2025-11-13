@@ -1,4 +1,6 @@
 const std = @import("std");
+const sbi = @import("sbi");
+const SerialOutput = @import("serial.zig").SerialOutput;
 
 /// Pure Zig RISC-V64 emulator for kernel development.
 /// Tiger Style: Static allocation where possible, comprehensive assertions,
@@ -72,6 +74,9 @@ pub const VM = struct {
     /// User data for syscall handler (optional).
     /// Why: Pass context to syscall handler (e.g., Basin Kernel instance).
     syscall_user_data: ?*anyopaque = null,
+    /// Serial output handler (for SBI console output).
+    /// Why: Capture SBI console output (LEGACY_CONSOLE_PUTCHAR) for display.
+    serial_output: ?*SerialOutput = null,
 
     const Self = @This();
     
@@ -507,10 +512,11 @@ pub const VM = struct {
 
     /// Execute ECALL (Environment Call) instruction.
     /// Format: ECALL (no operands, triggers system call).
-    /// Why: Handle Grain Basin kernel syscalls via ECALL instruction.
-    /// RISC-V calling convention: a7 (x17) = syscall number, a0-a5 (x10-x15) = arguments.
+    /// Why: Handle SBI calls (platform services) and Grain Basin kernel syscalls.
+    /// RISC-V calling convention: a7 (x17) = syscall/EID number, a0-a5 (x10-x15) = arguments.
+    /// SBI vs Kernel: Function ID < 10 → SBI (platform), >= 10 → kernel syscall.
     fn execute_ecall(self: *Self) !void {
-        // RISC-V syscall convention: a7 (x17) contains syscall number.
+        // RISC-V syscall convention: a7 (x17) contains syscall/EID number.
         const syscall_num = self.regs.get(17); // a7 register
         
         // Assert: syscall number must fit in u32.
@@ -522,28 +528,85 @@ pub const VM = struct {
         const arg3 = self.regs.get(12); // a2
         const arg4 = self.regs.get(13); // a3
         
-        // Handle syscall via callback if available.
-        if (self.syscall_handler) |handler| {
-            // Call syscall handler and get result.
-            const result = handler(
-                @as(u32, @truncate(syscall_num)),
-                arg1,
-                arg2,
-                arg3,
-                arg4,
-            );
-            
-            // Store result in a0 (x10) register (RISC-V convention).
-            self.regs.set(10, result);
-            
-            // Special case: exit syscall (syscall number 2) halts VM.
-            if (syscall_num == 2) {
+        // Dispatch: SBI calls (function ID < 10) vs kernel syscalls (>= 10).
+        // Why: SBI handles platform services (timer, console, reset), kernel handles kernel services.
+        if (syscall_num < 10) {
+            // SBI call: Handle platform services.
+            self.handle_sbi_call(@as(u32, @truncate(syscall_num)), arg1, arg2, arg3, arg4);
+        } else {
+            // Kernel syscall: Handle via callback if available.
+            if (self.syscall_handler) |handler| {
+                // Call syscall handler and get result.
+                const result = handler(
+                    @as(u32, @truncate(syscall_num)),
+                    arg1,
+                    arg2,
+                    arg3,
+                    arg4,
+                );
+                
+                // Store result in a0 (x10) register (RISC-V convention).
+                self.regs.set(10, result);
+                
+                // Special case: exit syscall (syscall number 2) halts VM.
+                // Note: This is kernel syscall 2, not SBI function ID 2.
+                if (syscall_num == 2) {
+                    self.state = .halted;
+                }
+            } else {
+                // No handler: halt VM (simple behavior).
                 self.state = .halted;
             }
-        } else {
-            // No handler: halt VM (simple behavior).
-            self.state = .halted;
         }
+    }
+    
+    /// Handle SBI (Supervisor Binary Interface) call.
+    /// Why: Implement platform services (timer, console, reset) for RISC-V SBI.
+    /// SBI Legacy Functions: 0x0=SET_TIMER, 0x1=CONSOLE_PUTCHAR, 0x2=CONSOLE_GETCHAR, 0x8=SHUTDOWN.
+    fn handle_sbi_call(self: *Self, eid: u32, arg1: u64, arg2: u64, arg3: u64, arg4: u64) void {
+        // Assert: EID must be valid SBI legacy function ID (< 10).
+        std.debug.assert(eid < 10);
+        
+        // Dispatch based on SBI Extension ID (EID).
+        // Why: Different SBI functions have different calling conventions.
+        switch (eid) {
+            // LEGACY_CONSOLE_PUTCHAR (0x1): Write character to console.
+            // Calling convention: character in a0 (x10), no return value.
+            @intFromEnum(sbi.EID.LEGACY_CONSOLE_PUTCHAR) => {
+                // Assert: character must fit in u8.
+                std.debug.assert(arg1 <= 0xFF);
+                
+                // Write character to serial output if available.
+                if (self.serial_output) |serial| {
+                    serial.writeByte(@as(u8, @truncate(arg1)));
+                }
+                
+                // SBI CONSOLE_PUTCHAR returns 0 (success) in a0.
+                self.regs.set(10, 0);
+            },
+            // LEGACY_SHUTDOWN (0x8): System shutdown.
+            // Calling convention: no arguments, no return value.
+            @intFromEnum(sbi.EID.LEGACY_SHUTDOWN) => {
+                // Halt VM on shutdown.
+                self.state = .halted;
+                
+                // SBI SHUTDOWN doesn't return.
+                self.regs.set(10, 0);
+            },
+            // Other SBI functions: Not implemented yet.
+            // TODO: Implement SET_TIMER, CONSOLE_GETCHAR, etc.
+            else => {
+                // Unknown SBI function: Return error code.
+                // SBI error codes: -1 = Failed, -2 = NotSupported.
+                self.regs.set(10, @as(u64, @bitCast(@as(i64, -2)))); // NotSupported
+            },
+        }
+    }
+    
+    /// Set serial output handler for SBI console.
+    /// Why: Allow external serial output handling (e.g., GUI display).
+    pub fn set_serial_output(self: *Self, serial: ?*SerialOutput) void {
+        self.serial_output = serial;
     }
     
     /// Set syscall handler callback.

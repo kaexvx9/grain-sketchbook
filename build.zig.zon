@@ -1,0 +1,12 @@
+.{
+    .name = .bhagavan851c05a,
+    .version = "0.15.2",
+    .dependencies = .{
+        .sbi = .{
+            .url = "git+https://github.com/kae3g/zig-sbi#610993bf1c9d4ff5e6fd710495bea58ac7176980",
+            .hash = "sbi-6.0.1-Muvb-mnvAQBph7J2NjhdU3NGhar9S1t6KD-g-n6wp3NP",
+        },
+    },
+    .paths = .{""},
+    .fingerprint = 0x2f32b987a6065c60,
+}
