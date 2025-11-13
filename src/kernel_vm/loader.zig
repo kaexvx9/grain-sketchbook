@@ -73,10 +73,11 @@ pub fn loadKernel(_: std.mem.Allocator, elf_data: []const u8) !VM {
     std.debug.assert(elf_data.len >= @sizeOf(Elf64_Ehdr));
     
     // Parse ELF header.
-    const ehdr = @as(*const Elf64_Ehdr, @ptrCast(elf_data.ptr));
+    // Why: @alignCast required because Elf64_Ehdr requires alignment.
+    const ehdr = @as(*const Elf64_Ehdr, @alignCast(@ptrCast(elf_data.ptr)));
     
     // Assert: ELF magic number must match.
-    std.debug.assert(std.mem.eql(u8, &ehdr.e_ident[0..4], &ELF_MAGIC));
+    std.debug.assert(std.mem.eql(u8, ehdr.e_ident[0..4], &ELF_MAGIC));
     
     // Assert: ELF class must be 64-bit (e_ident[4] = 2).
     std.debug.assert(ehdr.e_ident[4] == 2);
@@ -112,7 +113,8 @@ pub fn loadKernel(_: std.mem.Allocator, elf_data: []const u8) !VM {
         const phdr_offset = phdr_idx * @sizeOf(Elf64_Phdr);
         std.debug.assert(phdr_offset + @sizeOf(Elf64_Phdr) <= phdr_base.len);
         
-        const phdr = @as(*const Elf64_Phdr, @ptrCast(phdr_base.ptr + phdr_offset));
+        // Why: @alignCast required because Elf64_Phdr requires alignment.
+        const phdr = @as(*const Elf64_Phdr, @alignCast(@ptrCast(phdr_base.ptr + phdr_offset)));
         
         // Only load PT_LOAD segments (type 1).
         if (phdr.p_type == 1) {

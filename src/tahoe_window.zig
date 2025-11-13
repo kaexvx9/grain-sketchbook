@@ -7,6 +7,7 @@ const events = @import("platform/events.zig");
 const kernel_vm = @import("kernel_vm");
 const VM = kernel_vm.VM;
 const SerialOutput = kernel_vm.SerialOutput;
+const loadKernel = kernel_vm.loadKernel;
 
 /// TahoeSandbox hosts a River-inspired compositor with Moonglow keybindings,
 /// blending Vegan Tiger aesthetics with Grain terminal panes.
@@ -277,9 +278,39 @@ pub const TahoeSandbox = struct {
             // Cmd+L: Load kernel into VM.
             // Why: Load compiled RISC-V kernel ELF into VM memory.
             if (event.modifiers.command and event.key_code == 37) { // 'L' key code
-                // TODO: Load kernel ELF file from `zig-out/bin/grain-rv64`.
                 std.debug.print("[tahoe_window] Load kernel command (Cmd+L) received.\n", .{});
-                std.debug.print("[tahoe_window] TODO: Implement kernel loading from zig-out/bin/grain-rv64\n", .{});
+                
+                // Read kernel ELF file from zig-out/bin/grain-rv64.
+                const kernel_path = "zig-out/bin/grain-rv64";
+                const cwd = std.fs.cwd();
+                
+                // Open kernel file.
+                const kernel_file = cwd.openFile(kernel_path, .{}) catch |err| {
+                    std.debug.print("[tahoe_window] Failed to open kernel file '{s}': {s}\n", .{ kernel_path, @errorName(err) });
+                    return true;
+                };
+                defer kernel_file.close();
+                
+                // Read entire ELF file into memory.
+                // Why: loadKernel expects complete ELF data.
+                const elf_data = kernel_file.readToEndAlloc(sandbox.allocator, std.math.maxInt(usize)) catch |err| {
+                    std.debug.print("[tahoe_window] Failed to read kernel file: {s}\n", .{@errorName(err)});
+                    return true;
+                };
+                defer sandbox.allocator.free(elf_data);
+                
+                // Assert: ELF data must be non-empty.
+                std.debug.assert(elf_data.len > 0);
+                
+                // Load kernel into VM.
+                const vm = loadKernel(sandbox.allocator, elf_data) catch |err| {
+                    std.debug.print("[tahoe_window] Failed to load kernel: {s}\n", .{@errorName(err)});
+                    return true;
+                };
+                
+                // Store VM in sandbox.
+                sandbox.vm = vm;
+                std.debug.print("[tahoe_window] Kernel loaded successfully. PC: 0x{X}\n", .{vm.regs.pc});
                 return true;
             }
             
