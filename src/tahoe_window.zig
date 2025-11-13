@@ -13,6 +13,18 @@ pub const TahoeSandbox = struct {
     platform: Platform,
     aurora: GrainAurora,
     filter_state: AuroraFilter.FluxState,
+    /// Last mouse event (for visual feedback).
+    /// Why: Store state to render mouse position/button state.
+    last_mouse_x: f64 = 0.0,
+    last_mouse_y: f64 = 0.0,
+    mouse_button_down: bool = false,
+    /// Last keyboard event (for visual feedback).
+    /// Why: Store state to render typed characters and key codes.
+    typed_text: [256]u8 = [_]u8{0} ** 256,
+    typed_text_len: usize = 0,
+    /// Focus state (for visual feedback).
+    /// Why: Show window focus state visually.
+    has_focus: bool = false,
 
     pub fn init(allocator: std.mem.Allocator, title: []const u8) !TahoeSandbox {
         // Assert arguments: title must not be empty and within bounds.
@@ -32,7 +44,20 @@ pub const TahoeSandbox = struct {
             .platform = platform,
             .aurora = aurora,
             .filter_state = .{},
+            .last_mouse_x = 0.0,
+            .last_mouse_y = 0.0,
+            .mouse_button_down = false,
+            .typed_text = [_]u8{0} ** 256,
+            .typed_text_len = 0,
+            .has_focus = false,
         };
+        
+        // Assert: sandbox state must be initialized correctly.
+        std.debug.assert(sandbox.last_mouse_x == 0.0);
+        std.debug.assert(sandbox.last_mouse_y == 0.0);
+        std.debug.assert(sandbox.mouse_button_down == false);
+        std.debug.assert(sandbox.typed_text_len == 0);
+        std.debug.assert(sandbox.has_focus == false);
         
         // Set up event handler (Tiger Style: validate all function pointers).
         const event_handler = events.EventHandler{
@@ -113,13 +138,43 @@ pub const TahoeSandbox = struct {
         _ = sandbox.platform.vtable;
         _ = sandbox.platform.impl;
         
-        // Assert: event coordinates must be reasonable.
+        // Assert: event coordinates must be reasonable (within window bounds or slightly outside for drag).
         std.debug.assert(event.x >= -10000.0 and event.x <= 10000.0);
         std.debug.assert(event.y >= -10000.0 and event.y <= 10000.0);
         
-        // Assert: event enum values must be valid.
+        // Assert: event enum values must be valid (Tiger Style enum validation).
         std.debug.assert(@intFromEnum(event.kind) < 4);
         std.debug.assert(@intFromEnum(event.button) < 4);
+        
+        // Assert: modifiers must be valid (all boolean flags).
+        std.debug.assert(@typeInfo(@TypeOf(event.modifiers)) == .Struct);
+        
+        // Update mouse state for visual feedback.
+        // Why: Store state to render mouse position and button state.
+        sandbox.last_mouse_x = event.x;
+        sandbox.last_mouse_y = event.y;
+        
+        // Update button state based on event kind.
+        // Why: Track button state for visual feedback (highlight buttons on click).
+        switch (event.kind) {
+            .down => {
+                sandbox.mouse_button_down = true;
+                // Assert: button must be valid for down events.
+                std.debug.assert(@intFromEnum(event.button) < 4);
+            },
+            .up => {
+                sandbox.mouse_button_down = false;
+                // Assert: button must be valid for up events.
+                std.debug.assert(@intFromEnum(event.button) < 4);
+            },
+            .move, .drag => {
+                // Button state unchanged for move/drag.
+            },
+        }
+        
+        // Assert: mouse state must be consistent after update.
+        std.debug.assert(sandbox.last_mouse_x >= -10000.0 and sandbox.last_mouse_x <= 10000.0);
+        std.debug.assert(sandbox.last_mouse_y >= -10000.0 and sandbox.last_mouse_y <= 10000.0);
         
         std.debug.print("[tahoe_window] Mouse event: kind={s}, button={s}, x={d}, y={d}, modifiers={any}\n", .{
             @tagName(event.kind),
@@ -128,9 +183,9 @@ pub const TahoeSandbox = struct {
             event.y,
             event.modifiers,
         });
-        // For now, just log events. Later: implement actual interaction.
-        // Note: sandbox is validated above via assertions.
-        return false; // Event not handled.
+        
+        // Event handled: state updated for visual feedback.
+        return true;
     }
     
     /// Handle keyboard events: log and process.
@@ -161,13 +216,66 @@ pub const TahoeSandbox = struct {
         std.debug.assert(event.key_code <= 0xFFFF);
         
         // Assert: event character must be valid Unicode (if present).
+        // Why: Validate Unicode codepoints to prevent invalid text rendering.
         if (event.character) |c| {
             std.debug.assert(c <= 0x10FFFF);
             std.debug.assert(!(c >= 0xD800 and c <= 0xDFFF)); // No surrogates
+            std.debug.assert(c != 0xFFFE and c != 0xFFFF); // No non-characters
         }
         
-        // Assert: event enum value must be valid.
+        // Assert: event enum value must be valid (Tiger Style enum validation).
         std.debug.assert(@intFromEnum(event.kind) < 2);
+        
+        // Assert: modifiers must be valid (all boolean flags).
+        std.debug.assert(@typeInfo(@TypeOf(event.modifiers)) == .Struct);
+        
+        // Handle keyboard shortcuts (River-style commands).
+        // Why: Implement River compositor keybindings for window management.
+        if (event.kind == .down) {
+            // Cmd+Q: Quit application.
+            if (event.modifiers.command and event.key_code == 12) { // 'Q' key code
+                std.debug.print("[tahoe_window] Quit command (Cmd+Q) received.\n", .{});
+                // TODO: Implement clean shutdown.
+                return true;
+            }
+            
+            // Cmd+Shift+H: Horizontal split (River-style).
+            if (event.modifiers.command and event.modifiers.shift and event.key_code == 4) { // 'H' key code
+                std.debug.print("[tahoe_window] Horizontal split command (Cmd+Shift+H) received.\n", .{});
+                // TODO: Implement horizontal split.
+                return true;
+            }
+            
+            // Cmd+Shift+V: Vertical split (River-style).
+            if (event.modifiers.command and event.modifiers.shift and event.key_code == 9) { // 'V' key code
+                std.debug.print("[tahoe_window] Vertical split command (Cmd+Shift+V) received.\n", .{});
+                // TODO: Implement vertical split.
+                return true;
+            }
+            
+            // Handle printable characters (for text input display).
+            if (event.character) |c| {
+                // Assert: character must be valid Unicode.
+                std.debug.assert(c <= 0x10FFFF);
+                
+                // Add character to typed text buffer (for visual feedback).
+                // Why: Store typed text to display in UI.
+                if (sandbox.typed_text_len < sandbox.typed_text.len - 4) {
+                    var buf: [4]u8 = undefined;
+                    const len = std.unicode.utf8Encode(c, &buf) catch 0;
+                    // Assert: UTF-8 encoding must succeed for valid Unicode.
+                    std.debug.assert(len > 0);
+                    std.debug.assert(len <= 4);
+                    
+                    // Copy UTF-8 bytes to typed text buffer.
+                    @memcpy(sandbox.typed_text[sandbox.typed_text_len..][0..len], buf[0..len]);
+                    sandbox.typed_text_len += len;
+                    
+                    // Assert: typed_text_len must be within bounds.
+                    std.debug.assert(sandbox.typed_text_len <= sandbox.typed_text.len);
+                }
+            }
+        }
         
         const char_str = if (event.character) |c| blk: {
             var buf: [4]u8 = undefined;
@@ -182,9 +290,9 @@ pub const TahoeSandbox = struct {
             char_str,
             event.modifiers,
         });
-        // For now, just log events. Later: implement actual interaction.
-        // Note: sandbox is validated above via assertions.
-        return false; // Event not handled.
+        
+        // Event handled: state updated for visual feedback or command executed.
+        return true;
     }
     
     /// Handle focus events: log window focus changes.
@@ -214,10 +322,27 @@ pub const TahoeSandbox = struct {
         // Assert: event enum value must be valid.
         std.debug.assert(@intFromEnum(event.kind) < 2);
         
+        // Assert: event enum value must be valid (Tiger Style enum validation).
+        std.debug.assert(@intFromEnum(event.kind) < 2);
+        
+        // Update focus state for visual feedback.
+        // Why: Store focus state to render focus indicator.
+        switch (event.kind) {
+            .gained => {
+                sandbox.has_focus = true;
+            },
+            .lost => {
+                sandbox.has_focus = false;
+            },
+        }
+        
+        // Assert: focus state must be consistent after update.
+        std.debug.assert(sandbox.has_focus == (event.kind == .gained));
+        
         std.debug.print("[tahoe_window] Focus event: kind={s}\n", .{@tagName(event.kind)});
-        // For now, just log events. Later: implement focus-based UI updates.
-        // Note: sandbox is validated above via assertions.
-        return false; // Event not handled.
+        
+        // Event handled: state updated for visual feedback.
+        return true;
     }
 
     pub fn deinit(self: *TahoeSandbox) void {
@@ -271,32 +396,207 @@ pub const TahoeSandbox = struct {
             }
         }
         
-        // Draw a simple gradient or pattern to show it's working.
-        // Draw a white rectangle in the center as a "hello world".
-        // Use buffer dimensions for drawing (fixed 1024x768).
-        const center_x = buffer_width / 2;
-        const center_y = buffer_height / 2;
-        const rect_width = @min(400, buffer_width - 100);
-        const rect_height = @min(200, buffer_height - 100);
-        const rect_x = center_x - rect_width / 2;
-        const rect_y = center_y - rect_height / 2;
+        // Draw interactive UI elements for visual feedback.
+        // Why: Show mouse position, typed text, focus state, and buttons.
         
-        var rect_y_idx: u32 = rect_y;
-        while (rect_y_idx < rect_y + rect_height and rect_y_idx < buffer_height) : (rect_y_idx += 1) {
-            var rect_x_idx: u32 = rect_x;
-            while (rect_x_idx < rect_x + rect_width and rect_x_idx < buffer_width) : (rect_x_idx += 1) {
-                const pixel_offset = (rect_y_idx * buffer_width + rect_x_idx) * 4;
+        // Assert: UI state must be valid before rendering.
+        std.debug.assert(self.last_mouse_x >= -10000.0 and self.last_mouse_x <= 10000.0);
+        std.debug.assert(self.last_mouse_y >= -10000.0 and self.last_mouse_y <= 10000.0);
+        std.debug.assert(self.typed_text_len <= self.typed_text.len);
+        
+        // Draw focus indicator (top border).
+        // Why: Visual feedback for window focus state.
+        if (self.has_focus) {
+            var x: u32 = 0;
+            while (x < buffer_width) : (x += 1) {
+                const pixel_offset = (0 * buffer_width + x) * 4;
+                // Assert: pixel offset must be within bounds.
+                std.debug.assert(pixel_offset + 3 < buffer.len);
                 if (pixel_offset + 3 < buffer.len) {
-                    // White with slight transparency
-                    buffer[pixel_offset + 0] = 0xFF; // R
+                    // Cyan focus indicator.
+                    buffer[pixel_offset + 0] = 0x00; // R
                     buffer[pixel_offset + 1] = 0xFF; // G
                     buffer[pixel_offset + 2] = 0xFF; // B
-                    buffer[pixel_offset + 3] = 0xE0; // A (slightly transparent)
+                    buffer[pixel_offset + 3] = 0xFF; // A
                 }
             }
         }
         
-        std.debug.print("[tahoe_window] Drew background and white rectangle to buffer.\n", .{});
+        // Draw mouse cursor indicator (small circle at mouse position).
+        // Why: Visual feedback for mouse position and button state.
+        const mouse_x_i = @as(i32, @intFromFloat(self.last_mouse_x));
+        const mouse_y_i = @as(i32, @intFromFloat(self.last_mouse_y));
+        const cursor_radius: i32 = 5;
+        const cursor_color = if (self.mouse_button_down) .{ 0xFF, 0x00, 0x00, 0xFF } else .{ 0xFF, 0xFF, 0xFF, 0xFF };
+        
+        // Assert: cursor radius must be positive and reasonable.
+        std.debug.assert(cursor_radius > 0);
+        std.debug.assert(cursor_radius < 100);
+        
+        var cy: i32 = mouse_y_i - cursor_radius;
+        while (cy <= mouse_y_i + cursor_radius) : (cy += 1) {
+            var cx: i32 = mouse_x_i - cursor_radius;
+            while (cx <= mouse_x_i + cursor_radius) : (cx += 1) {
+                const dx = cx - mouse_x_i;
+                const dy = cy - mouse_y_i;
+                // Assert: distance calculation must not overflow.
+                std.debug.assert(dx >= -1000 and dx <= 1000);
+                std.debug.assert(dy >= -1000 and dy <= 1000);
+                
+                if (dx * dx + dy * dy <= cursor_radius * cursor_radius) {
+                    const x_clamped = if (cx < 0) 0 else if (cx >= @as(i32, @intCast(buffer_width))) @as(i32, @intCast(buffer_width - 1)) else cx;
+                    const y_clamped = if (cy < 0) 0 else if (cy >= @as(i32, @intCast(buffer_height))) @as(i32, @intCast(buffer_height - 1)) else cy;
+                    const x_u = @as(u32, @intCast(x_clamped));
+                    const y_u = @as(u32, @intCast(y_clamped));
+                    
+                    // Assert: clamped coordinates must be within bounds.
+                    std.debug.assert(x_u < buffer_width);
+                    std.debug.assert(y_u < buffer_height);
+                    
+                    const pixel_offset = (y_u * buffer_width + x_u) * 4;
+                    // Assert: pixel offset must be within buffer bounds.
+                    std.debug.assert(pixel_offset + 3 < buffer.len);
+                    if (pixel_offset + 3 < buffer.len) {
+                        buffer[pixel_offset + 0] = cursor_color[0];
+                        buffer[pixel_offset + 1] = cursor_color[1];
+                        buffer[pixel_offset + 2] = cursor_color[2];
+                        buffer[pixel_offset + 3] = cursor_color[3];
+                    }
+                }
+            }
+        }
+        
+        // Draw typed text display area (top-left corner).
+        // Why: Visual feedback for keyboard input.
+        const text_x: u32 = 20;
+        const text_y: u32 = 30;
+        const text_bg_width: u32 = 500;
+        const text_bg_height: u32 = 30;
+        
+        // Assert: text area must be within buffer bounds.
+        std.debug.assert(text_x + text_bg_width <= buffer_width);
+        std.debug.assert(text_y + text_bg_height <= buffer_height);
+        
+        // Draw text background.
+        var ty: u32 = text_y;
+        while (ty < text_y + text_bg_height and ty < buffer_height) : (ty += 1) {
+            var tx: u32 = text_x;
+            while (tx < text_x + text_bg_width and tx < buffer_width) : (tx += 1) {
+                const pixel_offset = (ty * buffer_width + tx) * 4;
+                // Assert: pixel offset must be within bounds.
+                std.debug.assert(pixel_offset + 3 < buffer.len);
+                if (pixel_offset + 3 < buffer.len) {
+                    // Dark gray background.
+                    buffer[pixel_offset + 0] = 0x20; // R
+                    buffer[pixel_offset + 1] = 0x20; // G
+                    buffer[pixel_offset + 2] = 0x20; // B
+                    buffer[pixel_offset + 3] = 0xFF; // A
+                }
+            }
+        }
+        
+        // Draw typed text (simple ASCII rendering).
+        // Why: Show typed characters visually.
+        if (self.typed_text_len > 0) {
+            const text_slice = self.typed_text[0..self.typed_text_len];
+            const max_chars = @min(text_slice.len, 50);
+            // Assert: max_chars must be within reasonable bounds.
+            std.debug.assert(max_chars <= text_slice.len);
+            std.debug.assert(max_chars <= 50);
+            
+            var char_idx: usize = 0;
+            while (char_idx < max_chars) : (char_idx += 1) {
+                const char_x = text_x + 5 + char_idx * 8;
+                const char_y = text_y + 5;
+                // Assert: character position must be within bounds.
+                std.debug.assert(char_x + 8 <= buffer_width);
+                std.debug.assert(char_y + 16 <= buffer_height);
+                
+                if (char_x + 8 < buffer_width and char_y + 16 < buffer_height) {
+                    // Simple 8x16 ASCII character rendering.
+                    const c = text_slice[char_idx];
+                    // Assert: character must be valid ASCII.
+                    std.debug.assert(c <= 127);
+                    
+                    if (c >= 32 and c <= 126) {
+                        // Draw simple character outline (white pixels).
+                        var py: u32 = 0;
+                        while (py < 16) : (py += 1) {
+                            var px: u32 = 0;
+                            while (px < 8) : (px += 1) {
+                                // Simple pattern: every 2nd pixel for visibility.
+                                if ((px + py) % 2 == 0) {
+                                    const pixel_offset = ((char_y + py) * buffer_width + (char_x + px)) * 4;
+                                    // Assert: pixel offset must be within bounds.
+                                    std.debug.assert(pixel_offset + 3 < buffer.len);
+                                    if (pixel_offset + 3 < buffer.len) {
+                                        buffer[pixel_offset + 0] = 0xFF; // R
+                                        buffer[pixel_offset + 1] = 0xFF; // G
+                                        buffer[pixel_offset + 2] = 0xFF; // B
+                                        buffer[pixel_offset + 3] = 0xFF; // A
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Draw button area (bottom-right corner).
+        // Why: Visual feedback for mouse clicks on buttons.
+        const button_x: u32 = buffer_width - 150;
+        const button_y: u32 = buffer_height - 50;
+        const button_width: u32 = 120;
+        const button_height: u32 = 30;
+        
+        // Assert: button area must be within buffer bounds.
+        std.debug.assert(button_x + button_width <= buffer_width);
+        std.debug.assert(button_y + button_height <= buffer_height);
+        
+        // Draw button background (highlighted if mouse is over it).
+        const mouse_over_button = (self.last_mouse_x >= @as(f64, @floatFromInt(button_x)) and
+            self.last_mouse_x <= @as(f64, @floatFromInt(button_x + button_width)) and
+            self.last_mouse_y >= @as(f64, @floatFromInt(button_y)) and
+            self.last_mouse_y <= @as(f64, @floatFromInt(button_y + button_height)));
+        
+        var by: u32 = button_y;
+        while (by < button_y + button_height and by < buffer_height) : (by += 1) {
+            var bx: u32 = button_x;
+            while (bx < button_x + button_width and bx < buffer_width) : (bx += 1) {
+                const pixel_offset = (by * buffer_width + bx) * 4;
+                // Assert: pixel offset must be within bounds.
+                std.debug.assert(pixel_offset + 3 < buffer.len);
+                if (pixel_offset + 3 < buffer.len) {
+                    if (mouse_over_button and self.mouse_button_down) {
+                        // Bright green when clicked.
+                        buffer[pixel_offset + 0] = 0x00; // R
+                        buffer[pixel_offset + 1] = 0xFF; // G
+                        buffer[pixel_offset + 2] = 0x00; // B
+                        buffer[pixel_offset + 3] = 0xFF; // A
+                    } else if (mouse_over_button) {
+                        // Light gray when hovered.
+                        buffer[pixel_offset + 0] = 0x80; // R
+                        buffer[pixel_offset + 1] = 0x80; // G
+                        buffer[pixel_offset + 2] = 0x80; // B
+                        buffer[pixel_offset + 3] = 0xFF; // A
+                    } else {
+                        // Dark gray default.
+                        buffer[pixel_offset + 0] = 0x40; // R
+                        buffer[pixel_offset + 1] = 0x40; // G
+                        buffer[pixel_offset + 2] = 0x40; // B
+                        buffer[pixel_offset + 3] = 0xFF; // A
+                    }
+                }
+            }
+        }
+        
+        std.debug.print("[tahoe_window] Drew UI: mouse=({d},{d}), text_len={d}, focus={}\n", .{
+            self.last_mouse_x,
+            self.last_mouse_y,
+            self.typed_text_len,
+            self.has_focus,
+        });
         
         // Apply Aurora filter if enabled.
         AuroraFilter.apply(self.filter_state, buffer);

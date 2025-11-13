@@ -34,7 +34,11 @@ pub const Window = struct {
     /// Single pointer to NSWindow: nullable for cleanup safety.
     ns_window: ?*c.objc_object = null,
     /// Single pointer to NSView: nullable for cleanup safety.
+    /// Note: This is TahoeView (content view, handles events).
     ns_view: ?*c.objc_object = null,
+    /// Single pointer to NSImageView: nullable for cleanup safety.
+    /// Why: Store reference to avoid subviews lookup in present().
+    ns_image_view: ?*c.objc_object = null,
     /// Single pointer to NSApplication shared instance: nullable for cleanup safety.
     ns_app: ?*c.objc_object = null,
     /// Optional event handler: nullable if no handler set.
@@ -69,6 +73,7 @@ pub const Window = struct {
             .rgba_buffer = [_]u8{0} ** (1024 * 768 * 4),
             .ns_window = null,
             .ns_view = null,
+            .ns_image_view = null,
             .ns_app = null,
         };
         
@@ -98,9 +103,23 @@ pub const Window = struct {
         std.debug.assert(self.rgba_buffer.len == expected_buffer_size);
 
         // Release Cocoa objects: single pointers, explicit cleanup.
+        // Why: Explicit cleanup prevents memory leaks, validates pointers before release.
+        if (self.ns_image_view) |imageView| {
+            const imageViewPtrValue = @intFromPtr(imageView);
+            std.debug.assert(imageViewPtrValue != 0);
+            if (imageViewPtrValue < 0x1000) {
+                std.debug.panic("Window.deinit: ns_image_view pointer is suspiciously small: 0x{x}", .{imageViewPtrValue});
+            }
+            const releaseSel = c.sel_getUid("release");
+            std.debug.assert(releaseSel != null);
+            cocoa.objc_msgSendVoid0(@ptrCast(imageView), releaseSel);
+        }
         if (self.ns_view) |view| {
             const viewPtrValue = @intFromPtr(view);
             std.debug.assert(viewPtrValue != 0);
+            if (viewPtrValue < 0x1000) {
+                std.debug.panic("Window.deinit: ns_view pointer is suspiciously small: 0x{x}", .{viewPtrValue});
+            }
             const releaseSel = c.sel_getUid("release");
             std.debug.assert(releaseSel != null);
             cocoa.objc_msgSendVoid0(@ptrCast(view), releaseSel);
@@ -192,10 +211,24 @@ pub const Window = struct {
         // Why: TahoeView accepts first responder and routes events to Zig.
         const window_ptr = @intFromPtr(self);
         std.debug.assert(window_ptr != 0);
+        if (window_ptr < 0x1000) {
+            std.debug.panic("Window.show: self pointer is suspiciously small: 0x{x}", .{window_ptr});
+        }
+        if (window_ptr % @alignOf(Window) != 0) {
+            std.debug.panic("Window.show: self pointer is not aligned: 0x{x}", .{window_ptr});
+        }
+        
         const tahoeView_opt = createTahoeView(window_ptr);
         std.debug.assert(tahoeView_opt != null);
         const tahoeView: *c.objc_object = @ptrCast(@alignCast(tahoeView_opt.?));
-        std.debug.assert(@intFromPtr(tahoeView) != 0);
+        const tahoeView_ptr = @intFromPtr(tahoeView);
+        std.debug.assert(tahoeView_ptr != 0);
+        if (tahoeView_ptr < 0x1000) {
+            std.debug.panic("Window.show: tahoeView pointer is suspiciously small: 0x{x}", .{tahoeView_ptr});
+        }
+        if (tahoeView_ptr % 8 != 0) {
+            std.debug.panic("Window.show: tahoeView pointer is not aligned: 0x{x}", .{tahoeView_ptr});
+        }
         
         // Initialize TahoeView with frame.
         const initWithFrameSel = c.sel_getUid("initWithFrame:");
@@ -203,7 +236,14 @@ pub const Window = struct {
         const initTahoeView_opt = cocoa.objc_msgSend1(@ptrCast(tahoeView), initWithFrameSel, contentRect);
         std.debug.assert(initTahoeView_opt != null);
         const initTahoeView: *c.objc_object = @ptrCast(@alignCast(initTahoeView_opt.?));
-        std.debug.assert(@intFromPtr(initTahoeView) != 0);
+        const initTahoeView_ptr = @intFromPtr(initTahoeView);
+        std.debug.assert(initTahoeView_ptr != 0);
+        if (initTahoeView_ptr < 0x1000) {
+            std.debug.panic("Window.show: initTahoeView pointer is suspiciously small: 0x{x}", .{initTahoeView_ptr});
+        }
+        if (initTahoeView_ptr % 8 != 0) {
+            std.debug.panic("Window.show: initTahoeView pointer is not aligned: 0x{x}", .{initTahoeView_ptr});
+        }
         
         // Create NSImageView as subview (for rendering images).
         // Why: NSImageView handles image scaling; TahoeView handles events.
@@ -212,13 +252,28 @@ pub const Window = struct {
         const imageView_opt = cocoa.objc_msgSend0(@ptrCast(NSImageViewClass), allocSel);
         std.debug.assert(imageView_opt != null);
         const imageView: *c.objc_object = @ptrCast(@alignCast(imageView_opt.?));
-        std.debug.assert(@intFromPtr(imageView) != 0);
+        const imageView_ptr = @intFromPtr(imageView);
+        std.debug.assert(imageView_ptr != 0);
+        if (imageView_ptr < 0x1000) {
+            std.debug.panic("Window.show: imageView pointer is suspiciously small: 0x{x}", .{imageView_ptr});
+        }
+        if (imageView_ptr % 8 != 0) {
+            std.debug.panic("Window.show: imageView pointer is not aligned: 0x{x}", .{imageView_ptr});
+        }
+        
         const imageViewInitSel = c.sel_getUid("initWithFrame:");
         std.debug.assert(imageViewInitSel != null);
         const nsImageView_opt = cocoa.objc_msgSend1(@ptrCast(imageView), imageViewInitSel, contentRect);
         std.debug.assert(nsImageView_opt != null);
         const nsImageView: *c.objc_object = @ptrCast(@alignCast(nsImageView_opt.?));
-        std.debug.assert(@intFromPtr(nsImageView) != 0);
+        const nsImageView_ptr = @intFromPtr(nsImageView);
+        std.debug.assert(nsImageView_ptr != 0);
+        if (nsImageView_ptr < 0x1000) {
+            std.debug.panic("Window.show: nsImageView pointer is suspiciously small: 0x{x}", .{nsImageView_ptr});
+        }
+        if (nsImageView_ptr % 8 != 0) {
+            std.debug.panic("Window.show: nsImageView pointer is not aligned: 0x{x}", .{nsImageView_ptr});
+        }
         
         // Add NSImageView as subview of TahoeView.
         const addSubviewSel = c.sel_getUid("addSubview:");
@@ -233,7 +288,14 @@ pub const Window = struct {
         // Store pointers: TahoeView is content view, NSImageView is subview.
         self.ns_window = nsWindow;
         self.ns_view = initTahoeView; // TahoeView (event handling)
+        self.ns_image_view = nsImageView; // NSImageView (rendering)
         self.ns_app = sharedApp;
+        
+        // Assert: all stored pointers must be valid.
+        std.debug.assert(self.ns_window != null);
+        std.debug.assert(self.ns_view != null);
+        std.debug.assert(self.ns_image_view != null);
+        std.debug.assert(self.ns_app != null);
         
         // Setup window delegate for resize events.
         self.setupDelegates();
@@ -269,37 +331,24 @@ pub const Window = struct {
             std.debug.panic("Window.present: self pointer is suspiciously small: 0x{x}", .{self_ptr});
         }
         
-        // Assert precondition: TahoeView must be initialized.
+        // Assert precondition: NSImageView must be initialized.
+        // Why: We store NSImageView reference directly to avoid subviews lookup.
+        std.debug.assert(self.ns_image_view != null);
+        const imageView = self.ns_image_view.?;
+        const imageView_ptr = @intFromPtr(imageView);
+        std.debug.assert(imageView_ptr != 0);
+        if (imageView_ptr < 0x1000) {
+            std.debug.panic("Window.present: imageView pointer is suspiciously small: 0x{x}", .{imageView_ptr});
+        }
+        if (imageView_ptr % 8 != 0) {
+            std.debug.panic("Window.present: imageView pointer is not aligned: 0x{x}", .{imageView_ptr});
+        }
+        
+        // Assert precondition: TahoeView must be initialized (for setNeedsDisplay).
         std.debug.assert(self.ns_view != null);
         const tahoeView = self.ns_view.?;
         const tahoeView_ptr = @intFromPtr(tahoeView);
         std.debug.assert(tahoeView_ptr != 0);
-        if (tahoeView_ptr < 0x1000) {
-            std.debug.panic("Window.present: tahoeView pointer is suspiciously small: 0x{x}", .{tahoeView_ptr});
-        }
-        if (tahoeView_ptr % 8 != 0) {
-            std.debug.panic("Window.present: tahoeView pointer is not aligned: 0x{x}", .{tahoeView_ptr});
-        }
-        
-        // Find NSImageView subview (for rendering).
-        // Why: NSImageView is a subview of TahoeView; we need to set image on it.
-        // Pattern: Get subviews array, then get first element (NSImageView).
-        const subviewsSel = c.sel_getUid("subviews");
-        std.debug.assert(subviewsSel != null);
-        const subviews_opt = cocoa.objc_msgSend0(@ptrCast(tahoeView), subviewsSel);
-        std.debug.assert(subviews_opt != null);
-        const subviews: *c.objc_object = @ptrCast(@alignCast(subviews_opt.?));
-        
-        // Get first subview (NSImageView) using objectAtIndex:.
-        // Why: NSArray returns id from objectAtIndex:, which we can cast directly.
-        const objectAtIndexSel = c.sel_getUid("objectAtIndex:");
-        std.debug.assert(objectAtIndexSel != null);
-        // Note: objectAtIndex: takes NSUInteger (unsigned long).
-        const imageView_opt = cocoa.objc_msgSend1Uint(@ptrCast(subviews), objectAtIndexSel, 0);
-        std.debug.assert(imageView_opt != null);
-        const imageView: *c.objc_object = @ptrCast(@alignCast(imageView_opt.?));
-        const imageView_ptr = @intFromPtr(imageView);
-        std.debug.assert(imageView_ptr != 0);
         
         // Assert precondition: buffer must be valid.
         std.debug.assert(self.rgba_buffer.len > 0);

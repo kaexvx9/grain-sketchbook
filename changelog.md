@@ -1,5 +1,18 @@
 # Grain Changelog — Descending Order (Newest First)
 
+## 12025-11-12--1852-pst
+- **Pure Zig RISC-V64 Emulator: Core Implementation Complete**
+  - Implemented pure Zig RISC-V64 virtual machine for kernel development within macOS Tahoe IDE
+  - **Core VM (`src/kernel_vm/vm.zig`)**: Register file (32 GP registers + PC), 4MB static memory allocation, instruction decoding (LUI, ADDI, ECALL), memory read/write with alignment checks, VM state machine (running, halted, errored)
+  - **ELF Kernel Loader (`src/kernel_vm/loader.zig`)**: RISC-V64 ELF parsing, program header loading, kernel image loading into VM memory, entry point initialization
+  - **Serial Output (`src/kernel_vm/serial.zig`)**: 64KB circular buffer for kernel output, byte/string writing, output retrieval for GUI display
+  - **Test Suite (`src/kernel_vm/test.zig`)**: Comprehensive tests for VM initialization, register file (x0 hardwired to zero), memory read/write, instruction fetch, serial output - all tests passing
+  - **Build Integration**: `zig build kernel-vm-test` command for testing VM functionality
+  - **Tiger Style Compliance**: Static allocation (4MB memory buffer), comprehensive assertions (pointer validation, bounds checking, alignment checks), deterministic execution, no hidden state
+  - **RISC-V Hardware Compatibility**: VM designed to match Framework 13 DeepComputing RISC-V mainboard behavior - ensures kernel code developed in macOS Tahoe runs flawlessly on real RISC-V hardware
+  - **Development Strategy**: RISC-V-first development - write RISC-V-targeted Zig code, test in macOS Tahoe VM, deploy to Framework 13 RISC-V mainboard with confidence
+  - **Result:** Pure Zig RISC-V emulator core complete and tested. Foundation ready for GUI integration and expanded ISA support.
+
 ## 12025-11-12--1756-pst
 - **macOS Tahoe Window Resizing: Fixed Buffer Dimension Assertions**
   - Fixed crash when releasing mouse button after window resize

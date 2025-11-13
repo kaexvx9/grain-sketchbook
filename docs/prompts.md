@@ -8,6 +8,11 @@ pub const PromptEntry = struct {
 };
 
 pub const PROMPTS = [_]PromptEntry{
+    .{ .id = 88, .timestamp = "12025-11-12--1852-pst", .content =
+        \\let's rename /Users/bhagavan851c05a/kae3g/bhagavan851c05a/src/platform/macos to /Users/bhagavan851c05a/kae3g/bhagavan851c05a/src/platform/macos_tahoe and replace any import paths everywhere accordingly 
+        \\
+        \\the build is hanging
+    },
     .{ .id = 87, .timestamp = null, .content =
         \\accept a reorientation of our zig and ray for current work via 
         macos tahoe postponing qemu work 

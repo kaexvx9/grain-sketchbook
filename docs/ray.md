@@ -26,6 +26,37 @@ our Tahoe aesthetic, reminding us to keep ethical fashion signal in view
 
 **Status**: Window rendering complete ✅. Next: Interactive input handling.
 
+0. **RISC-V Kernel Virtualization Layer (macOS Tahoe)** 🔥 **HIGH PRIORITY** 🎯 **NEW**
+   - **Vision**: Run Zig monolith kernel in virtualized RISC-V environment within macOS Tahoe IDE
+   - **Why**: Enable kernel development and testing without physical RISC-V hardware or external QEMU
+   - **Integration**: Embed RISC-V emulator as a River compositor pane within Tahoe window
+   - **Architecture**:
+     - RISC-V emulator core: Pure Zig implementation (or QEMU/lib binding) for RISC-V64 ISA
+     - Virtual machine pane: Dedicated compositor pane showing kernel output (serial/console)
+     - Kernel loader: Load compiled Zig kernel (`zig-out/bin/kernel-rv64`) into VM memory
+     - Debug interface: GDB stub integration for kernel debugging within IDE
+     - Memory visualization: Show kernel memory layout, stack traces, register state
+   - **Implementation Strategy**:
+     - Option A: Pure Zig RISC-V emulator (Tiger Style, static allocation where possible)
+     - Option B: QEMU/lib integration via C bindings (faster, more complete ISA support)
+     - Option C: Hybrid: Start with QEMU/lib, migrate to pure Zig incrementally
+   - **GUI Integration**:
+     - New compositor pane type: `KernelVMPane` (extends base pane)
+     - Terminal-like output rendering: Kernel serial output → RGBA buffer → NSImageView
+     - Control panel: Start/stop VM, reset, step execution, breakpoints
+     - Memory/register viewer: Separate panes for debugging state
+   - **Build Integration**:
+     - `zig build kernel-rv64` compiles kernel to RISC-V64 ELF
+     - `zig build kernel-vm` launches kernel in virtualization pane
+     - Hot reload: Recompile kernel on save, reload into VM
+   - **Tiger Style Requirements**:
+     - Static allocation for VM state structures where possible
+     - Comprehensive assertions for memory access, instruction decoding
+     - Deterministic execution: Same kernel state → same output
+     - No hidden state: All VM state explicitly tracked
+   - **Files**: `src/kernel_vm/` (new module), `src/tahoe_window.zig` (VM pane integration), `src/platform/macos_tahoe/` (VM rendering)
+   - **References**: Existing `src/kernel/` infrastructure, QEMU RISC-V emulation, River compositor architecture
+
 1. **Input Handling (macOS Tahoe)** 🔥 **IMMEDIATE PRIORITY** ✅ **COMPLETE**
    - ✅ Created `TahoeView` class dynamically using Objective-C runtime API (extends NSView)
    - ✅ Implemented mouse event methods: `mouseDown:`, `mouseUp:`, `mouseDragged:`, `mouseMoved:`
@@ -167,10 +198,11 @@ our Tahoe aesthetic, reminding us to keep ethical fashion signal in view
 
 ### Deferred Work (Lower Priority)
 
-14. **Kernel Toolkit (paused)**
-    - QEMU, rsync, and gdb scripts are staged
-    - Resume once Framework 13 RISC-V board or VPS is available
-    - Focus on macOS Tahoe Aurora IDE work for now
+14. **Kernel Toolkit (paused → Reoriented)**
+    - **Previous**: QEMU, rsync, and gdb scripts staged for external hardware/VPS
+    - **New Direction**: RISC-V virtualization layer within macOS Tahoe (see Phase 1, item 0)
+    - **Rationale**: Enable kernel development directly within IDE without external dependencies
+    - **Migration Path**: Existing QEMU scripts can inform virtualization layer architecture
 
 15. **Grain Conductor & Pottery** (Future)
     - `zig build conduct` drives `grain conduct brew|link|manifest|edit|make|ai|contracts|mmt|cdn`

@@ -96,6 +96,31 @@ pub fn build(b: *std.Build) void {
     const kernel_step = b.step("kernel-rv64", "Build Grain RISC-V kernel image");
     kernel_step.dependOn(&kernel_install.step);
 
+    // RISC-V VM module for kernel virtualization.
+    const kernel_vm_module = b.addModule("kernel_vm", .{
+        .root_source_file = b.path("src/kernel_vm/kernel_vm.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    // Kernel VM test executable (for testing VM functionality).
+    const kernel_vm_test_exe = b.addExecutable(.{
+        .name = "kernel_vm_test",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/kernel_vm/test.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "kernel_vm", .module = kernel_vm_module },
+            },
+        }),
+    });
+    const kernel_vm_test_install = b.addInstallArtifact(kernel_vm_test_exe, .{});
+    const kernel_vm_test_step = b.step("kernel-vm-test", "Test RISC-V VM functionality");
+    kernel_vm_test_step.dependOn(&kernel_vm_test_install.step);
+    const kernel_vm_test_run = b.addRunArtifact(kernel_vm_test_exe);
+    kernel_vm_test_step.dependOn(&kernel_vm_test_run.step);
+
     const validate_src_exe = b.addExecutable(.{
         .name = "validate_src",
         .root_module = b.createModule(.{
