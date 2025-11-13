@@ -204,14 +204,107 @@ pub const SyscallResult = union(enum) {
     }
 };
 
+/// Memory mapping entry.
+/// Why: Track memory mappings for map/unmap/protect syscalls.
+/// Tiger Style: Static allocation, explicit state tracking.
+const MemoryMapping = struct {
+    /// Mapping address (page-aligned).
+    address: u64,
+    /// Mapping size (page-aligned, bytes).
+    size: u64,
+    /// Mapping flags (permissions).
+    flags: MapFlags,
+    /// Whether this entry is allocated (in use).
+    allocated: bool,
+    
+    /// Initialize empty mapping entry.
+    /// Why: Explicit initialization, clear state.
+    pub fn init() MemoryMapping {
+        return MemoryMapping{
+            .address = 0,
+            .size = 0,
+            .flags = MapFlags.init(.{}),
+            .allocated = false,
+        };
+    }
+    
+    /// Check if mapping overlaps with address range.
+    /// Why: Validate no overlapping mappings.
+    pub fn overlaps(self: MemoryMapping, addr: u64, size: u64) bool {
+        if (!self.allocated) {
+            return false;
+        }
+        // Check if ranges overlap: (self.address < addr + size) && (addr < self.address + self.size)
+        return (self.address < addr + size) and (addr < self.address + self.size);
+    }
+};
+
+/// Memory mapping table.
+/// Why: Track all memory mappings for kernel memory management.
+/// Tiger Style: Static allocation, max 256 entries (sufficient for 4MB VM).
+const MAX_MAPPINGS: usize = 256;
+
 /// Basin Kernel syscall interface (stub for future implementation).
 /// Why: Define interface early, implement incrementally.
 pub const BasinKernel = struct {
+    /// Memory mapping table (static allocation).
+    /// Why: Track memory mappings for map/unmap/protect syscalls.
+    /// Tiger Style: Static allocation, max 256 entries.
+    mappings: [MAX_MAPPINGS]MemoryMapping = [_]MemoryMapping{MemoryMapping.init()} ** MAX_MAPPINGS,
+    
+    /// Next address for kernel-chosen allocations (simple allocator).
+    /// Why: Track allocation position for kernel-chosen addresses.
+    next_alloc_addr: u64 = 0x100000, // Start after kernel space (1MB)
+    
     /// Initialize Basin Kernel.
     /// Why: Explicit initialization, validate kernel state.
     pub fn init() BasinKernel {
-        // TODO: Initialize kernel structures, memory management, process table, etc.
-        return BasinKernel{};
+        var kernel = BasinKernel{};
+        
+        // Assert: All mappings must be unallocated initially.
+        for (kernel.mappings) |*mapping| {
+            std.debug.assert(!mapping.allocated);
+        }
+        
+        // Assert: Next allocation address must be page-aligned.
+        std.debug.assert(kernel.next_alloc_addr % 4096 == 0);
+        
+        return kernel;
+    }
+    
+    /// Find free mapping entry.
+    /// Why: Allocate new mapping entry.
+    /// Returns: Index of free entry, or null if table full.
+    fn find_free_mapping(self: *BasinKernel) ?usize {
+        for (self.mappings, 0..) |*mapping, i| {
+            if (!mapping.allocated) {
+                return i;
+            }
+        }
+        return null;
+    }
+    
+    /// Find mapping by address.
+    /// Why: Look up mapping for unmap/protect operations.
+    /// Returns: Index of mapping, or null if not found.
+    fn find_mapping_by_address(self: *BasinKernel, addr: u64) ?usize {
+        for (self.mappings, 0..) |*mapping, i| {
+            if (mapping.allocated and mapping.address == addr) {
+                return i;
+            }
+        }
+        return null;
+    }
+    
+    /// Check if address range overlaps with any existing mapping.
+    /// Why: Validate no overlapping mappings.
+    fn check_overlap(self: *BasinKernel, addr: u64, size: u64) bool {
+        for (self.mappings) |*mapping| {
+            if (mapping.overlaps(addr, size)) {
+                return true;
+            }
+        }
+        return false;
     }
     
     /// Handle syscall from user space.
@@ -499,11 +592,17 @@ pub const BasinKernel = struct {
         const USER_SPACE_START: u64 = KERNEL_SPACE_END; // User space starts after kernel
         
         if (mapping_addr == 0) {
-            // Kernel chooses: allocate from user space.
-            mapping_addr = USER_SPACE_START;
+            // Kernel chooses: allocate from next allocation address.
+            // Why: Use simple allocator that tracks next free address.
+            mapping_addr = self.next_alloc_addr;
             
             // Assert: Kernel-chosen address must be page-aligned.
             std.debug.assert(mapping_addr % 4096 == 0);
+            
+            // Assert: Kernel-chosen address must fit in VM memory.
+            if (mapping_addr + size > VM_MEMORY_SIZE) {
+                return BasinError.out_of_memory; // No space for kernel-chosen address
+            }
         } else {
             // User-provided address: validate alignment and range.
             if (mapping_addr % 4096 != 0) {
@@ -526,14 +625,37 @@ pub const BasinKernel = struct {
             return BasinError.permission_denied; // Overlaps kernel space
         }
         
-        // For now, return address as handle (simple implementation).
-        // TODO: Implement actual memory mapping (allocate pages, set permissions, track mappings).
-        // Why: Simple implementation - VM will handle actual memory access.
-        // Note: In full implementation, we would:
-        // - Allocate pages from a page allocator
-        // - Set page permissions based on flags
-        // - Track mappings in a data structure
-        // - Return a Handle (not raw address) for type safety
+        // Check if mapping overlaps with existing mappings.
+        if (self.check_overlap(mapping_addr, size)) {
+            return BasinError.invalid_argument; // Overlapping mapping
+        }
+        
+        // Find free mapping entry.
+        const mapping_idx = self.find_free_mapping() orelse {
+            return BasinError.out_of_memory; // Mapping table full
+        };
+        
+        // Allocate mapping entry.
+        var mapping = &self.mappings[mapping_idx];
+        mapping.address = mapping_addr;
+        mapping.size = size;
+        mapping.flags = map_flags;
+        mapping.allocated = true;
+        
+        // Assert: Mapping entry must be allocated correctly.
+        std.debug.assert(mapping.allocated);
+        std.debug.assert(mapping.address == mapping_addr);
+        std.debug.assert(mapping.size == size);
+        
+        // Update next allocation address (for kernel-chosen addresses).
+        if (addr == 0) {
+            // Kernel-chosen: advance next allocation address.
+            self.next_alloc_addr = mapping_addr + size;
+            
+            // Assert: Next allocation address must be page-aligned.
+            std.debug.assert(self.next_alloc_addr % 4096 == 0);
+        }
+        
         const result = SyscallResult.ok(mapping_addr);
         
         // Assert: result must be success (not error).
@@ -583,17 +705,25 @@ pub const BasinKernel = struct {
             return BasinError.invalid_argument; // Region address exceeds VM memory
         }
         
-        // TODO: Check if mapping exists in mapping table (when implemented).
-        // For now, simple validation: if address is valid, assume unmapping succeeds.
-        // Why: Simple implementation - matches current syscall_map stub level.
-        // Note: In full implementation, we would:
-        // - Look up region in mapping table
-        // - Verify region is actually mapped
-        // - Free pages from page allocator
-        // - Remove mapping from table
-        // - Return error if region not found
+        // Find mapping by address.
+        const mapping_idx = self.find_mapping_by_address(region) orelse {
+            return BasinError.invalid_argument; // Mapping not found
+        };
         
-        // For now, return success (simple stub implementation).
+        // Assert: Mapping must be allocated.
+        std.debug.assert(self.mappings[mapping_idx].allocated);
+        std.debug.assert(self.mappings[mapping_idx].address == region);
+        
+        // Free mapping entry.
+        var mapping = &self.mappings[mapping_idx];
+        mapping.allocated = false;
+        mapping.address = 0;
+        mapping.size = 0;
+        mapping.flags = MapFlags.init(.{});
+        
+        // Assert: Mapping entry must be freed correctly.
+        std.debug.assert(!mapping.allocated);
+        
         const result = SyscallResult.ok(0);
         
         // Assert: result must be success (not error).
@@ -650,16 +780,25 @@ pub const BasinKernel = struct {
             return BasinError.invalid_argument; // Reserved bits set
         }
         
-        // TODO: Implement actual memory protection (when mapping table is implemented).
-        // For now, return stub success.
-        // Why: Simple stub - matches current kernel development stage.
-        // Note: In full implementation, we would:
-        // - Look up region in mapping table
-        // - Verify region is actually mapped
-        // - Update page permissions based on flags
-        // - Return error if region not found
+        // Find mapping by address.
+        const mapping_idx = self.find_mapping_by_address(region) orelse {
+            return BasinError.invalid_argument; // Mapping not found
+        };
         
-        // Stub: Return success (simple implementation).
+        // Assert: Mapping must be allocated.
+        std.debug.assert(self.mappings[mapping_idx].allocated);
+        std.debug.assert(self.mappings[mapping_idx].address == region);
+        
+        // Update mapping flags (permissions).
+        var mapping = &self.mappings[mapping_idx];
+        mapping.flags = map_flags;
+        
+        // Assert: Mapping flags must be updated correctly.
+        std.debug.assert(mapping.flags.read == map_flags.read);
+        std.debug.assert(mapping.flags.write == map_flags.write);
+        std.debug.assert(mapping.flags.execute == map_flags.execute);
+        std.debug.assert(mapping.flags.shared == map_flags.shared);
+        
         const result = SyscallResult.ok(0);
         
         // Assert: result must be success (not error).
