@@ -183,8 +183,21 @@ pub const VM = struct {
             return;
         }
         
+        // Store PC before instruction execution (for branch detection).
+        const pc_before = self.regs.pc;
+        
+        // Assert: PC must be 4-byte aligned (RISC-V instruction alignment).
+        std.debug.assert(pc_before % 4 == 0);
+        
+        // Assert: PC must be within memory bounds.
+        std.debug.assert(pc_before < self.memory_size);
+        
         // Fetch instruction at PC.
         const inst = try self.fetchInstruction();
+        
+        // Assert: instruction must be valid (not all zeros or all ones).
+        std.debug.assert(inst != 0x00000000);
+        std.debug.assert(inst != 0xFFFFFFFF);
         
         // Decode instruction opcode (bits [6:0]).
         const opcode = @as(u7, @truncate(inst));
@@ -205,6 +218,45 @@ pub const VM = struct {
                     try self.executeADDI(inst);
                 } else {
                     // Unsupported I-type instruction variant.
+                    self.state = .errored;
+                    self.last_error = VMError.invalid_instruction;
+                    return VMError.invalid_instruction;
+                }
+            },
+            // Load instructions (LW): I-type instruction.
+            0b0000011 => {
+                const funct3 = @as(u3, @truncate(inst >> 12));
+                if (funct3 == 0b010) {
+                    // LW (Load Word): Load 32-bit word from memory.
+                    try self.executeLW(inst);
+                } else {
+                    // Unsupported load instruction variant.
+                    self.state = .errored;
+                    self.last_error = VMError.invalid_instruction;
+                    return VMError.invalid_instruction;
+                }
+            },
+            // Store instructions (SW): S-type instruction.
+            0b0100011 => {
+                const funct3 = @as(u3, @truncate(inst >> 12));
+                if (funct3 == 0b010) {
+                    // SW (Store Word): Store 32-bit word to memory.
+                    try self.executeSW(inst);
+                } else {
+                    // Unsupported store instruction variant.
+                    self.state = .errored;
+                    self.last_error = VMError.invalid_instruction;
+                    return VMError.invalid_instruction;
+                }
+            },
+            // Branch instructions (BEQ): B-type instruction.
+            0b1100011 => {
+                const funct3 = @as(u3, @truncate(inst >> 12));
+                if (funct3 == 0b000) {
+                    // BEQ (Branch if Equal): Branch if rs1 == rs2.
+                    try self.executeBEQ(inst);
+                } else {
+                    // Unsupported branch instruction variant.
                     self.state = .errored;
                     self.last_error = VMError.invalid_instruction;
                     return VMError.invalid_instruction;
@@ -231,7 +283,19 @@ pub const VM = struct {
         }
         
         // Advance PC to next instruction (4 bytes).
-        self.regs.pc += 4;
+        // Note: BEQ may have already updated PC for branch, so check if PC was modified.
+        // Branch instructions modify PC directly, so we don't increment again.
+        if (self.regs.pc == pc_before) {
+            // Normal case: PC unchanged by instruction, advance by 4 bytes.
+            self.regs.pc += 4;
+        }
+        // Else: PC was modified by branch instruction (BEQ), don't increment again.
+        
+        // Assert: PC must be 4-byte aligned after instruction execution.
+        std.debug.assert(self.regs.pc % 4 == 0);
+        
+        // Assert: PC must be within memory bounds after execution.
+        std.debug.assert(self.regs.pc <= self.memory_size);
     }
 
     /// Execute LUI (Load Upper Immediate) instruction.
@@ -270,6 +334,168 @@ pub const VM = struct {
         
         // Write result to rd.
         self.regs.set(rd, result);
+    }
+
+    /// Execute LW (Load Word) instruction.
+    /// Format: LW rd, offset(rs1)
+    /// Encoding: imm[11:0] | rs1 | 010 | rd | 0000011
+    /// Why: Load 32-bit word from memory for kernel data access.
+    fn executeLW(self: *Self, inst: u32) !void {
+        // Decode: rd = bits [11:7], rs1 = bits [19:15], imm[11:0] = bits [31:20].
+        const rd = @as(u5, @truncate(inst >> 7));
+        const rs1 = @as(u5, @truncate(inst >> 15));
+        const imm12 = @as(i32, @truncate(@as(i64, inst >> 20)));
+        
+        // Assert: registers must be valid (0-31).
+        std.debug.assert(rd < 32);
+        std.debug.assert(rs1 < 32);
+        
+        // Read base address from rs1.
+        const base_addr = self.regs.get(rs1);
+        
+        // Sign-extend immediate to 64 bits.
+        const imm64 = @as(i64, imm12);
+        const offset = @as(u64, @intCast(imm64));
+        
+        // Calculate effective address: base_addr + offset.
+        const eff_addr = base_addr +% offset;
+        
+        // Assert: effective address must be 4-byte aligned for word load.
+        if (eff_addr % 4 != 0) {
+            self.state = .errored;
+            self.last_error = VMError.unaligned_memory_access;
+            return VMError.unaligned_memory_access;
+        }
+        
+        // Assert: effective address must be within memory bounds.
+        if (eff_addr + 4 > self.memory_size) {
+            self.state = .errored;
+            self.last_error = VMError.invalid_memory_access;
+            return VMError.invalid_memory_access;
+        }
+        
+        // Read 32-bit word from memory (sign-extend to 64 bits).
+        // Assert: memory access must be within bounds (already checked above).
+        std.debug.assert(eff_addr + 4 <= self.memory_size);
+        
+        const mem_slice = self.memory[@as(usize, @intCast(eff_addr))..][0..4];
+        const word = std.mem.readInt(u32, mem_slice, .little);
+        const word_signed = @as(i32, @bitCast(word));
+        const word64 = @as(u64, @intCast(word_signed));
+        
+        // Write to destination register.
+        self.regs.set(rd, word64);
+    }
+
+    /// Execute SW (Store Word) instruction.
+    /// Format: SW rs2, offset(rs1)
+    /// Encoding: imm[11:5] | rs2 | rs1 | 010 | imm[4:0] | 0100011
+    /// Why: Store 32-bit word to memory for kernel data writes.
+    fn executeSW(self: *Self, inst: u32) !void {
+        // Decode S-type: rs2 = bits [24:20], rs1 = bits [19:15], imm[11:5] = bits [31:25], imm[4:0] = bits [11:7].
+        const rs2 = @as(u5, @truncate(inst >> 20));
+        const rs1 = @as(u5, @truncate(inst >> 15));
+        const imm_11_5 = @as(u7, @truncate(inst >> 25));
+        const imm_4_0 = @as(u5, @truncate(inst >> 7));
+        
+        // Assert: registers must be valid (0-31).
+        std.debug.assert(rs2 < 32);
+        std.debug.assert(rs1 < 32);
+        
+        // Reconstruct 12-bit immediate: imm[11:5] | imm[4:0].
+        const imm12_raw = (@as(u12, imm_11_5) << 5) | imm_4_0;
+        const imm12 = @as(i32, @truncate(@as(i64, @as(i12, @bitCast(imm12_raw)))));
+        
+        // Read base address from rs1.
+        const base_addr = self.regs.get(rs1);
+        
+        // Sign-extend immediate to 64 bits.
+        const imm64 = @as(i64, imm12);
+        const offset = @as(u64, @intCast(imm64));
+        
+        // Calculate effective address: base_addr + offset.
+        const eff_addr = base_addr +% offset;
+        
+        // Assert: effective address must be 4-byte aligned for word store.
+        if (eff_addr % 4 != 0) {
+            self.state = .errored;
+            self.last_error = VMError.unaligned_memory_access;
+            return VMError.unaligned_memory_access;
+        }
+        
+        // Assert: effective address must be within memory bounds.
+        if (eff_addr + 4 > self.memory_size) {
+            self.state = .errored;
+            self.last_error = VMError.invalid_memory_access;
+            return VMError.invalid_memory_access;
+        }
+        
+        // Read source value from rs2 (truncate to 32 bits).
+        const rs2_value = self.regs.get(rs2);
+        const word = @as(u32, @truncate(rs2_value));
+        
+        // Write 32-bit word to memory.
+        @memcpy(self.memory[@as(usize, @intCast(eff_addr))..][0..4], &std.mem.toBytes(word));
+    }
+
+    /// Execute BEQ (Branch if Equal) instruction.
+    /// Format: BEQ rs1, rs2, offset
+    /// Encoding: imm[12] | imm[10:5] | rs2 | rs1 | 000 | imm[4:1] | imm[11] | 1100011
+    /// Why: Conditional branch for kernel control flow.
+    fn executeBEQ(self: *Self, inst: u32) !void {
+        // Decode B-type: rs2 = bits [24:20], rs1 = bits [19:15], imm[12] = bit [31], imm[10:5] = bits [30:25],
+        // imm[4:1] = bits [11:8], imm[11] = bit [7].
+        const rs2 = @as(u5, @truncate(inst >> 20));
+        const rs1 = @as(u5, @truncate(inst >> 15));
+        const imm_12 = @as(u1, @truncate(inst >> 31));
+        const imm_10_5 = @as(u6, @truncate(inst >> 25));
+        const imm_4_1 = @as(u4, @truncate(inst >> 8));
+        const imm_11 = @as(u1, @truncate(inst >> 7));
+        
+        // Assert: registers must be valid (0-31).
+        std.debug.assert(rs2 < 32);
+        std.debug.assert(rs1 < 32);
+        
+        // Reconstruct 13-bit immediate (sign-extended): imm[12] | imm[11] | imm[10:5] | imm[4:1] | 0.
+        const imm13_raw = (@as(u13, imm_12) << 12) | (@as(u13, imm_11) << 11) | (@as(u13, imm_10_5) << 5) | (@as(u13, imm_4_1) << 1);
+        const imm13 = @as(i13, @bitCast(imm13_raw));
+        
+        // Read register values.
+        const rs1_value = self.regs.get(rs1);
+        const rs2_value = self.regs.get(rs2);
+        
+        // Compare: if rs1 == rs2, branch.
+        if (rs1_value == rs2_value) {
+            // Sign-extend immediate to 64 bits and add to PC.
+            const imm64 = @as(i64, imm13);
+            const offset = @as(u64, @intCast(imm64));
+            
+            // Calculate branch target: PC + offset.
+            const branch_target = self.regs.pc +% offset;
+            
+            // Assert: branch target must be 4-byte aligned.
+            if (branch_target % 4 != 0) {
+                self.state = .errored;
+                self.last_error = VMError.unaligned_instruction;
+                return VMError.unaligned_instruction;
+            }
+            
+            // Assert: branch target must be within memory bounds.
+            if (branch_target >= self.memory_size) {
+                self.state = .errored;
+                self.last_error = VMError.invalid_memory_access;
+                return VMError.invalid_memory_access;
+            }
+            
+            // Update PC to branch target (PC update happens before normal +4 increment).
+            // Note: We'll skip the normal PC += 4 after this instruction.
+            self.regs.pc = branch_target;
+            
+            // Return early to skip normal PC increment.
+            return;
+        }
+        
+        // No branch: PC will be incremented normally by +4 in step().
     }
 
     /// Execute ECALL (Environment Call) instruction.
