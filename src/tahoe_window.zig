@@ -429,6 +429,31 @@ pub const TahoeSandbox = struct {
         return true;
     }
 
+    /// Handle syscall from RISC-V VM (Grain Basin kernel integration).
+    /// Why: Bridge VM ECALL instructions to Grain Basin kernel syscalls.
+    /// RISC-V calling convention: syscall_num in a7, args in a0-a5, result in a0.
+    /// Note: This is a static function that will be called via callback.
+    /// TODO: Use user_data to access sandbox instance properly.
+    pub fn handleSyscall(syscall_num: u32, arg1: u64, arg2: u64, arg3: u64, arg4: u64) u64 {
+        // For now, use a simple implementation that calls Basin Kernel.
+        // TODO: Access sandbox via user_data when callback supports it.
+        var kernel = basin_kernel.BasinKernel{};
+        const result = kernel.handleSyscall(syscall_num, arg1, arg2, arg3, arg4) catch |err| {
+            // Return error code (negative value indicates error).
+            const error_code = @as(i64, @intCast(@intFromError(err)));
+            return @as(u64, @bitCast(-error_code));
+        };
+        
+        // Extract result value from SyscallResult.
+        switch (result) {
+            .success => |value| return value,
+            .err => |err_val| {
+                const error_code = @as(i64, @intCast(@intFromError(err_val)));
+                return @as(u64, @bitCast(-error_code));
+            },
+        }
+    }
+
     pub fn deinit(self: *TahoeSandbox) void {
         self.aurora.deinit();
         self.platform.deinit();
