@@ -220,7 +220,7 @@ pub const BasinKernel = struct {
         arg3: u64,
         arg4: u64,
     ) BasinError!SyscallResult {
-        _ = self; // TODO: Use kernel state
+        // TODO: Use kernel state (self)
         
         // Decode syscall number.
         const syscall = @as(?Syscall, @enumFromInt(syscall_num)) orelse {
