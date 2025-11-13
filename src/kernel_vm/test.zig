@@ -41,7 +41,7 @@ pub fn main() !void {
     std.debug.print("[kernel_vm_test] Test 5: Serial output\n", .{});
     var serial = SerialOutput{};
     serial.writeString("Hello, RISC-V!\n");
-    const output = serial.getOutput();
+    const output = serial.get_output();
     std.debug.assert(output.len > 0);
     std.debug.print("[kernel_vm_test] ✓ Serial output works\n", .{});
 
