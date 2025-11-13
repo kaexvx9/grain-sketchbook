@@ -143,6 +143,66 @@ pub fn main() !void {
     std.debug.assert(slt_result_neg == 1); // -10 < 10, so x1 = 1
     std.debug.print("[kernel_vm_test] ✓ SLT instruction works (signed comparison)\n", .{});
 
+    // Test 9: OR instruction (bitwise OR).
+    std.debug.print("[kernel_vm_test] Test 9: OR instruction\n", .{});
+    // OR x1, x2, x3: x1 = x2 | x3
+    // Encoding: funct7(0) | rs2(3) | rs1(2) | 110 | rd(1) | 0110011
+    // = 0x003160B3
+    // Little-endian bytes: [0xB3, 0x60, 0x31, 0x00]
+    // Add ECALL after to halt VM (0x00000073)
+    const or_kernel = [_]u8{ 0xB3, 0x60, 0x31, 0x00, 0x73, 0x00, 0x00, 0x00 };
+    @memset(&vm.memory, 0);
+    @memcpy(vm.memory[0x1000..][0..or_kernel.len], &or_kernel);
+    vm.regs.pc = 0x1000;
+    vm.state = .halted;
+    vm.regs.set(2, 0b1010); // x2 = 0b1010 (10 decimal)
+    vm.regs.set(3, 0b1100); // x3 = 0b1100 (12 decimal)
+    vm.start();
+    try vm.step();
+    const or_result = vm.regs.get(1);
+    std.debug.assert(or_result == 0b1110); // x1 = 0b1010 | 0b1100 = 0b1110 (14 decimal)
+    std.debug.print("[kernel_vm_test] ✓ OR instruction works\n", .{});
+
+    // Test 10: AND instruction (bitwise AND).
+    std.debug.print("[kernel_vm_test] Test 10: AND instruction\n", .{});
+    // AND x1, x2, x3: x1 = x2 & x3
+    // Encoding: funct7(0) | rs2(3) | rs1(2) | 111 | rd(1) | 0110011
+    // = 0x003170B3
+    // Little-endian bytes: [0xB3, 0x70, 0x31, 0x00]
+    // Add ECALL after to halt VM (0x00000073)
+    const and_kernel = [_]u8{ 0xB3, 0x70, 0x31, 0x00, 0x73, 0x00, 0x00, 0x00 };
+    @memset(&vm.memory, 0);
+    @memcpy(vm.memory[0x1000..][0..and_kernel.len], &and_kernel);
+    vm.regs.pc = 0x1000;
+    vm.state = .halted;
+    vm.regs.set(2, 0b1010); // x2 = 0b1010 (10 decimal)
+    vm.regs.set(3, 0b1100); // x3 = 0b1100 (12 decimal)
+    vm.start();
+    try vm.step();
+    const and_result = vm.regs.get(1);
+    std.debug.assert(and_result == 0b1000); // x1 = 0b1010 & 0b1100 = 0b1000 (8 decimal)
+    std.debug.print("[kernel_vm_test] ✓ AND instruction works\n", .{});
+
+    // Test 11: XOR instruction (bitwise XOR).
+    std.debug.print("[kernel_vm_test] Test 11: XOR instruction\n", .{});
+    // XOR x1, x2, x3: x1 = x2 ^ x3
+    // Encoding: funct7(0) | rs2(3) | rs1(2) | 100 | rd(1) | 0110011
+    // = 0x003140B3
+    // Little-endian bytes: [0xB3, 0x40, 0x31, 0x00]
+    // Add ECALL after to halt VM (0x00000073)
+    const xor_kernel = [_]u8{ 0xB3, 0x40, 0x31, 0x00, 0x73, 0x00, 0x00, 0x00 };
+    @memset(&vm.memory, 0);
+    @memcpy(vm.memory[0x1000..][0..xor_kernel.len], &xor_kernel);
+    vm.regs.pc = 0x1000;
+    vm.state = .halted;
+    vm.regs.set(2, 0b1010); // x2 = 0b1010 (10 decimal)
+    vm.regs.set(3, 0b1100); // x3 = 0b1100 (12 decimal)
+    vm.start();
+    try vm.step();
+    const xor_result = vm.regs.get(1);
+    std.debug.assert(xor_result == 0b0110); // x1 = 0b1010 ^ 0b1100 = 0b0110 (6 decimal)
+    std.debug.print("[kernel_vm_test] ✓ XOR instruction works\n", .{});
+
     std.debug.print("[kernel_vm_test] All tests passed!\n", .{});
 }
 

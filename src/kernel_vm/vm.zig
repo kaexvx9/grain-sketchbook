@@ -281,6 +281,36 @@ pub const VM = struct {
                         self.last_error = VMError.invalid_instruction;
                         return VMError.invalid_instruction;
                     }
+                } else if (funct3 == 0b100) {
+                    // XOR (Exclusive OR): rd = rs1 ^ rs2.
+                    if (funct7 == 0b0000000) {
+                        try self.execute_xor(inst);
+                    } else {
+                        // Unsupported R-type instruction variant.
+                        self.state = .errored;
+                        self.last_error = VMError.invalid_instruction;
+                        return VMError.invalid_instruction;
+                    }
+                } else if (funct3 == 0b110) {
+                    // OR (Bitwise OR): rd = rs1 | rs2.
+                    if (funct7 == 0b0000000) {
+                        try self.execute_or(inst);
+                    } else {
+                        // Unsupported R-type instruction variant.
+                        self.state = .errored;
+                        self.last_error = VMError.invalid_instruction;
+                        return VMError.invalid_instruction;
+                    }
+                } else if (funct3 == 0b111) {
+                    // AND (Bitwise AND): rd = rs1 & rs2.
+                    if (funct7 == 0b0000000) {
+                        try self.execute_and(inst);
+                    } else {
+                        // Unsupported R-type instruction variant.
+                        self.state = .errored;
+                        self.last_error = VMError.invalid_instruction;
+                        return VMError.invalid_instruction;
+                    }
                 } else {
                     // Unsupported R-type instruction variant.
                     self.state = .errored;
@@ -499,6 +529,105 @@ pub const VM = struct {
         
         // Assert: result must be 0 or 1 (boolean comparison result).
         std.debug.assert(result == 0 or result == 1);
+        
+        // Assert: result must be written correctly (unless x0).
+        if (rd != 0) {
+            std.debug.assert(self.regs.get(rd) == result);
+        }
+    }
+
+    /// Execute OR (Bitwise OR) instruction.
+    /// Format: OR rd, rs1, rs2
+    /// Encoding: funct7 | rs2 | rs1 | 110 | rd | 0110011
+    /// Why: Bitwise OR for kernel bit manipulation operations.
+    /// Tiger Style: Comprehensive assertions for register indices and result validation.
+    fn execute_or(self: *Self, inst: u32) !void {
+        // Decode: rd = bits [11:7], rs1 = bits [19:15], rs2 = bits [24:20].
+        const rd = @as(u5, @truncate(inst >> 7));
+        const rs1 = @as(u5, @truncate(inst >> 15));
+        const rs2 = @as(u5, @truncate(inst >> 20));
+        
+        // Assert: registers must be valid (0-31).
+        std.debug.assert(rd < 32);
+        std.debug.assert(rs1 < 32);
+        std.debug.assert(rs2 < 32);
+        
+        // Read source register values.
+        const rs1_value = self.regs.get(rs1);
+        const rs2_value = self.regs.get(rs2);
+        
+        // OR: rd = rs1 | rs2 (bitwise OR).
+        // Why: Bitwise OR operation for kernel bit manipulation.
+        const result = rs1_value | rs2_value;
+        
+        // Write result to rd.
+        self.regs.set(rd, result);
+        
+        // Assert: result must be written correctly (unless x0).
+        if (rd != 0) {
+            std.debug.assert(self.regs.get(rd) == result);
+        }
+    }
+
+    /// Execute AND (Bitwise AND) instruction.
+    /// Format: AND rd, rs1, rs2
+    /// Encoding: funct7 | rs2 | rs1 | 111 | rd | 0110011
+    /// Why: Bitwise AND for kernel bit manipulation operations.
+    /// Tiger Style: Comprehensive assertions for register indices and result validation.
+    fn execute_and(self: *Self, inst: u32) !void {
+        // Decode: rd = bits [11:7], rs1 = bits [19:15], rs2 = bits [24:20].
+        const rd = @as(u5, @truncate(inst >> 7));
+        const rs1 = @as(u5, @truncate(inst >> 15));
+        const rs2 = @as(u5, @truncate(inst >> 20));
+        
+        // Assert: registers must be valid (0-31).
+        std.debug.assert(rd < 32);
+        std.debug.assert(rs1 < 32);
+        std.debug.assert(rs2 < 32);
+        
+        // Read source register values.
+        const rs1_value = self.regs.get(rs1);
+        const rs2_value = self.regs.get(rs2);
+        
+        // AND: rd = rs1 & rs2 (bitwise AND).
+        // Why: Bitwise AND operation for kernel bit manipulation.
+        const result = rs1_value & rs2_value;
+        
+        // Write result to rd.
+        self.regs.set(rd, result);
+        
+        // Assert: result must be written correctly (unless x0).
+        if (rd != 0) {
+            std.debug.assert(self.regs.get(rd) == result);
+        }
+    }
+
+    /// Execute XOR (Exclusive OR) instruction.
+    /// Format: XOR rd, rs1, rs2
+    /// Encoding: funct7 | rs2 | rs1 | 100 | rd | 0110011
+    /// Why: Bitwise XOR for kernel bit manipulation operations.
+    /// Tiger Style: Comprehensive assertions for register indices and result validation.
+    fn execute_xor(self: *Self, inst: u32) !void {
+        // Decode: rd = bits [11:7], rs1 = bits [19:15], rs2 = bits [24:20].
+        const rd = @as(u5, @truncate(inst >> 7));
+        const rs1 = @as(u5, @truncate(inst >> 15));
+        const rs2 = @as(u5, @truncate(inst >> 20));
+        
+        // Assert: registers must be valid (0-31).
+        std.debug.assert(rd < 32);
+        std.debug.assert(rs1 < 32);
+        std.debug.assert(rs2 < 32);
+        
+        // Read source register values.
+        const rs1_value = self.regs.get(rs1);
+        const rs2_value = self.regs.get(rs2);
+        
+        // XOR: rd = rs1 ^ rs2 (bitwise XOR).
+        // Why: Bitwise XOR operation for kernel bit manipulation.
+        const result = rs1_value ^ rs2_value;
+        
+        // Write result to rd.
+        self.regs.set(rd, result);
         
         // Assert: result must be written correctly (unless x0).
         if (rd != 0) {

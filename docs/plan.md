@@ -60,12 +60,28 @@
   - **Single-Threaded Benefits**: No locks, no race conditions, deterministic execution, no context switching overhead
   - **Zig Advantages**: Type safety, explicit allocation, comptime, error unions, single-threaded by default
   - **Reference**: See `docs/single_threaded_safety_efficiency.md` for comprehensive architecture design
-- **Next Steps** (Implementation Priority):
-  - **005 Fuzz Test**: Implement SBI + kernel syscall integration fuzz test (in progress)
-  - **Grain Basin kernel Syscall Implementation**: Implement syscall handlers incrementally (start with `exit`, `yield`, `map`)
-  - **Single-Threaded Architecture**: Ensure all layers (Hardware → SBI → Kernel → Userspace) are single-threaded, no locks, deterministic
-  - **Safety-First Patterns**: Comprehensive assertions ✅, type-safe interfaces ✅, explicit error handling ✅, static allocation ✅
-  - **Expanded ISA Support**: Add more RISC-V instructions (ADD, SUB, SLT, etc.)
+- **Next Steps** (Implementation Priority - Sequential Order):
+  - **005 Fuzz Test** ✅ **COMPLETE**: SBI + kernel syscall integration fuzz test implemented and passing
+  - **Priority 1: Implement `unmap` Syscall** 🔥 **IN PROGRESS**:
+    - Purpose: Unmap memory regions allocated by `map` syscall
+    - Requirements: Validate region address (page-aligned, user space), check mapping exists, return success/error
+    - Location: `src/kernel/basin_kernel.zig` → `syscall_unmap`
+    - Tiger Style: Comprehensive assertions, explicit validation, error handling
+  - **Priority 2: Expand ISA with Bitwise Operations** 🔥 **NEXT**:
+    - Instructions: OR, AND, XOR (R-type, opcode `0b0110011`)
+    - Format: `OR rd, rs1, rs2` (funct3=0b110, funct7=0b0000000)
+    - Location: `src/kernel_vm/vm.zig` → instruction dispatch + execute functions
+    - Tests: Add to `src/kernel_vm/test.zig`
+    - Current: 9 instructions (LUI, ADDI, ADD, SUB, SLT, LW, SW, BEQ, ECALL)
+    - After: 12 instructions (+ OR, AND, XOR)
+  - **Priority 3: Implement I/O Syscall Stubs** 🔥 **NEXT**:
+    - Syscalls: `open`, `read`, `write`, `close` (stubs for now)
+    - Purpose: Foundation for I/O operations, return handles/errors appropriately
+    - Location: `src/kernel/basin_kernel.zig` → syscall functions
+    - Tiger Style: Comprehensive assertions, type-safe handles, explicit error handling
+  - **Single-Threaded Architecture**: ✅ All layers single-threaded, no locks, deterministic
+  - **Safety-First Patterns**: ✅ Comprehensive assertions, type-safe interfaces, explicit error handling, static allocation
+  - **RAM-Aware Configuration**: ✅ VM memory configurable (4MB default, 64MB max), documented
   - **Debug Interface**: Register viewer, memory inspector, GDB stub (future)
 - **Comprehensive Assertions** ✅ **COMPLETE**:
   - ✅ VM SBI handling: Pointer validation, EID bounds, state transitions, serial output validation

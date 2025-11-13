@@ -463,14 +463,52 @@ pub const BasinKernel = struct {
         _arg3: u64,
         _arg4: u64,
     ) BasinError!SyscallResult {
-        _ = self;
-        _ = region;
+        // Assert: self pointer must be valid.
+        const self_ptr = @intFromPtr(self);
+        std.debug.assert(self_ptr != 0);
+        std.debug.assert(self_ptr % @alignOf(BasinKernel) == 0);
+        
         _ = _arg2;
         _ = _arg3;
         _ = _arg4;
         
-        // TODO: Implement unmap syscall.
-        return BasinError.invalid_syscall;
+        // Assert: region address must be page-aligned (4KB pages).
+        if (region % 4096 != 0) {
+            return BasinError.unaligned_access;
+        }
+        
+        // Assert: region address must be in user space (not kernel space).
+        const KERNEL_SPACE_END: u64 = 0x100000; // 1MB kernel space (matches syscall_map)
+        const USER_SPACE_START: u64 = KERNEL_SPACE_END;
+        
+        if (region < USER_SPACE_START) {
+            return BasinError.permission_denied; // Attempting to unmap kernel space
+        }
+        
+        // Assert: region address must be within VM memory bounds.
+        const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default (matches syscall_map)
+        if (region >= VM_MEMORY_SIZE) {
+            return BasinError.invalid_argument; // Region address exceeds VM memory
+        }
+        
+        // TODO: Check if mapping exists in mapping table (when implemented).
+        // For now, simple validation: if address is valid, assume unmapping succeeds.
+        // Why: Simple implementation - matches current syscall_map stub level.
+        // Note: In full implementation, we would:
+        // - Look up region in mapping table
+        // - Verify region is actually mapped
+        // - Free pages from page allocator
+        // - Remove mapping from table
+        // - Return error if region not found
+        
+        // For now, return success (simple stub implementation).
+        const result = SyscallResult.ok(0);
+        
+        // Assert: result must be success (not error).
+        std.debug.assert(result == .success);
+        std.debug.assert(result.success == 0); // Unmap returns 0 on success
+        
+        return result;
     }
     
     fn syscall_protect(
@@ -548,14 +586,63 @@ pub const BasinKernel = struct {
         flags: u64,
         _arg4: u64,
     ) BasinError!SyscallResult {
-        _ = self;
-        _ = path_ptr;
-        _ = path_len;
-        _ = flags;
+        // Assert: self pointer must be valid.
+        const self_ptr = @intFromPtr(self);
+        std.debug.assert(self_ptr != 0);
+        std.debug.assert(self_ptr % @alignOf(BasinKernel) == 0);
+        
         _ = _arg4;
         
-        // TODO: Implement open syscall.
-        return BasinError.invalid_syscall;
+        // Assert: path pointer must be valid (non-zero, within VM memory).
+        if (path_ptr == 0) {
+            return BasinError.invalid_argument; // Null pointer
+        }
+        
+        const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default (matches syscall_map)
+        if (path_ptr >= VM_MEMORY_SIZE) {
+            return BasinError.invalid_argument; // Path pointer exceeds VM memory
+        }
+        
+        // Assert: path length must be reasonable (max 4096 bytes).
+        if (path_len == 0) {
+            return BasinError.invalid_argument; // Empty path
+        }
+        if (path_len > 4096) {
+            return BasinError.invalid_argument; // Path too long
+        }
+        
+        // Assert: path must fit within VM memory.
+        if (path_ptr + path_len > VM_MEMORY_SIZE) {
+            return BasinError.invalid_argument; // Path exceeds VM memory
+        }
+        
+        // Decode flags (OpenFlags packed struct).
+        const open_flags = @as(OpenFlags, @bitCast(@as(u32, @truncate(flags))));
+        
+        // Assert: flags padding must be zero (no reserved bits set).
+        if (open_flags._padding != 0) {
+            return BasinError.invalid_argument; // Reserved bits set
+        }
+        
+        // TODO: Implement actual file opening (when file system is implemented).
+        // For now, return a stub handle (simple implementation).
+        // Why: Simple stub - matches current kernel development stage.
+        // Note: In full implementation, we would:
+        // - Validate path string (null-terminated, valid UTF-8)
+        // - Look up file in file system
+        // - Create file handle
+        // - Return Handle (not raw integer) for type safety
+        // - Set handle permissions based on flags
+        
+        // Stub: Return handle value 1 (simple implementation).
+        const handle: u64 = 1;
+        const result = SyscallResult.ok(handle);
+        
+        // Assert: result must be success (not error).
+        std.debug.assert(result == .success);
+        std.debug.assert(result.success == handle);
+        
+        return result;
     }
     
     fn syscall_read(
@@ -565,14 +652,59 @@ pub const BasinKernel = struct {
         buffer_len: u64,
         _arg4: u64,
     ) BasinError!SyscallResult {
-        _ = self;
-        _ = handle;
-        _ = buffer_ptr;
-        _ = buffer_len;
+        // Assert: self pointer must be valid.
+        const self_ptr = @intFromPtr(self);
+        std.debug.assert(self_ptr != 0);
+        std.debug.assert(self_ptr % @alignOf(BasinKernel) == 0);
+        
         _ = _arg4;
         
-        // TODO: Implement read syscall.
-        return BasinError.invalid_syscall;
+        // Assert: handle must be valid (non-zero).
+        if (handle == 0) {
+            return BasinError.invalid_argument; // Invalid handle
+        }
+        
+        // Assert: buffer pointer must be valid (non-zero, within VM memory).
+        if (buffer_ptr == 0) {
+            return BasinError.invalid_argument; // Null pointer
+        }
+        
+        const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default (matches syscall_map)
+        if (buffer_ptr >= VM_MEMORY_SIZE) {
+            return BasinError.invalid_argument; // Buffer pointer exceeds VM memory
+        }
+        
+        // Assert: buffer length must be reasonable (max 1MB per read).
+        if (buffer_len == 0) {
+            return BasinError.invalid_argument; // Zero-length buffer
+        }
+        if (buffer_len > 1024 * 1024) {
+            return BasinError.invalid_argument; // Buffer too large (> 1MB)
+        }
+        
+        // Assert: buffer must fit within VM memory.
+        if (buffer_ptr + buffer_len > VM_MEMORY_SIZE) {
+            return BasinError.invalid_argument; // Buffer exceeds VM memory
+        }
+        
+        // TODO: Implement actual file reading (when file system is implemented).
+        // For now, return stub (0 bytes read).
+        // Why: Simple stub - matches current kernel development stage.
+        // Note: In full implementation, we would:
+        // - Look up handle in handle table
+        // - Verify handle is open and readable
+        // - Read data from file into buffer
+        // - Return bytes read count
+        
+        // Stub: Return 0 bytes read (simple implementation).
+        const bytes_read: u64 = 0;
+        const result = SyscallResult.ok(bytes_read);
+        
+        // Assert: result must be success (not error).
+        std.debug.assert(result == .success);
+        std.debug.assert(result.success == bytes_read);
+        
+        return result;
     }
     
     fn syscall_write(
@@ -582,14 +714,59 @@ pub const BasinKernel = struct {
         data_len: u64,
         _arg4: u64,
     ) BasinError!SyscallResult {
-        _ = self;
-        _ = handle;
-        _ = data_ptr;
-        _ = data_len;
+        // Assert: self pointer must be valid.
+        const self_ptr = @intFromPtr(self);
+        std.debug.assert(self_ptr != 0);
+        std.debug.assert(self_ptr % @alignOf(BasinKernel) == 0);
+        
         _ = _arg4;
         
-        // TODO: Implement write syscall.
-        return BasinError.invalid_syscall;
+        // Assert: handle must be valid (non-zero).
+        if (handle == 0) {
+            return BasinError.invalid_argument; // Invalid handle
+        }
+        
+        // Assert: data pointer must be valid (non-zero, within VM memory).
+        if (data_ptr == 0) {
+            return BasinError.invalid_argument; // Null pointer
+        }
+        
+        const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default (matches syscall_map)
+        if (data_ptr >= VM_MEMORY_SIZE) {
+            return BasinError.invalid_argument; // Data pointer exceeds VM memory
+        }
+        
+        // Assert: data length must be reasonable (max 1MB per write).
+        if (data_len == 0) {
+            return BasinError.invalid_argument; // Zero-length data
+        }
+        if (data_len > 1024 * 1024) {
+            return BasinError.invalid_argument; // Data too large (> 1MB)
+        }
+        
+        // Assert: data must fit within VM memory.
+        if (data_ptr + data_len > VM_MEMORY_SIZE) {
+            return BasinError.invalid_argument; // Data exceeds VM memory
+        }
+        
+        // TODO: Implement actual file writing (when file system is implemented).
+        // For now, return stub (0 bytes written).
+        // Why: Simple stub - matches current kernel development stage.
+        // Note: In full implementation, we would:
+        // - Look up handle in handle table
+        // - Verify handle is open and writable
+        // - Write data from buffer to file
+        // - Return bytes written count
+        
+        // Stub: Return 0 bytes written (simple implementation).
+        const bytes_written: u64 = 0;
+        const result = SyscallResult.ok(bytes_written);
+        
+        // Assert: result must be success (not error).
+        std.debug.assert(result == .success);
+        std.debug.assert(result.success == bytes_written);
+        
+        return result;
     }
     
     fn syscall_close(
@@ -599,14 +776,38 @@ pub const BasinKernel = struct {
         _arg3: u64,
         _arg4: u64,
     ) BasinError!SyscallResult {
-        _ = self;
-        _ = handle;
+        // Assert: self pointer must be valid.
+        const self_ptr = @intFromPtr(self);
+        std.debug.assert(self_ptr != 0);
+        std.debug.assert(self_ptr % @alignOf(BasinKernel) == 0);
+        
         _ = _arg2;
         _ = _arg3;
         _ = _arg4;
         
-        // TODO: Implement close syscall.
-        return BasinError.invalid_syscall;
+        // Assert: handle must be valid (non-zero).
+        if (handle == 0) {
+            return BasinError.invalid_argument; // Invalid handle
+        }
+        
+        // TODO: Implement actual file closing (when file system is implemented).
+        // For now, return stub success.
+        // Why: Simple stub - matches current kernel development stage.
+        // Note: In full implementation, we would:
+        // - Look up handle in handle table
+        // - Verify handle is open
+        // - Close file and free handle
+        // - Remove handle from table
+        // - Return error if handle not found
+        
+        // Stub: Return success (simple implementation).
+        const result = SyscallResult.ok(0);
+        
+        // Assert: result must be success (not error).
+        std.debug.assert(result == .success);
+        std.debug.assert(result.success == 0); // Close returns 0 on success
+        
+        return result;
     }
     
     fn syscall_clock_gettime(

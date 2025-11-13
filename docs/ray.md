@@ -91,14 +91,25 @@ our Tahoe aesthetic, reminding us to keep ethical fashion signal in view
      - **SBI Timer**: SBI_SET_TIMER ready for implementation (future)
      - **Single-Threaded Safety**: SBI layer is single-threaded, no locks, deterministic execution
      - **Reference**: See `docs/cascadeos_analysis.md`, `docs/credits.md` for comprehensive SBI analysis
-   - **Next Steps** (Implementation Priority):
+   - **Next Steps** (Implementation Priority - Sequential Order):
      - **005 Fuzz Test** ✅ **COMPLETE**: SBI + kernel syscall integration fuzz test implemented and passing
-     - **Basin Kernel Syscall Implementation** 🔥 **IN PROGRESS**: 
-       - ✅ `exit`, `yield`, `map` implemented
-       - 🔄 Next: `unmap`, `open`, `read`, `write`, `close` (Phase 1 core syscalls)
-     - **Expanded ISA Support** 🔥 **IN PROGRESS**:
-       - ✅ ADD, SUB, SLT implemented (9 total: LUI, ADDI, ADD, SUB, SLT, LW, SW, BEQ, ECALL)
-       - 🔄 Next: OR, AND, XOR, SLL, SRL, SRA (bitwise and shift operations)
+     - **Priority 1: Implement `unmap` Syscall** 🔥 **IN PROGRESS**:
+       - Purpose: Unmap memory regions allocated by `map` syscall
+       - Requirements: Validate region address (page-aligned, user space), check mapping exists, return success/error
+       - Location: `src/kernel/basin_kernel.zig` → `syscall_unmap`
+       - Tiger Style: Comprehensive assertions, explicit validation, error handling
+     - **Priority 2: Expand ISA with Bitwise Operations** 🔥 **NEXT**:
+       - Instructions: OR, AND, XOR (R-type, opcode `0b0110011`)
+       - Format: `OR rd, rs1, rs2` (funct3=0b110, funct7=0b0000000)
+       - Location: `src/kernel_vm/vm.zig` → instruction dispatch + execute functions
+       - Tests: Add to `src/kernel_vm/test.zig`
+       - Current: 9 instructions (LUI, ADDI, ADD, SUB, SLT, LW, SW, BEQ, ECALL)
+       - After: 12 instructions (+ OR, AND, XOR)
+     - **Priority 3: Implement I/O Syscall Stubs** 🔥 **NEXT**:
+       - Syscalls: `open`, `read`, `write`, `close` (stubs for now)
+       - Purpose: Foundation for I/O operations, return handles/errors appropriately
+       - Location: `src/kernel/basin_kernel.zig` → syscall functions
+       - Tiger Style: Comprehensive assertions, type-safe handles, explicit error handling
      - **Single-Threaded Architecture**: ✅ All layers single-threaded, no locks, deterministic
      - **Safety-First Patterns**: ✅ Comprehensive assertions, type-safe interfaces, explicit error handling, static allocation
      - **RAM-Aware Configuration**: ✅ VM memory configurable (4MB default, 64MB max), documented
