@@ -49,13 +49,28 @@ pub fn main() !void {
     std.debug.print("[kernel_vm_test] Test 6: ADD instruction\n", .{});
     // ADD x1, x2, x3: x1 = x2 + x3
     // Encoding: funct7(0) | rs2(3) | rs1(2) | 000 | rd(1) | 0110011
-    // 0x00000000 | 0x00018000 | 0x00001000 | 0x00000080 | 0x00000033
     // = 0x003100B3
-    vm = VM.init(&[_]u8{ 0xB3, 0x00, 0x31, 0x00 }, 0x1000);
+    // Little-endian bytes: [0xB3, 0x00, 0x31, 0x00]
+    // Add ECALL after to halt VM (0x00000073)
+    const add_kernel = [_]u8{ 0xB3, 0x00, 0x31, 0x00, 0x73, 0x00, 0x00, 0x00 };
+    // Reuse existing VM to avoid stack overflow (4MB array).
+    @memset(&vm.memory, 0);
+    @memcpy(vm.memory[0x1000..][0..add_kernel.len], &add_kernel);
+    vm.regs.pc = 0x1000;
+    vm.state = .halted;
     vm.regs.set(2, 10); // x2 = 10
     vm.regs.set(3, 20); // x3 = 20
     vm.start();
+    
+    // Assert: VM state must be running before step.
+    std.debug.assert(vm.state == .running);
+    
+    // Execute ADD instruction.
     try vm.step();
+    
+    // Assert: VM state must be valid after step (not errored).
+    std.debug.assert(vm.state != .errored);
+    
     const add_result = vm.regs.get(1);
     std.debug.assert(add_result == 30); // x1 = 10 + 20 = 30
     std.debug.print("[kernel_vm_test] ✓ ADD instruction works\n", .{});
@@ -64,9 +79,15 @@ pub fn main() !void {
     std.debug.print("[kernel_vm_test] Test 7: SUB instruction\n", .{});
     // SUB x1, x2, x3: x1 = x2 - x3
     // Encoding: funct7(0x20) | rs2(3) | rs1(2) | 000 | rd(1) | 0110011
-    // 0x40000000 | 0x00018000 | 0x00001000 | 0x00000080 | 0x00000033
     // = 0x403100B3
-    vm = VM.init(&[_]u8{ 0xB3, 0x00, 0x31, 0x40 }, 0x1000);
+    // Little-endian bytes: [0xB3, 0x00, 0x31, 0x40]
+    // Add ECALL after to halt VM (0x00000073)
+    const sub_kernel = [_]u8{ 0xB3, 0x00, 0x31, 0x40, 0x73, 0x00, 0x00, 0x00 };
+    // Reuse existing VM to avoid stack overflow.
+    @memset(&vm.memory, 0);
+    @memcpy(vm.memory[0x1000..][0..sub_kernel.len], &sub_kernel);
+    vm.regs.pc = 0x1000;
+    vm.state = .halted;
     vm.regs.set(2, 30); // x2 = 30
     vm.regs.set(3, 10); // x3 = 10
     vm.start();
@@ -79,9 +100,15 @@ pub fn main() !void {
     std.debug.print("[kernel_vm_test] Test 8: SLT instruction\n", .{});
     // SLT x1, x2, x3: x1 = (x2 < x3) ? 1 : 0
     // Encoding: funct7(0) | rs2(3) | rs1(2) | 010 | rd(1) | 0110011
-    // 0x00000000 | 0x00018000 | 0x00002000 | 0x00000080 | 0x00000033
     // = 0x003120B3
-    vm = VM.init(&[_]u8{ 0xB3, 0x20, 0x31, 0x00 }, 0x1000);
+    // Little-endian bytes: [0xB3, 0x20, 0x31, 0x00]
+    // Add ECALL after to halt VM (0x00000073)
+    const slt_kernel = [_]u8{ 0xB3, 0x20, 0x31, 0x00, 0x73, 0x00, 0x00, 0x00 };
+    // Reuse existing VM to avoid stack overflow.
+    @memset(&vm.memory, 0);
+    @memcpy(vm.memory[0x1000..][0..slt_kernel.len], &slt_kernel);
+    vm.regs.pc = 0x1000;
+    vm.state = .halted;
     vm.regs.set(2, 10); // x2 = 10
     vm.regs.set(3, 20); // x3 = 20
     vm.start();
@@ -91,7 +118,10 @@ pub fn main() !void {
     std.debug.print("[kernel_vm_test] ✓ SLT instruction works (10 < 20)\n", .{});
 
     // Test SLT with reversed operands (should return 0).
-    vm = VM.init(&[_]u8{ 0xB3, 0x20, 0x31, 0x00 }, 0x1000);
+    @memset(&vm.memory, 0);
+    @memcpy(vm.memory[0x1000..][0..slt_kernel.len], &slt_kernel);
+    vm.regs.pc = 0x1000;
+    vm.state = .halted;
     vm.regs.set(2, 20); // x2 = 20
     vm.regs.set(3, 10); // x3 = 10
     vm.start();
@@ -101,7 +131,10 @@ pub fn main() !void {
     std.debug.print("[kernel_vm_test] ✓ SLT instruction works (20 < 10)\n", .{});
 
     // Test SLT with negative numbers (signed comparison).
-    vm = VM.init(&[_]u8{ 0xB3, 0x20, 0x31, 0x00 }, 0x1000);
+    @memset(&vm.memory, 0);
+    @memcpy(vm.memory[0x1000..][0..slt_kernel.len], &slt_kernel);
+    vm.regs.pc = 0x1000;
+    vm.state = .halted;
     vm.regs.set(2, @as(u64, @bitCast(@as(i64, -10)))); // x2 = -10 (signed)
     vm.regs.set(3, 10); // x3 = 10
     vm.start();

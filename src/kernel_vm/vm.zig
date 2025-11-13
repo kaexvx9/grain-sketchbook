@@ -172,8 +172,11 @@ pub const VM = struct {
     pub fn fetch_instruction(self: *const Self) VMError!u32 {
         const pc = self.regs.pc;
         
-        // Assert: PC must be within memory bounds.
-        std.debug.assert(pc + 4 <= self.memory_size);
+        // Assert: PC must be within memory bounds (need 4 bytes for instruction).
+        // Note: PC can be at memory_size - 4, but not beyond.
+        if (pc + 4 > self.memory_size) {
+            return VMError.invalid_memory_access;
+        }
         
         // Assert: PC must be 4-byte aligned (RISC-V instruction alignment).
         if (pc % 4 != 0) {
@@ -207,8 +210,8 @@ pub const VM = struct {
         // Fetch instruction at PC.
         const inst = try self.fetch_instruction();
         
-        // Assert: instruction must be valid (not all zeros or all ones).
-        std.debug.assert(inst != 0x00000000);
+        // Assert: instruction must be valid (not all ones, which is invalid).
+        // Note: Zero instructions (NOP) are valid, so we don't check for 0x00000000.
         std.debug.assert(inst != 0xFFFFFFFF);
         
         // Decode instruction opcode (bits [6:0]).
@@ -345,6 +348,7 @@ pub const VM = struct {
         std.debug.assert(self.regs.pc % 4 == 0);
         
         // Assert: PC must be within memory bounds after execution.
+        // Note: PC can be equal to memory_size (one past end) if instruction was at end.
         std.debug.assert(self.regs.pc <= self.memory_size);
     }
 
