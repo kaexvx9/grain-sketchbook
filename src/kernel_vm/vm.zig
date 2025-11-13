@@ -516,7 +516,8 @@ pub const VM = struct {
     /// RISC-V calling convention: a7 (x17) = syscall/EID number, a0-a5 (x10-x15) = arguments.
     /// SBI vs Kernel: Function ID < 10 → SBI (platform), >= 10 → kernel syscall.
     /// Tiger Style: Comprehensive assertions for ECALL dispatch, arguments, and state transitions.
-    fn execute_ecall(self: *Self) !void {
+    /// Note: Public for testing (fuzz tests need direct access).
+    pub fn execute_ecall(self: *Self) !void {
         // Assert: VM must be in valid state (running or halted, not errored).
         std.debug.assert(self.state != .errored);
         
@@ -615,7 +616,8 @@ pub const VM = struct {
     /// Why: Implement platform services (timer, console, reset) for RISC-V SBI.
     /// SBI Legacy Functions: 0x0=SET_TIMER, 0x1=CONSOLE_PUTCHAR, 0x2=CONSOLE_GETCHAR, 0x8=SHUTDOWN.
     /// Tiger Style: Comprehensive assertions for all SBI call parameters and state transitions.
-    fn handle_sbi_call(self: *Self, eid: u32, arg1: u64, arg2: u64, arg3: u64, arg4: u64) void {
+    /// Note: Public for testing (fuzz tests need direct access).
+    pub fn handle_sbi_call(self: *Self, eid: u32, arg1: u64, arg2: u64, arg3: u64, arg4: u64) void {
         // Mark unused parameters for future SBI functions.
         _ = arg2;
         _ = arg3;

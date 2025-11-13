@@ -87,11 +87,11 @@ our Tahoe aesthetic, reminding us to keep ethical fashion signal in view
      - **Single-Threaded Safety**: SBI layer is single-threaded, no locks, deterministic execution
      - **Reference**: See `docs/cascadeos_analysis.md`, `docs/credits.md` for comprehensive SBI analysis
    - **Next Steps** (Implementation Priority):
-     - **SBI Console Integration**: Wire VM serial_output to SBI_CONSOLE_PUTCHAR, display in GUI VM pane (in progress)
+     - **005 Fuzz Test**: Implement SBI + kernel syscall integration fuzz test (in progress)
      - **Basin Kernel Syscall Implementation**: Implement syscall handlers incrementally (start with `exit`, `yield`, `map`)
      - **Expanded ISA Support**: Add more RISC-V instructions (ADD, SUB, SLT, etc.)
      - **Single-Threaded Architecture**: Ensure all layers (Hardware → SBI → Kernel → Userspace) are single-threaded, no locks, deterministic
-     - **Safety-First Patterns**: Comprehensive assertions, type-safe interfaces, explicit error handling, static allocation throughout
+     - **Safety-First Patterns**: Comprehensive assertions ✅, type-safe interfaces ✅, explicit error handling ✅, static allocation ✅
      - **Debug Interface**: Register viewer, memory inspector, GDB stub (future)
    - **Tiger Style Requirements**:
      - Static allocation for VM state structures where possible ✅
@@ -99,9 +99,23 @@ our Tahoe aesthetic, reminding us to keep ethical fashion signal in view
      - Deterministic execution: Same kernel state → same output ✅
      - No hidden state: All VM state explicitly tracked ✅
      - Single-threaded: No locks, no race conditions, deterministic execution ✅
-     - Safety #1: Comprehensive assertions, type safety, explicit error handling ✅
+     - Safety #1: Comprehensive assertions ✅, type safety ✅, explicit error handling ✅
      - Maximum efficiency: Direct calls, static allocation, comptime optimizations ✅
+     - **Comprehensive Assertions** ✅ **COMPLETE**:
+       - ✅ VM SBI handling: Pointer validation, EID bounds, state transitions, serial output validation
+       - ✅ VM ECALL dispatch: VM state validation, dispatch logic, handler pointer validation, result validation
+       - ✅ Kernel syscall handling: Self pointer validation, syscall number bounds, enum validation, parameter validation
+       - ✅ Serial output: Pointer validation, buffer bounds, circular buffer wrapping, position advancement
+       - ✅ GUI integration: VM initialization validation, handler setup validation, state consistency
+     - **005 Fuzz Test Plan** ✅ **DOCUMENTED**:
+       - ✅ SBI call fuzzing: Random EIDs, arguments, edge cases
+       - ✅ Kernel syscall fuzzing: Random syscalls, arguments, error handling
+       - ✅ ECALL dispatch fuzzing: Boundary values, correct routing
+       - ✅ Serial output fuzzing: Character sequences, buffer management
+       - ✅ State transition fuzzing: VM state, kernel state
+       - ✅ Combined execution fuzzing: Mixed SBI + kernel calls
      - Reference: See `docs/single_threaded_safety_efficiency.md` for comprehensive architecture design
+     - Reference: See `tests-experiments/005_fuzz.md` for fuzz test plan
    - **Files**: `src/kernel_vm/` (core complete), `src/kernel/basin_kernel.zig` (syscall interface complete), `src/tahoe_window.zig` (VM pane integration complete)
    - **Hardware Target**: Framework 13 DeepComputing RISC-V Mainboard (RISC-V64, matches VM behavior)
    - **Development Environment**: macOS Tahoe IDE with RISC-V VM (matches hardware behavior exactly)
