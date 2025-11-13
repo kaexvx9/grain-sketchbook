@@ -141,3 +141,15 @@
 
 **Result**: Grain Basin kernel fills the gap Aero doesn't address (RISC-V native, non-POSIX, minimal syscall surface, Zig-based).
 
+## Module Structure Analysis
+
+See `docs/aero_module_analysis.md` for detailed analysis of Aero's kernel modules and their applicability to Grain Basin kernel.
+
+**Key Findings:**
+- **Architecture-Specific**: Need RISC-V adaptation (`arch`, Device Tree instead of ACPI)
+- **Core Modules**: Directly applicable (`syscall`, `mem`, `fs`, `drivers`, `userland`)
+- **Supporting Modules**: Applicable (`logger`, `unwind`, `utils`, `prelude`)
+- **Not Applicable**: x86-specific (`acpi`), user-space (`rendy`)
+
+**Recommended Structure**: Adapt Aero's module organization for RISC-V and Zig, maintaining our minimal syscall surface and non-POSIX design.
+
