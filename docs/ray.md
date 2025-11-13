@@ -20,7 +20,7 @@ our Tahoe aesthetic, reminding us to keep ethical fashion signal in view
 
 ## Ray Mission Ladder (Deterministic & Kind)
 
-**Vision**: Grain Aurora as a Zig-first IDE with Matklad-inspired LSP architecture, combining Cursor-style agentic coding with native macOS performance and River compositor workflows. **RISC-V-First Development**: Develop RISC-V-targeted Zig kernel code in macOS Tahoe VM, deploy to Framework 13 DeepComputing RISC-V mainboard with confidence—VM matches hardware behavior exactly.
+**Vision**: Grain Aurora as a Zig-first IDE with Matklad-inspired LSP architecture, combining Cursor-style agentic coding with native macOS performance and River compositor workflows. **RISC-V-First Development**: Develop RISC-V-targeted Zig kernel code in macOS Tahoe VM, deploy to Framework 13 DeepComputing RISC-V mainboard with confidence—VM matches hardware behavior exactly. **Single-Threaded Safety-First Efficiency**: Maximum efficiency through single-threaded architecture (no locks, no race conditions, deterministic execution) with safety as #1 priority (comprehensive assertions, type safety, explicit error handling, static allocation).
 
 ### Phase 1: macOS Tahoe GUI Foundation (Current Priority) 🎯
 
@@ -39,6 +39,9 @@ our Tahoe aesthetic, reminding us to keep ethical fashion signal in view
      - **Compatibility Guarantee**: VM instruction semantics, memory layout, and register behavior match real RISC-V hardware exactly
    - **Kernel Design Philosophy**:
      - **Architecture**: Type-safe monolithic kernel (not microkernel - performance priority)
+     - **Single-Threaded**: No locks, no race conditions, deterministic execution, maximum efficiency
+     - **Safety #1 Priority**: Comprehensive assertions, type safety, explicit error handling, static allocation
+     - **Maximum Efficiency**: Direct function calls (no IPC overhead), static allocation, comptime optimizations, cache-friendly
      - **Minimal Syscall Surface**: Essential operations only (spawn, exit, map, unmap, open, read, write, close, channels)
      - **Non-POSIX**: Deliberately avoid POSIX legacy (no fork/clone, signals, complex file descriptors)
      - **Type-Safe**: Leverage Zig's comptime, error unions, strongly-typed handles (not integer FDs)
@@ -46,7 +49,7 @@ our Tahoe aesthetic, reminding us to keep ethical fashion signal in view
      - **RISC-V Native**: Design for RISC-V64 from ground up (not ported from x86)
      - **30-Year Vision**: Design for next 30 years, not backward compatibility
      - **Tiger Style**: Maximum safety, explicit operations, comprehensive assertions
-     - **Reference**: See `docs/kernel_design_philosophy.md` for comprehensive design decisions
+     - **Reference**: See `docs/kernel_design_philosophy.md`, `docs/single_threaded_safety_efficiency.md` for comprehensive design decisions
    - **Grain Basin kernel Foundation** ✅ **COMPLETE**:
      - ✅ Kernel name: Grain Basin kernel 🏞️ - "The foundation that holds everything"
      - ✅ Homebrew bundle: `grainbasin` (Brew package name)
@@ -74,26 +77,31 @@ our Tahoe aesthetic, reminding us to keep ethical fashion signal in view
      - **Andy-Python-Programmer/aero**: Monolithic Rust kernel (x86_64) - study monolithic structure
      - **Clone Location**: `~/github/{username}/{repo}/` (external to xy workspace)
      - **Reference**: See `docs/cascadeos_analysis.md`, `docs/pluto_analysis.md`, `docs/aero_analysis.md`
-   - **RISC-V SBI Integration** 🔥 **CRITICAL PRIORITY** 🎯 **NEW**:
-     - **CascadeOS/zig-sbi**: Zig wrapper for RISC-V SBI (Supervisor Binary Interface) - exactly what we need
+   - **RISC-V SBI Integration** 🔥 **CRITICAL PRIORITY** 🎯 **NEW** ✅ **CORE COMPLETE**:
+     - **Our Own Tiger Style SBI Wrapper**: Created `src/kernel_vm/sbi.zig` - minimal, Tiger Style compliant (inspired by CascadeOS/zig-sbi, MIT licensed)
      - **SBI Purpose**: Platform runtime services (timer, console, reset, IPI) - different from kernel syscalls
-     - **Integration Plan**: Add CascadeOS/zig-sbi dependency, integrate SBI calls into VM ECALL handler
-     - **ECALL Dispatch**: VM dispatches ECALL to SBI (function ID < 10) or kernel syscalls (function ID >= 10)
-     - **SBI Console**: Replace custom serial output with SBI_CONSOLE_PUTCHAR (standard RISC-V approach)
-     - **SBI Timer**: Use SBI_SET_TIMER for kernel timers (more accurate than instruction counting)
-     - **Reference**: See `docs/cascadeos_analysis.md` for comprehensive SBI analysis
+     - **Integration Complete**: SBI calls integrated into VM ECALL handler ✅
+     - **ECALL Dispatch**: VM dispatches ECALL to SBI (function ID < 10) or kernel syscalls (function ID >= 10) ✅
+     - **SBI Console**: SBI_CONSOLE_PUTCHAR implemented, routes to serial output ✅
+     - **SBI Timer**: SBI_SET_TIMER ready for implementation (future)
+     - **Single-Threaded Safety**: SBI layer is single-threaded, no locks, deterministic execution
+     - **Reference**: See `docs/cascadeos_analysis.md`, `docs/credits.md` for comprehensive SBI analysis
    - **Next Steps** (Implementation Priority):
-     - **SBI Integration**: Add CascadeOS/zig-sbi dependency, integrate SBI calls into VM ECALL handler
-     - **SBI Console**: Replace serial output with SBI_CONSOLE_PUTCHAR, display in GUI VM pane
+     - **SBI Console Integration**: Wire VM serial_output to SBI_CONSOLE_PUTCHAR, display in GUI VM pane (in progress)
      - **Basin Kernel Syscall Implementation**: Implement syscall handlers incrementally (start with `exit`, `yield`, `map`)
-     - **VM-Syscall Integration**: Wire Basin Kernel syscalls into RISC-V VM (handle ECALL → Basin syscall)
      - **Expanded ISA Support**: Add more RISC-V instructions (ADD, SUB, SLT, etc.)
+     - **Single-Threaded Architecture**: Ensure all layers (Hardware → SBI → Kernel → Userspace) are single-threaded, no locks, deterministic
+     - **Safety-First Patterns**: Comprehensive assertions, type-safe interfaces, explicit error handling, static allocation throughout
      - **Debug Interface**: Register viewer, memory inspector, GDB stub (future)
    - **Tiger Style Requirements**:
      - Static allocation for VM state structures where possible ✅
      - Comprehensive assertions for memory access, instruction decoding ✅
      - Deterministic execution: Same kernel state → same output ✅
      - No hidden state: All VM state explicitly tracked ✅
+     - Single-threaded: No locks, no race conditions, deterministic execution ✅
+     - Safety #1: Comprehensive assertions, type safety, explicit error handling ✅
+     - Maximum efficiency: Direct calls, static allocation, comptime optimizations ✅
+     - Reference: See `docs/single_threaded_safety_efficiency.md` for comprehensive architecture design
    - **Files**: `src/kernel_vm/` (core complete), `src/kernel/basin_kernel.zig` (syscall interface complete), `src/tahoe_window.zig` (VM pane integration complete)
    - **Hardware Target**: Framework 13 DeepComputing RISC-V Mainboard (RISC-V64, matches VM behavior)
    - **Development Environment**: macOS Tahoe IDE with RISC-V VM (matches hardware behavior exactly)

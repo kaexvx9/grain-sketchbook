@@ -1,6 +1,6 @@
 # Grain Aurora GUI Plan — TigerStyle Execution
 
-**Current Status**: Window rendering complete ✅, VM-GUI integration complete ✅, VM-syscall integration complete ✅. Focus: RISC-V SBI integration (CascadeOS/zig-sbi).
+**Current Status**: Window rendering complete ✅, VM-GUI integration complete ✅, VM-syscall integration complete ✅, SBI integration complete ✅. Focus: Single-threaded safety-first efficiency architecture, SBI console integration.
 
 ## macOS Tahoe GUI Foundation (Current Priority) 🎯
 
@@ -37,21 +37,27 @@
   - ✅ VM-Syscall Integration: ECALL wired to Grain Basin kernel syscalls ✅ **COMPLETE**
   - ✅ Build integration: `basin_kernel_module` added to `build.zig`
   - ✅ Tiger Style: All function names converted to snake_case ✅ **COMPLETE**
-- **RISC-V SBI Integration** 🔥 **CRITICAL PRIORITY** 🎯 **NEW**:
-  - **CascadeOS/zig-sbi**: Zig wrapper for RISC-V SBI (Supervisor Binary Interface)
+- **RISC-V SBI Integration** 🔥 **CRITICAL PRIORITY** 🎯 **NEW** ✅ **CORE COMPLETE**:
+  - **Our Own Tiger Style SBI Wrapper**: Created `src/kernel_vm/sbi.zig` - minimal, Tiger Style compliant (inspired by CascadeOS/zig-sbi, MIT licensed)
   - **SBI Purpose**: Platform runtime services (timer, console, reset, IPI) - different from kernel syscalls
-  - **Integration Steps**:
-    1. Add CascadeOS/zig-sbi dependency to `build.zig.zon`
-    2. Integrate SBI calls into VM ECALL handler (function ID < 10 → SBI, >= 10 → kernel)
-    3. Replace serial output with SBI_CONSOLE_PUTCHAR (standard RISC-V approach)
-    4. Add SBI timer support (SBI_SET_TIMER for kernel timers)
-  - **Reference**: See `docs/cascadeos_analysis.md` for comprehensive SBI analysis
+  - **Integration Complete**: SBI calls integrated into VM ECALL handler ✅
+  - **ECALL Dispatch**: VM dispatches ECALL to SBI (function ID < 10) or kernel syscalls (function ID >= 10) ✅
+  - **SBI Console**: SBI_CONSOLE_PUTCHAR implemented, routes to serial output ✅
+  - **SBI Timer**: SBI_SET_TIMER ready for implementation (future)
+  - **Single-Threaded Safety**: SBI layer is single-threaded, no locks, deterministic execution
+  - **Reference**: See `docs/cascadeos_analysis.md`, `docs/credits.md` for comprehensive SBI analysis
+- **Single-Threaded Safety-First Efficiency** 🔥 **ARCHITECTURE PRIORITY** 🎯 **NEW**:
+  - **Architecture**: Hardware → SBI → Kernel → Userspace, all single-threaded
+  - **Safety #1**: Comprehensive assertions, type safety, explicit error handling, static allocation
+  - **Maximum Efficiency**: Direct function calls (no IPC), static allocation, comptime optimizations, cache-friendly
+  - **Single-Threaded Benefits**: No locks, no race conditions, deterministic execution, no context switching overhead
+  - **Zig Advantages**: Type safety, explicit allocation, comptime, error unions, single-threaded by default
+  - **Reference**: See `docs/single_threaded_safety_efficiency.md` for comprehensive architecture design
 - **Next Steps** (Implementation Priority):
-  - **SBI Integration**: Add CascadeOS/zig-sbi dependency, integrate SBI calls into VM ECALL handler
-  - **SBI Console**: Replace serial output with SBI_CONSOLE_PUTCHAR, display in GUI VM pane
+  - **SBI Console Integration**: Wire VM serial_output to SBI_CONSOLE_PUTCHAR, display in GUI VM pane (in progress)
   - **Grain Basin kernel Syscall Implementation**: Implement syscall handlers incrementally (start with `exit`, `yield`, `map`)
-  - **VM-Syscall Integration**: Wire Grain Basin kernel syscalls into RISC-V VM (handle ECALL → Basin syscall) ✅ **COMPLETE**
-  - **SBI vs Kernel Syscalls**: SBI handles platform services (timer, console, reset) via ECALL function ID < 10, kernel syscalls handle kernel services (process, memory, I/O) via ECALL function ID >= 10
+  - **Single-Threaded Architecture**: Ensure all layers (Hardware → SBI → Kernel → Userspace) are single-threaded, no locks, deterministic
+  - **Safety-First Patterns**: Comprehensive assertions, type-safe interfaces, explicit error handling, static allocation throughout
   - **Expanded ISA Support**: Add more RISC-V instructions (ADD, SUB, SLT, etc.)
   - **Debug Interface**: Register viewer, memory inspector, GDB stub (future)
 - **Tiger Style Requirements**:

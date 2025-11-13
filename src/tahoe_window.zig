@@ -316,6 +316,10 @@ pub const TahoeSandbox = struct {
                 // Why: Wire VM ECALL instructions to Grain Basin kernel syscalls.
                 vm.set_syscall_handler(TahoeSandbox.handle_syscall, sandbox);
                 
+                // Set serial output handler for VM (SBI console integration).
+                // Why: Wire SBI_CONSOLE_PUTCHAR to serial output for display in GUI VM pane.
+                vm.set_serial_output(&sandbox.serial_output);
+                
                 // Store VM in sandbox.
                 sandbox.vm = vm;
                 
