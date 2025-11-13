@@ -1,5 +1,16 @@
 # Grain Changelog — Descending Order (Newest First)
 
+## 12025-11-12--1955-pst
+- **Expanded RISC-V ISA Support: LW, SW, BEQ Instructions**
+  - Added LW (Load Word): Load 32-bit word from memory with sign-extension to 64 bits
+  - Added SW (Store Word): Store 32-bit word to memory
+  - Added BEQ (Branch if Equal): Conditional branch instruction for kernel control flow
+  - **Comprehensive Assertions**: Register index validation (0-31), memory address alignment (4-byte), bounds checking, PC alignment, branch target validation
+  - **PC Increment Logic**: Fixed branch instruction handling - BEQ modifies PC directly, normal instructions advance PC by 4 bytes
+  - **Tiger Style Compliance**: Maximum strictness, zero warnings, all edge cases handled explicitly with assertions that crash immediately on violation
+  - **Instruction Set**: Now supports LUI, ADDI, LW, SW, BEQ, ECALL (6 instructions total)
+  - **Result:** VM can now execute basic kernel code with memory access and control flow. All VM tests passing.
+
 ## 12025-11-12--1852-pst
 - **Pure Zig RISC-V64 Emulator: Core Implementation Complete**
   - Implemented pure Zig RISC-V64 virtual machine for kernel development within macOS Tahoe IDE
