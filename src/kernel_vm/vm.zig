@@ -65,9 +65,6 @@ pub const VM = struct {
     /// Last error (if state == .errored).
     /// Note: Using optional error set for error tracking.
     last_error: ?VMError = null,
-    /// Grain Basin kernel instance for syscall handling.
-    /// Why: Integrate Basin Kernel syscalls into VM execution.
-    kernel: basin_kernel.BasinKernel = basin_kernel.BasinKernel{},
 
     const Self = @This();
     
