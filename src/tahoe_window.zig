@@ -4,6 +4,9 @@ const GrainAurora = @import("grain_aurora.zig").GrainAurora;
 const AuroraFilter = @import("aurora_filter.zig");
 const TextRenderer = @import("aurora_text_renderer.zig").TextRenderer;
 const events = @import("platform/events.zig");
+const kernel_vm = @import("kernel_vm");
+const VM = kernel_vm.VM;
+const SerialOutput = kernel_vm.SerialOutput;
 
 /// TahoeSandbox hosts a River-inspired compositor with Moonglow keybindings,
 /// blending Vegan Tiger aesthetics with Grain terminal panes.
@@ -25,6 +28,13 @@ pub const TahoeSandbox = struct {
     /// Focus state (for visual feedback).
     /// Why: Show window focus state visually.
     has_focus: bool = false,
+    /// RISC-V VM instance (for kernel development).
+    /// Why: Run Zig kernel in virtualized RISC-V environment.
+    /// Note: Optional - VM is created when kernel is loaded.
+    vm: ?VM = null,
+    /// Serial output buffer (for kernel printf/debug output).
+    /// Why: Capture kernel serial output for display in VM pane.
+    serial_output: SerialOutput = .{},
 
     pub fn init(allocator: std.mem.Allocator, title: []const u8) !TahoeSandbox {
         // Assert arguments: title must not be empty and within bounds.
@@ -50,6 +60,8 @@ pub const TahoeSandbox = struct {
             .typed_text = [_]u8{0} ** 256,
             .typed_text_len = 0,
             .has_focus = false,
+            .vm = null,
+            .serial_output = .{},
         };
         
         // Assert: sandbox state must be initialized correctly.
@@ -58,6 +70,7 @@ pub const TahoeSandbox = struct {
         std.debug.assert(sandbox.mouse_button_down == false);
         std.debug.assert(sandbox.typed_text_len == 0);
         std.debug.assert(sandbox.has_focus == false);
+        std.debug.assert(sandbox.vm == null);
         
         // Set up event handler (Tiger Style: validate all function pointers).
         const event_handler = events.EventHandler{
@@ -239,6 +252,35 @@ pub const TahoeSandbox = struct {
                 return true;
             }
             
+            // Cmd+K: Start/stop RISC-V VM (kernel execution).
+            // Why: Toggle VM execution for kernel development.
+            if (event.modifiers.command and event.key_code == 11) { // 'K' key code
+                if (sandbox.vm) |*vm| {
+                    switch (vm.state) {
+                        .running => {
+                            vm.stop();
+                            std.debug.print("[tahoe_window] VM stopped.\n", .{});
+                        },
+                        .halted, .errored => {
+                            vm.start();
+                            std.debug.print("[tahoe_window] VM started.\n", .{});
+                        },
+                    }
+                } else {
+                    std.debug.print("[tahoe_window] No VM loaded. Use Cmd+L to load kernel.\n", .{});
+                }
+                return true;
+            }
+            
+            // Cmd+L: Load kernel into VM.
+            // Why: Load compiled RISC-V kernel ELF into VM memory.
+            if (event.modifiers.command and event.key_code == 37) { // 'L' key code
+                // TODO: Load kernel ELF file from `zig-out/bin/grain-rv64`.
+                std.debug.print("[tahoe_window] Load kernel command (Cmd+L) received.\n", .{});
+                std.debug.print("[tahoe_window] TODO: Implement kernel loading from zig-out/bin/grain-rv64\n", .{});
+                return true;
+            }
+            
             // Cmd+Shift+H: Horizontal split (River-style).
             if (event.modifiers.command and event.modifiers.shift and event.key_code == 4) { // 'H' key code
                 std.debug.print("[tahoe_window] Horizontal split command (Cmd+Shift+H) received.\n", .{});
@@ -360,6 +402,19 @@ pub const TahoeSandbox = struct {
         // VTable and impl are non-optional pointers in Zig 0.15.
         _ = self.platform.vtable;
         _ = self.platform.impl;
+        
+        // Step RISC-V VM if running.
+        // Why: Execute kernel instructions continuously during VM execution.
+        if (self.vm) |*vm| {
+            if (vm.state == .running) {
+                // Step VM (execute one instruction).
+                vm.step() catch |err| {
+                    std.debug.print("[tahoe_window] VM step error: {s}\n", .{@errorName(err)});
+                    vm.stop();
+                };
+            }
+        }
+        
         const buffer = self.platform.getBuffer();
         // Assert buffer: must be RGBA-aligned.
         // Buffer size is fixed (1024x768), window size can differ.
@@ -591,11 +646,68 @@ pub const TahoeSandbox = struct {
             }
         }
         
-        std.debug.print("[tahoe_window] Drew UI: mouse=({d},{d}), text_len={d}, focus={}\n", .{
+        // Draw RISC-V VM pane (if VM is running).
+        // Why: Show kernel output and VM state in dedicated pane.
+        if (self.vm) |*vm| {
+            // Draw VM pane (bottom-left corner).
+            const vm_pane_x: u32 = 20;
+            const vm_pane_y: u32 = buffer_height - 200;
+            const vm_pane_width: u32 = 600;
+            const vm_pane_height: u32 = 180;
+            
+            // Assert: VM pane must be within buffer bounds.
+            std.debug.assert(vm_pane_x + vm_pane_width <= buffer_width);
+            std.debug.assert(vm_pane_y + vm_pane_height <= buffer_height);
+            
+            // Draw VM pane background (dark gray).
+            var vpy: u32 = vm_pane_y;
+            while (vpy < vm_pane_y + vm_pane_height and vpy < buffer_height) : (vpy += 1) {
+                var vpx: u32 = vm_pane_x;
+                while (vpx < vm_pane_x + vm_pane_width and vpx < buffer_width) : (vpx += 1) {
+                    const pixel_offset = (vpy * buffer_width + vpx) * 4;
+                    // Assert: pixel offset must be within bounds.
+                    std.debug.assert(pixel_offset + 3 < buffer.len);
+                    if (pixel_offset + 3 < buffer.len) {
+                        // Dark gray background for VM pane.
+                        buffer[pixel_offset + 0] = 0x10; // R
+                        buffer[pixel_offset + 1] = 0x10; // G
+                        buffer[pixel_offset + 2] = 0x10; // B
+                        buffer[pixel_offset + 3] = 0xFF; // A
+                    }
+                }
+            }
+            
+            // Draw VM state indicator (top-left of VM pane).
+            const vm_state_color = switch (vm.state) {
+                .running => .{ 0x00, 0xFF, 0x00, 0xFF }, // Green
+                .halted => .{ 0xFF, 0xFF, 0x00, 0xFF }, // Yellow
+                .errored => .{ 0xFF, 0x00, 0x00, 0xFF }, // Red
+            };
+            
+            // Draw small status indicator (5x5 pixels).
+            var status_y: u32 = vm_pane_y + 5;
+            while (status_y < vm_pane_y + 10 and status_y < buffer_height) : (status_y += 1) {
+                var status_x: u32 = vm_pane_x + 5;
+                while (status_x < vm_pane_x + 10 and status_x < buffer_width) : (status_x += 1) {
+                    const pixel_offset = (status_y * buffer_width + status_x) * 4;
+                    // Assert: pixel offset must be within bounds.
+                    std.debug.assert(pixel_offset + 3 < buffer.len);
+                    if (pixel_offset + 3 < buffer.len) {
+                        buffer[pixel_offset + 0] = vm_state_color[0];
+                        buffer[pixel_offset + 1] = vm_state_color[1];
+                        buffer[pixel_offset + 2] = vm_state_color[2];
+                        buffer[pixel_offset + 3] = vm_state_color[3];
+                    }
+                }
+            }
+        }
+        
+        std.debug.print("[tahoe_window] Drew UI: mouse=({d},{d}), text_len={d}, focus={}, vm={}\n", .{
             self.last_mouse_x,
             self.last_mouse_y,
             self.typed_text_len,
             self.has_focus,
+            self.vm != null,
         });
         
         // Apply Aurora filter if enabled.

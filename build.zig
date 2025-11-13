@@ -356,6 +356,9 @@ pub fn build(b: *std.Build) void {
             .root_source_file = b.path("src/tahoe_app.zig"),
             .target = target,
             .optimize = optimize,
+            .imports = &.{
+                .{ .name = "kernel_vm", .module = kernel_vm_module },
+            },
             // Tiger Style: Zig is strict by default - all safety checks enabled.
             // No need for additional flags - Zig catches all errors at compile time.
         }),
