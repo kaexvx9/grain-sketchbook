@@ -33,19 +33,26 @@ our Tahoe aesthetic, reminding us to keep ethical fashion signal in view
    - Event routing: forward Cocoa events to Aurora's event system
    - Files: `src/platform/macos_tahoe/window.zig` (add event handlers), `src/tahoe_window.zig` (event processing)
 
-2. **Animation/Update Loop (macOS Tahoe)** 🔥 **HIGH PRIORITY**
-   - Timer-based update loop: `NSTimer` or `CADisplayLink` for smooth updates
-   - Continuous redraw: call `tick()` on timer interval (60fps target)
+2. **Animation/Update Loop (macOS Tahoe)** 🔥 **HIGH PRIORITY** ✅ **COMPLETE**
+   - ✅ Platform VTable: `startAnimationLoop`, `stopAnimationLoop` methods added
+   - ✅ Window struct: `animation_timer`, `tick_callback`, `tick_user_data` fields added
+   - ✅ Tick callback routing: `routeTickCallback` implemented with Tiger Style assertions
+   - ✅ Integration: wired into `tahoe_app.zig` and `tahoe_window.zig`
+   - ✅ Timer infrastructure: `TahoeTimerTarget` class created dynamically using Objective-C runtime API
+   - ✅ Timer method implementation: `tahoeTimerTick:` method implemented using `class_addMethod` to call `routeTickCallback`
+   - Timer-based update loop: `NSTimer` at 60fps (1/60 seconds interval)
+   - Continuous redraw: call `tick()` on timer interval
    - Window resize handling: update buffer or scale rendering on resize
    - Event-driven updates: redraw on input events, window changes
-   - Files: `src/tahoe_app.zig`, `src/tahoe_window.zig`, `src/platform/macos_tahoe/window.zig`
+   - Files: `src/tahoe_app.zig`, `src/tahoe_window.zig`, `src/platform/macos_tahoe/window.zig`, `src/platform/macos_tahoe/objc_wrapper.c`
 
-3. **Window Resizing (macOS Tahoe)** 🔥 **HIGH PRIORITY**
-   - Implement `windowDidResize:` delegate method
-   - Handle dynamic buffer resizing or fixed-size scaling
-   - Recreate CGImage/NSImage on window size changes
-   - Maintain aspect ratio or allow free resizing
-   - Files: `src/platform/macos_tahoe/window.zig` (delegate implementation)
+3. **Window Resizing (macOS Tahoe)** 🔥 **HIGH PRIORITY** ✅ **COMPLETE**
+   - ✅ Implemented `windowDidResize:` delegate method via `TahoeWindowDelegate` class (created dynamically)
+   - ✅ Resize events route to Zig `routeWindowDidResize` function
+   - ✅ Window dimensions updated on resize (buffer remains static 1024x768)
+   - ✅ NSImageView automatically scales image to fit window size
+   - ✅ Tiger Style assertions for pointer validation and dimension bounds checking
+   - Files: `src/platform/macos_tahoe/window.zig`, `src/platform/macos_tahoe/objc_wrapper.c`
 
 4. **Text Rendering Integration (macOS Tahoe)** ⭐ **MEDIUM PRIORITY**
    - Integrate existing `TextRenderer` into `tahoe_window.zig`

@@ -2,6 +2,7 @@ const std = @import("std");
 const c = @import("objc_runtime.zig").c;
 const cg = @import("objc_runtime.zig").cg;
 const cocoa = @import("cocoa_bridge.zig");
+const events = @import("../events.zig");
 
 // C helper function to create NSImage from CGImage.
 extern fn createNSImageFromCGImage(cgImage: *anyopaque, width: f64, height: f64) ?*c.objc_object;
@@ -14,14 +15,21 @@ extern fn createNSImageFromCGImage(cgImage: *anyopaque, width: f64, height: f64)
 /// - `ns_view: ?*c.objc_object`: Single pointer to NSView (nullable for cleanup).
 /// - `ns_app: ?*c.objc_object`: Single pointer to NSApplication shared instance (nullable for cleanup).
 /// - `rgba_buffer`: Static array, no pointers needed.
+
+/// Buffer dimensions (static, always 1024x768).
+const BUFFER_WIDTH: u32 = 1024;
+const BUFFER_HEIGHT: u32 = 768;
+
 pub const Window = struct {
     title: []const u8,
+    /// Window dimensions (can change on resize).
     width: u32 = 1024,
     height: u32 = 768,
     /// Static buffer for RGBA pixels: avoids dynamic allocation.
     /// Size: 1024 * 768 * 4 = 3,145,728 bytes (3MB).
     /// Why: Static allocation eliminates allocator dependency and reduces runtime overhead.
-    rgba_buffer: [1024 * 768 * 4]u8 = [_]u8{0} ** (1024 * 768 * 4),
+    /// Note: Buffer size is fixed; window can resize and NSImageView will scale.
+    rgba_buffer: [BUFFER_WIDTH * BUFFER_HEIGHT * 4]u8 = [_]u8{0} ** (BUFFER_WIDTH * BUFFER_HEIGHT * 4),
     allocator: std.mem.Allocator,
     /// Single pointer to NSWindow: nullable for cleanup safety.
     ns_window: ?*c.objc_object = null,
@@ -29,6 +37,18 @@ pub const Window = struct {
     ns_view: ?*c.objc_object = null,
     /// Single pointer to NSApplication shared instance: nullable for cleanup safety.
     ns_app: ?*c.objc_object = null,
+    /// Optional event handler: nullable if no handler set.
+    event_handler: ?*const events.EventHandler = null,
+    /// Single pointer to window delegate object (for event handling).
+    window_delegate: ?*c.objc_object = null,
+    /// Single pointer to view delegate object (for mouse/keyboard events).
+    view_delegate: ?*c.objc_object = null,
+    /// Single pointer to NSTimer object (for animation loop).
+    animation_timer: ?*c.objc_object = null,
+    /// Tick callback function pointer (called by timer).
+    tick_callback: ?*const fn (*anyopaque) void = null,
+    /// User data pointer for tick callback (typically *TahoeSandbox).
+    tick_user_data: ?*anyopaque = null,
 
     const Self = @This();
 
@@ -105,7 +125,9 @@ pub const Window = struct {
         std.debug.assert(self.width > 0);
         std.debug.assert(self.height > 0);
         std.debug.assert(self.rgba_buffer.len > 0);
-        std.debug.assert(self.rgba_buffer.len == self.width * self.height * 4);
+        // Buffer size is fixed (1024x768), window size can differ.
+        const expected_buffer_size = BUFFER_WIDTH * BUFFER_HEIGHT * 4;
+        std.debug.assert(self.rgba_buffer.len == expected_buffer_size);
 
         // Initialize NSApplication: get shared instance.
         const NSApplicationClass = c.objc_getClass("NSApplication");
@@ -193,6 +215,9 @@ pub const Window = struct {
         self.ns_view = nsImageView;
         self.ns_app = sharedApp;
         
+        // Setup window delegate for resize events.
+        self.setupDelegates();
+        
         // Show window.
         const makeKeySel = c.sel_getUid("makeKeyAndOrderFront:");
         std.debug.assert(makeKeySel != null);
@@ -210,8 +235,9 @@ pub const Window = struct {
         std.debug.assert(self_ptr != 0);
         std.debug.assert(self.rgba_buffer.len > 0);
         std.debug.assert(self.rgba_buffer.len % 4 == 0);
-        const expected_size = @as(usize, self.width) * @as(usize, self.height) * 4;
-        std.debug.assert(self.rgba_buffer.len == expected_size);
+        // Buffer size is fixed (1024x768), window size can differ.
+        const expected_buffer_size = BUFFER_WIDTH * BUFFER_HEIGHT * 4;
+        std.debug.assert(self.rgba_buffer.len == expected_buffer_size);
         return &self.rgba_buffer;
     }
 
@@ -238,15 +264,17 @@ pub const Window = struct {
         // Assert precondition: buffer must be valid.
         std.debug.assert(self.rgba_buffer.len > 0);
         std.debug.assert(self.rgba_buffer.len % 4 == 0);
-        const expected_buffer_size = @as(usize, self.width) * @as(usize, self.height) * 4;
+        // Buffer size is fixed (1024x768), window size can differ.
+        const expected_buffer_size = BUFFER_WIDTH * BUFFER_HEIGHT * 4;
         std.debug.assert(self.rgba_buffer.len == expected_buffer_size);
         std.debug.assert(self.width > 0);
         std.debug.assert(self.height > 0);
         
-        std.debug.print("[window] Presenting buffer to view at: 0x{x}, buffer size: {d} bytes\n", .{ view_ptr, self.rgba_buffer.len });
+        std.debug.print("[window] Presenting buffer to view at: 0x{x}, buffer size: {d} bytes (window: {}x{}, buffer: {}x{})\n", .{ view_ptr, self.rgba_buffer.len, self.width, self.height, BUFFER_WIDTH, BUFFER_HEIGHT });
         
         // Create CGImage from RGBA buffer.
-        const cg_image = try createCGImageFromBuffer(&self.rgba_buffer, self.width, self.height);
+        // Buffer is always 1024x768 (static), window size may differ.
+        const cg_image = try createCGImageFromBuffer(&self.rgba_buffer);
         defer releaseCGImage(cg_image);
         
         // Assert: CGImage must be valid.
@@ -292,7 +320,12 @@ pub const Window = struct {
         std.debug.print("[window] Set NSImage on NSImageView.\n", .{});
     }
     
-    fn createCGImageFromBuffer(buffer: []const u8, width: u32, height: u32) !*anyopaque {
+    /// Create CGImage from RGBA buffer.
+    /// Note: Buffer is always 1024x768 (static allocation).
+    fn createCGImageFromBuffer(buffer: []const u8) !*anyopaque {
+        const width = BUFFER_WIDTH;
+        const height = BUFFER_HEIGHT;
+        
         // Assert: parameters must be valid.
         std.debug.assert(buffer.len > 0);
         std.debug.assert(width > 0);
@@ -391,4 +424,475 @@ pub const Window = struct {
         
         std.debug.print("[window] NSApplication event loop exited.\n", .{});
     }
+    
+    /// Set event handler: stores handler pointer for event routing.
+    pub fn setEventHandler(self: *Self, handler: ?*const events.EventHandler) void {
+        // Assert: self pointer must be valid.
+        const self_ptr = @intFromPtr(self);
+        std.debug.assert(self_ptr != 0);
+        if (self_ptr < 0x1000) {
+            std.debug.panic("Window.setEventHandler: self pointer is suspiciously small: 0x{x}", .{self_ptr});
+        }
+        
+        // Store handler (can be null to clear).
+        self.event_handler = handler;
+        
+        // If handler is set and window exists, set up delegates.
+        // Note: If window doesn't exist yet, delegates will be set up in show().
+        if (handler != null and self.ns_window != null and self.window_delegate == null) {
+            self.setupDelegates();
+        }
+        
+        std.debug.print("[window] Event handler set: {}\n", .{handler != null});
+    }
+    
+    /// Setup Objective-C delegates for event handling.
+    /// Note: Window and view must exist before calling this.
+    fn setupDelegates(self: *Self) void {
+        // Early return if window doesn't exist yet (will be set up later in show()).
+        if (self.ns_window == null or self.ns_view == null) {
+            std.debug.print("[window] Delegates setup deferred (window not created yet).\n", .{});
+            return;
+        }
+        
+        // Create window delegate for resize events.
+        if (self.window_delegate == null) {
+            const delegate_opt = createWindowDelegate(@intFromPtr(self));
+            if (delegate_opt == null) {
+                std.debug.panic("Window.setupDelegates: failed to create window delegate", .{});
+            }
+            const delegate = delegate_opt.?;
+            self.window_delegate = delegate;
+            
+            // Set delegate on window.
+            const setDelegateSel = c.sel_getUid("setDelegate:");
+            std.debug.assert(setDelegateSel != null);
+            cocoa.objc_msgSendVoid1(@ptrCast(self.ns_window.?), setDelegateSel, @ptrCast(delegate));
+            
+            std.debug.print("[window] Window delegate set for resize handling.\n", .{});
+        }
+        
+        // For now, we'll enable basic event acceptance on the view.
+        // Full delegate implementation requires Objective-C compilation or runtime class creation.
+        // This is a simplified version that enables basic event acceptance.
+        
+        // Make view accept first responder (for keyboard events).
+        // Note: We'll need to implement actual event handling via NSTrackingArea or
+        // by creating custom view classes using runtime API.
+        
+        std.debug.print("[window] Delegates setup complete (window delegate + basic event acceptance enabled).\n", .{});
+        std.debug.print("[window] Window resize events will be handled via delegate.\n", .{});
+    }
+    
+    /// Start animation loop: creates NSTimer that calls tick callback at 60fps.
+    /// Tiger Style: validate all pointers, ensure timer is properly scheduled.
+    pub fn startAnimationLoop(self: *Self, tick_callback: *const fn (*anyopaque) void, user_data: *anyopaque) void {
+        // Assert: self pointer must be valid.
+        const self_ptr = @intFromPtr(self);
+        std.debug.assert(self_ptr != 0);
+        if (self_ptr < 0x1000) {
+            std.debug.panic("Window.startAnimationLoop: self pointer is suspiciously small: 0x{x}", .{self_ptr});
+        }
+        
+        // Assert: tick_callback function pointer must be valid.
+        const callback_ptr = @intFromPtr(tick_callback);
+        std.debug.assert(callback_ptr != 0);
+        if (callback_ptr < 0x1000) {
+            std.debug.panic("Window.startAnimationLoop: tick_callback pointer is suspiciously small: 0x{x}", .{callback_ptr});
+        }
+        
+        // Assert: user_data pointer must be valid.
+        const user_data_ptr = @intFromPtr(user_data);
+        std.debug.assert(user_data_ptr != 0);
+        if (user_data_ptr < 0x1000) {
+            std.debug.panic("Window.startAnimationLoop: user_data pointer is suspiciously small: 0x{x}", .{user_data_ptr});
+        }
+        
+        // Store callback and user_data.
+        self.tick_callback = tick_callback;
+        self.tick_user_data = user_data;
+        
+        // Create NSTimer: 60fps = 1/60 seconds = 0.016667 seconds interval.
+        const NSTimerClass = c.objc_getClass("NSTimer");
+        std.debug.assert(NSTimerClass != null);
+        
+        // Use scheduledTimerWithTimeInterval:target:selector:userInfo:repeats:
+        // We'll create a C helper function to set up the timer with our callback.
+        const timer = createAnimationTimer(@intFromPtr(self), 1.0 / 60.0);
+        if (timer == null) {
+            std.debug.panic("Window.startAnimationLoop: failed to create animation timer", .{});
+        }
+        self.animation_timer = timer;
+        
+        std.debug.print("[window] Animation loop started (60fps timer).\n", .{});
+    }
+    
+    /// Stop animation loop: invalidates timer.
+    /// Tiger Style: validate pointers, ensure cleanup.
+    pub fn stopAnimationLoop(self: *Self) void {
+        // Assert: self pointer must be valid.
+        const self_ptr = @intFromPtr(self);
+        std.debug.assert(self_ptr != 0);
+        if (self_ptr < 0x1000) {
+            std.debug.panic("Window.stopAnimationLoop: self pointer is suspiciously small: 0x{x}", .{self_ptr});
+        }
+        
+        if (self.animation_timer) |timer| {
+            // Invalidate timer.
+            const invalidateSel = c.sel_getUid("invalidate");
+            std.debug.assert(invalidateSel != null);
+            cocoa.objc_msgSendVoid0(@ptrCast(timer), invalidateSel);
+            self.animation_timer = null;
+        }
+        
+        self.tick_callback = null;
+        self.tick_user_data = null;
+        
+        std.debug.print("[window] Animation loop stopped.\n", .{});
+    }
 };
+
+// C helper functions for delegate creation and timer setup.
+extern fn createWindowDelegate(window_ptr: usize) ?*c.objc_object;
+extern fn createAnimationTimer(window_ptr: usize, interval: f64) ?*c.objc_object;
+
+// Event routing functions: called from C delegates, route to Zig event handler.
+// These are exported as C functions so Objective-C can call them.
+/// Route mouse event from Cocoa to Zig event handler.
+/// Tiger Style: comprehensive pointer validation, bounds checking, enum validation.
+fn routeMouseEventImpl(window_ptr: usize, kind: u32, button: u32, x: f64, y: f64, modifiers: u32) void {
+    // Assert: window pointer must be valid (non-zero, aligned, reasonable).
+    std.debug.assert(window_ptr != 0);
+    if (window_ptr < 0x1000) {
+        std.debug.panic("routeMouseEventImpl: window_ptr is suspiciously small: 0x{x}", .{window_ptr});
+    }
+    if (window_ptr % @alignOf(Window) != 0) {
+        std.debug.panic("routeMouseEventImpl: window_ptr is not aligned: 0x{x}", .{window_ptr});
+    }
+    
+    // Assert: coordinates must be reasonable (within window bounds or slightly outside for drag).
+    std.debug.assert(x >= -10000.0 and x <= 10000.0);
+    std.debug.assert(y >= -10000.0 and y <= 10000.0);
+    
+    // Cast window pointer back to Window.
+    const window: *Window = @ptrFromInt(window_ptr);
+    
+    // Assert: window pointer must be valid (round-trip check).
+    const window_ptr_value = @intFromPtr(window);
+    std.debug.assert(window_ptr_value == window_ptr);
+    
+    // Assert: window must have valid buffer (Tiger Style invariant).
+    std.debug.assert(window.rgba_buffer.len > 0);
+    std.debug.assert(window.rgba_buffer.len % 4 == 0);
+    std.debug.assert(window.width > 0);
+    std.debug.assert(window.height > 0);
+    
+    // Get event handler.
+    const handler = window.event_handler orelse return;
+    
+    // Assert: handler must be valid (non-null pointer).
+    const handler_ptr = @intFromPtr(handler);
+    std.debug.assert(handler_ptr != 0);
+    if (handler_ptr < 0x1000) {
+        std.debug.panic("routeMouseEventImpl: handler pointer is suspiciously small: 0x{x}", .{handler_ptr});
+    }
+    
+    // Convert button enum (Tiger Style: validate enum values).
+    const mouse_button = switch (button) {
+        0 => events.MouseButton.left,
+        1 => events.MouseButton.right,
+        2 => events.MouseButton.middle,
+        else => events.MouseButton.other, // Accept any other value as "other"
+    };
+    
+    // Convert kind enum (Tiger Style: validate enum values, reject invalid).
+    const mouse_kind = switch (kind) {
+        0 => events.MouseEvent.MouseEventKind.down,
+        1 => events.MouseEvent.MouseEventKind.up,
+        2 => events.MouseEvent.MouseEventKind.move,
+        3 => events.MouseEvent.MouseEventKind.drag,
+        else => {
+            std.debug.panic("routeMouseEventImpl: invalid mouse event kind: {d}", .{kind});
+        },
+    };
+    
+    // Create event (Tiger Style: validate all fields).
+    const mouse_event = events.MouseEvent{
+        .kind = mouse_kind,
+        .button = mouse_button,
+        .x = x,
+        .y = y,
+        .modifiers = events.ModifierKeys.fromCocoaFlags(modifiers),
+    };
+    
+    // Assert: event must be valid (coordinates already checked above).
+    std.debug.assert(@intFromEnum(mouse_event.kind) < 4);
+    std.debug.assert(@intFromEnum(mouse_event.button) < 4);
+    
+    // Call handler (Tiger Style: validate handler function pointer).
+    const handler_fn_ptr = @intFromPtr(handler.onMouse);
+    std.debug.assert(handler_fn_ptr != 0);
+    if (handler_fn_ptr < 0x1000) {
+        std.debug.panic("routeMouseEventImpl: handler.onMouse pointer is suspiciously small: 0x{x}", .{handler_fn_ptr});
+    }
+    
+    _ = handler.onMouse(handler.user_data, mouse_event);
+}
+
+/// Route keyboard event from Cocoa to Zig event handler.
+/// Tiger Style: comprehensive pointer validation, bounds checking, enum validation.
+fn routeKeyboardEventImpl(window_ptr: usize, kind: u32, key_code: u32, character: u32, modifiers: u32) void {
+    // Assert: window pointer must be valid (non-zero, aligned, reasonable).
+    std.debug.assert(window_ptr != 0);
+    if (window_ptr < 0x1000) {
+        std.debug.panic("routeKeyboardEventImpl: window_ptr is suspiciously small: 0x{x}", .{window_ptr});
+    }
+    if (window_ptr % @alignOf(Window) != 0) {
+        std.debug.panic("routeKeyboardEventImpl: window_ptr is not aligned: 0x{x}", .{window_ptr});
+    }
+    
+    // Assert: key_code must be reasonable (macOS key codes are typically 0-127).
+    std.debug.assert(key_code <= 0xFFFF);
+    
+    // Assert: character must be valid Unicode (if non-zero).
+    if (character != 0) {
+        std.debug.assert(character <= 0x10FFFF); // Max valid Unicode code point
+        std.debug.assert(!(character >= 0xD800 and character <= 0xDFFF)); // No surrogates
+    }
+    
+    // Cast window pointer back to Window.
+    const window: *Window = @ptrFromInt(window_ptr);
+    
+    // Assert: window pointer must be valid (round-trip check).
+    const window_ptr_value = @intFromPtr(window);
+    std.debug.assert(window_ptr_value == window_ptr);
+    
+    // Assert: window must have valid buffer (Tiger Style invariant).
+    std.debug.assert(window.rgba_buffer.len > 0);
+    std.debug.assert(window.rgba_buffer.len % 4 == 0);
+    std.debug.assert(window.width > 0);
+    std.debug.assert(window.height > 0);
+    
+    // Get event handler.
+    const handler = window.event_handler orelse return;
+    
+    // Assert: handler must be valid (non-null pointer).
+    const handler_ptr = @intFromPtr(handler);
+    std.debug.assert(handler_ptr != 0);
+    if (handler_ptr < 0x1000) {
+        std.debug.panic("routeKeyboardEventImpl: handler pointer is suspiciously small: 0x{x}", .{handler_ptr});
+    }
+    
+    // Convert kind enum (Tiger Style: validate enum values, reject invalid).
+    const keyboard_kind = switch (kind) {
+        0 => events.KeyboardEvent.KeyboardEventKind.down,
+        1 => events.KeyboardEvent.KeyboardEventKind.up,
+        else => {
+            std.debug.panic("routeKeyboardEventImpl: invalid keyboard event kind: {d}", .{kind});
+        },
+    };
+    
+    // Create event (Tiger Style: validate all fields).
+    const keyboard_event = events.KeyboardEvent{
+        .kind = keyboard_kind,
+        .key_code = key_code,
+        .character = if (character != 0) @as(u21, @intCast(character)) else null,
+        .modifiers = events.ModifierKeys.fromCocoaFlags(modifiers),
+    };
+    
+    // Assert: event must be valid.
+    std.debug.assert(@intFromEnum(keyboard_event.kind) < 2);
+    
+    // Call handler (Tiger Style: validate handler function pointer).
+    const handler_fn_ptr = @intFromPtr(handler.onKeyboard);
+    std.debug.assert(handler_fn_ptr != 0);
+    if (handler_fn_ptr < 0x1000) {
+        std.debug.panic("routeKeyboardEventImpl: handler.onKeyboard pointer is suspiciously small: 0x{x}", .{handler_fn_ptr});
+    }
+    
+    _ = handler.onKeyboard(handler.user_data, keyboard_event);
+}
+
+/// Route focus event from Cocoa to Zig event handler.
+/// Tiger Style: comprehensive pointer validation, enum validation.
+fn routeFocusEventImpl(window_ptr: usize, kind: u32) void {
+    // Assert: window pointer must be valid (non-zero, aligned, reasonable).
+    std.debug.assert(window_ptr != 0);
+    if (window_ptr < 0x1000) {
+        std.debug.panic("routeFocusEventImpl: window_ptr is suspiciously small: 0x{x}", .{window_ptr});
+    }
+    if (window_ptr % @alignOf(Window) != 0) {
+        std.debug.panic("routeFocusEventImpl: window_ptr is not aligned: 0x{x}", .{window_ptr});
+    }
+    
+    // Cast window pointer back to Window.
+    const window: *Window = @ptrFromInt(window_ptr);
+    
+    // Assert: window pointer must be valid (round-trip check).
+    const window_ptr_value = @intFromPtr(window);
+    std.debug.assert(window_ptr_value == window_ptr);
+    
+    // Assert: window must have valid buffer (Tiger Style invariant).
+    std.debug.assert(window.rgba_buffer.len > 0);
+    std.debug.assert(window.rgba_buffer.len % 4 == 0);
+    std.debug.assert(window.width > 0);
+    std.debug.assert(window.height > 0);
+    
+    // Get event handler.
+    const handler = window.event_handler orelse return;
+    
+    // Assert: handler must be valid (non-null pointer).
+    const handler_ptr = @intFromPtr(handler);
+    std.debug.assert(handler_ptr != 0);
+    if (handler_ptr < 0x1000) {
+        std.debug.panic("routeFocusEventImpl: handler pointer is suspiciously small: 0x{x}", .{handler_ptr});
+    }
+    
+    // Convert kind enum (Tiger Style: validate enum values, reject invalid).
+    const focus_kind = switch (kind) {
+        0 => events.FocusEvent.FocusEventKind.gained,
+        1 => events.FocusEvent.FocusEventKind.lost,
+        else => {
+            std.debug.panic("routeFocusEventImpl: invalid focus event kind: {d}", .{kind});
+        },
+    };
+    
+    // Create event (Tiger Style: validate all fields).
+    const focus_event = events.FocusEvent{
+        .kind = focus_kind,
+    };
+    
+    // Assert: event must be valid.
+    std.debug.assert(@intFromEnum(focus_event.kind) < 2);
+    
+    // Call handler (Tiger Style: validate handler function pointer).
+    const handler_fn_ptr = @intFromPtr(handler.onFocus);
+    std.debug.assert(handler_fn_ptr != 0);
+    if (handler_fn_ptr < 0x1000) {
+        std.debug.panic("routeFocusEventImpl: handler.onFocus pointer is suspiciously small: 0x{x}", .{handler_fn_ptr});
+    }
+    
+    _ = handler.onFocus(handler.user_data, focus_event);
+}
+
+// Export C-callable wrappers for event routing.
+export fn routeMouseEvent(window_ptr: usize, kind: u32, button: u32, x: f64, y: f64, modifiers: u32) void {
+    routeMouseEventImpl(window_ptr, kind, button, x, y, modifiers);
+}
+
+export fn routeKeyboardEvent(window_ptr: usize, kind: u32, key_code: u32, character: u32, modifiers: u32) void {
+    routeKeyboardEventImpl(window_ptr, kind, key_code, character, modifiers);
+}
+
+export fn routeFocusEvent(window_ptr: usize, kind: u32) void {
+    routeFocusEventImpl(window_ptr, kind);
+}
+
+/// Route tick callback from timer to Zig tick function.
+/// Tiger Style: validate window pointer, ensure callback is valid.
+fn routeTickCallbackImpl(window_ptr: usize) void {
+    // Assert: window pointer must be valid (non-zero, aligned, reasonable).
+    std.debug.assert(window_ptr != 0);
+    if (window_ptr < 0x1000) {
+        std.debug.panic("routeTickCallbackImpl: window_ptr is suspiciously small: 0x{x}", .{window_ptr});
+    }
+    if (window_ptr % @alignOf(Window) != 0) {
+        std.debug.panic("routeTickCallbackImpl: window_ptr is not aligned: 0x{x}", .{window_ptr});
+    }
+    
+    // Cast window pointer back to Window.
+    const window: *Window = @ptrFromInt(window_ptr);
+    
+    // Assert: window pointer must be valid (round-trip check).
+    const window_ptr_value = @intFromPtr(window);
+    std.debug.assert(window_ptr_value == window_ptr);
+    
+    // Assert: window must have valid buffer (Tiger Style invariant).
+    std.debug.assert(window.rgba_buffer.len > 0);
+    std.debug.assert(window.rgba_buffer.len % 4 == 0);
+    std.debug.assert(window.width > 0);
+    std.debug.assert(window.height > 0);
+    
+    // Get tick callback and user_data.
+    const callback = window.tick_callback orelse return;
+    const user_data = window.tick_user_data orelse return;
+    
+    // Assert: callback function pointer must be valid.
+    const callback_ptr = @intFromPtr(callback);
+    std.debug.assert(callback_ptr != 0);
+    if (callback_ptr < 0x1000) {
+        std.debug.panic("routeTickCallbackImpl: callback pointer is suspiciously small: 0x{x}", .{callback_ptr});
+    }
+    
+    // Assert: user_data pointer must be valid.
+    const user_data_ptr = @intFromPtr(user_data);
+    std.debug.assert(user_data_ptr != 0);
+    if (user_data_ptr < 0x1000) {
+        std.debug.panic("routeTickCallbackImpl: user_data pointer is suspiciously small: 0x{x}", .{user_data_ptr});
+    }
+    
+    // Call tick callback.
+    callback(user_data);
+}
+
+// Export C-callable wrapper for tick callback routing.
+export fn routeTickCallback(window_ptr: usize) void {
+    routeTickCallbackImpl(window_ptr);
+}
+
+/// Route window resize event from Cocoa to Zig.
+/// Tiger Style: validate window pointer, ensure dimensions are reasonable.
+fn routeWindowDidResizeImpl(window_ptr: usize, new_width: f64, new_height: f64) void {
+    // Assert: window pointer must be valid (non-zero, aligned, reasonable).
+    std.debug.assert(window_ptr != 0);
+    if (window_ptr < 0x1000) {
+        std.debug.panic("routeWindowDidResizeImpl: window_ptr is suspiciously small: 0x{x}", .{window_ptr});
+    }
+    if (window_ptr % @alignOf(Window) != 0) {
+        std.debug.panic("routeWindowDidResizeImpl: window_ptr is not aligned: 0x{x}", .{window_ptr});
+    }
+    
+    // Assert: dimensions must be reasonable (positive, not too large).
+    std.debug.assert(new_width > 0.0);
+    std.debug.assert(new_height > 0.0);
+    std.debug.assert(new_width <= 100000.0); // Reasonable maximum
+    std.debug.assert(new_height <= 100000.0); // Reasonable maximum
+    
+    // Cast window pointer back to Window.
+    const window: *Window = @ptrFromInt(window_ptr);
+    
+    // Assert: window pointer must be valid (round-trip check).
+    const window_ptr_value = @intFromPtr(window);
+    std.debug.assert(window_ptr_value == window_ptr);
+    
+    // Assert: window must have valid buffer (Tiger Style invariant).
+    std.debug.assert(window.rgba_buffer.len > 0);
+    std.debug.assert(window.rgba_buffer.len % 4 == 0);
+    const expected_buffer_size = BUFFER_WIDTH * BUFFER_HEIGHT * 4;
+    std.debug.assert(window.rgba_buffer.len == expected_buffer_size);
+    
+    // Update window dimensions (for tracking window size).
+    // Note: Buffer remains static (1024x768), NSImageView will scale rendering.
+    const old_width = window.width;
+    const old_height = window.height;
+    
+    // Convert to u32 (clamp to reasonable range).
+    const clamped_width = if (new_width > 65535.0) 65535.0 else new_width;
+    const clamped_height = if (new_height > 65535.0) 65535.0 else new_height;
+    const new_width_u32 = @as(u32, @intFromFloat(clamped_width));
+    const new_height_u32 = @as(u32, @intFromFloat(clamped_height));
+    
+    window.width = new_width_u32;
+    window.height = new_height_u32;
+    
+    std.debug.print("[window] Window resized: {}x{} -> {}x{} (buffer remains {}x{})\n", .{ old_width, old_height, new_width_u32, new_height_u32, BUFFER_WIDTH, BUFFER_HEIGHT });
+    
+    // Note: Buffer size is fixed at 1024x768.
+    // NSImageView automatically scales the image to fit the window size.
+    // Future: If dynamic buffer resizing is needed, we'd reallocate here.
+}
+
+// Export C-callable wrapper for window resize routing.
+export fn routeWindowDidResize(window_ptr: usize, new_width: f64, new_height: f64) void {
+    routeWindowDidResizeImpl(window_ptr, new_width, new_height);
+}

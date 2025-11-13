@@ -1,4 +1,5 @@
 const std = @import("std");
+const events = @import("platform/events.zig");
 
 /// Platform abstraction: windowing and rendering interface.
 /// ~<~ Glow Earthbend: platform code isolated; core Aurora stays portable.
@@ -42,6 +43,12 @@ pub const Platform = struct {
         height: *const fn (impl: *anyopaque) u32,
         /// Single pointer to runEventLoop function: takes single pointer to anyopaque.
         runEventLoop: *const fn (impl: *anyopaque) void,
+        /// Single pointer to setEventHandler function: takes single pointer to anyopaque and event handler.
+        setEventHandler: *const fn (impl: *anyopaque, handler: ?*const events.EventHandler) void,
+        /// Single pointer to startAnimationLoop function: takes single pointer to anyopaque and tick callback.
+        startAnimationLoop: *const fn (impl: *anyopaque, tick_callback: *const fn (*anyopaque) void, user_data: *anyopaque) void,
+        /// Single pointer to stopAnimationLoop function: takes single pointer to anyopaque.
+        stopAnimationLoop: *const fn (impl: *anyopaque) void,
     };
 
     /// Initialize platform: returns Platform struct with single-level pointers.

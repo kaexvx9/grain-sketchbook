@@ -51,6 +51,11 @@ fn mainImpl() !void {
     std.debug.print("[tahoe] Running initial tick...\n", .{});
     try sandbox.tick();
     std.debug.print("[tahoe] Initial tick complete.\n", .{});
+    
+    // Start animation loop: 60fps continuous updates.
+    std.debug.print("[tahoe] Starting animation loop (60fps)...\n", .{});
+    sandbox.startAnimationLoop();
+    std.debug.print("[tahoe] Animation loop started.\n", .{});
 
     var stdout_buffer: [256]u8 = undefined;
     var stdout_writer = std.fs.File.stdout().writer(&stdout_buffer);

@@ -1,8 +1,22 @@
 #include <objc/runtime.h>
 #include <objc/message.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <CoreGraphics/CoreGraphics.h>
+
+// BOOL type for Objective-C (typically signed char, but we'll use bool for compatibility).
+#ifndef BOOL
+#define BOOL bool
+#endif
+
+#ifndef YES
+#define YES true
+#endif
+
+#ifndef NO
+#define NO false
+#endif
 
 // Forward declaration for NSSize (AppKit type).
 typedef struct {
@@ -479,4 +493,391 @@ NSRect objc_msgSend_returns_NSRect(void* receiver, SEL selector) {
     // Call objc_msgSend with NSRect return type.
     // On arm64, structs are returned in registers.
     return ((NSRect (*)(id, SEL))objc_msgSend)(receiver_id, selector);
+}
+
+// Forward declarations for Zig event routing functions.
+// These will be implemented in Zig to call the event handler.
+void routeMouseEvent(uintptr_t window_ptr, uint32_t kind, uint32_t button, double x, double y, uint32_t modifiers);
+void routeKeyboardEvent(uintptr_t window_ptr, uint32_t kind, uint32_t key_code, uint32_t character, uint32_t modifiers);
+void routeFocusEvent(uintptr_t window_ptr, uint32_t kind);
+void routeTickCallback(uintptr_t window_ptr);
+void routeWindowDidResize(uintptr_t window_ptr, double new_width, double new_height);
+
+// C function wrapper for windowDidResize: delegate method.
+// This will be added to TahoeWindowDelegate class using class_addMethod.
+// Signature: void windowDidResize:(id self, SEL _cmd, NSNotification* notification)
+static void windowDidResizeImpl(id self, SEL _cmd, id notification) {
+    (void)_cmd; // Unused parameter
+    
+    if (self == NULL || notification == NULL) {
+        fprintf(stderr, "[windowDidResizeImpl] NULL self or notification\n");
+        fflush(stderr);
+        return;
+    }
+    
+    // Extract window_ptr from associated object.
+    id window_ptr_obj = objc_getAssociatedObject(self, "windowPtr");
+    if (window_ptr_obj == NULL) {
+        fprintf(stderr, "[windowDidResizeImpl] window_ptr not found in associated objects\n");
+        fflush(stderr);
+        return;
+    }
+    
+    uintptr_t window_ptr = (uintptr_t)window_ptr_obj;
+    if (window_ptr == 0) {
+        fprintf(stderr, "[windowDidResizeImpl] window_ptr is 0\n");
+        fflush(stderr);
+        return;
+    }
+    
+    // Extract NSWindow from notification's object.
+    SEL objectSel = sel_registerName("object");
+    if (objectSel == NULL) {
+        fprintf(stderr, "[windowDidResizeImpl] object selector not found\n");
+        fflush(stderr);
+        return;
+    }
+    
+    id ns_window = ((id (*)(id, SEL))objc_msgSend)(notification, objectSel);
+    if (ns_window == NULL) {
+        fprintf(stderr, "[windowDidResizeImpl] NSWindow from notification is NULL\n");
+        fflush(stderr);
+        return;
+    }
+    
+    // Get window frame to extract new size.
+    SEL frameSel = sel_registerName("frame");
+    if (frameSel == NULL) {
+        fprintf(stderr, "[windowDidResizeImpl] frame selector not found\n");
+        fflush(stderr);
+        return;
+    }
+    
+    NSRect frame = ((NSRect (*)(id, SEL))objc_msgSend)(ns_window, frameSel);
+    
+    // Extract content view frame (actual drawable area).
+    SEL contentViewSel = sel_registerName("contentView");
+    if (contentViewSel == NULL) {
+        fprintf(stderr, "[windowDidResizeImpl] contentView selector not found\n");
+        fflush(stderr);
+        return;
+    }
+    
+    id content_view = ((id (*)(id, SEL))objc_msgSend)(ns_window, contentViewSel);
+    if (content_view == NULL) {
+        fprintf(stderr, "[windowDidResizeImpl] contentView is NULL\n");
+        fflush(stderr);
+        return;
+    }
+    
+    NSRect content_frame = ((NSRect (*)(id, SEL))objc_msgSend)(content_view, frameSel);
+    
+    // Call Zig routeWindowDidResize function with new dimensions.
+    routeWindowDidResize(window_ptr, content_frame.size.width, content_frame.size.height);
+}
+
+// Create window delegate instance using runtime API.
+// Creates TahoeWindowDelegate class dynamically and returns an instance.
+id createWindowDelegate(uintptr_t window_ptr) {
+    if (window_ptr == 0) {
+        fprintf(stderr, "[createWindowDelegate] NULL window_ptr\n");
+        fflush(stderr);
+        return NULL;
+    }
+    
+    // Check if class already exists (avoid creating duplicate classes).
+    static const char* delegateClassName = "TahoeWindowDelegate";
+    Class delegateClass = objc_getClass(delegateClassName);
+    
+    if (delegateClass == NULL) {
+        // Create new class: TahoeWindowDelegate extends NSObject.
+        Class NSObjectClass = objc_getClass("NSObject");
+        if (NSObjectClass == NULL) {
+            fprintf(stderr, "[createWindowDelegate] NSObject class not found\n");
+            fflush(stderr);
+            return NULL;
+        }
+        
+        delegateClass = objc_allocateClassPair(NSObjectClass, delegateClassName, 0);
+        if (delegateClass == NULL) {
+            fprintf(stderr, "[createWindowDelegate] Failed to allocate delegate class\n");
+            fflush(stderr);
+            return NULL;
+        }
+        
+        // Add windowDidResize: method to the class.
+        SEL resizeSel = sel_registerName("windowDidResize:");
+        if (resizeSel == NULL) {
+            fprintf(stderr, "[createWindowDelegate] Failed to register windowDidResize: selector\n");
+            fflush(stderr);
+            return NULL;
+        }
+        
+        // Method type encoding: "v@:@" means (void return, id self, SEL _cmd, id notification)
+        const char* methodTypes = "v@:@";
+        
+        // Add method to class.
+        BOOL methodAdded = class_addMethod(delegateClass, resizeSel, (IMP)windowDidResizeImpl, methodTypes);
+        if (!methodAdded) {
+            fprintf(stderr, "[createWindowDelegate] Failed to add windowDidResize: method\n");
+            fflush(stderr);
+            return NULL;
+        }
+        
+        // Register the class.
+        objc_registerClassPair(delegateClass);
+        fprintf(stderr, "[createWindowDelegate] Created TahoeWindowDelegate class\n");
+        fflush(stderr);
+    }
+    
+    // Allocate instance of delegate class.
+    SEL allocSel = sel_registerName("alloc");
+    if (allocSel == NULL) {
+        fprintf(stderr, "[createWindowDelegate] alloc selector not found\n");
+        fflush(stderr);
+        return NULL;
+    }
+    
+    id delegate = ((id (*)(Class, SEL))objc_msgSend)(delegateClass, allocSel);
+    if (delegate == NULL) {
+        fprintf(stderr, "[createWindowDelegate] Failed to allocate delegate\n");
+        fflush(stderr);
+        return NULL;
+    }
+    
+    SEL initSel = sel_registerName("init");
+    if (initSel == NULL) {
+        fprintf(stderr, "[createWindowDelegate] init selector not found\n");
+        fflush(stderr);
+        return NULL;
+    }
+    
+    id initializedDelegate = ((id (*)(id, SEL))objc_msgSend)(delegate, initSel);
+    if (initializedDelegate == NULL) {
+        fprintf(stderr, "[createWindowDelegate] Failed to initialize delegate\n");
+        fflush(stderr);
+        return NULL;
+    }
+    
+    // Store window_ptr as associated object on delegate.
+    void* window_ptr_obj = (void*)(uintptr_t)window_ptr;
+    objc_setAssociatedObject(initializedDelegate, "windowPtr", (id)window_ptr_obj, OBJC_ASSOCIATION_ASSIGN);
+    
+    fprintf(stderr, "[createWindowDelegate] Created window delegate instance at: %p\n", initializedDelegate);
+    fflush(stderr);
+    
+    return initializedDelegate;
+}
+
+// C function wrapper for timer callback method.
+// This will be added to TahoeTimerTarget class using class_addMethod.
+// Signature: void tahoeTimerTick:(id self, SEL _cmd, NSTimer* timer)
+static void tahoeTimerTickImpl(id self, SEL _cmd, id timer) {
+    (void)_cmd; // Unused parameter
+    
+    if (self == NULL || timer == NULL) {
+        fprintf(stderr, "[tahoeTimerTickImpl] NULL self or timer\n");
+        fflush(stderr);
+        return;
+    }
+    
+    // Extract window_ptr from timer's userInfo (NSNumber).
+    SEL userInfoSel = sel_registerName("userInfo");
+    if (userInfoSel == NULL) {
+        fprintf(stderr, "[tahoeTimerTickImpl] userInfo selector not found\n");
+        fflush(stderr);
+        return;
+    }
+    
+    id userInfo = ((id (*)(id, SEL))objc_msgSend)(timer, userInfoSel);
+    if (userInfo == NULL) {
+        fprintf(stderr, "[tahoeTimerTickImpl] Timer userInfo is NULL\n");
+        fflush(stderr);
+        return;
+    }
+    
+    // Extract unsigned long long value from NSNumber.
+    SEL unsignedLongLongValueSel = sel_registerName("unsignedLongLongValue");
+    if (unsignedLongLongValueSel == NULL) {
+        fprintf(stderr, "[tahoeTimerTickImpl] unsignedLongLongValue selector not found\n");
+        fflush(stderr);
+        return;
+    }
+    
+    unsigned long long window_ptr = ((unsigned long long (*)(id, SEL))objc_msgSend)(userInfo, unsignedLongLongValueSel);
+    
+    if (window_ptr == 0) {
+        fprintf(stderr, "[tahoeTimerTickImpl] window_ptr is 0\n");
+        fflush(stderr);
+        return;
+    }
+    
+    // Call Zig routeTickCallback function.
+    routeTickCallback((uintptr_t)window_ptr);
+}
+
+// Create animation timer that calls tick callback at specified interval.
+// Uses NSTimer scheduledTimerWithTimeInterval:target:selector:userInfo:repeats:
+id createAnimationTimer(uintptr_t window_ptr, double interval) {
+    if (window_ptr == 0) {
+        fprintf(stderr, "[createAnimationTimer] NULL window_ptr\n");
+        fflush(stderr);
+        return NULL;
+    }
+    
+    if (interval <= 0.0 || interval > 1.0) {
+        fprintf(stderr, "[createAnimationTimer] Invalid interval: %f (expected 0 < interval <= 1.0)\n", interval);
+        fflush(stderr);
+        return NULL;
+    }
+    
+    // Create a custom class dynamically using runtime API to handle timer callbacks.
+    // We'll create a class that has a method calling routeTickCallback.
+    
+    // Check if class already exists (avoid creating duplicate classes).
+    static const char* timerTargetClassName = "TahoeTimerTarget";
+    Class timerTargetClass = objc_getClass(timerTargetClassName);
+    
+    if (timerTargetClass == NULL) {
+        // Create new class: TahoeTimerTarget extends NSObject.
+        Class NSObjectClass = objc_getClass("NSObject");
+        if (NSObjectClass == NULL) {
+            fprintf(stderr, "[createAnimationTimer] NSObject class not found\n");
+            fflush(stderr);
+            return NULL;
+        }
+        
+        timerTargetClass = objc_allocateClassPair(NSObjectClass, timerTargetClassName, 0);
+        if (timerTargetClass == NULL) {
+            fprintf(stderr, "[createAnimationTimer] Failed to allocate timer target class\n");
+            fflush(stderr);
+            return NULL;
+        }
+        
+        // Add instance variable to store window_ptr.
+        // Note: We'll use associated objects instead since adding ivars is complex.
+        
+        // Register the class.
+        objc_registerClassPair(timerTargetClass);
+        fprintf(stderr, "[createAnimationTimer] Created TahoeTimerTarget class\n");
+        fflush(stderr);
+    }
+    
+    // Allocate instance of timer target class.
+    SEL allocSel = sel_registerName("alloc");
+    if (allocSel == NULL) {
+        fprintf(stderr, "[createAnimationTimer] alloc selector not found\n");
+        fflush(stderr);
+        return NULL;
+    }
+    
+    id timerTarget = ((id (*)(Class, SEL))objc_msgSend)(timerTargetClass, allocSel);
+    if (timerTarget == NULL) {
+        fprintf(stderr, "[createAnimationTimer] Failed to allocate timer target\n");
+        fflush(stderr);
+        return NULL;
+    }
+    
+    SEL initSel = sel_registerName("init");
+    if (initSel == NULL) {
+        fprintf(stderr, "[createAnimationTimer] init selector not found\n");
+        fflush(stderr);
+        return NULL;
+    }
+    
+    id initializedTarget = ((id (*)(id, SEL))objc_msgSend)(timerTarget, initSel);
+    if (initializedTarget == NULL) {
+        fprintf(stderr, "[createAnimationTimer] Failed to initialize timer target\n");
+        fflush(stderr);
+        return NULL;
+    }
+    
+    // Store window_ptr as associated object on target.
+    void* window_ptr_obj = (void*)(uintptr_t)window_ptr;
+    objc_setAssociatedObject(initializedTarget, "windowPtr", (id)window_ptr_obj, OBJC_ASSOCIATION_ASSIGN);
+    
+    // Create timer with userInfo containing window_ptr (wrapped in NSNumber).
+    Class NSNumberClass = objc_getClass("NSNumber");
+    if (NSNumberClass == NULL) {
+        fprintf(stderr, "[createAnimationTimer] NSNumber class not found\n");
+        fflush(stderr);
+        return NULL;
+    }
+    
+    SEL numberWithUnsignedLongLongSel = sel_registerName("numberWithUnsignedLongLong:");
+    if (numberWithUnsignedLongLongSel == NULL) {
+        fprintf(stderr, "[createAnimationTimer] numberWithUnsignedLongLong: selector not found\n");
+        fflush(stderr);
+        return NULL;
+    }
+    
+    id userInfo = ((id (*)(Class, SEL, unsigned long long))objc_msgSend)(NSNumberClass, numberWithUnsignedLongLongSel, window_ptr);
+    if (userInfo == NULL) {
+        fprintf(stderr, "[createAnimationTimer] Failed to create NSNumber for userInfo\n");
+        fflush(stderr);
+        return NULL;
+    }
+    
+    // Add tahoeTimerTick: method to the class if it doesn't exist.
+    // We'll add it every time (class_addMethod returns NO if method already exists, which is fine).
+    SEL tickSel = sel_registerName("tahoeTimerTick:");
+    if (tickSel == NULL) {
+        fprintf(stderr, "[createAnimationTimer] Failed to register tick selector\n");
+        fflush(stderr);
+        return NULL;
+    }
+    
+    // Get method type encoding: "v@:@" means (void return, id self, SEL _cmd, id timer)
+    const char* methodTypes = "v@:@";
+    
+    // Add method to class.
+    BOOL methodAdded = class_addMethod(timerTargetClass, tickSel, (IMP)tahoeTimerTickImpl, methodTypes);
+    if (!methodAdded) {
+        // Method might already exist, which is fine - we'll use the existing one.
+        fprintf(stderr, "[createAnimationTimer] Method tahoeTimerTick: already exists or failed to add (continuing)\n");
+        fflush(stderr);
+    } else {
+        fprintf(stderr, "[createAnimationTimer] Added tahoeTimerTick: method to TahoeTimerTarget class\n");
+        fflush(stderr);
+    }
+    
+    // Create timer using scheduledTimerWithTimeInterval:target:selector:userInfo:repeats:
+    // Note: scheduledTimerWithTimeInterval:target:selector:userInfo:repeats: is a class method.
+    SEL scheduledTimerSel = sel_registerName("scheduledTimerWithTimeInterval:target:selector:userInfo:repeats:");
+    if (scheduledTimerSel == NULL) {
+        fprintf(stderr, "[createAnimationTimer] scheduledTimerWithTimeInterval:target:selector:userInfo:repeats: selector not found\n");
+        fflush(stderr);
+        return NULL;
+    }
+    
+    // Call class method: [NSTimer scheduledTimerWithTimeInterval:interval target:initializedTarget selector:tickSel userInfo:userInfo repeats:YES]
+    Class NSTimerClass = objc_getClass("NSTimer");
+    if (NSTimerClass == NULL) {
+        fprintf(stderr, "[createAnimationTimer] NSTimer class not found\n");
+        fflush(stderr);
+        return NULL;
+    }
+    
+    // scheduledTimerWithTimeInterval:target:selector:userInfo:repeats: signature:
+    // + (NSTimer *)scheduledTimerWithTimeInterval:(NSTimeInterval)ti target:(id)aTarget selector:(SEL)aSelector userInfo:(id)userInfo repeats:(BOOL)yesOrNo
+    id timer = ((id (*)(Class, SEL, double, id, SEL, id, BOOL))objc_msgSend)(
+        NSTimerClass,
+        scheduledTimerSel,
+        interval,
+        initializedTarget,
+        tickSel,
+        userInfo,
+        YES // repeats
+    );
+    
+    if (timer == NULL) {
+        fprintf(stderr, "[createAnimationTimer] Failed to create NSTimer\n");
+        fflush(stderr);
+        return NULL;
+    }
+    
+    fprintf(stderr, "[createAnimationTimer] Created NSTimer successfully at: %p\n", timer);
+    fflush(stderr);
+    
+    return timer;
 }
