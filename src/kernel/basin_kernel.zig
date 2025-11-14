@@ -440,6 +440,11 @@ pub const BasinKernel = struct {
     /// Why: Track channel ID allocation (1-based, 0 is invalid).
     next_channel_id: u64 = 1,
     
+    /// System time (nanoseconds since boot).
+    /// Why: Track system time for clock_gettime and sleep_until syscalls.
+    /// Tiger Style: Static allocation, explicit time tracking.
+    system_time_ns: u64 = 0,
+    
     /// Initialize Basin Kernel.
     /// Why: Explicit initialization, validate kernel state.
     pub fn init() BasinKernel {
@@ -1864,25 +1869,28 @@ pub const BasinKernel = struct {
             return BasinError.invalid_argument; // Timespec exceeds VM memory
         }
         
-        // TODO: Implement actual time retrieval (when timer is implemented).
-        // For now, return stub (zero timestamp).
-        // Why: Simple stub - matches current kernel development stage.
-        // Note: In full implementation, we would:
-        // - Get current time from system timer (SBI timer or hardware clock)
-        // - Write seconds and nanoseconds to timespec structure
-        // - Handle different clock types (monotonic vs realtime)
+        // Get current system time (nanoseconds since boot).
+        const current_time_ns = self.system_time_ns;
         
-        // Stub: Return zero timestamp (simple implementation).
-        const seconds: u64 = 0;
-        const nanoseconds: u64 = 0;
+        // Convert nanoseconds to seconds and nanoseconds.
+        const NANOSECONDS_PER_SECOND: u64 = 1000000000;
+        const seconds = current_time_ns / NANOSECONDS_PER_SECOND;
+        const nanoseconds = current_time_ns % NANOSECONDS_PER_SECOND;
+        
+        // Assert: Nanoseconds must be valid (0-999999999).
+        std.debug.assert(nanoseconds < NANOSECONDS_PER_SECOND);
+        
+        // Write timespec structure (simulated - in real implementation, would write to VM memory).
+        // For now, just validate the values.
+        // Note: In full implementation, would write:
+        //   - seconds at timespec_ptr (u64)
+        //   - nanoseconds at timespec_ptr + 8 (u64)
+        
         const result = SyscallResult.ok(seconds);
         
         // Assert: result must be success (not error).
         std.debug.assert(result == .success);
         std.debug.assert(result.success == seconds);
-        
-        // Assert: Nanoseconds must be valid (0-999999999).
-        std.debug.assert(nanoseconds < 1000000000);
         
         return result;
     }
@@ -1904,23 +1912,34 @@ pub const BasinKernel = struct {
         _ = _arg4;
         
         // Assert: timestamp must be valid (non-zero, reasonable value).
-        // Note: Timestamp is nanoseconds since epoch (or boot, depending on clock type).
-        // For now, accept any non-zero value (validation depends on clock implementation).
+        // Note: Timestamp is nanoseconds since boot (monotonic clock).
         if (timestamp == 0) {
             return BasinError.invalid_argument; // Zero timestamp (invalid)
         }
         
-        // TODO: Implement actual sleep until timestamp (when timer is implemented).
-        // For now, return stub success (immediate return).
-        // Why: Simple stub - matches current kernel development stage.
-        // Note: In full implementation, we would:
-        // - Get current time from system timer
-        // - Calculate sleep duration (timestamp - current_time)
-        // - Sleep until timestamp is reached
-        // - Return error if timestamp is in the past
-        // - Handle timer interrupts/wakeups
+        // Get current system time (nanoseconds since boot).
+        const current_time_ns = self.system_time_ns;
         
-        // Stub: Return success immediately (simple implementation).
+        // Assert: Timestamp must be in the future (or equal to current time).
+        if (timestamp < current_time_ns) {
+            return BasinError.invalid_argument; // Timestamp in the past
+        }
+        
+        // Calculate sleep duration (nanoseconds to wait).
+        const sleep_duration_ns = timestamp - current_time_ns;
+        
+        // For now, update system time to timestamp (simplified implementation).
+        // In full implementation, would:
+        // - Schedule wakeup at timestamp
+        // - Put process to sleep
+        // - Wake up when timer interrupt fires
+        // - Update system_time_ns via timer interrupt handler
+        self.system_time_ns = timestamp;
+        
+        // Assert: System time must be updated correctly.
+        std.debug.assert(self.system_time_ns == timestamp);
+        std.debug.assert(self.system_time_ns >= current_time_ns);
+        
         const result = SyscallResult.ok(0);
         
         // Assert: result must be success (not error).
