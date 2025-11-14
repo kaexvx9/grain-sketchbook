@@ -165,18 +165,15 @@ our Tahoe aesthetic, reminding us to keep ethical fashion signal in view
            - ✅ Comprehensive assertions (Tiger Style)
            - ✅ Zero compiler warnings, all tests passing
            - Location: `src/kernel/basin_kernel.zig` → `ProcessEntry` struct, `processes` table
-         - **Phase 6: IPC Foundation** 🔥 **IN PROGRESS** 🎯 **CURRENT PRIORITY**:
-           - **Implementation Plan**:
-             - Channel table structure (static array, max 32 entries)
-             - Each entry: channel ID, message queue (circular buffer), senders/receivers
-             - Update `channel_create` syscall: Allocate channel entry, initialize message queue, return channel ID
-             - Update `channel_send` syscall: Look up channel, copy message to queue, return success
-             - Update `channel_recv` syscall: Look up channel, copy message from queue, return bytes received
-             - Message queues (circular buffers, max message size 64KB)
-             - Tiger Style: Static allocation, comprehensive assertions
-           - **Why Next**: Foundation for inter-process communication, needed for process coordination
-           - **Location**: `src/kernel/basin_kernel.zig` → add channel table structure
-         - **Phase 7: Timer Integration** 🔥 **NEXT PRIORITY**:
+         - **Phase 6: IPC Foundation** ✅ **COMPLETE**:
+           - ✅ Implemented channel table (static array, max 32 entries)
+           - ✅ Updated channel_create/send/recv syscalls to use actual table
+           - ✅ Message queues (circular buffers, max 32 messages, 64KB per message)
+           - ✅ Simple allocator for channel IDs (next_channel_id, 1-based)
+           - ✅ Comprehensive assertions (Tiger Style)
+           - ✅ Zero compiler warnings, all tests passing
+           - Location: `src/kernel/basin_kernel.zig` → `ChannelEntry` struct, `channels` table, `MessageQueue` struct
+         - **Phase 7: Timer Integration** 🔥 **IN PROGRESS** 🎯 **CURRENT PRIORITY**:
            - **Implementation Plan**:
              - Timer state: Track system time (nanoseconds since boot)
              - Update `clock_gettime` syscall: Get current time from timer state, write to timespec structure
