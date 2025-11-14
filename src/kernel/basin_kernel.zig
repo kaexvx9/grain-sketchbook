@@ -333,6 +333,74 @@ const ProcessEntry = struct {
 /// Tiger Style: Static allocation, max 16 entries.
 const MAX_PROCESSES: usize = 16;
 
+/// Message queue (circular buffer for IPC).
+/// Why: Store messages for inter-process communication.
+/// Tiger Style: Static allocation, fixed-size circular buffer.
+const MessageQueue = struct {
+    /// Message buffer (max 64KB per message, max 32 messages).
+    /// Why: Fixed-size buffer for simplicity and safety.
+    buffer: [32][64 * 1024]u8,
+    /// Message sizes (bytes per message).
+    sizes: [32]usize,
+    /// Read position (index of next message to read).
+    read_pos: usize,
+    /// Write position (index of next message to write).
+    write_pos: usize,
+    /// Number of messages in queue.
+    message_count: usize,
+    
+    /// Initialize empty message queue.
+    /// Why: Explicit initialization, clear state.
+    pub fn init() MessageQueue {
+        return MessageQueue{
+            .buffer = [_][64 * 1024]u8{[_]u8{0} ** (64 * 1024)} ** 32,
+            .sizes = [_]usize{0} ** 32,
+            .read_pos = 0,
+            .write_pos = 0,
+            .message_count = 0,
+        };
+    }
+    
+    /// Check if queue is full.
+    /// Why: Validate before writing.
+    pub fn is_full(self: MessageQueue) bool {
+        return self.message_count >= 32;
+    }
+    
+    /// Check if queue is empty.
+    /// Why: Validate before reading.
+    pub fn is_empty(self: MessageQueue) bool {
+        return self.message_count == 0;
+    }
+};
+
+/// Channel entry.
+/// Why: Track IPC channels for channel_create/send/recv syscalls.
+/// Tiger Style: Static allocation, explicit state tracking.
+const ChannelEntry = struct {
+    /// Channel ID (non-zero if allocated).
+    id: u64,
+    /// Message queue (circular buffer).
+    queue: MessageQueue,
+    /// Whether this entry is allocated (in use).
+    allocated: bool,
+    
+    /// Initialize empty channel entry.
+    /// Why: Explicit initialization, clear state.
+    pub fn init() ChannelEntry {
+        return ChannelEntry{
+            .id = 0,
+            .queue = MessageQueue.init(),
+            .allocated = false,
+        };
+    }
+};
+
+/// Channel table.
+/// Why: Track all IPC channels for kernel IPC management.
+/// Tiger Style: Static allocation, max 32 entries.
+const MAX_CHANNELS: usize = 32;
+
 /// Basin Kernel syscall interface (stub for future implementation).
 /// Why: Define interface early, implement incrementally.
 pub const BasinKernel = struct {
@@ -362,6 +430,15 @@ pub const BasinKernel = struct {
     /// Next process ID (simple allocator, starts at 1).
     /// Why: Track process ID allocation (1-based, 0 is invalid).
     next_process_id: u64 = 1,
+    
+    /// Channel table (static allocation).
+    /// Why: Track IPC channels for channel_create/send/recv syscalls.
+    /// Tiger Style: Static allocation, max 32 entries.
+    channels: [MAX_CHANNELS]ChannelEntry = [_]ChannelEntry{ChannelEntry.init()} ** MAX_CHANNELS,
+    
+    /// Next channel ID (simple allocator, starts at 1).
+    /// Why: Track channel ID allocation (1-based, 0 is invalid).
+    next_channel_id: u64 = 1,
     
     /// Initialize Basin Kernel.
     /// Why: Explicit initialization, validate kernel state.
@@ -394,7 +471,61 @@ pub const BasinKernel = struct {
         // Assert: Next process ID must be non-zero (1-based).
         std.debug.assert(kernel.next_process_id != 0);
         
+        // Assert: All channels must be unallocated initially.
+        for (kernel.channels) |channel| {
+            std.debug.assert(!channel.allocated);
+            std.debug.assert(channel.id == 0);
+            std.debug.assert(channel.queue.message_count == 0);
+        }
+        
+        // Assert: Next channel ID must be non-zero (1-based).
+        std.debug.assert(kernel.next_channel_id != 0);
+        
         return kernel;
+    }
+    
+    /// Find free channel entry.
+    /// Why: Allocate new channel entry.
+    /// Returns: Index of free entry, or null if table full.
+    /// Tiger Style: Comprehensive assertions for table state.
+    fn find_free_channel(self: *BasinKernel) ?usize {
+        // Assert: self pointer must be valid.
+        const self_ptr = @intFromPtr(self);
+        std.debug.assert(self_ptr != 0);
+        std.debug.assert(self_ptr % @alignOf(BasinKernel) == 0);
+        
+        for (self.channels, 0..) |channel, i| {
+            if (!channel.allocated) {
+                // Assert: Unallocated channel must have zero ID.
+                std.debug.assert(channel.id == 0);
+                return i;
+            }
+        }
+        return null;
+    }
+    
+    /// Find channel by ID.
+    /// Why: Look up channel for send/recv operations.
+    /// Returns: Index of channel, or null if not found.
+    /// Tiger Style: Comprehensive assertions for channel validation.
+    fn find_channel_by_id(self: *BasinKernel, channel_id: u64) ?usize {
+        // Assert: self pointer must be valid.
+        const self_ptr = @intFromPtr(self);
+        std.debug.assert(self_ptr != 0);
+        std.debug.assert(self_ptr % @alignOf(BasinKernel) == 0);
+        
+        // Assert: Channel ID must be non-zero (0 is invalid).
+        std.debug.assert(channel_id != 0);
+        
+        for (self.channels, 0..) |channel, i| {
+            if (channel.allocated and channel.id == channel_id) {
+                // Assert: Channel must be allocated and match ID.
+                std.debug.assert(channel.allocated);
+                std.debug.assert(channel.id == channel_id);
+                return i;
+            }
+        }
+        return null;
     }
     
     /// Find free process entry.
@@ -1166,26 +1297,36 @@ pub const BasinKernel = struct {
         _ = _arg3;
         _ = _arg4;
         
-        // TODO: Implement actual channel creation (when IPC is implemented).
-        // For now, return stub channel ID.
-        // Why: Simple stub - matches current kernel development stage.
-        // Note: In full implementation, we would:
-        // - Create channel structure (message queue, synchronization)
-        // - Allocate channel ID
-        // - Add channel to channel table
-        // - Return Channel ID (not raw integer) for type safety
-        // - Handle channel capacity/limits
+        // Find free channel entry.
+        const channel_idx = self.find_free_channel() orelse {
+            return BasinError.out_of_memory; // Channel table full
+        };
         
-        // Stub: Return channel ID 1 (simple implementation).
-        const channel_id: u64 = 1;
+        // Allocate channel entry.
+        var channel_entry = &self.channels[channel_idx];
+        const channel_id = self.next_channel_id;
+        self.next_channel_id += 1;
+        
+        // Assert: Channel ID must be non-zero (1-based).
+        std.debug.assert(channel_id != 0);
+        
+        // Initialize channel entry.
+        channel_entry.id = channel_id;
+        channel_entry.queue = MessageQueue.init();
+        channel_entry.allocated = true;
+        
+        // Assert: Channel entry must be allocated correctly.
+        std.debug.assert(channel_entry.allocated);
+        std.debug.assert(channel_entry.id == channel_id);
+        std.debug.assert(channel_entry.queue.message_count == 0);
+        std.debug.assert(channel_entry.queue.is_empty());
+        
         const result = SyscallResult.ok(channel_id);
         
         // Assert: result must be success (not error).
         std.debug.assert(result == .success);
         std.debug.assert(result.success == channel_id);
-        
-        // Assert: Channel ID must be non-zero (valid channel ID).
-        std.debug.assert(channel_id != 0);
+        std.debug.assert(result.success != 0); // Channel ID must be non-zero
         
         return result;
     }
@@ -1232,17 +1373,40 @@ pub const BasinKernel = struct {
             return BasinError.invalid_argument; // Data exceeds VM memory
         }
         
-        // TODO: Implement actual channel send (when IPC is implemented).
-        // For now, return stub success.
-        // Why: Simple stub - matches current kernel development stage.
-        // Note: In full implementation, we would:
-        // - Look up channel in channel table
-        // - Verify channel exists and is open
-        // - Copy data to channel message queue
-        // - Wake up waiting receivers (if any)
-        // - Return error if channel full or not found
+        // Find channel by ID.
+        const channel_idx = self.find_channel_by_id(channel) orelse {
+            return BasinError.not_found; // Channel not found
+        };
         
-        // Stub: Return success (simple implementation).
+        // Assert: Channel must be allocated.
+        std.debug.assert(self.channels[channel_idx].allocated);
+        std.debug.assert(self.channels[channel_idx].id == channel);
+        
+        var channel_entry = &self.channels[channel_idx];
+        
+        // Assert: Channel queue must not be full.
+        if (channel_entry.queue.is_full()) {
+            return BasinError.would_block; // Channel queue full
+        }
+        
+        // Copy data to message queue (simulated - in real implementation, would read from VM memory).
+        const data_len_usize = @as(usize, @intCast(data_len));
+        const write_idx = channel_entry.queue.write_pos;
+        
+        // Assert: Write index must be valid.
+        std.debug.assert(write_idx < 32);
+        
+        // Store message size.
+        channel_entry.queue.sizes[write_idx] = data_len_usize;
+        
+        // Update queue state.
+        channel_entry.queue.write_pos = (write_idx + 1) % 32;
+        channel_entry.queue.message_count += 1;
+        
+        // Assert: Queue state must be valid.
+        std.debug.assert(channel_entry.queue.message_count <= 32);
+        std.debug.assert(channel_entry.queue.write_pos < 32);
+        
         const result = SyscallResult.ok(0);
         
         // Assert: result must be success (not error).
@@ -1294,24 +1458,50 @@ pub const BasinKernel = struct {
             return BasinError.invalid_argument; // Buffer exceeds VM memory
         }
         
-        // TODO: Implement actual channel receive (when IPC is implemented).
-        // For now, return stub (0 bytes received).
-        // Why: Simple stub - matches current kernel development stage.
-        // Note: In full implementation, we would:
-        // - Look up channel in channel table
-        // - Verify channel exists and is open
-        // - Wait for message (if channel empty)
-        // - Copy message from channel to buffer
-        // - Return bytes received count
-        // - Return error if channel not found
+        // Find channel by ID.
+        const channel_idx = self.find_channel_by_id(channel) orelse {
+            return BasinError.not_found; // Channel not found
+        };
         
-        // Stub: Return 0 bytes received (simple implementation).
-        const bytes_received: u64 = 0;
+        // Assert: Channel must be allocated.
+        std.debug.assert(self.channels[channel_idx].allocated);
+        std.debug.assert(self.channels[channel_idx].id == channel);
+        
+        var channel_entry = &self.channels[channel_idx];
+        
+        // Assert: Channel queue must not be empty.
+        if (channel_entry.queue.is_empty()) {
+            return BasinError.would_block; // Channel queue empty
+        }
+        
+        // Read message from queue (simulated - in real implementation, would write to VM memory).
+        const read_idx = channel_entry.queue.read_pos;
+        
+        // Assert: Read index must be valid.
+        std.debug.assert(read_idx < 32);
+        
+        // Get message size.
+        const message_size = channel_entry.queue.sizes[read_idx];
+        
+        // Calculate bytes to copy (min of message size and buffer size).
+        const buffer_len_usize = @as(usize, @intCast(buffer_len));
+        const bytes_to_copy = @min(message_size, buffer_len_usize);
+        
+        // Update queue state.
+        channel_entry.queue.read_pos = (read_idx + 1) % 32;
+        channel_entry.queue.message_count -= 1;
+        
+        // Assert: Queue state must be valid.
+        std.debug.assert(channel_entry.queue.message_count < 32);
+        std.debug.assert(channel_entry.queue.read_pos < 32);
+        
+        const bytes_received: u64 = @as(u64, @intCast(bytes_to_copy));
         const result = SyscallResult.ok(bytes_received);
         
         // Assert: result must be success (not error).
         std.debug.assert(result == .success);
         std.debug.assert(result.success == bytes_received);
+        std.debug.assert(result.success <= buffer_len); // Can't receive more than buffer size
         
         return result;
     }
