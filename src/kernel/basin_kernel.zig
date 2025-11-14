@@ -286,6 +286,53 @@ const FileHandle = struct {
 /// Tiger Style: Static allocation, max 64 entries.
 const MAX_HANDLES: usize = 64;
 
+/// Process state enumeration.
+/// Why: Explicit process states instead of magic numbers.
+pub const ProcessState = enum(u8) {
+    running = 0,
+    exited = 1,
+    error = 2,
+};
+
+/// Process entry.
+/// Why: Track processes for spawn/wait syscalls.
+/// Tiger Style: Static allocation, explicit state tracking.
+const ProcessEntry = struct {
+    /// Process ID (non-zero if allocated).
+    id: u64,
+    /// Executable pointer (in VM memory).
+    executable_ptr: u64,
+    /// Executable length (bytes).
+    executable_len: usize,
+    /// Entry point (address to start execution).
+    entry_point: u64,
+    /// Process state (running, exited, error).
+    state: ProcessState,
+    /// Exit status (0-255, valid only if state == exited).
+    exit_status: u8,
+    /// Whether this entry is allocated (in use).
+    allocated: bool,
+    
+    /// Initialize empty process entry.
+    /// Why: Explicit initialization, clear state.
+    pub fn init() ProcessEntry {
+        return ProcessEntry{
+            .id = 0,
+            .executable_ptr = 0,
+            .executable_len = 0,
+            .entry_point = 0,
+            .state = .running,
+            .exit_status = 0,
+            .allocated = false,
+        };
+    }
+};
+
+/// Process table.
+/// Why: Track all processes for kernel process management.
+/// Tiger Style: Static allocation, max 16 entries.
+const MAX_PROCESSES: usize = 16;
+
 /// Basin Kernel syscall interface (stub for future implementation).
 /// Why: Define interface early, implement incrementally.
 pub const BasinKernel = struct {
@@ -306,6 +353,15 @@ pub const BasinKernel = struct {
     /// Next handle ID (simple allocator, starts at 1).
     /// Why: Track handle ID allocation (1-based, 0 is invalid).
     next_handle_id: u64 = 1,
+    
+    /// Process table (static allocation).
+    /// Why: Track processes for spawn/wait syscalls.
+    /// Tiger Style: Static allocation, max 16 entries.
+    processes: [MAX_PROCESSES]ProcessEntry = [_]ProcessEntry{ProcessEntry.init()} ** MAX_PROCESSES,
+    
+    /// Next process ID (simple allocator, starts at 1).
+    /// Why: Track process ID allocation (1-based, 0 is invalid).
+    next_process_id: u64 = 1,
     
     /// Initialize Basin Kernel.
     /// Why: Explicit initialization, validate kernel state.
@@ -329,7 +385,60 @@ pub const BasinKernel = struct {
         // Assert: Next handle ID must be non-zero (1-based).
         std.debug.assert(kernel.next_handle_id != 0);
         
+        // Assert: All processes must be unallocated initially.
+        for (kernel.processes) |process| {
+            std.debug.assert(!process.allocated);
+            std.debug.assert(process.id == 0);
+        }
+        
+        // Assert: Next process ID must be non-zero (1-based).
+        std.debug.assert(kernel.next_process_id != 0);
+        
         return kernel;
+    }
+    
+    /// Find free process entry.
+    /// Why: Allocate new process entry.
+    /// Returns: Index of free entry, or null if table full.
+    /// Tiger Style: Comprehensive assertions for table state.
+    fn find_free_process(self: *BasinKernel) ?usize {
+        // Assert: self pointer must be valid.
+        const self_ptr = @intFromPtr(self);
+        std.debug.assert(self_ptr != 0);
+        std.debug.assert(self_ptr % @alignOf(BasinKernel) == 0);
+        
+        for (self.processes, 0..) |process, i| {
+            if (!process.allocated) {
+                // Assert: Unallocated process must have zero ID.
+                std.debug.assert(process.id == 0);
+                return i;
+            }
+        }
+        return null;
+    }
+    
+    /// Find process by ID.
+    /// Why: Look up process for wait operations.
+    /// Returns: Index of process, or null if not found.
+    /// Tiger Style: Comprehensive assertions for process validation.
+    fn find_process_by_id(self: *BasinKernel, process_id: u64) ?usize {
+        // Assert: self pointer must be valid.
+        const self_ptr = @intFromPtr(self);
+        std.debug.assert(self_ptr != 0);
+        std.debug.assert(self_ptr % @alignOf(BasinKernel) == 0);
+        
+        // Assert: Process ID must be non-zero (0 is invalid).
+        std.debug.assert(process_id != 0);
+        
+        for (self.processes, 0..) |process, i| {
+            if (process.allocated and process.id == process_id) {
+                // Assert: Process must be allocated and match ID.
+                std.debug.assert(process.allocated);
+                std.debug.assert(process.id == process_id);
+                return i;
+            }
+        }
+        return null;
     }
     
     /// Find free handle entry.
@@ -632,28 +741,45 @@ pub const BasinKernel = struct {
             }
         }
         
-        // TODO: Implement actual process creation (when process management is implemented).
-        // For now, return a stub process ID (simple implementation).
-        // Why: Simple stub - matches current kernel development stage.
-        // Note: In full implementation, we would:
-        // - Parse ELF executable header
-        // - Load executable into memory
-        // - Create process structure
-        // - Set up process memory space
-        // - Initialize process registers (PC = entry point)
-        // - Add process to process table
-        // - Return Process ID (not raw integer) for type safety
+        // Find free process entry.
+        const process_idx = self.find_free_process() orelse {
+            return BasinError.out_of_memory; // Process table full
+        };
         
-        // Stub: Return process ID 1 (simple implementation).
-        const process_id: u64 = 1;
+        // Allocate process entry.
+        var process_entry = &self.processes[process_idx];
+        const process_id = self.next_process_id;
+        self.next_process_id += 1;
+        
+        // Assert: Process ID must be non-zero (1-based).
+        std.debug.assert(process_id != 0);
+        
+        // For now, use executable pointer as entry point (simplified).
+        // In full implementation, would parse ELF header to get actual entry point.
+        const entry_point = executable;
+        
+        // Store process information.
+        process_entry.id = process_id;
+        process_entry.executable_ptr = executable;
+        process_entry.executable_len = @as(usize, @intCast(MIN_ELF_SIZE)); // Minimum size for now
+        process_entry.entry_point = entry_point;
+        process_entry.state = .running;
+        process_entry.exit_status = 0;
+        process_entry.allocated = true;
+        
+        // Assert: Process entry must be allocated correctly.
+        std.debug.assert(process_entry.allocated);
+        std.debug.assert(process_entry.id == process_id);
+        std.debug.assert(process_entry.executable_ptr == executable);
+        std.debug.assert(process_entry.entry_point == entry_point);
+        std.debug.assert(process_entry.state == .running);
+        
         const result = SyscallResult.ok(process_id);
         
         // Assert: result must be success (not error).
         std.debug.assert(result == .success);
         std.debug.assert(result.success == process_id);
-        
-        // Assert: Process ID must be non-zero (valid process ID).
-        std.debug.assert(process_id != 0);
+        std.debug.assert(result.success != 0); // Process ID must be non-zero
         
         return result;
     }
@@ -720,25 +846,33 @@ pub const BasinKernel = struct {
             return BasinError.invalid_argument; // Invalid process ID
         }
         
-        // TODO: Implement actual process waiting (when process management is implemented).
-        // For now, return stub success with exit status 0.
-        // Why: Simple stub - matches current kernel development stage.
-        // Note: In full implementation, we would:
-        // - Look up process in process table
-        // - Wait for process to complete (if not already completed)
-        // - Return process exit status
-        // - Return error if process not found
+        // Find process by ID.
+        const process_idx = self.find_process_by_id(process) orelse {
+            return BasinError.not_found; // Process not found
+        };
         
-        // Stub: Return success with exit status 0 (simple implementation).
-        const exit_status: u64 = 0;
+        // Assert: Process must be allocated.
+        std.debug.assert(self.processes[process_idx].allocated);
+        std.debug.assert(self.processes[process_idx].id == process);
+        
+        var process_entry = &self.processes[process_idx];
+        
+        // For now, return exit status 0 (process is running).
+        // In full implementation, would wait for process to complete if still running.
+        const exit_status: u64 = if (process_entry.state == .exited)
+            process_entry.exit_status
+        else
+            0; // Process still running, return 0 (stub behavior)
+        
+        // Assert: Exit status must be valid (0-255).
+        std.debug.assert(exit_status <= 255);
+        
         const result = SyscallResult.ok(exit_status);
         
         // Assert: result must be success (not error).
         std.debug.assert(result == .success);
         std.debug.assert(result.success == exit_status);
-        
-        // Assert: Exit status must be valid (0-255).
-        std.debug.assert(exit_status <= 255);
+        std.debug.assert(result.success <= 255); // Exit status must be valid
         
         return result;
     }

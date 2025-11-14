@@ -157,21 +157,41 @@ our Tahoe aesthetic, reminding us to keep ethical fashion signal in view
            - ✅ Comprehensive assertions (Tiger Style)
            - ✅ Zero compiler warnings, all tests passing
            - Location: `src/kernel/basin_kernel.zig` → `FileHandle` struct, `handles` table
-         - **Phase 5: Process Management Foundation** 🔥 **MEDIUM PRIORITY**:
-           - Implement process table (static array, max 16 entries)
-           - Update spawn/wait syscalls to use actual table
-           - Track processes (ID, executable, entry point, state, exit status)
-           - Location: `src/kernel/basin_kernel.zig` → add process table structure
-         - **Phase 6: IPC Foundation** 🔥 **MEDIUM PRIORITY**:
-           - Implement channel table (static array, max 32 entries)
-           - Update channel_create/send/recv syscalls to use actual table
-           - Message queues (circular buffers)
-           - Location: `src/kernel/basin_kernel.zig` → add channel table structure
-         - **Phase 7: Timer Integration** 🔥 **MEDIUM PRIORITY**:
-           - Integrate SBI timer for time operations
-           - Update clock_gettime/sleep_until syscalls to use timer
-           - Track system time (nanoseconds since boot)
-           - Location: `src/kernel/basin_kernel.zig` → add timer state
+         - **Phase 5: Process Management Foundation** 🔥 **IN PROGRESS** 🎯 **CURRENT PRIORITY**:
+           - **Implementation Plan**:
+             - Process table structure (static array, max 16 entries)
+             - Each entry: process ID, executable pointer, entry point, state, exit status
+             - Update `spawn` syscall: Allocate process entry, store executable/entry point, return process ID
+             - Update `wait` syscall: Look up process, return exit status
+             - Process state tracking (running, exited, etc.)
+             - Tiger Style: Static allocation, comprehensive assertions
+           - **Why Next**: Foundation for multi-process kernel (future), needed for process lifecycle management
+           - **Location**: `src/kernel/basin_kernel.zig` → add process table structure
+         - **Phase 6: IPC Foundation** 🔥 **NEXT PRIORITY**:
+           - **Implementation Plan**:
+             - Channel table structure (static array, max 32 entries)
+             - Each entry: channel ID, message queue (circular buffer), senders/receivers
+             - Update `channel_create` syscall: Allocate channel entry, initialize message queue, return channel ID
+             - Update `channel_send` syscall: Look up channel, copy message to queue, return success
+             - Update `channel_recv` syscall: Look up channel, copy message from queue, return bytes received
+             - Message queues (circular buffers, max message size 64KB)
+             - Tiger Style: Static allocation, comprehensive assertions
+           - **Why Next**: Foundation for inter-process communication, needed for process coordination
+           - **Location**: `src/kernel/basin_kernel.zig` → add channel table structure
+         - **Phase 7: Timer Integration** 🔥 **NEXT PRIORITY**:
+           - **Implementation Plan**:
+             - Timer state: Track system time (nanoseconds since boot)
+             - Update `clock_gettime` syscall: Get current time from timer state, write to timespec structure
+             - Update `sleep_until` syscall: Get current time, calculate sleep duration, sleep until timestamp
+             - SBI timer integration (for future: timer interrupts)
+             - Tiger Style: Static allocation, comprehensive assertions
+           - **Why Next**: Foundation for time-based operations, needed for scheduling, timeouts
+           - **Location**: `src/kernel/basin_kernel.zig` → add timer state
+         - **007 Fuzz Test: File System Foundation** 🔥 **AFTER PHASE 5-7**:
+           - Create randomized fuzz test for open/read/write/close operations
+           - Test handle table operations, edge cases, state consistency
+           - Follow same pattern as 006 fuzz test
+           - **Location**: `tests/007_fuzz.zig` → file system fuzz testing
          - **Reference**: `docs/next_implementation_phases.md` for detailed phase plans
      - **Single-Threaded Architecture**: ✅ All layers single-threaded, no locks, deterministic
      - **Safety-First Patterns**: ✅ Comprehensive assertions, type-safe interfaces, explicit error handling, static allocation
