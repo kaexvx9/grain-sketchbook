@@ -814,19 +814,16 @@ pub const TahoeSandbox = struct {
                 const char_x = inst_x + col * 8;
                 const char_y = inst_y + line * 12;
                 
-                // Draw character pixels (simple 8x12 bitmap pattern for better visibility).
-                // Why: Make text clearly visible with a denser pixel pattern.
-                var char_cy: u32 = 0;
-                while (char_cy < 12 and char_y + char_cy < buffer_height) : (char_cy += 1) {
-                    var char_cx: u32 = 0;
-                    while (char_cx < 8 and char_x + char_cx < buffer_width) : (char_cx += 1) {
-                        const pixel_offset = ((char_y + char_cy) * buffer_width + (char_x + char_cx)) * 4;
-                        if (pixel_offset + 3 < buffer.len) {
-                            // Denser pattern: draw more pixels for better visibility.
-                            // Use character code to create a visible pattern (every 2nd pixel horizontally, every row).
-                            const should_draw = (ch >= 32 and ch <= 126) and 
-                                ((char_cx % 2 == 0) or (char_cy % 2 == 0));
-                            if (should_draw) {
+                // Draw character as solid white rectangle (for maximum visibility).
+                // Why: Make text clearly visible - draw solid blocks instead of sparse patterns.
+                if (ch >= 32 and ch <= 126) {
+                    var char_cy: u32 = 0;
+                    while (char_cy < 12 and char_y + char_cy < buffer_height) : (char_cy += 1) {
+                        var char_cx: u32 = 0;
+                        while (char_cx < 8 and char_x + char_cx < buffer_width) : (char_cx += 1) {
+                            const pixel_offset = ((char_y + char_cy) * buffer_width + (char_x + char_cx)) * 4;
+                            if (pixel_offset + 3 < buffer.len) {
+                                // Draw solid white pixels for maximum visibility.
                                 buffer[pixel_offset + 0] = 0xFF; // R
                                 buffer[pixel_offset + 1] = 0xFF; // G
                                 buffer[pixel_offset + 2] = 0xFF; // B
@@ -1021,17 +1018,16 @@ pub const TahoeSandbox = struct {
                     const char_x = stdout_text_x + stdout_col * 8;
                     const char_y = stdout_text_y + stdout_line * 12;
                     
-                    // Draw character pixels (denser pattern for better visibility).
-                    var char_cy: u32 = 0;
-                    while (char_cy < 12 and char_y + char_cy < vm_pane_y + vm_pane_height) : (char_cy += 1) {
-                        var char_cx: u32 = 0;
-                        while (char_cx < 8 and char_x + char_cx < vm_pane_x + vm_pane_width) : (char_cx += 1) {
-                            const pixel_offset = ((char_y + char_cy) * buffer_width + (char_x + char_cx)) * 4;
-                            if (pixel_offset + 3 < buffer.len) {
-                                // Denser pattern: draw more pixels for better visibility.
-                                const should_draw = (ch >= 32 and ch <= 126) and 
-                                    ((char_cx % 2 == 0) or (char_cy % 2 == 0));
-                                if (should_draw) {
+                    // Draw character as solid white rectangle (for maximum visibility).
+                    // Why: Make text clearly visible - draw solid blocks instead of sparse patterns.
+                    if (ch >= 32 and ch <= 126) {
+                        var char_cy: u32 = 0;
+                        while (char_cy < 12 and char_y + char_cy < vm_pane_y + vm_pane_height) : (char_cy += 1) {
+                            var char_cx: u32 = 0;
+                            while (char_cx < 8 and char_x + char_cx < vm_pane_x + vm_pane_width) : (char_cx += 1) {
+                                const pixel_offset = ((char_y + char_cy) * buffer_width + (char_x + char_cx)) * 4;
+                                if (pixel_offset + 3 < buffer.len) {
+                                    // Draw solid white pixels for maximum visibility.
                                     buffer[pixel_offset + 0] = 0xFF; // R
                                     buffer[pixel_offset + 1] = 0xFF; // G
                                     buffer[pixel_offset + 2] = 0xFF; // B
