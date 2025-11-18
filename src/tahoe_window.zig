@@ -711,10 +711,12 @@ pub const TahoeSandbox = struct {
         
         // Debug: Draw a bright red rectangle in top-left corner to verify rendering works.
         // Why: Verify that the buffer is being drawn and presented correctly.
+        // Also fill entire buffer with a test pattern to verify buffer is being read.
+        std.debug.print("[tahoe_window] Drawing debug rectangle and test pattern...\n", .{});
         const debug_rect_x: u32 = 10;
         const debug_rect_y: u32 = 10;
-        const debug_rect_w: u32 = 100;
-        const debug_rect_h: u32 = 50;
+        const debug_rect_w: u32 = 200;
+        const debug_rect_h: u32 = 100;
         var debug_y: u32 = debug_rect_y;
         while (debug_y < debug_rect_y + debug_rect_h and debug_y < buffer_height) : (debug_y += 1) {
             var debug_x: u32 = debug_rect_x;
@@ -728,6 +730,39 @@ pub const TahoeSandbox = struct {
                     buffer[pixel_offset + 3] = 0xFF; // A
                 }
             }
+        }
+        
+        // Also draw a green rectangle to verify multiple colors work.
+        const green_rect_x: u32 = 250;
+        const green_rect_y: u32 = 10;
+        const green_rect_w: u32 = 200;
+        const green_rect_h: u32 = 100;
+        var green_y: u32 = green_rect_y;
+        while (green_y < green_rect_y + green_rect_h and green_y < buffer_height) : (green_y += 1) {
+            var green_x: u32 = green_rect_x;
+            while (green_x < green_rect_x + green_rect_w and green_x < buffer_width) : (green_x += 1) {
+                const pixel_offset = (green_y * buffer_width + green_x) * 4;
+                if (pixel_offset + 3 < buffer.len) {
+                    // Bright green rectangle.
+                    buffer[pixel_offset + 0] = 0x00; // R
+                    buffer[pixel_offset + 1] = 0xFF; // G
+                    buffer[pixel_offset + 2] = 0x00; // B
+                    buffer[pixel_offset + 3] = 0xFF; // A
+                }
+            }
+        }
+        
+        // Verify buffer was written by checking a pixel.
+        const test_pixel_offset = (debug_rect_y * buffer_width + debug_rect_x) * 4;
+        if (test_pixel_offset + 3 < buffer.len) {
+            std.debug.print("[tahoe_window] Test pixel at ({d},{d}): R={d}, G={d}, B={d}, A={d}\n", .{
+                debug_rect_x,
+                debug_rect_y,
+                buffer[test_pixel_offset + 0],
+                buffer[test_pixel_offset + 1],
+                buffer[test_pixel_offset + 2],
+                buffer[test_pixel_offset + 3],
+            });
         }
         
         // Draw interactive UI elements for visual feedback.
