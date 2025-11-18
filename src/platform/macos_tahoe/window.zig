@@ -449,9 +449,11 @@ pub const Window = struct {
         defer cg.CGDataProviderRelease(data_provider);
         
         // Create CGImage.
-        // Note: On little-endian (ARM64/x86_64), kCGBitmapByteOrder32Little means RGBA byte order.
-        // kCGImageAlphaPremultipliedLast means alpha is in the last byte and premultiplied.
-        // However, we're writing non-premultiplied RGBA, so we should use kCGImageAlphaLast.
+        // Note: Our buffer is RGBA format: [R, G, B, A] per pixel, non-premultiplied.
+        // On little-endian macOS, bytes are stored as [R, G, B, A] in memory.
+        // kCGImageAlphaLast means: RGBA with non-premultiplied alpha (matches our buffer).
+        // kCGBitmapByteOrder32Little means: little-endian byte order (native on macOS).
+        // This should match our buffer format exactly.
         const cg_image = cg.CGImageCreate(
             width,
             height,
