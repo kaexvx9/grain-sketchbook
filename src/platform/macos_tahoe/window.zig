@@ -450,10 +450,12 @@ pub const Window = struct {
         
         // Create CGImage.
         // Note: Our buffer is RGBA format: [R, G, B, A] per pixel, non-premultiplied.
-        // On little-endian macOS, bytes are stored as [R, G, B, A] in memory.
-        // kCGImageAlphaLast means: RGBA with non-premultiplied alpha (matches our buffer).
-        // kCGBitmapByteOrder32Little means: little-endian byte order (native on macOS).
-        // This should match our buffer format exactly.
+        // On little-endian systems, when we write [R, G, B, A] as bytes, the 32-bit word is 0xAABBGGRR.
+        // But Core Graphics might expect 0xRRGGBBAA format.
+        // Try using kCGBitmapByteOrderDefault (0) which should use native byte order.
+        // Or we might need BGRA format instead.
+        // Let's try without explicit byte order first.
+        const bitmap_info: u32 = cg.kCGImageAlphaLast;
         const cg_image = cg.CGImageCreate(
             width,
             height,
@@ -461,7 +463,7 @@ pub const Window = struct {
             32,
             width * 4,
             rgb_color_space,
-            cg.kCGImageAlphaLast | cg.kCGBitmapByteOrder32Little,
+            bitmap_info,
             data_provider,
             null,
             false,
