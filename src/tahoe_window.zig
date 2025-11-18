@@ -67,6 +67,12 @@ pub const TahoeSandbox = struct {
         var aurora = try GrainAurora.init(allocator, "");
         errdefer aurora.deinit();
         
+        // Initialize BasinKernel on heap to avoid stack overflow (large struct with many static arrays).
+        // Why: BasinKernel contains large static allocations (mappings, handles, processes, users).
+        var basin_kernel_instance = try allocator.create(basin_kernel.BasinKernel);
+        errdefer allocator.destroy(basin_kernel_instance);
+        basin_kernel_instance.* = basin_kernel.BasinKernel{};
+        
         var sandbox = TahoeSandbox{
             .allocator = allocator,
             .platform = platform,
@@ -80,6 +86,9 @@ pub const TahoeSandbox = struct {
             .has_focus = false,
             .vm = null,
             .serial_output = .{},
+            .stdout_buffer = [_]u8{0} ** (16 * 1024),
+            .stdout_pos = 0,
+            .basin_kernel_instance = basin_kernel_instance.*,
         };
         
         // Assert: sandbox state must be initialized correctly.
@@ -353,7 +362,8 @@ pub const TahoeSandbox = struct {
                 
                 // Assert: syscall handler must be set correctly.
                 std.debug.assert(vm.syscall_handler != null);
-                std.debug.assert(vm.syscall_user_data == @as(?*anyopaque, @ptrCast(sandbox)));
+                // Note: syscall_user_data is null because we use module-level global_sandbox_ptr instead.
+                std.debug.assert(vm.syscall_user_data == null);
                 
                 // Set serial output handler for VM (SBI console integration).
                 // Why: Wire SBI_CONSOLE_PUTCHAR to serial output for display in GUI VM pane.
