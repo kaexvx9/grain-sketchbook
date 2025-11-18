@@ -472,7 +472,8 @@ pub const Window = struct {
         
         // Verify conversion: check a few pixels.
         const test_idx = (10 * width + 10) * 4; // Red rectangle pixel
-        if (test_idx + 3 < buffer.len) {
+        const bg_idx = (300 * width + 300) * 4; // Background pixel (outside rectangles)
+        if (test_idx + 3 < buffer.len and bg_idx + 3 < buffer.len) {
             std.debug.print("[window] RGBA pixel (10,10): R={d}, G={d}, B={d}, A={d}\n", .{
                 buffer[test_idx + 0],
                 buffer[test_idx + 1],
@@ -484,6 +485,18 @@ pub const Window = struct {
                 bgra_buffer[test_idx + 1], // G
                 bgra_buffer[test_idx + 0], // B in BGRA
                 bgra_buffer[test_idx + 3], // A
+            });
+            std.debug.print("[window] RGBA background (300,300): R={d}, G={d}, B={d}, A={d}\n", .{
+                buffer[bg_idx + 0],
+                buffer[bg_idx + 1],
+                buffer[bg_idx + 2],
+                buffer[bg_idx + 3],
+            });
+            std.debug.print("[window] BGRA background (300,300): R={d}, G={d}, B={d}, A={d}\n", .{
+                bgra_buffer[bg_idx + 2], // R in BGRA
+                bgra_buffer[bg_idx + 1], // G
+                bgra_buffer[bg_idx + 0], // B in BGRA
+                bgra_buffer[bg_idx + 3], // A
             });
         }
         
@@ -503,11 +516,11 @@ pub const Window = struct {
         defer cg.CGDataProviderRelease(data_provider);
         
         // Create CGImage with BGRA format.
-        // Note: Core Graphics on macOS prefers premultiplied alpha for performance.
-        // kCGImageAlphaPremultipliedLast means: BGRA with premultiplied alpha.
-        // Since our alpha is always 255 (fully opaque), premultiplication doesn't change RGB values.
+        // Note: Using non-premultiplied alpha (kCGImageAlphaLast) since we're not premultiplying.
+        // kCGImageAlphaLast means: BGRA with non-premultiplied alpha (alpha in last byte).
         // kCGBitmapByteOrder32Little means: little-endian byte order (native on macOS).
-        const bitmap_info: u32 = cg.kCGImageAlphaPremultipliedLast | cg.kCGBitmapByteOrder32Little;
+        // Why: Core Graphics expects the format to match the actual data format.
+        const bitmap_info: u32 = cg.kCGImageAlphaLast | cg.kCGBitmapByteOrder32Little;
         const cg_image = cg.CGImageCreate(
             width,
             height,
