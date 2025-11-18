@@ -940,15 +940,15 @@ pub const TahoeSandbox = struct {
                     const char_y = stdout_text_y + line * 12;
                     
                     // Draw character pixels (simple pattern for ASCII).
-                    var cy: u32 = 0;
-                    while (cy < 8 and char_y + cy < vm_pane_y + vm_pane_height) : (cy += 1) {
-                        var cx: u32 = 0;
-                        while (cx < 8 and char_x + cx < vm_pane_x + vm_pane_width) : (cx += 1) {
-                            const pixel_offset = ((char_y + cy) * buffer_width + (char_x + cx)) * 4;
+                    var char_cy: u32 = 0;
+                    while (char_cy < 8 and char_y + char_cy < vm_pane_y + vm_pane_height) : (char_cy += 1) {
+                        var char_cx: u32 = 0;
+                        while (char_cx < 8 and char_x + char_cx < vm_pane_x + vm_pane_width) : (char_cx += 1) {
+                            const pixel_offset = ((char_y + char_cy) * buffer_width + (char_x + char_cx)) * 4;
                             if (pixel_offset + 3 < buffer.len) {
                                 // Simple pattern: draw character as white pixels.
                                 // For now, just draw a simple pattern based on character code.
-                                const should_draw = (ch >= 32 and ch <= 126) and ((ch % 2) == (cx % 2));
+                                const should_draw = (ch >= 32 and ch <= 126) and ((ch % 2) == (char_cx % 2));
                                 if (should_draw) {
                                     buffer[pixel_offset + 0] = 0xFF; // R
                                     buffer[pixel_offset + 1] = 0xFF; // G
