@@ -13,7 +13,7 @@ const MAX_PATH_LEN: u32 = 256;
 ///   Output: Exit code 0 on success, non-zero on error
 /// Why: Linker wrapper for Zig linker
 pub fn main() void {
-    const args = @import("userspace_args").Args.init_from_registers();
+    _ = @import("userspace_args").Args.init_from_registers();
     
     // TODO: Implement Zig linker invocation
     // TODO: Parse linker flags and convert to Zig linker flags
