@@ -440,13 +440,35 @@ pub const Window = struct {
         var bgra_buffer = try std.heap.page_allocator.alloc(u8, buffer.len);
         defer std.heap.page_allocator.free(bgra_buffer);
         
+        // Convert all pixels from RGBA to BGRA.
         var i: usize = 0;
+        const pixel_count = buffer.len / 4;
+        std.debug.assert(buffer.len % 4 == 0);
+        std.debug.assert(pixel_count == width * height);
+        
         while (i < buffer.len) : (i += 4) {
             // Convert [R, G, B, A] to [B, G, R, A]
             bgra_buffer[i + 0] = buffer[i + 2]; // B
             bgra_buffer[i + 1] = buffer[i + 1]; // G
             bgra_buffer[i + 2] = buffer[i + 0]; // R
             bgra_buffer[i + 3] = buffer[i + 3]; // A
+        }
+        
+        // Verify conversion: check a few pixels.
+        const test_idx = (10 * width + 10) * 4; // Red rectangle pixel
+        if (test_idx + 3 < buffer.len) {
+            std.debug.print("[window] RGBA pixel (10,10): R={d}, G={d}, B={d}, A={d}\n", .{
+                buffer[test_idx + 0],
+                buffer[test_idx + 1],
+                buffer[test_idx + 2],
+                buffer[test_idx + 3],
+            });
+            std.debug.print("[window] BGRA pixel (10,10): R={d}, G={d}, B={d}, A={d}\n", .{
+                bgra_buffer[test_idx + 2], // R in BGRA
+                bgra_buffer[test_idx + 1], // G
+                bgra_buffer[test_idx + 0], // B in BGRA
+                bgra_buffer[test_idx + 3], // A
+            });
         }
         
         // Create CGColorSpace for RGB.
