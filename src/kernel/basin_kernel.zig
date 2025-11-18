@@ -411,6 +411,53 @@ const MAX_HANDLES: u32 = 64;
 /// Grain Style: Static allocation, max 32 entries.
 const MAX_DIR_HANDLES: u32 = 32;
 
+/// Process state enumeration.
+/// Why: Explicit process states for type safety.
+pub const ProcessState = enum(u8) {
+    /// Process is running (active).
+    running,
+    /// Process has exited (terminated).
+    exited,
+    /// Process slot is free (not allocated).
+    free,
+};
+
+/// Process entry.
+/// Why: Track process information for spawn/wait/exit syscalls.
+/// Grain Style: Static allocation, explicit state tracking.
+const Process = struct {
+    /// Process ID (non-zero if allocated).
+    id: u64,
+    /// Process state (running, exited, free).
+    state: ProcessState,
+    /// Exit status (valid only when state == exited).
+    exit_status: u32,
+    /// Executable pointer (for tracking, not used for execution yet).
+    executable_ptr: u64,
+    /// Executable length (bytes).
+    executable_len: u64,
+    /// Whether this entry is allocated (in use).
+    allocated: bool,
+    
+    /// Initialize empty process entry.
+    /// Why: Explicit initialization, clear state.
+    pub fn init() Process {
+        return Process{
+            .id = 0,
+            .state = .free,
+            .exit_status = 0,
+            .executable_ptr = 0,
+            .executable_len = 0,
+            .allocated = false,
+        };
+    }
+};
+
+/// Process table.
+/// Why: Track all processes for kernel process management.
+/// Grain Style: Static allocation, max 16 entries.
+const MAX_PROCESSES: u32 = 16;
+
 // Compile-time assertions for handle table size.
 comptime {
     std.debug.assert(MAX_HANDLES > 0);
@@ -452,6 +499,15 @@ pub const BasinKernel = struct {
     /// Next directory handle ID (simple allocator, starts at 1).
     /// Why: Track directory handle ID allocation (1-based, 0 is invalid).
     next_dir_handle_id: u64 = 1,
+    
+    /// Process table (static allocation).
+    /// Why: Track processes for spawn/wait/exit syscalls.
+    /// Grain Style: Static allocation, max 16 entries.
+    processes: [MAX_PROCESSES]Process = [_]Process{Process.init()} ** MAX_PROCESSES,
+    
+    /// Next process ID (simple allocator, starts at 1).
+    /// Why: Track process ID allocation (1-based, 0 is invalid).
+    next_process_id: u64 = 1,
     
     /// User table (static allocation).
     /// Why: Track users for permission checks and user management.
@@ -909,20 +965,39 @@ pub const BasinKernel = struct {
             }
         }
         
-        // TODO: Implement actual process creation (when process management is implemented).
-        // For now, return a stub process ID (simple implementation).
-        // Why: Simple stub - matches current kernel development stage.
-        // Note: In full implementation, we would:
-        // - Parse ELF executable header
-        // - Load executable into memory
-        // - Create process structure
-        // - Set up process memory space
-        // - Initialize process registers (PC = entry point)
-        // - Add process to process table
-        // - Return Process ID (not raw integer) for type safety
+        // Find free process slot.
+        var slot: ?usize = null;
+        for (0..MAX_PROCESSES) |i| {
+            if (!self.processes[i].allocated) {
+                slot = i;
+                break;
+            }
+        }
         
-        // Stub: Return process ID 1 (simple implementation).
-        const process_id: u64 = 1;
+        if (slot == null) {
+            return BasinError.too_many_files; // No free process slots
+        }
+        
+        const idx = slot.?;
+        
+        // Allocate process ID.
+        const process_id = self.next_process_id;
+        self.next_process_id += 1;
+        
+        // Create process entry.
+        self.processes[idx].id = process_id;
+        self.processes[idx].state = .running;
+        self.processes[idx].exit_status = 0;
+        self.processes[idx].executable_ptr = executable;
+        self.processes[idx].executable_len = MIN_ELF_SIZE; // Stub: use minimum size
+        self.processes[idx].allocated = true;
+        
+        // Assert: process must be allocated correctly.
+        std.debug.assert(self.processes[idx].allocated);
+        std.debug.assert(self.processes[idx].id == process_id);
+        std.debug.assert(self.processes[idx].state == .running);
+        
+        // Return process ID.
         const result = SyscallResult.ok(process_id);
         
         // Assert: result must be success (not error).
@@ -942,17 +1017,49 @@ pub const BasinKernel = struct {
         _arg3: u64,
         _arg4: u64,
     ) BasinError!SyscallResult {
-        _ = self;
+        // Assert: self pointer must be valid.
+        const self_ptr = @intFromPtr(self);
+        std.debug.assert(self_ptr != 0);
+        std.debug.assert(self_ptr % @alignOf(BasinKernel) == 0);
+        
         _ = _arg2;
         _ = _arg3;
         _ = _arg4;
         
         // Assert: status must be valid (0-255 for exit code).
         std.debug.assert(status <= 255);
+        const exit_status = @as(u32, @truncate(status));
+        
+        // Find current process (for now, use process ID 1 as current process).
+        // TODO: Track current process ID in kernel state (when multi-process is implemented).
+        const current_process_id: u64 = 1;
+        
+        // Find process in process table.
+        var found: ?usize = null;
+        for (0..MAX_PROCESSES) |i| {
+            if (self.processes[i].allocated and self.processes[i].id == current_process_id) {
+                found = i;
+                break;
+            }
+        }
+        
+        if (found) |idx| {
+            // Mark process as exited.
+            self.processes[idx].state = .exited;
+            self.processes[idx].exit_status = exit_status;
+            
+            // Assert: process must be marked as exited.
+            std.debug.assert(self.processes[idx].state == .exited);
+            std.debug.assert(self.processes[idx].exit_status == exit_status);
+        }
         
         // Exit syscall: terminate process with status code.
-        // Why: Return status code as success value (VM will interpret this as exit).
-        // Note: VM will handle actual termination (set state to halted).
+        // Note: In full implementation, we would also:
+        // - Free process resources (memory, handles, etc.)
+        // - Wake up any processes waiting on this process
+        // - Schedule next process (if any)
+        
+        // Return status code (VM will handle actual termination).
         return SyscallResult.ok(status);
     }
     
@@ -997,27 +1104,47 @@ pub const BasinKernel = struct {
             return BasinError.invalid_argument; // Invalid process ID
         }
         
-        // TODO: Implement actual process waiting (when process management is implemented).
-        // For now, return stub success with exit status 0.
-        // Why: Simple stub - matches current kernel development stage.
+        // Find process in process table.
+        var found: ?usize = null;
+        for (0..MAX_PROCESSES) |i| {
+            if (self.processes[i].allocated and self.processes[i].id == process) {
+                found = i;
+                break;
+            }
+        }
+        
+        if (found == null) {
+            return BasinError.not_found; // Process not found
+        }
+        
+        const idx = found.?;
+        
+        // Check if process has exited.
+        if (self.processes[idx].state == .exited) {
+            // Process already exited: return exit status.
+            const exit_status: u64 = self.processes[idx].exit_status;
+            const result = SyscallResult.ok(exit_status);
+            
+            // Assert: result must be success (not error).
+            std.debug.assert(result == .success);
+            std.debug.assert(result.success == exit_status);
+            
+            // Assert: Exit status must be valid (0-255).
+            std.debug.assert(exit_status <= 255);
+            
+            return result;
+        }
+        
+        // Process is still running: wait for it to exit.
+        // TODO: Implement blocking wait (when scheduler is implemented).
+        // For now, return error (process still running).
         // Note: In full implementation, we would:
-        // - Look up process in process table
-        // - Wait for process to complete (if not already completed)
-        // - Return process exit status
-        // - Return error if process not found
+        // - Block current process until target process exits
+        // - Wake up when target process calls exit()
+        // - Return exit status when process exits
         
-        // Stub: Return success with exit status 0 (simple implementation).
-        const exit_status: u64 = 0;
-        const result = SyscallResult.ok(exit_status);
-        
-        // Assert: result must be success (not error).
-        std.debug.assert(result == .success);
-        std.debug.assert(result.success == exit_status);
-        
-        // Assert: Exit status must be valid (0-255).
-        std.debug.assert(exit_status <= 255);
-        
-        return result;
+        // Stub: Return error (process still running, blocking wait not implemented).
+        return BasinError.invalid_argument; // Process still running (blocking wait not implemented)
     }
     
     fn syscall_map(
