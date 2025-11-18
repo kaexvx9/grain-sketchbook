@@ -52,7 +52,8 @@ pub const TahoeSandbox = struct {
     stdout_pos: u32 = 0,
     /// Grain Basin kernel instance (for syscall handling).
     /// Why: Handle syscalls from VM via Grain Basin kernel.
-    basin_kernel_instance: basin_kernel.BasinKernel = basin_kernel.BasinKernel{},
+    /// Note: Stored as pointer to avoid stack overflow (large struct with many static arrays).
+    basin_kernel_instance: *basin_kernel.BasinKernel,
 
     pub fn init(allocator: std.mem.Allocator, title: []const u8) !TahoeSandbox {
         // Assert arguments: title must not be empty and within bounds.
@@ -69,7 +70,7 @@ pub const TahoeSandbox = struct {
         
         // Initialize BasinKernel on heap to avoid stack overflow (large struct with many static arrays).
         // Why: BasinKernel contains large static allocations (256 mappings, 64 handles, 32 dir handles, 16 processes, 256 users).
-        var basin_kernel_instance = try allocator.create(basin_kernel.BasinKernel);
+        const basin_kernel_instance = try allocator.create(basin_kernel.BasinKernel);
         errdefer allocator.destroy(basin_kernel_instance);
         basin_kernel_instance.* = basin_kernel.BasinKernel{};
         
@@ -635,6 +636,8 @@ pub const TahoeSandbox = struct {
     }
 
     pub fn deinit(self: *TahoeSandbox) void {
+        // Free BasinKernel instance (allocated on heap).
+        self.allocator.destroy(self.basin_kernel_instance);
         self.aurora.deinit();
         self.platform.deinit();
         self.* = undefined;
