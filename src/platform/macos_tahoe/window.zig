@@ -275,6 +275,14 @@ pub const Window = struct {
             std.debug.panic("Window.show: nsImageView pointer is not aligned: 0x{x}", .{nsImageView_ptr});
         }
         
+        // Set NSImageView autoresizing mask to fill TahoeView.
+        // Why: Ensure image view resizes with parent view.
+        const setAutoresizingMaskSel = c.sel_getUid("setAutoresizingMask:");
+        std.debug.assert(setAutoresizingMaskSel != null);
+        // NSViewWidthSizable | NSViewHeightSizable = 0x18 (fills parent).
+        const autoresizingMask: c_ulong = 0x18;
+        _ = cocoa.objc_msgSend1Uint(@ptrCast(nsImageView), setAutoresizingMaskSel, autoresizingMask);
+        
         // Add NSImageView as subview of TahoeView.
         const addSubviewSel = c.sel_getUid("addSubview:");
         std.debug.assert(addSubviewSel != null);
