@@ -67,12 +67,6 @@ pub const TahoeSandbox = struct {
         var aurora = try GrainAurora.init(allocator, "");
         errdefer aurora.deinit();
         
-        // Initialize BasinKernel on heap to avoid stack overflow (large struct with many static arrays).
-        // Why: BasinKernel contains large static allocations (mappings, handles, processes, users).
-        var basin_kernel_instance = try allocator.create(basin_kernel.BasinKernel);
-        errdefer allocator.destroy(basin_kernel_instance);
-        basin_kernel_instance.* = basin_kernel.BasinKernel{};
-        
         var sandbox = TahoeSandbox{
             .allocator = allocator,
             .platform = platform,
@@ -88,7 +82,7 @@ pub const TahoeSandbox = struct {
             .serial_output = .{},
             .stdout_buffer = [_]u8{0} ** (16 * 1024),
             .stdout_pos = 0,
-            .basin_kernel_instance = basin_kernel_instance.*,
+            .basin_kernel_instance = basin_kernel.BasinKernel{},
         };
         
         // Assert: sandbox state must be initialized correctly.
