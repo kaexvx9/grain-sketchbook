@@ -10,6 +10,12 @@ const SerialOutput = kernel_vm.SerialOutput;
 const loadKernel = kernel_vm.loadKernel;
 const basin_kernel = @import("basin_kernel");
 
+/// Module-level sandbox pointer (for syscall handler access).
+/// Why: VM syscall handler interface doesn't support closures, so we use module-level storage.
+/// Contract: Must be set before handle_syscall is called (set when VM is loaded).
+/// Note: Safe for single-threaded execution only.
+var global_sandbox_ptr: ?*anyopaque = null;
+
 /// TahoeSandbox hosts a River-inspired compositor with Moonglow keybindings,
 /// blending Etsy.com marketplace aesthetics with Grain terminal panes.
 /// ~<~ Glow Waterbend: compositor streams stay deterministic.
@@ -38,6 +44,12 @@ pub const TahoeSandbox = struct {
     /// Serial output buffer (for kernel printf/debug output).
     /// Why: Capture kernel serial output for display in VM pane.
     serial_output: SerialOutput = .{},
+    /// Stdout capture buffer (for userspace program output).
+    /// Why: Capture stdout (handle 1) write syscalls for display in VM pane.
+    /// Grain Style: Static allocation, max 16KB output.
+    stdout_buffer: [16 * 1024]u8 = [_]u8{0} ** (16 * 1024),
+    /// Stdout buffer write position (bytes written so far).
+    stdout_pos: u32 = 0,
     /// Grain Basin kernel instance (for syscall handling).
     /// Why: Handle syscalls from VM via Grain Basin kernel.
     basin_kernel_instance: basin_kernel.BasinKernel = basin_kernel.BasinKernel{},
@@ -335,7 +347,9 @@ pub const TahoeSandbox = struct {
                 
                 // Set syscall handler for VM (Grain Basin kernel integration).
                 // Why: Wire VM ECALL instructions to Grain Basin kernel syscalls.
-                vm.set_syscall_handler(TahoeSandbox.handle_syscall, sandbox);
+                // Note: Set module-level sandbox pointer for handler access.
+                global_sandbox_ptr = @ptrCast(sandbox);
+                vm.set_syscall_handler(TahoeSandbox.handle_syscall, null);
                 
                 // Assert: syscall handler must be set correctly.
                 std.debug.assert(vm.syscall_handler != null);
@@ -478,6 +492,8 @@ pub const TahoeSandbox = struct {
     /// Handle syscall from VM (Grain Basin kernel integration).
     /// Why: Bridge VM ECALL instructions to Grain Basin kernel syscalls.
     /// Grain Style: Comprehensive assertions for all syscall parameters and results.
+    /// Note: This is a static function called via callback. We use module-level storage
+    /// to access the sandbox instance (set when VM is loaded).
     pub fn handle_syscall(syscall_num: u32, arg1: u64, arg2: u64, arg3: u64, arg4: u64) u64 {
         // Assert: syscall number must be >= 10 (kernel syscalls, not SBI).
         // Why: SBI calls use function ID < 10, kernel syscalls use >= 10.
@@ -487,14 +503,33 @@ pub const TahoeSandbox = struct {
         // Assert: syscall number must be within valid range.
         std.debug.assert(syscall_num <= @intFromEnum(basin_kernel.Syscall.sysinfo));
         
-        // For now, use a simple implementation that calls Basin Kernel.
-        // TODO: Access sandbox via user_data when callback supports it.
-        var kernel = basin_kernel.BasinKernel{};
+        // Access sandbox via module-level storage (set when VM is loaded).
+        // Note: This is safe for single-threaded execution only.
+        const sandbox_ptr = @as(?*TahoeSandbox, @ptrCast(@alignCast(global_sandbox_ptr)));
+        if (sandbox_ptr == null) {
+            // No sandbox available: use default kernel behavior.
+            var kernel = basin_kernel.BasinKernel{};
+            const result = kernel.handle_syscall(syscall_num, arg1, arg2, arg3, arg4) catch |err| {
+                const error_code = @as(i64, @intCast(@intFromError(err)));
+                return @as(u64, @bitCast(-error_code));
+            };
+            return if (result == .success) result.success else @as(u64, @bitCast(-@as(i64, @intCast(@intFromError(result.err)))));
+        }
+        
+        const sandbox = sandbox_ptr.?;
+        
+        // Use sandbox's kernel instance.
+        var kernel = &sandbox.basin_kernel_instance;
         
         // Assert: kernel must be initialized correctly.
-        const kernel_ptr = @intFromPtr(&kernel);
+        const kernel_ptr = @intFromPtr(kernel);
         std.debug.assert(kernel_ptr != 0);
         std.debug.assert(kernel_ptr % @alignOf(basin_kernel.BasinKernel) == 0);
+        
+        // Handle write syscall specially to capture stdout and read from VM memory.
+        if (syscall_num == @intFromEnum(basin_kernel.Syscall.write)) {
+            return handle_write_syscall(sandbox, kernel, arg1, arg2, arg3, arg4);
+        }
         
         const result = kernel.handle_syscall(syscall_num, arg1, arg2, arg3, arg4) catch |err| {
             // Assert: error must be valid BasinError.
@@ -537,6 +572,54 @@ pub const TahoeSandbox = struct {
                 return error_result;
             },
         }
+    }
+    
+    /// Handle write syscall with VM memory access and stdout capture.
+    /// Why: Read data from VM memory and capture stdout (handle 1) for display.
+    /// Grain Style: Comprehensive assertions, explicit types, bounds checking.
+    fn handle_write_syscall(sandbox: *TahoeSandbox, kernel: *basin_kernel.BasinKernel, handle: u64, data_ptr: u64, data_len: u64, _arg4: u64) u64 {
+        // Assert: sandbox and kernel pointers must be valid.
+        std.debug.assert(@intFromPtr(sandbox) != 0);
+        std.debug.assert(@intFromPtr(kernel) != 0);
+        
+        _ = _arg4;
+        
+        // Call kernel's write syscall handler (validates parameters).
+        const result = kernel.handle_syscall(@intFromEnum(basin_kernel.Syscall.write), handle, data_ptr, data_len, 0) catch |err| {
+            const error_code = @as(i64, @intCast(@intFromError(err)));
+            return @as(u64, @bitCast(-error_code));
+        };
+        
+        // If write failed, return error.
+        if (result == .err) {
+            const error_code = @as(i64, @intCast(@intFromError(result.err)));
+            return @as(u64, @bitCast(-error_code));
+        }
+        
+        const bytes_written = result.success;
+        
+        // If handle is 1 (stdout), capture output to stdout buffer.
+        if (handle == 1 and sandbox.vm) |vm| {
+            // Read data from VM memory.
+            const data_len_u32 = @as(u32, @intCast(data_len));
+            const available_space = sandbox.stdout_buffer.len - sandbox.stdout_pos;
+            const bytes_to_copy = @min(data_len_u32, available_space);
+            
+            if (bytes_to_copy > 0) {
+                // Assert: VM memory access must be within bounds.
+                const data_ptr_usize = @as(usize, @intCast(data_ptr));
+                std.debug.assert(data_ptr_usize + bytes_to_copy <= vm.memory.len);
+                
+                // Copy data from VM memory to stdout buffer.
+                @memcpy(sandbox.stdout_buffer[sandbox.stdout_pos..][0..bytes_to_copy], vm.memory[data_ptr_usize..][0..bytes_to_copy]);
+                sandbox.stdout_pos += bytes_to_copy;
+                
+                // Assert: stdout_pos must be within bounds.
+                std.debug.assert(sandbox.stdout_pos <= sandbox.stdout_buffer.len);
+            }
+        }
+        
+        return bytes_written;
     }
 
     pub fn deinit(self: *TahoeSandbox) void {
