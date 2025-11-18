@@ -771,10 +771,58 @@ pub const TahoeSandbox = struct {
             }
         }
         
-        // Draw typed text display area (top-left corner).
+        // Draw instructions text (help user understand how to use the window).
+        // Why: Show keyboard shortcuts and status when window is empty.
+        const instructions = "Grain Aurora - RISC-V VM\n\nKeyboard Shortcuts:\n  Cmd+L: Load kernel into VM\n  Cmd+K: Start/stop VM\n  Cmd+Q: Quit\n\nStatus: ";
+        const status_text = if (self.vm == null) "No VM loaded" else if (self.vm.?.state == .running) "VM running" else if (self.vm.?.state == .halted) "VM halted" else "VM error";
+        
+        // Draw instructions (simple ASCII rendering, top-left).
+        const inst_x: u32 = 20;
+        const inst_y: u32 = 50;
+        var line: u32 = 0;
+        var col: u32 = 0;
+        var char_idx: u32 = 0;
+        const full_text = instructions ++ status_text;
+        while (char_idx < full_text.len and line < 15) : (char_idx += 1) {
+            const ch = full_text[char_idx];
+            
+            if (ch == '\n' or col >= 80) {
+                line += 1;
+                col = 0;
+                if (ch == '\n') continue;
+            }
+            
+            if (line < 15 and col < 80) {
+                const char_x = inst_x + col * 8;
+                const char_y = inst_y + line * 12;
+                
+                // Draw character pixels (simple 8x8 pattern).
+                var char_cy: u32 = 0;
+                while (char_cy < 8 and char_y + char_cy < buffer_height) : (char_cy += 1) {
+                    var char_cx: u32 = 0;
+                    while (char_cx < 8 and char_x + char_cx < buffer_width) : (char_cx += 1) {
+                        const pixel_offset = ((char_y + char_cy) * buffer_width + (char_x + char_cx)) * 4;
+                        if (pixel_offset + 3 < buffer.len) {
+                            // Simple pattern: draw character as white pixels.
+                            const should_draw = (ch >= 32 and ch <= 126) and ((ch % 3) == (char_cx % 3));
+                            if (should_draw) {
+                                buffer[pixel_offset + 0] = 0xFF; // R
+                                buffer[pixel_offset + 1] = 0xFF; // G
+                                buffer[pixel_offset + 2] = 0xFF; // B
+                                buffer[pixel_offset + 3] = 0xFF; // A
+                            }
+                        }
+                    }
+                }
+            }
+            
+            col += 1;
+        }
+        
+        // Draw typed text display area (below instructions).
         // Why: Visual feedback for keyboard input.
         const text_x: u32 = 20;
-        const text_y: u32 = 30;
+        const text_y: u32 = 250;
         const text_bg_width: u32 = 500;
         const text_bg_height: u32 = 30;
         
