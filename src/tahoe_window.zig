@@ -67,6 +67,12 @@ pub const TahoeSandbox = struct {
         var aurora = try GrainAurora.init(allocator, "");
         errdefer aurora.deinit();
         
+        // Initialize BasinKernel on heap to avoid stack overflow (large struct with many static arrays).
+        // Why: BasinKernel contains large static allocations (256 mappings, 64 handles, 32 dir handles, 16 processes, 256 users).
+        var basin_kernel_instance = try allocator.create(basin_kernel.BasinKernel);
+        errdefer allocator.destroy(basin_kernel_instance);
+        basin_kernel_instance.* = basin_kernel.BasinKernel{};
+        
         var sandbox = TahoeSandbox{
             .allocator = allocator,
             .platform = platform,
@@ -82,7 +88,7 @@ pub const TahoeSandbox = struct {
             .serial_output = .{},
             .stdout_buffer = [_]u8{0} ** (16 * 1024),
             .stdout_pos = 0,
-            .basin_kernel_instance = basin_kernel.BasinKernel{},
+            .basin_kernel_instance = basin_kernel_instance,
         };
         
         // Assert: sandbox state must be initialized correctly.
@@ -522,8 +528,8 @@ pub const TahoeSandbox = struct {
         
         const sandbox = sandbox_ptr.?;
         
-        // Use sandbox's kernel instance.
-        var kernel = &sandbox.basin_kernel_instance;
+        // Use sandbox's kernel instance (already a pointer).
+        var kernel = sandbox.basin_kernel_instance;
         
         // Assert: kernel must be initialized correctly.
         const kernel_ptr = @intFromPtr(kernel);
