@@ -776,13 +776,23 @@ pub const TahoeSandbox = struct {
         const instructions = "Grain Aurora - RISC-V VM\n\nKeyboard Shortcuts:\n  Cmd+L: Load kernel into VM\n  Cmd+K: Start/stop VM\n  Cmd+Q: Quit\n\nStatus: ";
         const status_text = if (self.vm == null) "No VM loaded" else if (self.vm.?.state == .running) "VM running" else if (self.vm.?.state == .halted) "VM halted" else "VM error";
         
+        // Build full text at runtime (status_text is runtime-dependent).
+        var full_text_buffer: [256]u8 = undefined;
+        const full_text = blk: {
+            const result = std.fmt.bufPrint(full_text_buffer[0..], "{s}{s}", .{ instructions, status_text });
+            break :blk result catch {
+                // Fallback: just use instructions if buffer is too small.
+                @memcpy(full_text_buffer[0..instructions.len], instructions);
+                break :blk full_text_buffer[0..instructions.len];
+            };
+        };
+        
         // Draw instructions (simple ASCII rendering, top-left).
         const inst_x: u32 = 20;
         const inst_y: u32 = 50;
         var line: u32 = 0;
         var col: u32 = 0;
         var char_idx: u32 = 0;
-        const full_text = instructions ++ status_text;
         while (char_idx < full_text.len and line < 15) : (char_idx += 1) {
             const ch = full_text[char_idx];
             
@@ -857,9 +867,9 @@ pub const TahoeSandbox = struct {
             std.debug.assert(max_chars <= text_slice.len);
             std.debug.assert(max_chars <= 50);
             
-            var char_idx: usize = 0;
-            while (char_idx < max_chars) : (char_idx += 1) {
-                const char_x = text_x + 5 + char_idx * 8;
+            var typed_char_idx: usize = 0;
+            while (typed_char_idx < max_chars) : (typed_char_idx += 1) {
+                const char_x = text_x + 5 + typed_char_idx * 8;
                 const char_y = text_y + 5;
                 // Assert: character position must be within bounds.
                 std.debug.assert(char_x + 8 <= buffer_width);
@@ -867,7 +877,7 @@ pub const TahoeSandbox = struct {
                 
                 if (char_x + 8 < buffer_width and char_y + 16 < buffer_height) {
                     // Simple 8x16 ASCII character rendering.
-                    const c = text_slice[char_idx];
+                    const c = text_slice[typed_char_idx];
                     // Assert: character must be valid ASCII.
                     std.debug.assert(c <= 127);
                     
@@ -983,22 +993,22 @@ pub const TahoeSandbox = struct {
             
             // Render stdout text (simple monospace ASCII rendering).
             // Note: Each character is 8x12 pixels, max 70 chars per line, max 10 lines.
-            var line: u32 = 0;
-            var col: u32 = 0;
-            var char_idx: u32 = 0;
-            while (char_idx < stdout_text.len and line < 10) : (char_idx += 1) {
-                const ch = stdout_text[char_idx];
+            var stdout_line: u32 = 0;
+            var stdout_col: u32 = 0;
+            var stdout_char_idx: u32 = 0;
+            while (stdout_char_idx < stdout_text.len and stdout_line < 10) : (stdout_char_idx += 1) {
+                const ch = stdout_text[stdout_char_idx];
                 
-                if (ch == '\n' or col >= 70) {
-                    line += 1;
-                    col = 0;
+                if (ch == '\n' or stdout_col >= 70) {
+                    stdout_line += 1;
+                    stdout_col = 0;
                     if (ch == '\n') continue;
                 }
                 
-                if (line < 10 and col < 70) {
+                if (stdout_line < 10 and stdout_col < 70) {
                     // Draw character (simple 8x8 pixel grid).
-                    const char_x = stdout_text_x + col * 8;
-                    const char_y = stdout_text_y + line * 12;
+                    const char_x = stdout_text_x + stdout_col * 8;
+                    const char_y = stdout_text_y + stdout_line * 12;
                     
                     // Draw character pixels (simple pattern for ASCII).
                     var char_cy: u32 = 0;
