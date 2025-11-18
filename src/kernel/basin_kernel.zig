@@ -978,7 +978,7 @@ pub const BasinKernel = struct {
         }
         
         if (slot == null) {
-            return BasinError.too_many_files; // No free process slots
+            return BasinError.out_of_memory; // No free process slots
         }
         
         const idx = slot.?;
@@ -2128,7 +2128,7 @@ pub const BasinKernel = struct {
         }
         
         if (slot == null) {
-            return SyscallResult.fail(BasinError.too_many_files);
+            return SyscallResult.fail(BasinError.out_of_memory);
         }
         
         const idx = slot.?;

@@ -33,7 +33,8 @@ pub const TahoeSandbox = struct {
     /// RISC-V VM instance (for kernel development).
     /// Why: Run Zig kernel in virtualized RISC-V environment.
     /// Note: Optional - VM is created when kernel is loaded.
-    vm: ?VM = null,
+    /// Note: Store as pointer to avoid copying 4MB struct.
+    vm: ?*VM = null,
     /// Serial output buffer (for kernel printf/debug output).
     /// Why: Capture kernel serial output for display in VM pane.
     serial_output: SerialOutput = .{},
@@ -262,7 +263,7 @@ pub const TahoeSandbox = struct {
             // Cmd+K: Start/stop RISC-V VM (kernel execution).
             // Why: Toggle VM execution for kernel development.
             if (event.modifiers.command and event.key_code == 11) { // 'K' key code
-                if (sandbox.vm) |*vm| {
+                if (sandbox.vm) |vm| {
                     switch (vm.state) {
                         .running => {
                             vm.stop();
@@ -352,7 +353,7 @@ pub const TahoeSandbox = struct {
                 std.debug.assert(sandbox.serial_output.buffer.len > 0);
                 std.debug.assert(sandbox.serial_output.write_pos < sandbox.serial_output.buffer.len);
                 
-                // Store VM in sandbox.
+                // Store VM in sandbox (store pointer to avoid copying 4MB struct).
                 sandbox.vm = vm;
                 
                 // Assert: VM must be stored correctly.

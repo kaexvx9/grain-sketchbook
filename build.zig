@@ -602,6 +602,23 @@ pub fn build(b: *std.Build) void {
     // Make hello-world-test depend on hello-world being built first.
     hello_world_tests_step.dependOn(&hello_world_install.step);
 
+    // RISC-V Logo Display Program
+    const riscv_logo_exe = b.addExecutable(.{
+        .name = "riscv_logo",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("examples/riscv_logo.zig"),
+            .target = userspace_resolved,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "userspace_stdlib", .module = userspace_stdlib_module },
+            },
+        }),
+    });
+    riscv_logo_exe.setLinkerScript(b.path("linker_scripts/userspace.ld"));
+    const riscv_logo_install = b.addInstallArtifact(riscv_logo_exe, .{});
+    const riscv_logo_step = b.step("riscv-logo", "Build RISC-V logo display program for RISC-V64");
+    riscv_logo_step.dependOn(&riscv_logo_install.step);
+
     // Build-essential utilities: cat
     const cat_exe = b.addExecutable(.{
         .name = "cat",
