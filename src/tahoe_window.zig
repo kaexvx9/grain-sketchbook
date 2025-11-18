@@ -275,6 +275,14 @@ pub const TahoeSandbox = struct {
         // Handle keyboard shortcuts (River-style commands).
         // Why: Implement River compositor keybindings for window management.
         if (event.kind == .down) {
+            // Debug: Log all keyboard events to help diagnose key code issues.
+            std.debug.print("[tahoe_window] Keyboard event: key_code={d}, command={}, shift={}, character={?}\n", .{
+                event.key_code,
+                event.modifiers.command,
+                event.modifiers.shift,
+                event.character,
+            });
+            
             // Cmd+Q: Quit application.
             if (event.modifiers.command and event.key_code == 12) { // 'Q' key code
                 std.debug.print("[tahoe_window] Quit command (Cmd+Q) received.\n", .{});
