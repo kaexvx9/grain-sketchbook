@@ -806,15 +806,18 @@ pub const TahoeSandbox = struct {
                 const char_x = inst_x + col * 8;
                 const char_y = inst_y + line * 12;
                 
-                // Draw character pixels (simple 8x8 pattern).
+                // Draw character pixels (simple 8x12 bitmap pattern for better visibility).
+                // Why: Make text clearly visible with a denser pixel pattern.
                 var char_cy: u32 = 0;
-                while (char_cy < 8 and char_y + char_cy < buffer_height) : (char_cy += 1) {
+                while (char_cy < 12 and char_y + char_cy < buffer_height) : (char_cy += 1) {
                     var char_cx: u32 = 0;
                     while (char_cx < 8 and char_x + char_cx < buffer_width) : (char_cx += 1) {
                         const pixel_offset = ((char_y + char_cy) * buffer_width + (char_x + char_cx)) * 4;
                         if (pixel_offset + 3 < buffer.len) {
-                            // Simple pattern: draw character as white pixels.
-                            const should_draw = (ch >= 32 and ch <= 126) and ((ch % 3) == (char_cx % 3));
+                            // Denser pattern: draw more pixels for better visibility.
+                            // Use character code to create a visible pattern (every 2nd pixel horizontally, every row).
+                            const should_draw = (ch >= 32 and ch <= 126) and 
+                                ((char_cx % 2 == 0) or (char_cy % 2 == 0));
                             if (should_draw) {
                                 buffer[pixel_offset + 0] = 0xFF; // R
                                 buffer[pixel_offset + 1] = 0xFF; // G
@@ -1010,16 +1013,16 @@ pub const TahoeSandbox = struct {
                     const char_x = stdout_text_x + stdout_col * 8;
                     const char_y = stdout_text_y + stdout_line * 12;
                     
-                    // Draw character pixels (simple pattern for ASCII).
+                    // Draw character pixels (denser pattern for better visibility).
                     var char_cy: u32 = 0;
-                    while (char_cy < 8 and char_y + char_cy < vm_pane_y + vm_pane_height) : (char_cy += 1) {
+                    while (char_cy < 12 and char_y + char_cy < vm_pane_y + vm_pane_height) : (char_cy += 1) {
                         var char_cx: u32 = 0;
                         while (char_cx < 8 and char_x + char_cx < vm_pane_x + vm_pane_width) : (char_cx += 1) {
                             const pixel_offset = ((char_y + char_cy) * buffer_width + (char_x + char_cx)) * 4;
                             if (pixel_offset + 3 < buffer.len) {
-                                // Simple pattern: draw character as white pixels.
-                                // For now, just draw a simple pattern based on character code.
-                                const should_draw = (ch >= 32 and ch <= 126) and ((ch % 2) == (char_cx % 2));
+                                // Denser pattern: draw more pixels for better visibility.
+                                const should_draw = (ch >= 32 and ch <= 126) and 
+                                    ((char_cx % 2 == 0) or (char_cy % 2 == 0));
                                 if (should_draw) {
                                     buffer[pixel_offset + 0] = 0xFF; // R
                                     buffer[pixel_offset + 1] = 0xFF; // G
@@ -1031,7 +1034,7 @@ pub const TahoeSandbox = struct {
                     }
                 }
                 
-                col += 1;
+                stdout_col += 1;
             }
             
             // Draw VM state indicator (top-left of VM pane).
