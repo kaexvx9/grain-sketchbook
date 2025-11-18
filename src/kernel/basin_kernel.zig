@@ -44,6 +44,9 @@ pub const Syscall = enum(u32) {
     unlink = 34,
     rename = 35,
     mkdir = 36,
+    opendir = 37,
+    readdir = 38,
+    closedir = 39,
     
     // Time & Scheduling
     clock_gettime = 40,
@@ -370,10 +373,43 @@ const FileHandle = struct {
     }
 };
 
+/// Directory handle entry.
+/// Why: Track directory handles for opendir/readdir/closedir syscalls.
+/// Grain Style: Static allocation, explicit state tracking.
+const DirectoryHandle = struct {
+    /// Handle ID (non-zero if allocated).
+    id: u64,
+    /// Directory path (null-terminated, max 256 bytes).
+    path: [256]u8,
+    /// Path length (bytes, excluding null terminator).
+    path_len: u32,
+    /// Current read position (entry index, 0-based).
+    position: u32,
+    /// Whether this entry is allocated (in use).
+    allocated: bool,
+    
+    /// Initialize empty directory handle entry.
+    /// Why: Explicit initialization, clear state.
+    pub fn init() DirectoryHandle {
+        return DirectoryHandle{
+            .id = 0,
+            .path = [_]u8{0} ** 256,
+            .path_len = 0,
+            .position = 0,
+            .allocated = false,
+        };
+    }
+};
+
 /// File handle table.
 /// Why: Track all file handles for kernel file system management.
 /// Grain Style: Static allocation, max 64 entries.
 const MAX_HANDLES: u32 = 64;
+
+/// Directory handle table.
+/// Why: Track all directory handles for kernel directory operations.
+/// Grain Style: Static allocation, max 32 entries.
+const MAX_DIR_HANDLES: u32 = 32;
 
 // Compile-time assertions for handle table size.
 comptime {
@@ -407,6 +443,15 @@ pub const BasinKernel = struct {
     /// Next handle ID (simple allocator, starts at 1).
     /// Why: Track handle ID allocation (1-based, 0 is invalid).
     next_handle_id: u64 = 1,
+    
+    /// Directory handle table (static allocation).
+    /// Why: Track directory handles for opendir/readdir/closedir syscalls.
+    /// Grain Style: Static allocation, max 32 entries.
+    dir_handles: [MAX_DIR_HANDLES]DirectoryHandle = [_]DirectoryHandle{DirectoryHandle.init()} ** MAX_DIR_HANDLES,
+    
+    /// Next directory handle ID (simple allocator, starts at 1).
+    /// Why: Track directory handle ID allocation (1-based, 0 is invalid).
+    next_dir_handle_id: u64 = 1,
     
     /// User table (static allocation).
     /// Why: Track users for permission checks and user management.
@@ -1909,6 +1954,170 @@ pub const BasinKernel = struct {
         
         // Create directory (simulated - in real implementation, would create directory entry).
         // For now, just return success (directory created).
+        const result = SyscallResult.ok(0);
+        return result;
+    }
+    
+    fn syscall_opendir(
+        self: *BasinKernel,
+        path_ptr: u64,
+        path_len: u64,
+        _arg3: u64,
+        _arg4: u64,
+    ) BasinError!SyscallResult {
+        // Assert: self pointer must be valid.
+        const self_ptr = @intFromPtr(self);
+        std.debug.assert(self_ptr != 0);
+        std.debug.assert(self_ptr % @alignOf(BasinKernel) == 0);
+        
+        _ = _arg3;
+        _ = _arg4;
+        
+        // Assert: path pointer must be valid (non-zero, within VM memory).
+        if (path_ptr == 0) {
+            return SyscallResult.fail(BasinError.invalid_argument);
+        }
+        
+        const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default
+        if (path_ptr >= VM_MEMORY_SIZE) {
+            return SyscallResult.fail(BasinError.invalid_argument);
+        }
+        
+        // Assert: path length must be reasonable (max 256 bytes).
+        if (path_len == 0 or path_len > 256) {
+            return SyscallResult.fail(BasinError.invalid_argument);
+        }
+        
+        // Find free directory handle slot.
+        var slot: ?usize = null;
+        for (0..MAX_DIR_HANDLES) |i| {
+            if (!self.dir_handles[i].allocated) {
+                slot = i;
+                break;
+            }
+        }
+        
+        if (slot == null) {
+            return SyscallResult.fail(BasinError.too_many_files);
+        }
+        
+        const idx = slot.?;
+        
+        // Allocate directory handle.
+        const handle_id = self.next_dir_handle_id;
+        self.next_dir_handle_id += 1;
+        
+        // Copy path (simulated - in real implementation, would read from VM memory).
+        self.dir_handles[idx].id = handle_id;
+        self.dir_handles[idx].path_len = @as(u32, @intCast(path_len));
+        self.dir_handles[idx].position = 0;
+        self.dir_handles[idx].allocated = true;
+        
+        // Return directory handle ID.
+        const result = SyscallResult.ok(handle_id);
+        return result;
+    }
+    
+    fn syscall_readdir(
+        self: *BasinKernel,
+        dir_handle: u64,
+        entry_ptr: u64,
+        entry_len: u64,
+        _arg4: u64,
+    ) BasinError!SyscallResult {
+        // Assert: self pointer must be valid.
+        const self_ptr = @intFromPtr(self);
+        std.debug.assert(self_ptr != 0);
+        std.debug.assert(self_ptr % @alignOf(BasinKernel) == 0);
+        
+        _ = _arg4;
+        
+        // Assert: directory handle must be valid (non-zero).
+        if (dir_handle == 0) {
+            return SyscallResult.fail(BasinError.invalid_argument);
+        }
+        
+        // Assert: entry pointer must be valid (non-zero, within VM memory).
+        if (entry_ptr == 0) {
+            return SyscallResult.fail(BasinError.invalid_argument);
+        }
+        
+        const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default
+        if (entry_ptr >= VM_MEMORY_SIZE) {
+            return SyscallResult.fail(BasinError.invalid_argument);
+        }
+        
+        // Assert: entry length must be reasonable (max 256 bytes).
+        if (entry_len == 0 or entry_len > 256) {
+            return SyscallResult.fail(BasinError.invalid_argument);
+        }
+        
+        // Find directory handle.
+        var found: ?usize = null;
+        for (0..MAX_DIR_HANDLES) |i| {
+            if (self.dir_handles[i].allocated and self.dir_handles[i].id == dir_handle) {
+                found = i;
+                break;
+            }
+        }
+        
+        if (found == null) {
+            return SyscallResult.fail(BasinError.invalid_argument);
+        }
+        
+        const idx = found.?;
+        
+        // Simulated directory reading: return empty (end of directory).
+        // In real implementation, would read directory entries from file system.
+        // For now, return 0 (no more entries) after first read.
+        if (self.dir_handles[idx].position > 0) {
+            return SyscallResult.ok(0); // End of directory
+        }
+        
+        // First read: return stub entry name "."
+        // In real implementation, would write entry name to entry_ptr.
+        self.dir_handles[idx].position += 1;
+        
+        // Return bytes written (simulated - would be actual entry name length).
+        const result = SyscallResult.ok(1); // 1 byte for "."
+        return result;
+    }
+    
+    fn syscall_closedir(
+        self: *BasinKernel,
+        dir_handle: u64,
+        _arg2: u64,
+        _arg3: u64,
+        _arg4: u64,
+    ) BasinError!SyscallResult {
+        // Assert: self pointer must be valid.
+        const self_ptr = @intFromPtr(self);
+        std.debug.assert(self_ptr != 0);
+        std.debug.assert(self_ptr % @alignOf(BasinKernel) == 0);
+        
+        _ = _arg2;
+        _ = _arg3;
+        _ = _arg4;
+        
+        // Assert: directory handle must be valid (non-zero).
+        if (dir_handle == 0) {
+            return SyscallResult.fail(BasinError.invalid_argument);
+        }
+        
+        // Find and free directory handle.
+        var found: bool = false;
+        for (0..MAX_DIR_HANDLES) |i| {
+            if (self.dir_handles[i].allocated and self.dir_handles[i].id == dir_handle) {
+                self.dir_handles[i] = DirectoryHandle.init();
+                found = true;
+                break;
+            }
+        }
+        
+        if (!found) {
+            return SyscallResult.fail(BasinError.invalid_argument);
+        }
+        
         const result = SyscallResult.ok(0);
         return result;
     }
