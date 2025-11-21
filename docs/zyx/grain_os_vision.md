@@ -1,5 +1,7 @@
 # Grain OS & Browser: Vision & Prompt
 
+> *Note: This document is a work in progress. For questions or to get in touch, please see `contact.md` in the root directory.*
+
 ## Project Identity
 **Name**: **Grainscape** (Browser) / **Basin** (Kernel)
 **Est.** 2025

@@ -1,5 +1,7 @@
 # Grain OS Setup Guide
 
+> *Note: This document is a work in progress. For questions or to get in touch, please see `contact.md` in the root directory.*
+
 To run Grain OS (Basin Kernel) on macOS, you need the QEMU emulator for RISC-V 64-bit.
 
 ## 1. Install QEMU
