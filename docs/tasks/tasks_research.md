@@ -324,6 +324,17 @@
 - [ ] Document evaluation criteria and findings
 - [ ] Create architecture decision record
 
+#### Coordination Tasks
+
+- [x] Create coordination summary with copy-paste messages — ✅ Complete (`docs/research/grain_dispatch_coordination_summary_2025-12-31.md`)
+- [x] Rewrite core coordination document with Phase 1 findings — ✅ Complete (`docs/core-coordination/core-coordination_research.md`)
+- [x] Update plan file with Grain Dispatch research section — ✅ Complete (`docs/plans/plan_research.md`)
+- [x] Document detailed next steps for Core 1 Subcore — ✅ Complete (in coordination document)
+- [ ] Coordinate with Core 1 Subcore on dispatch work (as needed)
+- [ ] Coordinate with Vantage 3 Subcore on dispatch work (as needed)
+- [ ] Provide Phase 2 research findings to Core 1 Subcore and Vantage 3 Subcore (Weeks 3-4)
+- [ ] Provide Phase 3 final recommendation to Grain Core Agent (Weeks 5-6)
+
 ### Long-term: Research as System Capability
 
 - [ ] Research Agent becomes the "memory" of the system
