@@ -1,7 +1,8 @@
 //! Exception Statistics Tracking System
 //!
 //! Objective: Track exception counts by type for debugging and monitoring.
-//! Why: Monitor exception frequency, identify problematic code patterns, and validate exception handling.
+//! Why: Monitor exception frequency, identify problematic code patterns,
+//! and validate exception handling.
 //! GrainStyle: Static allocation, bounded counters, explicit types, deterministic tracking.
 //!
 //! Methodology:
@@ -115,8 +116,12 @@ pub const ExceptionStats = struct {
             .store_access_fault = self.exception_counts[7], // Exception code 7
             .instruction_access_fault = self.exception_counts[1], // Exception code 1
             .instruction_address_misaligned = self.exception_counts[0], // Exception code 0
-            .environment_call = self.exception_counts[8] + self.exception_counts[9], // Codes 8 and 9
-            .page_faults = self.exception_counts[12] + self.exception_counts[13] + self.exception_counts[15], // Codes 12, 13, 15
+            // Codes 8 and 9
+            .environment_call = self.exception_counts[8] + self.exception_counts[9],
+            // Codes 12, 13, 15
+            .page_faults = self.exception_counts[12] +
+                self.exception_counts[13] +
+                self.exception_counts[15],
             .other = 0,
         };
         
@@ -179,7 +184,10 @@ pub const ExceptionStats = struct {
         std.debug.print("Load access fault: {}\n", .{summary.load_access_fault});
         std.debug.print("Store access fault: {}\n", .{summary.store_access_fault});
         std.debug.print("Instruction access fault: {}\n", .{summary.instruction_access_fault});
-        std.debug.print("Instruction address misaligned: {}\n", .{summary.instruction_address_misaligned});
+        std.debug.print(
+            "Instruction address misaligned: {}\n",
+            .{summary.instruction_address_misaligned},
+        );
         std.debug.print("Environment calls: {}\n", .{summary.environment_call});
         std.debug.print("Page faults: {}\n", .{summary.page_faults});
         std.debug.print("Other exceptions: {}\n", .{summary.other});

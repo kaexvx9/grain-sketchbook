@@ -74,7 +74,12 @@ pub const VMBenchmark = struct {
         return benchmark;
     }
 
-    pub fn run_benchmark(self: *VMBenchmark, vm: *VM, name: []const u8, max_steps: u64) VMError!BenchmarkResult {
+    pub fn run_benchmark(
+        self: *VMBenchmark,
+        vm: *VM,
+        name: []const u8,
+        max_steps: u64,
+    ) VMError!BenchmarkResult {
         if (self.results_count >= MAX_BENCHMARKS) {
             return VMError.invalid_memory_access;
         }
@@ -93,16 +98,23 @@ pub const VMBenchmark = struct {
         }
         const end_time = std.time.nanoTimestamp();
         const execution_time: i64 = end_time - start_time;
-        result.execution_time_ns = if (execution_time > 0) @as(u64, @intCast(execution_time)) else 0;
-        result.instructions_executed = vm.performance.instructions_executed - perf_before.instructions_executed;
+        result.execution_time_ns = if (execution_time > 0)
+            @as(u64, @intCast(execution_time))
+        else
+            0;
+        const inst_before = perf_before.instructions_executed;
+        const inst_after = vm.performance.instructions_executed;
+        result.instructions_executed = inst_after - inst_before;
         result.cycles_simulated = vm.performance.cycles_simulated - perf_before.cycles_simulated;
         result.memory_reads = vm.performance.memory_reads - perf_before.memory_reads;
         result.memory_writes = vm.performance.memory_writes - perf_before.memory_writes;
         result.syscalls = vm.performance.syscalls - perf_before.syscalls;
         if (vm.jit) |jit_ctx| {
             const total_ops = jit_ctx.perf_counters.cache_hits + jit_ctx.perf_counters.cache_misses;
+            const cache_hits = @as(f64, @floatFromInt(jit_ctx.perf_counters.cache_hits));
+            const total_ops_f64 = @as(f64, @floatFromInt(total_ops));
             result.jit_cache_hit_rate = if (total_ops > 0)
-                @as(f64, @floatFromInt(jit_ctx.perf_counters.cache_hits)) / @as(f64, @floatFromInt(total_ops))
+                cache_hits / total_ops_f64
             else
                 0.0;
         }
@@ -122,13 +134,20 @@ pub const VMBenchmark = struct {
             var j: u32 = 0;
             while (j < baseline.results_count) : (j += 1) {
                 const base = &baseline.results[j];
-                if (std.mem.eql(u8, current.name[0..current.name_len], base.name[0..base.name_len])) {
+                const current_name = current.name[0..current.name_len];
+                const base_name = base.name[0..base.name_len];
+                if (std.mem.eql(u8, current_name, base_name)) {
                     found = true;
+                    const base_time = @as(f64, @floatFromInt(base.execution_time_ns));
+                    const current_time = @as(f64, @floatFromInt(current.execution_time_ns));
                     const speedup = if (current.execution_time_ns > 0)
-                        @as(f64, @floatFromInt(base.execution_time_ns)) / @as(f64, @floatFromInt(current.execution_time_ns))
+                        base_time / current_time
                     else
                         0.0;
-                    std.debug.print("  {}: {d:.2}x speedup\n", .{ current.name[0..current.name_len], speedup });
+                    std.debug.print(
+                        "  {}: {d:.2}x speedup\n",
+                        .{ current.name[0..current.name_len], speedup },
+                    );
                     break;
                 }
             }

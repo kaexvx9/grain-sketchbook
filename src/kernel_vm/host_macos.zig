@@ -34,7 +34,11 @@ pub const MacOSVersion = struct {
         }) catch "0.0.0";
         
         if (self.is_beta) {
-            _ = std.fmt.bufPrint(buf[std.mem.indexOf(u8, &buf, "\x00") orelse 0..], "-beta{d}", .{self.beta_number}) catch {};
+            const null_idx = std.mem.indexOf(u8, &buf, "\x00") orelse 0;
+            _ = std.fmt.bufPrint(
+                buf[null_idx..],
+                "-beta{d}",
+                .{self.beta_number}) catch {};
         }
         
         return buf;
@@ -132,7 +136,8 @@ pub const MacOSFeatureFlags = struct {
         // macOS 26.0+ (Tahoe): Latest features
         
         const jit_supported = version.major >= 11; // JIT available on Big Sur+
-        const jit_code_signing_required = version.major < 11; // Code signing required on older versions
+        // Code signing required on older versions
+        const jit_code_signing_required = version.major < 11;
         const performance_counters_available = version.major >= 13; // Enhanced counters on Ventura+
         const profiling_tools_available = version.major >= 14; // Enhanced profiling on Sonoma+
         const memory_protection_available = version.major >= 11; // Memory protection on Big Sur+

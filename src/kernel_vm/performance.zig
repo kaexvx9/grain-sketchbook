@@ -148,7 +148,9 @@ pub const PerformanceMetrics = struct {
             return 0.0;
         }
         
-        const ipc = @as(f64, @floatFromInt(self.instructions_executed)) / @as(f64, @floatFromInt(self.cycles_simulated));
+        const inst_f64 = @as(f64, @floatFromInt(self.instructions_executed));
+        const cycles_f64 = @as(f64, @floatFromInt(self.cycles_simulated));
+        const ipc = inst_f64 / cycles_f64;
         
         // Assert: IPC must be valid (postcondition).
         std.debug.assert(ipc >= 0.0);
@@ -166,7 +168,9 @@ pub const PerformanceMetrics = struct {
             return 0.0;
         }
         
-        const hit_rate = @as(f64, @floatFromInt(self.jit_cache_hits)) / @as(f64, @floatFromInt(total_cache_accesses));
+        const hits_f64 = @as(f64, @floatFromInt(self.jit_cache_hits));
+        const total_f64 = @as(f64, @floatFromInt(total_cache_accesses));
+        const hit_rate = hits_f64 / total_f64;
         
         // Assert: Hit rate must be valid (postcondition).
         std.debug.assert(hit_rate >= 0.0);
@@ -297,8 +301,14 @@ pub const DiagnosticsSnapshot = struct {
         std.debug.print("Exception statistics:\n", .{});
         std.debug.print("  Total exceptions: {}\n", .{self.exception_stats.total_count});
         std.debug.print("  Illegal instruction: {}\n", .{self.exception_stats.exception_counts[2]});
-        std.debug.print("  Load address misaligned: {}\n", .{self.exception_stats.exception_counts[4]});
-        std.debug.print("  Store address misaligned: {}\n", .{self.exception_stats.exception_counts[6]});
+        std.debug.print(
+            "  Load address misaligned: {}\n",
+            .{self.exception_stats.exception_counts[4]},
+        );
+        std.debug.print(
+            "  Store address misaligned: {}\n",
+            .{self.exception_stats.exception_counts[6]},
+        );
         std.debug.print("  Load access fault: {}\n", .{self.exception_stats.exception_counts[5]});
         std.debug.print("  Store access fault: {}\n", .{self.exception_stats.exception_counts[7]});
         std.debug.print("================================\n", .{});

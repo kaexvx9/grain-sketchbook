@@ -216,15 +216,12 @@ pub const ProcessSyscalls = struct {
         const current_pid = self.scheduler.get_current();
         self.processes[idx].parent_pid = if (current_pid > 0) current_pid else 0;
         
-        // Get parent process group ID for limit checking.
+        // Get parent process group ID for limit checking (using cached lookup).
         var parent_pgid: u64 = 0;
         if (current_pid > 0) {
-            var parent_idx: u32 = 0;
-            while (parent_idx < MAX_PROCESSES) : (parent_idx += 1) {
-                if (self.processes[parent_idx].allocated and self.processes[parent_idx].id == current_pid) {
-                    parent_pgid = self.processes[parent_idx].pgid;
-                    break;
-                }
+            const parent_idx = self.find_current_process_index();
+            if (parent_idx) |idx_val| {
+                parent_pgid = self.processes[idx_val].pgid;
             }
         }
         
@@ -257,6 +254,10 @@ pub const ProcessSyscalls = struct {
         // Set current process with time slice quantum.
         const time_slice = self.processes[idx].time_slice_quantum;
         self.scheduler.set_current(process_id, time_slice);
+        
+        // Update current process cache when new process is set as current.
+        // Why: Ensure cache points to newly spawned process.
+        self.current_process_index = @as(u32, @intCast(idx));
         
         // Assert: process must be allocated correctly.
         Debug.kassert(self.processes[idx].allocated, "Process not allocated", .{});
@@ -347,6 +348,9 @@ pub const ProcessSyscalls = struct {
             // Clear from scheduler if it's the current process.
             if (self.scheduler.is_current(current_process_id)) {
                 self.scheduler.clear_current();
+                // Invalidate current process cache when process exits.
+                // Why: Ensure cache doesn't point to exited process.
+                self.invalidate_current_process_cache();
             }
             
             // Clean up process resources (memory mappings, handles, channels).
@@ -764,7 +768,14 @@ pub const ProcessSyscalls = struct {
         if (signal == .sigkill) {
             process.state = .exited;
             process.exit_status = 128 + @intFromEnum(signal); // Exit code = 128 + signal
-            self.scheduler.clear_current(); // Clear current process
+            
+            // Clear current process if it's the one being killed.
+            if (self.scheduler.is_current(pid)) {
+                self.scheduler.clear_current();
+                // Invalidate current process cache when process is killed.
+                // Why: Ensure cache doesn't point to killed process.
+                self.invalidate_current_process_cache();
+            }
         }
         
         // Assert: Signal must be sent (postcondition).
@@ -820,6 +831,9 @@ pub const ProcessSyscalls = struct {
                 // Clear current process if it's the one being killed.
                 if (self.scheduler.get_current() == process.id) {
                     self.scheduler.clear_current();
+                    // Invalidate current process cache when process is killed.
+                    // Why: Ensure cache doesn't point to killed process.
+                    self.invalidate_current_process_cache();
                 }
             }
         }
@@ -875,6 +889,9 @@ pub const ProcessSyscalls = struct {
                 // Clear current process if it's the one being killed.
                 if (self.scheduler.get_current() == process.id) {
                     self.scheduler.clear_current();
+                    // Invalidate current process cache when process is killed.
+                    // Why: Ensure cache doesn't point to killed process.
+                    self.invalidate_current_process_cache();
                 }
             }
         }

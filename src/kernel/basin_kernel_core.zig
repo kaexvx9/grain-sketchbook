@@ -81,6 +81,16 @@ pub const BasinKernel = struct {
     /// Why: Track handle ID allocation (1-based, 0 is invalid).
     next_handle_id: u64 = 1,
     
+    /// Most recently used handle index (optimization).
+    /// Why: Cache most recently accessed handle index for fast lookup.
+    /// Note: Invalid (MAX_HANDLES) if no handle has been accessed yet.
+    mru_handle_index: u32 = MAX_HANDLES,
+    
+    /// Most recently used handle ID (optimization).
+    /// Why: Track handle ID for MRU cache validation.
+    /// Note: 0 if MRU cache is invalid.
+    mru_handle_id: u64 = 0,
+    
     /// Directory handle table (static allocation).
     /// Why: Track directory handles for opendir/readdir/closedir syscalls.
     /// Grain Style: Static allocation, max 32 entries.
@@ -98,6 +108,11 @@ pub const BasinKernel = struct {
     /// Next process ID (simple allocator, starts at 1).
     /// Why: Track process ID allocation (1-based, 0 is invalid).
     next_process_id: u64 = 1,
+    
+    /// Current process index cache (optimization).
+    /// Why: Cache current process index to avoid linear search through MAX_PROCESSES=16.
+    /// Note: Invalid (MAX_PROCESSES) if no process is running or cache is invalid.
+    current_process_index: u32 = MAX_PROCESSES,
     
     /// User table (static allocation).
     /// Why: Track users for permission checks and user management.
@@ -293,6 +308,13 @@ pub const BasinKernel = struct {
         
         // Assert: Next handle ID must be non-zero (1-based).
         Debug.kassert(kernel.next_handle_id != 0, "Next handle ID is 0", .{});
+        
+        // Assert: MRU cache must be invalid initially.
+        Debug.kassert(kernel.mru_handle_index == MAX_HANDLES, "MRU index not invalid", .{});
+        Debug.kassert(kernel.mru_handle_id == 0, "MRU ID not 0", .{});
+        
+        // Assert: Current process index cache must be invalid initially.
+        Debug.kassert(kernel.current_process_index == MAX_PROCESSES, "Current process index not invalid", .{});
         
         // Assert: Root user must exist.
         Debug.kassert(kernel.user_count >= 1, "User count {d} < 1", .{kernel.user_count});
@@ -747,6 +769,7 @@ pub const BasinKernel = struct {
     /// Why: Look up handle for read/write/close operations.
     /// Returns: Index of handle, or null if not found.
     /// Grain Style: Comprehensive assertions for handle validation.
+    /// Optimization: Check MRU cache first for common case (repeated handle access).
     fn find_handle_by_id(self: *BasinKernel, handle_id: u64) ?u32 {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
@@ -756,15 +779,120 @@ pub const BasinKernel = struct {
         // Assert: Handle ID must be non-zero (0 is invalid).
         Debug.kassert(handle_id != 0, "Handle ID is 0", .{});
         
+        // Optimization: Check MRU cache first (common case optimization).
+        // Why: Many syscalls access the same handle repeatedly (e.g., multiple read/write calls).
+        if (self.mru_handle_index < MAX_HANDLES and self.mru_handle_id == handle_id) {
+            const mru_handle = &self.handles[self.mru_handle_index];
+            if (mru_handle.allocated and mru_handle.id == handle_id) {
+                // Assert: MRU handle must be valid (postcondition).
+                Debug.kassert(mru_handle.allocated, "MRU handle not allocated", .{});
+                Debug.kassert(mru_handle.id == handle_id, "MRU handle ID mismatch", .{});
+                return self.mru_handle_index; // Fast path: MRU cache hit
+            }
+        }
+        
+        // Fallback: Linear search through all handles.
         for (self.handles, 0..) |handle, i| {
             if (handle.allocated and handle.id == handle_id) {
                 // Assert: Handle must be allocated and match ID.
                 Debug.kassert(handle.allocated, "Handle not allocated", .{});
                 Debug.kassert(handle.id == handle_id, "Handle ID mismatch", .{});
-                return @as(u32, @intCast(i));
+                
+                // Update MRU cache for next lookup.
+                const idx = @as(u32, @intCast(i));
+                self.mru_handle_index = idx;
+                self.mru_handle_id = handle_id;
+                
+                return idx;
             }
         }
         return null;
+    }
+    
+    /// Invalidate MRU handle cache.
+    /// Why: Clear MRU cache when handle is closed or invalidated.
+    /// Contract: Should be called when handle is deallocated.
+    /// Note: Public function for use by syscall handlers.
+    pub fn invalidate_mru_handle_cache(self: *BasinKernel) void {
+        // Assert: self pointer must be valid.
+        const self_ptr = @intFromPtr(self);
+        Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
+        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        
+        self.mru_handle_index = MAX_HANDLES;
+        self.mru_handle_id = 0;
+        
+        // Assert: MRU cache must be invalidated (postcondition).
+        Debug.kassert(self.mru_handle_index == MAX_HANDLES, "MRU index not invalidated", .{});
+        Debug.kassert(self.mru_handle_id == 0, "MRU ID not invalidated", .{});
+    }
+    
+    /// Find current process index (with caching optimization).
+    /// Why: Look up current process index for resource tracking and limits.
+    /// Returns: Index of current process, or null if no process running or not found.
+    /// Grain Style: Comprehensive assertions for process validation.
+    /// Optimization: Check cache first, update cache on miss.
+    pub fn find_current_process_index(self: *BasinKernel) ?u32 {
+        // Assert: self pointer must be valid.
+        const self_ptr = @intFromPtr(self);
+        Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
+        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        
+        // Get current process ID from scheduler.
+        const current_pid = self.scheduler.get_current();
+        
+        // If no process running, return null.
+        if (current_pid == 0) {
+            self.current_process_index = MAX_PROCESSES; // Invalidate cache
+            return null;
+        }
+        
+        // Optimization: Check cache first (common case optimization).
+        // Why: Current process is accessed frequently, cache provides fast path.
+        if (self.current_process_index < MAX_PROCESSES) {
+            const cached_process = &self.processes[self.current_process_index];
+            if (cached_process.allocated and cached_process.id == current_pid) {
+                // Assert: Cached process must be valid (postcondition).
+                Debug.kassert(cached_process.allocated, "Cached process not allocated", .{});
+                Debug.kassert(cached_process.id == current_pid, "Cached process ID mismatch", .{});
+                return self.current_process_index; // Fast path: cache hit
+            }
+        }
+        
+        // Fallback: Linear search through all processes.
+        for (0..MAX_PROCESSES) |i| {
+            if (self.processes[i].allocated and self.processes[i].id == current_pid) {
+                // Assert: Process must be allocated and match ID.
+                Debug.kassert(self.processes[i].allocated, "Process not allocated", .{});
+                Debug.kassert(self.processes[i].id == current_pid, "Process ID mismatch", .{});
+                
+                // Update cache for next lookup.
+                const idx = @as(u32, @intCast(i));
+                self.current_process_index = idx;
+                
+                return idx;
+            }
+        }
+        
+        // Process not found: invalidate cache.
+        self.current_process_index = MAX_PROCESSES;
+        return null;
+    }
+    
+    /// Invalidate current process index cache.
+    /// Why: Clear cache when process state changes (switch, exit, etc.).
+    /// Contract: Should be called when process switches or exits.
+    /// Note: Public function for use by scheduler and process management.
+    pub fn invalidate_current_process_cache(self: *BasinKernel) void {
+        // Assert: self pointer must be valid.
+        const self_ptr = @intFromPtr(self);
+        Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
+        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        
+        self.current_process_index = MAX_PROCESSES;
+        
+        // Assert: Cache must be invalidated (postcondition).
+        Debug.kassert(self.current_process_index == MAX_PROCESSES, "Current process index not invalidated", .{});
     }
     
     /// Count allocated handles (for testing and validation).

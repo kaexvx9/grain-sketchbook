@@ -12,10 +12,10 @@
 
 **Current Status**: Multiple agents working in parallel on different components.
 
-**Active Agents**: 12 L1 agents + 3 L2 sub-agents = 15 total agents/sub-agents
+**Active Agents**: 12 L1 agents + 7 L2 sub-agents = 19 total agents/sub-agents
 
 **L1 Agents (Full Agents)**:
-1. **Grain Core Agent** (System Services)
+1. **Grain Core 1 Subcore Agent** (System Services) — L1 Subcore Coordinator with L2 sub-agents
 2. **Grain Silo Agent** (Database)
 3. **Grain Vantage 3 Subcore Agent** (VM/Kernel) — L1 Subcore Coordinator with L2 sub-agents
 4. **Grain Skate Agent** (Knowledge Graph)
@@ -28,12 +28,18 @@
 11. **Grain Court Agent** (LLM Infrastructure)
 12. **Grain Free Agent** (Creative Playground)
 
+**L2 Sub-Agents (Under Core 1 Subcore)**:
+- **1a. Grain Auth Agent** (Authentication & Authorization)
+- **1b. Grain Network Agent** (Network Services)
+- **1c. Grain Storage Agent** (File System & Storage)
+- **1d. Grain Compositor Agent** (Window Management & Compositing)
+
 **L2 Sub-Agents (Under Vantage 3 Subcore)**:
 - **3a. Grain Basin Kernel Agent** (RISC-V kernel development)
 - **3b. Grain VM Runtime Agent** (Vantage VM development tool)
 - **3c. Grain System Integration Agent** (Kernel/VM integration, RISC-V compliance)
 
-**Architecture Evolution**: L1 Subcore/L2 sub-agent pattern implemented for Vantage 3 Subcore to enable parallelization of foundational work. Vantage 3 Subcore handles subcore coordination / systems integration, distinct from main outer primary L1 core coordination. See `docs/zyx/grain_agent_architecture_evolution_2025-12-29-130647-pst.md` for details.
+**Architecture Evolution**: L1 Subcore/L2 sub-agent pattern implemented for both Core 1 Subcore and Vantage 3 Subcore to enable parallelization of foundational work. Core 1 Subcore handles subcore coordination / systems integration for Core system services (Auth, Network, Storage, Compositor), while Vantage 3 Subcore handles subcore coordination / systems integration for VM/Kernel work. Both are distinct from main outer primary L1 core coordination. See `docs/zyx/grain_agent_architecture_evolution_2025-12-29-130647-pst.md` for details.
 
 ---
 
@@ -59,33 +65,53 @@
 
 ## Agent Status Summary
 
-### 1. Grain Core Agent (System Services)
+### 1. Grain Core 1 Subcore Agent (System Services) — L1 Subcore Coordinator
 
-**Status**: Active — Coordination Decisions Implementation Complete ✅  
-**Current Work**: Update HTTP/WebSocket clients to use error types consistently (1 day), JG Project Phase 1 planning  
-**Details**: See [`docs/plans/plan_core.md`](plans/plan_core.md)
+**Status**: 🆕 **ARCHITECTURE EVOLUTION COMPLETE** — Core 1 Subcore (L1 Subcore) with 4 L2 Sub-Agents  
+**Current Work**: Integration testing, architecture planning, coordination with other L1 agents  
+**Details**: See [`docs/plans/core_1_subcore_plan.md`](plans/core_1_subcore_plan.md)
+
+**Architecture Evolution**: ✅ **COMPLETE** (2025-12-30-093745-pst)
+- Core Agent evolved to Core 1 Subcore (L1 Subcore Coordinator)
+- Created 4 L2 sub-agents (1a Auth, 1b Network, 1c Storage, 1d Compositor)
+- Established parallel work model with weekly/bi-weekly check-ins
+
+**L2 Sub-Agents**:
+- **1a. Grain Auth Agent**: Authentication and authorization services
+- **1b. Grain Network Agent**: Network services (HTTP, WebSocket, DNS, TCP/UDP)
+- **1c. Grain Storage Agent**: File system and storage services
+- **1d. Grain Compositor Agent**: Window management and compositing
 
 **Recent Progress**:
-- Phase 59: HTTP/REST API Server ✅ (COMPLETE — 2025-12-05-120808-pst)
-- Phase 60: Authentication Service ✅ (COMPLETE — 2025-12-05-134449-pst)
-- Phase 61: Network Stack Enhancements ✅ (COMPLETE — TCP/UDP socket support, WebSocket support, DNS resolution, socket options, HTTP client — 2025-12-07-004326-pst)
-- Phase 62: File System Enhancements ✅ (COMPLETE — File storage, WAL, index management, backup/restore — 2025-12-06-113038-pst)
-- HTTP/WebSocket Timeout Implementation ✅ (COMPLETE — 2025-12-28-235609-pst)
-- Error Types Implementation ✅ (COMPLETE — 2025-12-28-235609-pst)
-- Service-to-Service Authentication ✅ (COMPLETE — 2025-12-29-001544-pst)
-- Async Pattern Integration Module ✅ (COMPLETE — 2025-12-29-001544-pst)
-- Payment/Passwords/Bank Design ✅ (COMPLETE — 2025-12-28-213448-pst)
-- JG Project Design ✅ (COMPLETE — 2025-12-28-232324-pst)
+- Architecture Evolution ✅ (COMPLETE — 2025-12-30-093745-pst)
+  - Core Agent → Core 1 Subcore (L1 Subcore Coordinator)
+  - Created 4 L2 sub-agents (1a Auth, 1b Network, 1c Storage, 1d Compositor)
+  - Established parallel work model
+- Previous Core Agent work (now distributed to L2 sub-agents):
+  - Phase 59: HTTP/REST API Server ✅ (COMPLETE — 2025-12-05-120808-pst) → Network Agent (1b)
+  - Phase 60: Authentication Service ✅ (COMPLETE — 2025-12-05-134449-pst) → Auth Agent (1a)
+  - Phase 61: Network Stack Enhancements ✅ (COMPLETE — 2025-12-07-004326-pst) → Network Agent (1b)
+  - Phase 62: File System Enhancements ✅ (COMPLETE — 2025-12-06-113038-pst) → Storage Agent (1c)
+  - Compositor work → Compositor Agent (1d)
 
-**Provides**: Compositor, system services, API server ✅, authentication ✅, network stack ✅, file system ✅, timeout/error handling ✅, service-to-service auth ✅, async pattern ✅
+**Provides**: Core system services coordination, integration testing, architecture planning, coordination with other L1 agents
+
+**L2 Sub-Agents Provide**:
+- **Auth Agent (1a)**: Authentication and authorization services
+- **Network Agent (1b)**: Network services (HTTP, WebSocket, DNS, TCP/UDP)
+- **Storage Agent (1c)**: File system and storage services
+- **Compositor Agent (1d)**: Window management and compositing
 
 **Dependencies**:
-- **Needs**: Network Manager (exists), Process Manager (exists)
-- **Provides**: API Server (for Silo Agent, Carry Agent) ✅, Authentication Service ✅, Network Stack ✅, File System ✅
+- **Needs**: L2 sub-agents to implement their domains
+- **Provides**: Core system services coordination (for all agents)
 
 **Next Phases**:
-- Update HTTP/WebSocket clients to use error types consistently (1 day)
-- JG Project Phase 1: Grainbank MMT integration (2 months)
+- Phase 2: Integration testing and validation (ongoing)
+- Phase 3: Architecture planning and documentation (ongoing)
+- Phase 4: Coordination with other L1 agents (ongoing)
+- Phase 5: Cross-sub-agent decision making (ongoing)
+- Phase 6: System-wide planning (ongoing)
 
 ---
 

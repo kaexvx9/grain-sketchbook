@@ -234,3 +234,50 @@ test "audit logger all operation types" {
     );
     std.debug.assert(logger.entries_len == 7);
 }
+
+test "audit logger log security event" {
+    var logger = audit_logger.AuditLogger.init();
+    const timestamp: u64 = 1000;
+    const user_id: u32 = 1000;
+    const path = "/home/user/file.txt";
+    const details = "Access denied";
+    const logged = logger.log_security_event(
+        timestamp,
+        user_id,
+        audit_logger.SecurityEventType.access_denied,
+        path,
+        details,
+    );
+    std.debug.assert(logged);
+    std.debug.assert(logger.entries_len == 1);
+    std.debug.assert(logger.entries[0].success == false);
+}
+
+test "audit logger log multiple security events" {
+    var logger = audit_logger.AuditLogger.init();
+    const timestamp: u64 = 1000;
+    const user_id: u32 = 1000;
+    const path = "/home/user/file.txt";
+    _ = logger.log_security_event(
+        timestamp,
+        user_id,
+        audit_logger.SecurityEventType.access_denied,
+        path,
+        "Access denied",
+    );
+    _ = logger.log_security_event(
+        timestamp + 1,
+        user_id,
+        audit_logger.SecurityEventType.permission_denied,
+        path,
+        "Permission denied",
+    );
+    _ = logger.log_security_event(
+        timestamp + 2,
+        user_id,
+        audit_logger.SecurityEventType.unauthorized_access,
+        path,
+        "Unauthorized access",
+    );
+    std.debug.assert(logger.entries_len == 3);
+}

@@ -88,7 +88,8 @@ pub const ErrorLogEntry = struct {
 /// GrainStyle: Static allocation, bounded buffer, deterministic behavior.
 pub const ErrorLog = struct {
     /// Error entries (circular buffer).
-    entries: [MAX_ERROR_LOG_ENTRIES]ErrorLogEntry = [_]ErrorLogEntry{undefined} ** MAX_ERROR_LOG_ENTRIES,
+    entries: [MAX_ERROR_LOG_ENTRIES]ErrorLogEntry =
+        [_]ErrorLogEntry{undefined} ** MAX_ERROR_LOG_ENTRIES,
     /// Write index (next position to write).
     write_idx: u32 = 0,
     /// Number of entries written (for full buffer detection).
@@ -131,7 +132,13 @@ pub const ErrorLog = struct {
     /// Log error entry.
     /// Why: Record error for debugging and monitoring.
     /// Contract: timestamp must be monotonic, error_type must be valid.
-    pub fn log(self: *ErrorLog, timestamp: u64, error_type: u32, message: []const u8, context: u64) void {
+    pub fn log(
+        self: *ErrorLog,
+        timestamp: u64,
+        error_type: u32,
+        message: []const u8,
+        context: u64,
+    ) void {
         // Assert: Message must be non-empty (precondition).
         std.debug.assert(message.len > 0);
         std.debug.assert(message.len <= 64);

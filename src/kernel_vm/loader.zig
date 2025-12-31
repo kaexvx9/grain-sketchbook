@@ -87,7 +87,10 @@ pub fn loadKernel(target: *VM, _: std.mem.Allocator, elf_data: []const u8) Loade
     
     // Check: ELF data must be large enough for ELF header.
     if (elf_data.len < @sizeOf(Elf64_Ehdr)) {
-        std.debug.print("DEBUG loader.zig: ELF data too small ({} < {})\n", .{ elf_data.len, @sizeOf(Elf64_Ehdr) });
+        std.debug.print(
+            "DEBUG loader.zig: ELF data too small ({} < {})\n",
+            .{ elf_data.len, @sizeOf(Elf64_Ehdr) },
+        );
         return error.InvalidElfFormat;
     }
     
@@ -97,7 +100,11 @@ pub fn loadKernel(target: *VM, _: std.mem.Allocator, elf_data: []const u8) Loade
     // Check: ELF data pointer alignment (Elf64_Ehdr requires 8-byte alignment).
     const alignment_required = @alignOf(Elf64_Ehdr);
     const ptr_addr = @intFromPtr(elf_data.ptr);
-    std.debug.print("DEBUG loader.zig: ptr_addr=0x{x}, alignment_required={}, aligned={}\n", .{ ptr_addr, alignment_required, ptr_addr % alignment_required == 0 });
+    const is_aligned = ptr_addr % alignment_required == 0;
+    std.debug.print(
+        "DEBUG loader.zig: ptr_addr=0x{x}, alignment_required={}, aligned={}\n",
+        .{ ptr_addr, alignment_required, is_aligned },
+    );
     
     const ehdr: *const Elf64_Ehdr = if (ptr_addr % alignment_required != 0) blk: {
         std.debug.print("DEBUG loader.zig: Using aligned buffer (unaligned pointer)\n", .{});
@@ -110,9 +117,13 @@ pub fn loadKernel(target: *VM, _: std.mem.Allocator, elf_data: []const u8) Loade
         break :blk @as(*const Elf64_Ehdr, @alignCast(@ptrCast(elf_data.ptr)));
     };
     
-    std.debug.print("DEBUG loader.zig: ELF header parsed, magic={x:0>2} {x:0>2} {x:0>2} {x:0>2}\n", .{ ehdr.e_ident[0], ehdr.e_ident[1], ehdr.e_ident[2], ehdr.e_ident[3] });
+    std.debug.print(
+        "DEBUG loader.zig: ELF header parsed, magic={x:0>2} {x:0>2} {x:0>2} {x:0>2}\n",
+        .{ ehdr.e_ident[0], ehdr.e_ident[1], ehdr.e_ident[2], ehdr.e_ident[3] },
+    );
     
-    // Check: ELF magic number must match (return error instead of asserting for userspace programs).
+    // Check: ELF magic number must match
+    // (return error instead of asserting for userspace programs).
     if (!std.mem.eql(u8, ehdr.e_ident[0..4], &ELF_MAGIC)) {
         return error.InvalidElfFormat;
     }
@@ -164,7 +175,10 @@ pub fn loadKernel(target: *VM, _: std.mem.Allocator, elf_data: []const u8) Loade
     var phdr_idx: u16 = 0;
     var first_load_vaddr: ?u64 = null; // Track first PT_LOAD segment for PIE entry point adjustment
     while (phdr_idx < ehdr.e_phnum) : (phdr_idx += 1) {
-        std.debug.print("DEBUG loader.zig: Processing program header {}/{}\n", .{ phdr_idx + 1, ehdr.e_phnum });
+        std.debug.print(
+            "DEBUG loader.zig: Processing program header {}/{}\n",
+            .{ phdr_idx + 1, ehdr.e_phnum },
+        );
         const phdr_offset = phdr_idx * @sizeOf(Elf64_Phdr);
         // Check: Program header must fit in ELF data.
         if (phdr_offset + @sizeOf(Elf64_Phdr) > phdr_base.len) {
@@ -174,7 +188,10 @@ pub fn loadKernel(target: *VM, _: std.mem.Allocator, elf_data: []const u8) Loade
         
         // Why: @alignCast required because Elf64_Phdr requires alignment.
         const phdr = @as(*const Elf64_Phdr, @alignCast(@ptrCast(phdr_base.ptr + phdr_offset)));
-        std.debug.print("DEBUG loader.zig: Program header {}: type={}, vaddr=0x{x}, filesz={}, memsz={}\n", .{ phdr_idx, phdr.p_type, phdr.p_vaddr, phdr.p_filesz, phdr.p_memsz });
+        std.debug.print(
+            "DEBUG loader.zig: Program header {}: type={}, vaddr=0x{x}, filesz={}, memsz={}\n",
+            .{ phdr_idx, phdr.p_type, phdr.p_vaddr, phdr.p_filesz, phdr.p_memsz },
+        );
         
         // Only load PT_LOAD segments (type 1).
         if (phdr.p_type == 1) {
@@ -182,13 +199,18 @@ pub fn loadKernel(target: *VM, _: std.mem.Allocator, elf_data: []const u8) Loade
             if (first_load_vaddr == null) {
                 first_load_vaddr = phdr.p_vaddr;
             }
-            std.debug.print("DEBUG loader.zig: Loading PT_LOAD segment at vaddr=0x{x}\n", .{phdr.p_vaddr});
-            // Check: Segment must fit in ELF data (return error instead of asserting for userspace programs).
+            std.debug.print(
+                "DEBUG loader.zig: Loading PT_LOAD segment at vaddr=0x{x}\n",
+                .{phdr.p_vaddr},
+            );
+            // Check: Segment must fit in ELF data
+            // (return error instead of asserting for userspace programs).
             if (phdr.p_offset + phdr.p_filesz > elf_data.len) {
                 return error.InvalidElfFormat;
             }
             
-            // Check: Segment must fit in VM memory (return error instead of asserting for userspace programs).
+            // Check: Segment must fit in VM memory
+            // (return error instead of asserting for userspace programs).
             if (phdr.p_vaddr + phdr.p_memsz > target.memory_size) {
                 return error.SegmentOutOfBounds;
             }
@@ -206,11 +228,18 @@ pub fn loadKernel(target: *VM, _: std.mem.Allocator, elf_data: []const u8) Loade
             
             // Check: Destination must be within VM memory bounds.
             if (dest_start >= target.memory_size) {
-                std.debug.print("DEBUG loader.zig: Segment vaddr 0x{x} >= memory_size 0x{x}\n", .{ phdr.p_vaddr, target.memory_size });
+                std.debug.print(
+                    "DEBUG loader.zig: Segment vaddr 0x{x} >= memory_size 0x{x}\n",
+                    .{ phdr.p_vaddr, target.memory_size },
+                );
                 return error.SegmentOutOfBounds;
             }
             if (dest_end > target.memory_size) {
-                std.debug.print("DEBUG loader.zig: Segment end 0x{x} > memory_size 0x{x}\n", .{ phdr.p_vaddr + phdr.p_filesz, target.memory_size });
+                const segment_end = phdr.p_vaddr + phdr.p_filesz;
+                std.debug.print(
+                    "DEBUG loader.zig: Segment end 0x{x} > memory_size 0x{x}\n",
+                    .{ segment_end, target.memory_size },
+                );
                 return error.SegmentOutOfBounds;
             }
             
@@ -221,7 +250,10 @@ pub fn loadKernel(target: *VM, _: std.mem.Allocator, elf_data: []const u8) Loade
             }
             
             // Safe to copy: all bounds checked.
-            std.debug.print("DEBUG loader.zig: Copying {} bytes from offset {} to vaddr 0x{x}\n", .{ segment_data.len, phdr.p_offset, phdr.p_vaddr });
+            std.debug.print(
+                "DEBUG loader.zig: Copying {} bytes from offset {} to vaddr 0x{x}\n",
+                .{ segment_data.len, phdr.p_offset, phdr.p_vaddr },
+            );
             @memcpy(target.memory[dest_start..dest_end], segment_data);
             std.debug.print("DEBUG loader.zig: Copy completed successfully\n", .{});
             
@@ -229,14 +261,21 @@ pub fn loadKernel(target: *VM, _: std.mem.Allocator, elf_data: []const u8) Loade
             if (phdr.p_memsz > phdr.p_filesz) {
                 const zero_start = @as(usize, @intCast(phdr.p_vaddr + phdr.p_filesz));
                 const zero_len = @as(usize, @intCast(phdr.p_memsz - phdr.p_filesz));
-                std.debug.print("DEBUG loader.zig: Zero-filling {} bytes at vaddr 0x{x}\n", .{ zero_len, phdr.p_vaddr + phdr.p_filesz });
+                const zero_vaddr = phdr.p_vaddr + phdr.p_filesz;
+                std.debug.print(
+                    "DEBUG loader.zig: Zero-filling {} bytes at vaddr 0x{x}\n",
+                    .{ zero_len, zero_vaddr },
+                );
                 // Check: Zero-fill region must fit in VM memory.
                 if (zero_start + zero_len > target.memory_size) {
                     std.debug.print("DEBUG loader.zig: Zero-fill would exceed memory_size\n", .{});
                     return error.SegmentOutOfBounds;
                 }
                 if (zero_start + zero_len > target.memory.len) {
-                    std.debug.print("DEBUG loader.zig: Zero-fill would overflow memory array\n", .{});
+                    std.debug.print(
+                        "DEBUG loader.zig: Zero-fill would overflow memory array\n",
+                        .{},
+                    );
                     return error.SegmentOutOfBounds;
                 }
                 @memset(target.memory[zero_start..zero_start + zero_len], 0);
@@ -246,26 +285,38 @@ pub fn loadKernel(target: *VM, _: std.mem.Allocator, elf_data: []const u8) Loade
     }
     
     // Set VM PC to ELF entry point.
-    // Note: For PIE executables, if entry point is 0x0, use first PT_LOAD segment's vaddr as base.
+    // Note: For PIE executables, if entry point is 0x0,
+    // use first PT_LOAD segment's vaddr as base.
     var entry_point = ehdr.e_entry;
     if (entry_point == 0x0) {
         if (first_load_vaddr) |base_addr| {
-            std.debug.print("DEBUG loader.zig: PIE executable detected (entry=0x0), using first PT_LOAD vaddr 0x{x} as entry point\n", .{base_addr});
+            std.debug.print(
+                "DEBUG loader.zig: PIE executable detected (entry=0x0), " ++
+                    "using first PT_LOAD vaddr 0x{x} as entry point\n",
+                .{base_addr},
+            );
             entry_point = base_addr;
         }
     }
     std.debug.print("DEBUG loader.zig: Setting entry point to 0x{x}\n", .{entry_point});
     // Check: Entry point must be within VM memory bounds.
     if (entry_point >= target.memory_size) {
-        std.debug.print("DEBUG loader.zig: Entry point 0x{x} >= memory_size 0x{x}\n", .{ entry_point, target.memory_size });
+        std.debug.print(
+            "DEBUG loader.zig: Entry point 0x{x} >= memory_size 0x{x}\n",
+            .{ entry_point, target.memory_size },
+        );
         return error.SegmentOutOfBounds;
     }
     
     target.regs.pc = entry_point;
-    std.debug.print("DEBUG loader.zig: Entry point set successfully, PC=0x{x}\n", .{target.regs.pc});
+    std.debug.print(
+        "DEBUG loader.zig: Entry point set successfully, PC=0x{x}\n",
+        .{target.regs.pc},
+    );
     
     // Contract: PC must be set to entry point (verified by assignment above).
-    // Note: Entry point can be 0x0 for position-independent executables (adjusted to first PT_LOAD vaddr).
+    // Note: Entry point can be 0x0 for position-independent executables
+    // (adjusted to first PT_LOAD vaddr).
     
     // Assert: VM must be in halted state after loading.
     std.debug.assert(target.state == .halted);

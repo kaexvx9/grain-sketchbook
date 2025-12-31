@@ -183,12 +183,18 @@ pub const VMInstructionTrace = struct {
         while (i < count) : (i += 1) {
             const entry_opt = self.get_trace_entry(i);
             if (entry_opt) |entry| {
-                std.debug.print("  [{:4}] PC: 0x{x}, Inst: 0x{x}", .{ i, entry.pc, entry.instruction });
+                std.debug.print(
+                    "  [{:4}] PC: 0x{x}, Inst: 0x{x}",
+                    .{ i, entry.pc, entry.instruction },
+                );
                 if (entry.memory_read_addr) |addr| {
                     std.debug.print(", Read: 0x{x} = 0x{x}", .{ addr, entry.memory_read_value.? });
                 }
                 if (entry.memory_write_addr) |addr| {
-                    std.debug.print(", Write: 0x{x} = 0x{x}", .{ addr, entry.memory_write_value.? });
+                    std.debug.print(
+                        ", Write: 0x{x} = 0x{x}",
+                        .{ addr, entry.memory_write_value.? },
+                    );
                 }
                 std.debug.print("\n", .{});
             }

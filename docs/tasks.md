@@ -8,36 +8,44 @@
 
 ## Overall Task Status
 
-**Active Agents**: 12 L1 agents + 3 L2 sub-agents = 15 total agents/sub-agents working in parallel  
-**Current Focus**: Infrastructure completion, coordination decisions integration, JG project planning, architecture evolution
+**Active Agents**: 12 L1 agents + 7 L2 sub-agents = 19 total agents/sub-agents working in parallel  
+**Current Focus**: Infrastructure completion, coordination decisions integration, JG project planning, architecture evolution (Core 1 Subcore + 4 L2 sub-agents)
 
 ---
 
 ## Agent Task Summaries
 
-### 1. Grain Core Agent (System Services)
+### 1. Grain Core 1 Subcore Agent (System Services) — L1 Subcore Coordinator
 
-**Status**: Active — Coordination Decisions Implementation Complete ✅  
-**Current Tasks**: Update HTTP/WebSocket clients to use error types consistently (1 day), JG Project Phase 1 planning  
-**Details**: See [`docs/tasks/tasks_core.md`](tasks/tasks_core.md)
+**Status**: 🆕 **ARCHITECTURE EVOLUTION COMPLETE** — Core 1 Subcore (L1 Subcore) with 4 L2 Sub-Agents  
+**Current Tasks**: Integration testing, architecture planning, coordination with other L1 agents  
+**Details**: See [`docs/tasks/core_1_subcore_tasks.md`](tasks/core_1_subcore_tasks.md)
+
+**Architecture Evolution**: ✅ **COMPLETE** (2025-12-30-093745-pst)
+- [x] Create L1 Subcore/L2 Sub-Agent pattern structure ✅
+- [x] Create 4 L2 sub-agent prompts (1a Auth, 1b Network, 1c Storage, 1d Compositor) ✅
+- [x] Establish coordination model (parallel work with weekly/bi-weekly check-ins) ✅
+- [x] Create coordination documents for all sub-agents ✅
+- [x] Create plan and tasks documents ✅
 
 **Key Tasks**:
-- [x] Phase 59: HTTP/REST API Server ✅ COMPLETE
-- [x] Phase 60: Authentication Service ✅ COMPLETE
-- [x] Phase 61: Network Stack Enhancements ✅ COMPLETE
-- [x] Phase 62: File System Enhancements ✅ COMPLETE
-- [x] HTTP/WebSocket Timeout Implementation ✅ COMPLETE
-- [x] Error Types Implementation ✅ COMPLETE
-- [x] Service-to-Service Authentication ✅ COMPLETE
-- [x] Async Pattern Integration Module ✅ COMPLETE
-- [x] Payment/Passwords/Bank Design ✅ COMPLETE
-- [x] JG Project Design ✅ COMPLETE
-- [ ] Update HTTP/WebSocket clients to use error types consistently (1 day)
-- [ ] Begin JG Project Phase 1: Grainbank MMT integration planning (2 months)
+- [x] Phase 1: Architecture Evolution ✅ COMPLETE
+- [ ] Phase 2: Integration Testing and Validation (ongoing)
+- [ ] Phase 3: Architecture Planning and Documentation (ongoing)
+- [ ] Phase 4: Coordination with Other Full Agents (ongoing)
+- [ ] Phase 5: Cross-Sub-Agent Decision Making (ongoing)
+- [ ] Phase 6: System-Wide Planning (ongoing)
+
+**L2 Sub-Agent Tasks**:
+- **1a. Grain Auth Agent**: See `docs/tasks/core_1a_auth_tasks.md`
+- **1b. Grain Network Agent**: See `docs/tasks/core_1b_network_tasks.md`
+- **1c. Grain Storage Agent**: See `docs/tasks/core_1c_storage_tasks.md`
+- **1d. Grain Compositor Agent**: See `docs/tasks/core_1d_compositor_tasks.md`
 
 **Next Phases**:
-- Update HTTP/WebSocket clients to use error types consistently (1 day)
-- JG Project Phase 1: Grainbank MMT integration (2 months)
+- Phase 2: Integration testing and validation (ongoing)
+- Phase 3: Architecture planning and documentation (ongoing)
+- Phase 4: Coordination with other L1 agents (ongoing)
 
 ---
 
@@ -263,15 +271,15 @@
 
 ### Immediate (This Week)
 
-1. **Core Agent**: Update HTTP/WebSocket clients to use error types consistently (1 day) — **PRIORITY 1**
-2. **Silo Agent**: Begin JG project storage schema design (Priority 1, HIGH) — **PRIORITY 1**
-3. **Vantage 3 Subcore**: Plan architecture evolution (rename to Vantage 3 Subcore, create L2 sub-agents) — ✅ Complete
+1. **Core 1 Subcore**: Begin Phase 2 integration testing framework — **PRIORITY 1**
+2. **Core 1 Subcore L2 Sub-Agents**: All sub-agents begin domain-specific implementation — **PRIORITY 1**
+3. **Silo Agent**: Begin JG project storage schema design (Priority 1, HIGH) — **PRIORITY 1**
 
 ### Short-Term (Next 2 Weeks)
 
-1. **Core Agent**: Begin JG Project Phase 1 planning (Grainbank MMT integration)
-2. **Silo Agent**: Complete JG project storage schema design
-3. **Vantage 3 Subcore**: Implement architecture evolution (Vantage 3 Subcore + L2 sub-agents) — ✅ Complete
+1. **Core 1 Subcore**: Complete integration test framework, begin architecture documentation
+2. **Core 1 Subcore L2 Sub-Agents**: All sub-agents make progress on domain-specific implementation
+3. **Silo Agent**: Complete JG project storage schema design
 4. **All Agents**: Review JG project design document
 
 ### Medium-Term (Next Month)
@@ -302,12 +310,13 @@
 - [x] Test integration ✅
 - [ ] JG Project: Coordinate on mobile app API contracts
 
-### Grain Core Agent ↔ Vantage 3 Subcore (Main Outer Primary L1 Core Coordination)
+### Grain Core 1 Subcore ↔ Vantage 3 Subcore (Main Outer Primary L1 Core Coordination)
 
 - [x] Coordinate on file system integration (database files, transaction logs) ✅
 - [x] Coordinate on network stack (HTTP server, WebSocket) ✅
 - [x] Coordinate on RISC-V compliance ✅
 - [x] Coordinate on architecture evolution (Vantage 3 Subcore + L2 sub-agents) — ✅ Complete
+- [x] Coordinate on architecture evolution (Core 1 Subcore + L2 sub-agents) — ✅ Complete
 - [ ] JG Project: Coordinate on kernel support needs
 
 ### Vantage 3 Subcore ↔ L2 Sub-Agents (Subcore Coordination / Systems Integration)
@@ -321,20 +330,30 @@
 
 ## Architecture Evolution Tasks
 
+### Core 1 Subcore Architecture Evolution
+
+**Status**: ✅ **COMPLETE** — Enable parallelization of Core system services work
+
+**Tasks**:
+- [x] Rename "Grain Core Agent" to "Grain Core 1 Subcore Agent" (L1 Subcore) — ✅ Complete
+- [x] Create 4 L2 sub-agent prompts (1a Auth, 1b Network, 1c Storage, 1d Compositor) — ✅ Complete
+- [x] Establish L1/L2 coordination model — ✅ Complete
+- [x] Create plan and tasks documents — ✅ Complete
+- [x] Update all documentation with new structure — ✅ Complete
+
+**Timeline**: ✅ Complete (2025-12-30-093745-pst)
+
 ### Vantage 3 Subcore Architecture Evolution
 
-**Status**: 🆕 **PLANNED** — Enable parallelization of foundational work
+**Status**: ✅ **COMPLETE** — Enable parallelization of foundational work
 
 **Tasks**:
 - [x] Rename "Grain Vantage Agent" to "Grain Vantage 3 Subcore Agent" (L1 Subcore) — ✅ Complete
-- [ ] Create `docs/grain_basin_kernel_agent_prompt.md` (L2 sub-agent)
-- [ ] Create `docs/grain_vm_runtime_agent_prompt.md` (L2 sub-agent)
-- [ ] Create `docs/grain_system_integration_agent_prompt.md` (L2 sub-agent)
-- [ ] Establish L1/L2 coordination model
-- [ ] Update all documentation with new structure
-- [ ] Update coordination files
+- [x] Create L2 sub-agent prompts (3a Basin Kernel, 3b VM Runtime, 3c System Integration) — ✅ Complete
+- [x] Establish L1/L2 coordination model — ✅ Complete
+- [x] Update all documentation with new structure — ✅ Complete
 
-**Timeline**: 1-2 weeks
+**Timeline**: ✅ Complete
 
 ---
 

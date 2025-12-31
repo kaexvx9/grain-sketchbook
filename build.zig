@@ -168,6 +168,17 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    // Kernel platform module (for testing platform abstraction).
+    const kernel_platform_module = b.addModule("kernel_platform", .{
+        .root_source_file = b.path("src/kernel/kernel_platform.zig"),
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{
+            .{ .name = "sbi", .module = sbi_module },
+            .{ .name = "basin_kernel", .module = basin_kernel_module },
+        },
+    });
+
     // RISC-V VM module for kernel virtualization.
     const kernel_vm_module = b.addModule("kernel_vm", .{
         .root_source_file = b.path("src/kernel_vm/kernel_vm.zig"),
@@ -5236,6 +5247,7 @@ pub fn build(b: *std.Build) void {
             .optimize = optimize,
             .imports = &.{
                 .{ .name = "basin_kernel", .module = basin_kernel_module },
+                .{ .name = "kernel_platform", .module = kernel_platform_module },
             },
         }),
     });

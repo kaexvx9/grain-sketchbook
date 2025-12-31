@@ -9,6 +9,7 @@ const network_stack = @import("network_stack.zig");
 const api_server = @import("api_server.zig");
 const dns_resolver = @import("dns_resolver.zig");
 const http_errors = @import("http_errors.zig");
+const connection_pool = @import("connection_pool.zig");
 
 // Bounded: Max concurrent requests.
 pub const MAX_CONCURRENT_REQUESTS: u32 = 32;
@@ -178,6 +179,7 @@ pub const HttpClient = struct {
     next_request_id: u32,
     network_stack: *network_stack.NetworkStack,
     dns_resolver: *dns_resolver.DnsResolver,
+    pool: connection_pool.ConnectionPool,
 
     pub fn init(
         net_stack: *network_stack.NetworkStack,
@@ -185,12 +187,17 @@ pub const HttpClient = struct {
     ) HttpClient {
         std.debug.assert(net_stack != null);
         std.debug.assert(resolver != null);
+        fn get_nano_timestamp() u64 {
+            return std.time.nanoTimestamp();
+        }
+        const pool = connection_pool.ConnectionPool.init(get_nano_timestamp);
         var client = HttpClient{
             .requests = undefined,
             .requests_len = 0,
             .next_request_id = 1,
             .network_stack = net_stack,
             .dns_resolver = resolver,
+            .pool = pool,
         };
         var i: u32 = 0;
         while (i < MAX_CONCURRENT_REQUESTS) : (i += 1) {
@@ -274,6 +281,9 @@ pub const HttpClient = struct {
         while (i < MAX_CONCURRENT_REQUESTS) : (i += 1) {
             if (self.requests[i]) |*req| {
                 if (req.request_id == request_id) {
+                    if (req.socket_id) |socket_id| {
+                        _ = self.pool.return_connection(socket_id);
+                    }
                     self.requests[i] = null;
                     self.requests_len -= 1;
                     std.debug.assert(self.requests_len < MAX_CONCURRENT_REQUESTS);
@@ -282,6 +292,40 @@ pub const HttpClient = struct {
             }
         }
         return false;
+    }
+
+    // Get connection from pool for hostname:port.
+    pub fn get_pooled_connection(
+        self: *HttpClient,
+        hostname: []const u8,
+        port: u32,
+    ) ?u32 {
+        std.debug.assert(hostname.len > 0);
+        std.debug.assert(hostname.len <= MAX_HOSTNAME_LEN);
+        std.debug.assert(port > 0);
+        std.debug.assert(port <= network_stack.MAX_PORT);
+        return self.pool.get_connection(hostname, port, self.network_stack);
+    }
+
+    // Return connection to pool.
+    pub fn return_pooled_connection(
+        self: *HttpClient,
+        socket_id: u32,
+    ) bool {
+        std.debug.assert(socket_id > 0);
+        return self.pool.return_connection(socket_id);
+    }
+
+    // Clean up idle connections in pool.
+    pub fn cleanup_pool(self: *HttpClient) u32 {
+        std.debug.assert(self.network_stack != null);
+        return self.pool.cleanup_idle_connections(self.network_stack);
+    }
+
+    // Get connection pool count.
+    pub fn get_pool_connection_count(self: *const HttpClient) u32 {
+        std.debug.assert(self.pool.connections_len <= connection_pool.MAX_POOLED_CONNECTIONS);
+        return self.pool.get_connection_count();
     }
 
     pub fn get_request_count(self: *const HttpClient) u32 {

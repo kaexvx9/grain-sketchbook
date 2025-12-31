@@ -228,7 +228,8 @@ fn permission_checker_wrapper(addr: u64) u32 {
 /// VM-Kernel integration state.
 /// Why: Encapsulate VM and kernel instances, manage lifecycle.
 /// Grain Style: Static allocation, explicit state tracking.
-/// Note: Stores VM and kernel pointers instead of values to avoid copying large structs (stack overflow prevention).
+/// Note: Stores VM and kernel pointers instead of values
+/// to avoid copying large structs (stack overflow prevention).
 pub const Integration = struct {
     /// VM instance pointer (RISC-V64 emulator).
     /// Why: Store pointer instead of value to avoid copying 4MB struct.
@@ -243,7 +244,8 @@ pub const Integration = struct {
 
     /// Initialize integration with kernel ELF.
     /// Contract:
-    ///   Input: vm_ptr must point to uninitialized VM struct, elf_data must be non-empty, valid RISC-V64 ELF
+    ///   Input: vm_ptr must point to uninitialized VM struct,
+    ///   elf_data must be non-empty, valid RISC-V64 ELF
     ///   Output: Initialized Integration instance, VM PC set to entry point
     ///   Errors: Invalid ELF format, memory allocation failure
     /// Why: Load kernel into VM, initialize kernel state.
@@ -799,11 +801,15 @@ fn syscall_handler_wrapper(
         
         // Write seconds (8 bytes, little-endian).
         const seconds_bytes = std.mem.toBytes(seconds);
-        @memcpy(vm.memory[@as(usize, @intCast(timespec_phys))..@as(usize, @intCast(timespec_phys + 8))], &seconds_bytes);
+        const timespec_start = @as(usize, @intCast(timespec_phys));
+        const timespec_end = @as(usize, @intCast(timespec_phys + 8));
+        @memcpy(vm.memory[timespec_start..timespec_end], &seconds_bytes);
         
         // Write nanoseconds (8 bytes, little-endian).
         const nanoseconds_bytes = std.mem.toBytes(nanoseconds);
-        @memcpy(vm.memory[@as(usize, @intCast(timespec_phys + 8))..@as(usize, @intCast(timespec_phys + 16))], &nanoseconds_bytes);
+        const nsec_start = @as(usize, @intCast(timespec_phys + 8));
+        const nsec_end = @as(usize, @intCast(timespec_phys + 16));
+        @memcpy(vm.memory[nsec_start..nsec_end], &nanoseconds_bytes);
         
         // Return success (0).
         return 0;
@@ -811,7 +817,10 @@ fn syscall_handler_wrapper(
     
     // Handle framebuffer syscalls (needs VM access to framebuffer memory).
     // These are handled here because kernel doesn't have direct VM memory access.
-    if (syscall_num == FB_CLEAR_SYSCALL or syscall_num == FB_DRAW_PIXEL_SYSCALL or syscall_num == FB_DRAW_TEXT_SYSCALL) {
+    const is_fb_syscall = syscall_num == FB_CLEAR_SYSCALL or
+        syscall_num == FB_DRAW_PIXEL_SYSCALL or
+        syscall_num == FB_DRAW_TEXT_SYSCALL;
+    if (is_fb_syscall) {
         const vm = global_vm_ptr orelse {
             @panic("syscall_handler_wrapper called before Integration.finish_init");
         };
@@ -830,7 +839,9 @@ fn syscall_handler_wrapper(
             const fb_phys_offset = vm.translate_address(FRAMEBUFFER_BASE) orelse {
                 return @as(u64, @bitCast(@as(i64, -9))); // invalid_address
             };
-            const fb_memory = vm.memory[@as(usize, @intCast(fb_phys_offset))..@as(usize, @intCast(fb_phys_offset + FRAMEBUFFER_SIZE))];
+            const fb_phys_start = @as(usize, @intCast(fb_phys_offset));
+            const fb_phys_end = @as(usize, @intCast(fb_phys_offset + FRAMEBUFFER_SIZE));
+            const fb_memory = vm.memory[fb_phys_start..fb_phys_end];
             const r: u8 = @truncate((color >> 24) & 0xFF);
             const g: u8 = @truncate((color >> 16) & 0xFF);
             const b: u8 = @truncate((color >> 8) & 0xFF);
@@ -917,14 +928,19 @@ fn syscall_handler_wrapper(
                     char_y += char_height;
                     continue;
                 }
-                if (char_x + char_width <= FRAMEBUFFER_WIDTH and char_y + char_height <= FRAMEBUFFER_HEIGHT) {
+                const char_fits_x = char_x + char_width <= FRAMEBUFFER_WIDTH;
+                const char_fits_y = char_y + char_height <= FRAMEBUFFER_HEIGHT;
+                if (char_fits_x and char_fits_y) {
                     var py: u32 = 0;
                     while (py < char_height) : (py += 1) {
                         var px: u32 = 0;
                         while (px < char_width) : (px += 1) {
-                            const pixel_offset: u32 = ((char_y + py) * FRAMEBUFFER_WIDTH + (char_x + px)) * FRAMEBUFFER_BPP;
+                            const row_offset = (char_y + py) * FRAMEBUFFER_WIDTH;
+                            const col_offset = char_x + px;
+                            const pixel_offset: u32 = (row_offset + col_offset) * FRAMEBUFFER_BPP;
                             const pixel_addr = @as(usize, @intCast(fb_phys_offset + pixel_offset));
-                            const use_fg = (px > 0 and px < char_width - 1 and py > 0 and py < char_height - 1);
+                            const use_fg = (px > 0 and px < char_width - 1) and
+                                (py > 0 and py < char_height - 1);
                             const pixel_color = if (use_fg) fg_color else bg_color;
                             const r: u8 = @truncate((pixel_color >> 24) & 0xFF);
                             const g: u8 = @truncate((pixel_color >> 16) & 0xFF);
@@ -1043,8 +1059,10 @@ fn syscall_handler_wrapper_impl(
 ///   Output: VM with userspace program loaded, PC set to entry point, SP set to stack address
 ///   Errors: Invalid ELF format, address out of bounds, memory allocation failure
 /// Why: Load userspace programs (not kernel) into VM memory.
-/// Note: Userspace programs typically load at addresses like 0x10000+ (different from kernel at 0x1000).
-/// Note: RISC-V ELF executables are typically position-independent and use their own virtual addresses.
+/// Note: Userspace programs typically load at addresses like 0x10000+
+/// (different from kernel at 0x1000).
+/// Note: RISC-V ELF executables are typically position-independent
+/// and use their own virtual addresses.
 pub fn loadUserspaceELF(
     target: *VM,
     allocator: std.mem.Allocator,
@@ -1061,15 +1079,24 @@ pub fn loadUserspaceELF(
     // Contract: ELF data must be large enough for ELF header (64 bytes minimum).
     const MIN_ELF_HEADER_SIZE: u32 = 64;
     if (elf_data.len < MIN_ELF_HEADER_SIZE) {
-        std.debug.print("DEBUG integration.zig: ELF data too small ({} < {})\n", .{ elf_data.len, MIN_ELF_HEADER_SIZE });
+        std.debug.print(
+            "DEBUG integration.zig: ELF data too small ({} < {})\n",
+            .{ elf_data.len, MIN_ELF_HEADER_SIZE },
+        );
         return error.InvalidElfHeader;
     }
 
     // Use existing loadKernel function (it's generic enough for userspace too).
     // Contract: loadKernel validates ELF format and loads segments at their virtual addresses.
     // Note: RISC-V ELF executables specify their own load addresses in p_vaddr.
-    std.debug.print("DEBUG integration.zig: About to call loadKernel, allocator.ptr=0x{x}\n", .{@intFromPtr(allocator.ptr)});
-    std.debug.print("DEBUG integration.zig: elf_data.ptr=0x{x}, elf_data.len={}\n", .{ @intFromPtr(elf_data.ptr), elf_data.len });
+    std.debug.print(
+        "DEBUG integration.zig: About to call loadKernel, allocator.ptr=0x{x}\n",
+        .{@intFromPtr(allocator.ptr)},
+    );
+    std.debug.print(
+        "DEBUG integration.zig: elf_data.ptr=0x{x}, elf_data.len={}\n",
+        .{ @intFromPtr(elf_data.ptr), elf_data.len },
+    );
     
     // GrainStyle: Use in-place initialization to avoid stack overflow.
     std.debug.print("DEBUG integration.zig: Calling loadKernel...\n", .{});
@@ -1087,7 +1114,10 @@ pub fn loadUserspaceELF(
     // Check: VM state must be halted (return error instead of asserting for userspace programs).
     std.debug.print("DEBUG integration.zig: Checking VM state...\n", .{});
     if (target.state != .halted) {
-        std.debug.print("DEBUG integration.zig: VM state is {}, expected halted\n", .{target.state});
+        std.debug.print(
+            "DEBUG integration.zig: VM state is {}, expected halted\n",
+            .{target.state},
+        );
         return error.InvalidState;
     }
     std.debug.print("DEBUG integration.zig: VM state is halted\n", .{});
@@ -1104,7 +1134,10 @@ pub fn loadUserspaceELF(
     const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB
     const PAGE_SIZE: u64 = 4096;
     const STACK_ADDRESS: u64 = VM_MEMORY_SIZE - PAGE_SIZE; // Top of memory, page-aligned
-    std.debug.print("DEBUG integration.zig: STACK_ADDRESS=0x{x}, target.memory_size=0x{x}\n", .{ STACK_ADDRESS, target.memory_size });
+    std.debug.print(
+        "DEBUG integration.zig: STACK_ADDRESS=0x{x}, target.memory_size=0x{x}\n",
+        .{ STACK_ADDRESS, target.memory_size },
+    );
     // Check: Stack address must be page-aligned and within VM memory.
     if (STACK_ADDRESS % PAGE_SIZE != 0 or STACK_ADDRESS >= target.memory_size) {
         std.debug.print("DEBUG integration.zig: Stack address validation failed\n", .{});
@@ -1148,7 +1181,10 @@ pub fn loadUserspaceELF(
         // Check: All addresses must be within VM memory bounds.
         // Note: Stack grows downward, so string_data_start should be less than STACK_ADDRESS.
         if (string_data_start >= STACK_ADDRESS or string_data_start + string_data_size > target.memory_size) {
-            std.debug.print("DEBUG integration.zig: argv setup would exceed stack bounds: string_data_start=0x{x}, STACK_ADDRESS=0x{x}, memory_size=0x{x}\n", .{ string_data_start, STACK_ADDRESS, target.memory_size });
+            std.debug.print(
+                "DEBUG integration.zig: argv setup would exceed stack bounds: string_data_start=0x{x}, STACK_ADDRESS=0x{x}, memory_size=0x{x}\n",
+                .{ string_data_start, STACK_ADDRESS, target.memory_size },
+            );
             return error.AddressOutOfBounds;
         }
         
@@ -1180,7 +1216,9 @@ pub fn loadUserspaceELF(
             if (argv_array_current + 8 > target.memory_size) {
                 return error.AddressOutOfBounds;
             }
-            @memcpy(target.memory[@intCast(argv_array_current)..@intCast(argv_array_current + 8)], &std.mem.toBytes(argv_ptrs[i]));
+            const array_start = @intCast(argv_array_current);
+            const array_end = @intCast(argv_array_current + 8);
+            @memcpy(target.memory[array_start..array_end], &std.mem.toBytes(argv_ptrs[i]));
             argv_array_current += 8;
         }
         
@@ -1198,13 +1236,17 @@ pub fn loadUserspaceELF(
             return error.AddressOutOfBounds;
         }
         const argc: u64 = argv.len;
-        @memcpy(target.memory[@intCast(sp)..@intCast(sp + 8)], &std.mem.toBytes(argc));
+        const sp_start = @intCast(sp);
+        const sp_end = @intCast(sp + 8);
+        @memcpy(target.memory[sp_start..sp_end], &std.mem.toBytes(argc));
         
         // Write argv pointer (points to array of string pointers) at sp + 8
         if (sp + 16 > target.memory_size) {
             return error.AddressOutOfBounds;
         }
-        @memcpy(target.memory[@intCast(sp + 8)..@intCast(sp + 16)], &std.mem.toBytes(argv_array_addr));
+        const argv_ptr_start = @intCast(sp + 8);
+        const argv_ptr_end = @intCast(sp + 16);
+        @memcpy(target.memory[argv_ptr_start..argv_ptr_end], &std.mem.toBytes(argv_array_addr));
         
         // Set registers according to RISC-V calling convention
         target.regs.set(10, argc); // a0 = argc

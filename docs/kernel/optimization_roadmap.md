@@ -12,6 +12,19 @@ This document provides a comprehensive roadmap for kernel performance optimizati
 
 ---
 
+## Quick Wins (Implemented)
+
+### ✅ Handle Lookup MRU Cache (COMPLETE)
+- **Status**: ✅ **IMPLEMENTED**
+- **Implementation**: MRU (Most Recently Used) cache for handle lookup
+- **Files Modified**:
+  - `src/kernel/basin_kernel_core.zig` - Added MRU fields, updated `find_handle_by_id()`, added `invalidate_mru_handle_cache()`
+  - `src/kernel/basin_kernel_syscalls_file.zig` - Integrated cache invalidation in `syscall_close`
+- **Expected Improvement**: 10-30% for repeated handle access
+- **Risk**: Low (simple optimization, maintains correctness)
+
+---
+
 ## Optimization Priority Matrix
 
 ### High Priority (If Confirmed Hot Paths)

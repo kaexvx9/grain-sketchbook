@@ -404,6 +404,13 @@ pub const Compositor = struct {
         _ = self.window_stack.add_window(window_id);
         // Start fade-in effect for new window.
         _ = window_effects.start_fade_in(&self.animation_manager, window_id, 0);
+        // Note: Window rules are applied when window title is set (see set_window_title method).
+        // Emit window created event.
+        self.event_manager.emit_event(
+            window_events.EventType.window_created,
+            window_id,
+            0, // Would use actual timestamp in full impl.
+        );
         std.debug.assert(self.windows_len <= MAX_WINDOWS);
         std.debug.assert(window_id > 0);
         return window_id;
@@ -465,6 +472,12 @@ pub const Compositor = struct {
         _ = self.preview_manager.remove_preview(window_id);
         // Remove from all groups.
         self.group_manager.remove_window_from_all_groups(window_id);
+        // Emit window destroyed event before removal.
+        self.event_manager.emit_event(
+            window_events.EventType.window_destroyed,
+            window_id,
+            0, // Would use actual timestamp in full impl.
+        );
         // Start fade-out effect before removal (would wait for completion in full impl).
         if (self.get_window(window_id)) |win| {
             _ = window_effects.start_fade_out(&self.animation_manager, window_id, win.opacity, 0);
@@ -809,6 +822,12 @@ pub const Compositor = struct {
             self.switch_order.move_to_front(window_id);
             // Raise to top of stacking order.
             _ = self.window_stack.raise_to_top(window_id);
+            // Emit window focused event.
+            self.event_manager.emit_event(
+                window_events.EventType.window_focused,
+                window_id,
+                0, // Would use actual timestamp in full impl.
+            );
             return true;
         }
         return false;
@@ -817,10 +836,17 @@ pub const Compositor = struct {
     // Unfocus all windows.
     pub fn unfocus_all(self: *Compositor) void {
         if (self.focused_window_id > 0) {
-            if (self.get_window(self.focused_window_id)) |win| {
+            const unfocused_id = self.focused_window_id;
+            if (self.get_window(unfocused_id)) |win| {
                 win.focused = false;
             }
             self.focused_window_id = 0;
+            // Emit window unfocused event.
+            self.event_manager.emit_event(
+                window_events.EventType.window_unfocused,
+                unfocused_id,
+                0, // Would use actual timestamp in full impl.
+            );
         }
     }
 
@@ -927,9 +953,14 @@ pub const Compositor = struct {
                 }
             } else if (self.focused_window_id > 0) {
                 // Route keyboard event to focused window if no shortcut matched.
+                // Note: Actual routing to Wayland client would happen via
+                // Wayland protocol (wl_seat.keyboard events to surface).
+                // This compositor layer handles window management shortcuts only.
                 _ = event.keyboard;
             }
         }
+        // Keyboard up events could be routed here for key release handling.
+        // Currently only down events are processed (for shortcuts).
     }
 
     pub fn process_input(self: *Compositor) !void {
@@ -957,6 +988,12 @@ pub const Compositor = struct {
         if (self.get_window(window_id)) |win| {
             win.minimized = true;
             win.visible = false;
+            // Emit window minimized event.
+            self.event_manager.emit_event(
+                window_events.EventType.window_minimized,
+                window_id,
+                0, // Would use actual timestamp in full impl.
+            );
             return true;
         }
         return false;
@@ -983,6 +1020,12 @@ pub const Compositor = struct {
             win.width = self.output.width;
             win.height = self.output.height - (self.border_width * 2) - self.title_bar_height;
             self.recalculate_layout();
+            // Emit window maximized event.
+            self.event_manager.emit_event(
+                window_events.EventType.window_maximized,
+                window_id,
+                0, // Would use actual timestamp in full impl.
+            );
             return true;
         }
         return false;
@@ -1509,6 +1552,69 @@ pub const Compositor = struct {
     // Get rule count.
     pub fn get_rule_count(self: *const Compositor) u32 {
         return self.rule_manager.get_rule_count();
+    }
+
+    // Set window title and apply matching rules.
+    pub fn set_window_title(
+        self: *Compositor,
+        window_id: u32,
+        title: []const u8,
+    ) bool {
+        std.debug.assert(window_id > 0);
+        if (self.get_window(window_id)) |win| {
+            win.set_title(title);
+            // Apply window rules after title is set.
+            if (win.title_len > 0) {
+                self.apply_window_rules(win);
+            }
+            // Emit window title changed event.
+            self.event_manager.emit_event(
+                window_events.EventType.window_title_changed,
+                window_id,
+                0, // Would use actual timestamp in full impl.
+            );
+            return true;
+        }
+        return false;
+    }
+
+    // Apply window rules to a window (internal helper).
+    fn apply_window_rules(self: *Compositor, win: *Window) void {
+        std.debug.assert(win.title_len > 0);
+        const title_slice = win.title[0..win.title_len];
+        if (self.rule_manager.match_window(title_slice)) |rule| {
+            switch (rule.action_type) {
+                .set_position => {
+                    if (rule.action_value_x != 0 or rule.action_value_y != 0) {
+                        win.x = rule.action_value_x;
+                        win.y = rule.action_value_y;
+                    }
+                },
+                .set_size => {
+                    if (rule.action_value_width > 0 and rule.action_value_height > 0) {
+                        win.width = rule.action_value_width;
+                        win.height = rule.action_value_height;
+                    }
+                },
+                .set_workspace => {
+                    if (rule.action_value_u32 > 0) {
+                        _ = self.assign_window_to_workspace(win.id, rule.action_value_u32);
+                    }
+                },
+                .set_opacity => {
+                    win.opacity = rule.action_value_u8;
+                },
+                .set_constraints => {
+                    // Constraints would be set via window constraints manager.
+                    // For now, skip (can be enhanced later).
+                },
+                .set_floating, .set_tiled => {
+                    // Floating/tiled state would affect tiling behavior.
+                    // For now, skip (can be enhanced later).
+                },
+                .none => {},
+            }
+        }
     }
 
     // Create window session.
@@ -3295,7 +3401,9 @@ pub const Compositor = struct {
                         ));
                         const max_x: i32 = @as(i32, @intCast(self.output.width)) -
                             @as(i32, @intCast(win.width));
-                        const max_y: i32 = @as(i32, @intCast(self.output.height)) - @as(i32, @intCast(win.height)) - @as(i32, @intCast(desktop_shell.STATUS_BAR_HEIGHT));
+                        const status_bar_height = @as(i32, @intCast(desktop_shell.STATUS_BAR_HEIGHT));
+                        const max_y: i32 = @as(i32, @intCast(self.output.height)) -
+                            @as(i32, @intCast(win.height)) - status_bar_height;
                         win.x = std.math.clamp(win.x, min_x, max_x);
                         win.y = std.math.clamp(win.y, min_y, max_y);
                     }
@@ -3434,6 +3542,14 @@ pub const Compositor = struct {
         if (self.focused_window_id > 0) {
             if (self.get_window(self.focused_window_id)) |win| {
                 win.drag_state.active = false;
+                // Emit window moved event.
+                self.event_manager.emit_event_with_position(
+                    window_events.EventType.window_moved,
+                    self.focused_window_id,
+                    0, // Would use actual timestamp in full impl.
+                    win.x,
+                    win.y,
+                );
             }
         }
     }
@@ -3442,8 +3558,20 @@ pub const Compositor = struct {
     pub fn end_resize(self: *Compositor) void {
         var i: u32 = 0;
         while (i < self.windows_len) : (i += 1) {
-            self.windows[i].resize_state.active = false;
-            self.windows[i].resize_state.handle = ResizeHandle.none;
+            const win = &self.windows[i];
+            if (win.resize_state.active) {
+                const window_id = win.id;
+                win.resize_state.active = false;
+                win.resize_state.handle = ResizeHandle.none;
+                // Emit window resized event.
+                self.event_manager.emit_event_with_size(
+                    window_events.EventType.window_resized,
+                    window_id,
+                    0, // Would use actual timestamp in full impl.
+                    win.width,
+                    win.height,
+                );
+            }
         }
     }
 };

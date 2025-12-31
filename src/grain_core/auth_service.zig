@@ -41,6 +41,33 @@ pub const SERVICE_ACCOUNT_TOKEN_EXPIRY: u64 = 86400; // 24 hours
 pub const OTP_EXPIRY: u64 = 600; // 10 minutes
 pub const SESSION_EXPIRY: u64 = 86400; // 24 hours
 
+// API Key constants (Phase 3)
+pub const MAX_API_KEY_LEN: u32 = 128; // API key string length
+pub const MAX_API_KEY_PREFIX_LEN: u32 = 16; // Prefix length (e.g., "grain_live_")
+pub const MAX_API_KEY_SCOPE_LEN: u32 = 32; // Individual scope name length
+pub const MAX_API_KEY_SCOPES: u32 = 16; // Maximum scopes per API key
+pub const API_KEY_DEFAULT_EXPIRY: u64 = 31536000; // 1 year (in seconds)
+pub const MAX_API_KEYS: u32 = 1000; // Maximum API keys per service
+
+// RBAC constants (Phase 5)
+pub const MAX_ROLE_NAME_LEN: u32 = 64; // Role name length
+pub const MAX_PERMISSION_NAME_LEN: u32 = 64; // Permission name length
+pub const MAX_RESOURCE_NAME_LEN: u32 = 128; // Resource name length
+pub const MAX_ROLES: u32 = 256; // Maximum roles in system
+pub const MAX_PERMISSIONS_PER_ROLE: u32 = 64; // Maximum permissions per role
+pub const MAX_ROLES_PER_USER: u32 = 16; // Maximum roles per user
+
+// CSRF protection constants (Phase 6)
+pub const CSRF_TOKEN_LEN: u32 = 32; // CSRF token length (bytes)
+pub const CSRF_TOKEN_STRING_LEN: u32 = 44; // Base64URL encoded length
+pub const CSRF_TOKEN_EXPIRY: u64 = 3600; // 1 hour (in seconds)
+pub const MAX_CSRF_TOKENS: u32 = 10000; // Maximum CSRF tokens in memory
+
+// Rate limiting constants (Phase 6)
+pub const MAX_RATE_LIMIT_ENTRIES: u32 = 10000; // Maximum rate limit entries
+pub const RATE_LIMIT_WINDOW: u64 = 60; // 60 seconds window
+pub const DEFAULT_RATE_LIMIT: u32 = 100; // 100 requests per window
+
 // JWT Claims structure
 pub const JwtClaims = struct {
     user_id: [MAX_USER_ID_LEN]u8,
@@ -48,6 +75,8 @@ pub const JwtClaims = struct {
     exp: u64, // Expiration timestamp
     iat: u64, // Issued at timestamp
     token_type: TokenType,
+    roles: [MAX_ROLES_PER_USER]u32, // Role IDs (Phase 5)
+    role_count: u32, // Number of roles
 };
 
 // Token types
@@ -87,6 +116,60 @@ pub const OAuthProvider = enum(u8) {
     apple,
 };
 
+// API Key scope types (Phase 3)
+pub const ApiKeyScope = enum(u8) {
+    read,
+    write,
+    admin,
+    custom,
+};
+
+// API Key structure (Phase 3)
+pub const ApiKey = struct {
+    key_hash: [HASH_LEN]u8, // SHA-256 hash of the API key
+    user_id: [MAX_USER_ID_LEN]u8,
+    user_id_len: u32,
+    prefix: [MAX_API_KEY_PREFIX_LEN]u8,
+    prefix_len: u32,
+    scopes: [MAX_API_KEY_SCOPES]ApiKeyScope,
+    scope_count: u32,
+    created_at: u64,
+    expires_at: u64,
+    last_used_at: u64,
+    is_active: bool,
+    role_ids: [MAX_ROLES_PER_USER]u32, // RBAC roles (Phase 5)
+    role_count: u32, // Number of roles
+};
+
+// Permission structure (Phase 5 - RBAC)
+pub const Permission = struct {
+    name: [MAX_PERMISSION_NAME_LEN]u8,
+    name_len: u32,
+    resource: [MAX_RESOURCE_NAME_LEN]u8,
+    resource_len: u32,
+    action: PermissionAction,
+};
+
+// Permission actions (Phase 5 - RBAC)
+pub const PermissionAction = enum(u8) {
+    read,
+    write,
+    delete,
+    execute,
+    admin,
+};
+
+// Role structure (Phase 5 - RBAC)
+pub const Role = struct {
+    role_id: u32, // Unique role identifier
+    name: [MAX_ROLE_NAME_LEN]u8,
+    name_len: u32,
+    permissions: [MAX_PERMISSIONS_PER_ROLE]Permission,
+    permission_count: u32,
+    parent_role_id: ?u32, // Parent role for hierarchy
+    is_active: bool,
+};
+
 // Authentication Service
 pub const AuthService = struct {
     secret: [MAX_SECRET_LEN]u8,
@@ -97,6 +180,17 @@ pub const AuthService = struct {
     otp_count: u32,
     revoked_tokens: [200][MAX_JWT_LEN]u8, // Token blacklist
     revoked_count: u32,
+    api_keys: [MAX_API_KEYS]ApiKey, // API key storage (Phase 3)
+    api_key_count: u32,
+    revoked_api_keys: [MAX_API_KEYS][HASH_LEN]u8, // API key hash blacklist
+    revoked_api_key_count: u32,
+    roles: [MAX_ROLES]Role, // RBAC roles (Phase 5)
+    role_count: u32,
+    next_role_id: u32, // Next role ID to assign
+    csrf_tokens: [MAX_CSRF_TOKENS]CsrfToken, // CSRF tokens (Phase 6)
+    csrf_token_count: u32,
+    rate_limits: [MAX_RATE_LIMIT_ENTRIES]RateLimitEntry, // Rate limiting (Phase 6)
+    rate_limit_count: u32,
 
     // Initialize authentication service with secret
     pub fn init(secret: []const u8) AuthService {
@@ -111,11 +205,27 @@ pub const AuthService = struct {
             .otp_count = 0,
             .revoked_tokens = undefined,
             .revoked_count = 0,
+            .api_keys = undefined,
+            .api_key_count = 0,
+            .revoked_api_keys = undefined,
+            .revoked_api_key_count = 0,
+            .roles = undefined,
+            .role_count = 0,
+            .next_role_id = 1,
+            .csrf_tokens = undefined,
+            .csrf_token_count = 0,
+            .rate_limits = undefined,
+            .rate_limit_count = 0,
         };
         std.mem.copyForwards(u8, &service.secret, secret);
         std.mem.set(u8, &service.sessions, 0);
         std.mem.set(u8, &service.otps, 0);
         std.mem.set(u8, &service.revoked_tokens, 0);
+        std.mem.set(u8, &service.api_keys, 0);
+        std.mem.set(u8, &service.revoked_api_keys, 0);
+        std.mem.set(u8, &service.roles, 0);
+        std.mem.set(u8, &service.csrf_tokens, 0);
+        std.mem.set(u8, &service.rate_limits, 0);
         std.debug.assert(service.secret_len > 0);
         return service;
     }
@@ -137,6 +247,8 @@ pub const AuthService = struct {
             .exp = current_time + ACCESS_TOKEN_EXPIRY,
             .iat = current_time,
             .token_type = TokenType.access,
+            .roles = undefined,
+            .role_count = 0,
         };
         std.mem.copyForwards(u8, &claims.user_id, user_id);
         const token_len = generate_jwt_token(
@@ -166,6 +278,8 @@ pub const AuthService = struct {
             .exp = current_time + REFRESH_TOKEN_EXPIRY,
             .iat = current_time,
             .token_type = TokenType.refresh,
+            .roles = undefined,
+            .role_count = 0,
         };
         std.mem.copyForwards(u8, &claims.user_id, user_id);
         const token_len = generate_jwt_token(
@@ -195,6 +309,8 @@ pub const AuthService = struct {
             .exp = current_time + SERVICE_ACCOUNT_TOKEN_EXPIRY,
             .iat = current_time,
             .token_type = TokenType.service_account,
+            .roles = undefined,
+            .role_count = 0,
         };
         std.mem.copyForwards(u8, &claims.user_id, service_id);
         const token_len = generate_jwt_token(
@@ -1235,8 +1351,141 @@ fn blake2b_hash_for_argon2(
     std.debug.assert(output.len >= output_len);
 }
 
-// Helper: Parse Argon2 hash string format (Phase 2.2 - placeholder)
-fn parse_argon2_hash_string(
+// Base64 character to value (standard base64, not URL-safe)
+fn base64_char_to_value(char: u8) ?u8 {
+    if (char >= 'A' and char <= 'Z') {
+        return char - 'A';
+    }
+    if (char >= 'a' and char <= 'z') {
+        return 26 + (char - 'a');
+    }
+    if (char >= '0' and char <= '9') {
+        return 52 + (char - '0');
+    }
+    if (char == '+') return 62;
+    if (char == '/') return 63;
+    return null;
+}
+
+// Base64 decoding (standard, not URL-safe) for Argon2
+fn base64_decode_standard(input: []const u8, output: []u8) u32 {
+    std.debug.assert(input.len > 0);
+    std.debug.assert(output.len >= (input.len * 3 / 4));
+    var out_idx: u32 = 0;
+    var i: u32 = 0;
+    while (i < input.len) {
+        if (input[i] == '=') break;
+        const val1 = base64_char_to_value(input[i]) orelse break;
+        i += 1;
+        if (i >= input.len) break;
+        const val2 = base64_char_to_value(input[i]) orelse break;
+        i += 1;
+        if (out_idx >= output.len) break;
+        output[out_idx] = (val1 << 2) | (val2 >> 4);
+        out_idx += 1;
+        if (i >= input.len or input[i] == '=') break;
+        const val3 = base64_char_to_value(input[i]) orelse break;
+        i += 1;
+        if (out_idx >= output.len) break;
+        output[out_idx] = ((val2 & 0x0F) << 4) | (val3 >> 2);
+        out_idx += 1;
+        if (i >= input.len or input[i] == '=') break;
+        const val4 = base64_char_to_value(input[i]) orelse break;
+        i += 1;
+        if (out_idx >= output.len) break;
+        output[out_idx] = ((val3 & 0x03) << 6) | val4;
+        out_idx += 1;
+    }
+    std.debug.assert(out_idx <= output.len);
+    return out_idx;
+}
+
+// Base64 encoding (standard, not URL-safe) for Argon2 hash strings
+fn base64_encode_standard(input: []const u8, output: []u8) u32 {
+    std.debug.assert(input.len > 0);
+    std.debug.assert(output.len >= (input.len * 4 / 3 + 4));
+    const base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    var i: u32 = 0;
+    var out_idx: u32 = 0;
+    while (i < input.len) {
+        const byte1 = input[i];
+        i += 1;
+        if (i < input.len) {
+            const byte2 = input[i];
+            i += 1;
+            if (i < input.len) {
+                const byte3 = input[i];
+                i += 1;
+                const b1 = (byte1 >> 2) & 0x3F;
+                const b2 = ((byte1 & 0x03) << 4) | ((byte2 >> 4) & 0x0F);
+                const b3 = ((byte2 & 0x0F) << 2) | ((byte3 >> 6) & 0x03);
+                const b4 = byte3 & 0x3F;
+                if (out_idx < output.len) output[out_idx] = base64_chars[@intCast(b1)];
+                out_idx += 1;
+                if (out_idx < output.len) output[out_idx] = base64_chars[@intCast(b2)];
+                out_idx += 1;
+                if (out_idx < output.len) output[out_idx] = base64_chars[@intCast(b3)];
+                out_idx += 1;
+                if (out_idx < output.len) output[out_idx] = base64_chars[@intCast(b4)];
+                out_idx += 1;
+            } else {
+                const b1 = (byte1 >> 2) & 0x3F;
+                const b2 = ((byte1 & 0x03) << 4) | ((byte2 >> 4) & 0x0F);
+                const b3 = (byte2 & 0x0F) << 2;
+                if (out_idx < output.len) output[out_idx] = base64_chars[@intCast(b1)];
+                out_idx += 1;
+                if (out_idx < output.len) output[out_idx] = base64_chars[@intCast(b2)];
+                out_idx += 1;
+                if (out_idx < output.len) output[out_idx] = base64_chars[@intCast(b3)];
+                out_idx += 1;
+                if (out_idx < output.len) output[out_idx] = '=';
+                out_idx += 1;
+            }
+        } else {
+            const b1 = (byte1 >> 2) & 0x3F;
+            const b2 = (byte1 & 0x03) << 4;
+            if (out_idx < output.len) output[out_idx] = base64_chars[@intCast(b1)];
+            out_idx += 1;
+            if (out_idx < output.len) output[out_idx] = base64_chars[@intCast(b2)];
+            out_idx += 1;
+            if (out_idx < output.len) output[out_idx] = '=';
+            out_idx += 1;
+            if (out_idx < output.len) output[out_idx] = '=';
+            out_idx += 1;
+        }
+    }
+    std.debug.assert(out_idx <= output.len);
+    return out_idx;
+}
+
+// Convert u32 to decimal string
+fn u32_to_decimal_string(value: u32, output: []u8) u32 {
+    std.debug.assert(output.len >= 16);
+    if (value == 0) {
+        output[0] = '0';
+        return 1;
+    }
+    var temp: [16]u8 = undefined;
+    var idx: u32 = 0;
+    var v: u32 = value;
+    while (v > 0) {
+        temp[idx] = '0' + @as(u8, @intCast(v % 10));
+        v /= 10;
+        idx += 1;
+    }
+    var out_idx: u32 = 0;
+    var i: u32 = idx;
+    while (i > 0) {
+        i -= 1;
+        output[out_idx] = temp[i];
+        out_idx += 1;
+    }
+    std.debug.assert(out_idx <= output.len);
+    return out_idx;
+}
+
+// Helper: Parse Argon2 hash string format (Phase 2.2)
+pub fn parse_argon2_hash_string(
     hash_string: []const u8,
     params_out: *Argon2Params,
     salt_out: []u8,
@@ -1247,17 +1496,151 @@ fn parse_argon2_hash_string(
     std.debug.assert(params_out != null);
     std.debug.assert(salt_out.len >= ARGON2_SALT_LEN);
     std.debug.assert(hash_out.len >= ARGON2_HASH_LEN);
-    // TODO: Phase 2.2 - Parse hash string format:
-    // $argon2id$v=19$m=65536,t=2,p=1$salt$hash
-    // Format: $variant$v=version$m=memory,t=time,p=parallelism$salt$hash
-    _ = hash_string;
-    _ = params_out;
-    _ = salt_out;
-    _ = hash_out;
-    return false;
+    if (hash_string.len < 20 or hash_string[0] != '$') {
+        return false;
+    }
+    var i: u32 = 1;
+    const prefix = "$argon2id$";
+    var j: u32 = 0;
+    while (j < prefix.len and i < hash_string.len) : ({
+        i += 1;
+        j += 1;
+    }) {
+        if (hash_string[i] != prefix[j + 1]) {
+            return false;
+        }
+    }
+    if (i >= hash_string.len or hash_string[i] != 'v' or hash_string[i + 1] != '=') {
+        return false;
+    }
+    i += 2;
+    if (i >= hash_string.len) return false;
+    while (i < hash_string.len and hash_string[i] != '$') : (i += 1) {}
+    if (i >= hash_string.len or hash_string[i] != '$') return false;
+    i += 1;
+    if (i >= hash_string.len or hash_string[i] != 'm' or hash_string[i + 1] != '=') {
+        return false;
+    }
+    i += 2;
+    var mem_val: u32 = 0;
+    while (i < hash_string.len and hash_string[i] >= '0' and hash_string[i] <= '9') : (i += 1) {
+        mem_val = mem_val * 10 + (hash_string[i] - '0');
+    }
+    if (i >= hash_string.len or hash_string[i] != ',') return false;
+    i += 1;
+    if (i >= hash_string.len or hash_string[i] != 't' or hash_string[i + 1] != '=') {
+        return false;
+    }
+    i += 2;
+    var time_val: u32 = 0;
+    while (i < hash_string.len and hash_string[i] >= '0' and hash_string[i] <= '9') : (i += 1) {
+        time_val = time_val * 10 + (hash_string[i] - '0');
+    }
+    if (i >= hash_string.len or hash_string[i] != ',') return false;
+    i += 1;
+    if (i >= hash_string.len or hash_string[i] != 'p' or hash_string[i + 1] != '=') {
+        return false;
+    }
+    i += 2;
+    var par_val: u32 = 0;
+    while (i < hash_string.len and hash_string[i] >= '0' and hash_string[i] <= '9') : (i += 1) {
+        par_val = par_val * 10 + (hash_string[i] - '0');
+    }
+    if (i >= hash_string.len or hash_string[i] != '$') return false;
+    i += 1;
+    params_out.memory_kb = mem_val;
+    params_out.time = time_val;
+    params_out.parallelism = par_val;
+    var salt_decoded: [64]u8 = undefined;
+    var salt_len: u32 = 0;
+    while (i < hash_string.len and hash_string[i] != '$' and salt_len < 64) : ({
+        i += 1;
+        salt_len += 1;
+    }) {
+        salt_decoded[salt_len] = hash_string[i];
+    }
+    if (salt_len == 0 or i >= hash_string.len) return false;
+    const salt_decoded_len = base64_decode_standard(salt_decoded[0..salt_len], salt_out);
+    if (salt_decoded_len != ARGON2_SALT_LEN) return false;
+    i += 1;
+    const hash_start = i;
+    var hash_len: u32 = 0;
+    while (i < hash_string.len and hash_len < 64) : ({
+        i += 1;
+        hash_len += 1;
+    }) {
+    }
+    if (hash_len == 0) return false;
+    const hash_slice = hash_string[hash_start..hash_start + hash_len];
+    const hash_decoded_len = base64_decode_standard(hash_slice, hash_out);
+    if (hash_decoded_len != ARGON2_HASH_LEN) return false;
+    std.debug.assert(salt_out.len >= ARGON2_SALT_LEN);
+    std.debug.assert(hash_out.len >= ARGON2_HASH_LEN);
+    return true;
 }
 
-// Hash password with Argon2id (Phase 2.1 - placeholder, full implementation pending)
+// Generate initial hash H0 for Argon2 (RFC 9106 Section 3.2)
+fn argon2_generate_initial_hash(
+    password: []const u8,
+    salt: []const u8,
+    params: *const Argon2Params,
+    h0_out: []u8,
+) void {
+    std.debug.assert(password.len > 0);
+    std.debug.assert(salt.len == ARGON2_SALT_LEN);
+    std.debug.assert(h0_out.len >= 64);
+    std.debug.assert(validate_argon2_params(params));
+    var h0_input: [256]u8 = undefined;
+    var h0_idx: u32 = 0;
+    h0_input[h0_idx] = @as(u8, @intCast(params.parallelism));
+    h0_idx += 1;
+    h0_input[h0_idx] = @as(u8, @intCast(params.memory_kb & 0xFF));
+    h0_idx += 1;
+    h0_input[h0_idx] = @as(u8, @intCast((params.memory_kb >> 8) & 0xFF));
+    h0_idx += 1;
+    h0_input[h0_idx] = @as(u8, @intCast((params.memory_kb >> 16) & 0xFF));
+    h0_idx += 1;
+    h0_input[h0_idx] = @as(u8, @intCast((params.memory_kb >> 24) & 0xFF));
+    h0_idx += 1;
+    h0_input[h0_idx] = @as(u8, @intCast(params.time));
+    h0_idx += 1;
+    h0_input[h0_idx] = @as(u8, @intCast(ARGON2_HASH_LEN));
+    h0_idx += 1;
+    h0_input[h0_idx] = 19;
+    h0_idx += 1;
+    h0_input[h0_idx] = 1;
+    h0_idx += 1;
+    h0_input[h0_idx] = @as(u8, @intCast(password.len & 0xFF));
+    h0_idx += 1;
+    h0_input[h0_idx] = @as(u8, @intCast((password.len >> 8) & 0xFF));
+    h0_idx += 1;
+    std.mem.copyForwards(u8, h0_input[h0_idx..h0_idx + password.len], password);
+    h0_idx += @as(u32, @intCast(password.len));
+    h0_input[h0_idx] = @as(u8, @intCast(salt.len & 0xFF));
+    h0_idx += 1;
+    h0_input[h0_idx] = @as(u8, @intCast((salt.len >> 8) & 0xFF));
+    h0_idx += 1;
+    std.mem.copyForwards(u8, h0_input[h0_idx..h0_idx + salt.len], salt);
+    h0_idx += salt.len;
+    blake2b_hash_for_argon2(64, h0_input[0..h0_idx], null, h0_out);
+    std.debug.assert(h0_out.len >= 64);
+}
+
+// Argon2 block compression (Blake2b-based, RFC 9106)
+fn argon2_compress_block(x: []const u8, y: []const u8, output: []u8) void {
+    std.debug.assert(x.len == 128);
+    std.debug.assert(y.len == 128);
+    std.debug.assert(output.len == 128);
+    var combined: [256]u8 = undefined;
+    std.mem.copyForwards(u8, combined[0..128], x);
+    std.mem.copyForwards(u8, combined[128..256], y);
+    blake2b_hash_for_argon2(128, combined[0..256], null, output);
+    std.debug.assert(output.len == 128);
+}
+
+// Hash password with Argon2id (Phase 2.1 - simplified implementation)
+// Note: Full memory-hard implementation requires 64MB+ allocation
+// This is a foundation that can be extended for production use
 fn hash_argon2id_static(
     password: []const u8,
     params: *const Argon2Params,
@@ -1267,43 +1650,604 @@ fn hash_argon2id_static(
     std.debug.assert(password.len <= MAX_PASSWORD_LEN);
     std.debug.assert(hash_string_out.len >= ARGON2_MAX_HASH_STRING_LEN);
     std.debug.assert(validate_argon2_params(params));
-    // TODO: Phase 2.1 - Implement full Argon2id algorithm
-    // This is a placeholder. Full implementation will:
-    // 1. Generate random salt (ARGON2_SALT_LEN bytes)
-    // 2. Run Argon2id core algorithm with params
-    // 3. Encode hash string: $argon2id$v=19$m=65536,t=2,p=1$salt$hash
-    // For now, return 0 to indicate not implemented
-    _ = password;
-    _ = params;
-    _ = hash_string_out;
-    return 0;
+    var salt: [ARGON2_SALT_LEN]u8 = undefined;
+    std.crypto.random.bytes(&salt);
+    var h0: [64]u8 = undefined;
+    argon2_generate_initial_hash(password, &salt, params, &h0);
+    var hash_result: [ARGON2_HASH_LEN]u8 = undefined;
+    blake2b_hash_for_argon2(ARGON2_HASH_LEN, &h0, null, &hash_result);
+    var out_idx: u32 = 0;
+    const prefix = "$argon2id$v=19$m=";
+    std.mem.copyForwards(u8, hash_string_out[out_idx..out_idx + prefix.len], prefix);
+    out_idx += prefix.len;
+    var mem_str: [16]u8 = undefined;
+    const mem_str_len = u32_to_decimal_string(params.memory_kb, &mem_str);
+    const mem_slice = hash_string_out[out_idx..out_idx + mem_str_len];
+    std.mem.copyForwards(u8, mem_slice, mem_str[0..mem_str_len]);
+    out_idx += mem_str_len;
+    hash_string_out[out_idx] = ',';
+    out_idx += 1;
+    hash_string_out[out_idx] = 't';
+    out_idx += 1;
+    hash_string_out[out_idx] = '=';
+    out_idx += 1;
+    var time_str: [16]u8 = undefined;
+    const time_str_len = u32_to_decimal_string(params.time, &time_str);
+    const time_slice = hash_string_out[out_idx..out_idx + time_str_len];
+    std.mem.copyForwards(u8, time_slice, time_str[0..time_str_len]);
+    out_idx += time_str_len;
+    hash_string_out[out_idx] = ',';
+    out_idx += 1;
+    hash_string_out[out_idx] = 'p';
+    out_idx += 1;
+    hash_string_out[out_idx] = '=';
+    out_idx += 1;
+    var par_str: [16]u8 = undefined;
+    const par_str_len = u32_to_decimal_string(params.parallelism, &par_str);
+    const par_slice = hash_string_out[out_idx..out_idx + par_str_len];
+    std.mem.copyForwards(u8, par_slice, par_str[0..par_str_len]);
+    out_idx += par_str_len;
+    hash_string_out[out_idx] = '$';
+    out_idx += 1;
+    var salt_encoded: [32]u8 = undefined;
+    const salt_enc_len = base64_encode_standard(&salt, &salt_encoded);
+    const salt_slice = hash_string_out[out_idx..out_idx + salt_enc_len];
+    std.mem.copyForwards(u8, salt_slice, salt_encoded[0..salt_enc_len]);
+    out_idx += salt_enc_len;
+    hash_string_out[out_idx] = '$';
+    out_idx += 1;
+    var hash_encoded: [64]u8 = undefined;
+    const hash_enc_len = base64_encode_standard(&hash_result, &hash_encoded);
+    const hash_slice_out = hash_string_out[out_idx..out_idx + hash_enc_len];
+    std.mem.copyForwards(u8, hash_slice_out, hash_encoded[0..hash_enc_len]);
+    out_idx += hash_enc_len;
+    std.debug.assert(out_idx <= hash_string_out.len);
+    return out_idx;
 }
 
-// Verify password against Argon2id hash (Phase 2.1 - placeholder)
-fn verify_argon2id_static(
+// Verify password against Argon2id hash (Phase 2.1)
+pub fn verify_argon2id_static(
     password: []const u8,
     stored_hash: []const u8,
 ) bool {
     std.debug.assert(password.len > 0);
     std.debug.assert(password.len <= MAX_PASSWORD_LEN);
     std.debug.assert(stored_hash.len > 0);
-    // TODO: Phase 2.1 - Implement Argon2id verification
-    // This is a placeholder. Full implementation will:
-    // 1. Parse Argon2 hash string format
-    // 2. Extract salt, parameters, and hash
-    // 3. Hash password with extracted salt and parameters
-    // 4. Compare computed hash with stored hash
-    // For now, return false (not implemented)
-    _ = password;
-    _ = stored_hash;
+    var params: Argon2Params = undefined;
+    var salt: [ARGON2_SALT_LEN]u8 = undefined;
+    var stored_hash_bytes: [ARGON2_HASH_LEN]u8 = undefined;
+    const parsed = parse_argon2_hash_string(stored_hash, &params, &salt, &stored_hash_bytes);
+    if (!parsed) {
+        return false;
+    }
+    if (!validate_argon2_params(&params)) {
+        return false;
+    }
+    var computed_hash_string: [ARGON2_MAX_HASH_STRING_LEN]u8 = undefined;
+    const computed_len = hash_argon2id_static(password, &params, &computed_hash_string);
+    if (computed_len == 0) {
+        return false;
+    }
+    var computed_params: Argon2Params = undefined;
+    var computed_salt: [ARGON2_SALT_LEN]u8 = undefined;
+    var computed_hash_bytes: [ARGON2_HASH_LEN]u8 = undefined;
+    const computed_parsed = parse_argon2_hash_string(
+        computed_hash_string[0..computed_len],
+        &computed_params,
+        &computed_salt,
+        &computed_hash_bytes,
+    );
+    if (!computed_parsed) {
+        return false;
+    }
+    const hash_match = std.mem.eql(u8, &stored_hash_bytes, &computed_hash_bytes);
+    std.debug.assert(password.len > 0);
+    std.debug.assert(stored_hash.len > 0);
+    return hash_match;
+}
+
+// Note: Current Argon2id implementation is simplified
+// The current implementation provides correct hash string format and parsing,
+// but uses a simplified hashing approach for initial deployment.
+// For full memory-hard security (RFC 9106), the implementation should be
+// extended to include:
+// - Memory block allocation and filling (64MB+ memory)
+// - Iterative block compression with Blake2b
+// - Full memory-hard function as per RFC 9106 Section 3.2
+// - Comprehensive testing against RFC 9106 test vectors
+// - Performance optimization for RISC-V
+// TODO: Phase 2.1 Enhancement - Add full memory-hard implementation
+
+// ============================================================================
+// API Key Management (Phase 3)
+// ============================================================================
+
+// Hash API key for storage (SHA-256)
+fn hash_api_key(api_key: []const u8, hash_out: []u8) void {
+    std.debug.assert(api_key.len > 0);
+    std.debug.assert(api_key.len <= MAX_API_KEY_LEN);
+    std.debug.assert(hash_out.len >= HASH_LEN);
+    std.crypto.hash.sha2.Sha256.hash(api_key, hash_out, .{});
+    std.debug.assert(hash_out.len >= HASH_LEN);
+}
+
+// Generate secure random API key suffix (32 bytes, base64-encoded)
+fn generate_api_key_suffix(output: []u8) u32 {
+    std.debug.assert(output.len >= 44); // Base64 of 32 bytes = 44 chars
+    var random_bytes: [32]u8 = undefined;
+    std.crypto.random.bytes(&random_bytes);
+    const encoded_len = base64url_encode(&random_bytes, output);
+    std.debug.assert(encoded_len <= output.len);
+    return encoded_len;
+}
+
+// Generate API key (prefix + random suffix)
+pub fn generate_api_key(
+    self: *AuthService,
+    user_id: []const u8,
+    prefix: []const u8,
+    scopes: []const ApiKeyScope,
+    expiry_seconds: u64,
+    current_time: u64,
+    api_key_out: []u8,
+) u32 {
+    std.debug.assert(user_id.len > 0);
+    std.debug.assert(user_id.len <= MAX_USER_ID_LEN);
+    std.debug.assert(prefix.len > 0);
+    std.debug.assert(prefix.len <= MAX_API_KEY_PREFIX_LEN);
+    std.debug.assert(scopes.len > 0);
+    std.debug.assert(scopes.len <= MAX_API_KEY_SCOPES);
+    std.debug.assert(self.api_key_count < MAX_API_KEYS);
+    std.debug.assert(api_key_out.len >= MAX_API_KEY_LEN);
+    var key_suffix: [64]u8 = undefined;
+    const suffix_len = generate_api_key_suffix(&key_suffix);
+    var out_idx: u32 = 0;
+    std.mem.copyForwards(u8, api_key_out[out_idx..out_idx + prefix.len], prefix);
+    out_idx += @as(u32, @intCast(prefix.len));
+    api_key_out[out_idx] = '_';
+    out_idx += 1;
+    std.mem.copyForwards(u8, api_key_out[out_idx..out_idx + suffix_len], key_suffix[0..suffix_len]);
+    out_idx += suffix_len;
+    const key_len = out_idx;
+    var key_hash: [HASH_LEN]u8 = undefined;
+    hash_api_key(api_key_out[0..key_len], &key_hash);
+    var api_key: ApiKey = undefined;
+    std.mem.set(u8, &api_key.key_hash, 0);
+    std.mem.copyForwards(u8, &api_key.key_hash, &key_hash);
+    std.mem.set(u8, &api_key.user_id, 0);
+    std.mem.copyForwards(u8, api_key.user_id[0..user_id.len], user_id);
+    api_key.user_id_len = @intCast(user_id.len);
+    std.mem.set(u8, &api_key.prefix, 0);
+    std.mem.copyForwards(u8, api_key.prefix[0..prefix.len], prefix);
+    api_key.prefix_len = @intCast(prefix.len);
+    var i: u32 = 0;
+    while (i < scopes.len and i < MAX_API_KEY_SCOPES) : (i += 1) {
+        api_key.scopes[i] = scopes[i];
+    }
+    api_key.scope_count = @intCast(scopes.len);
+    api_key.created_at = current_time;
+    api_key.expires_at = current_time + expiry_seconds;
+    api_key.last_used_at = 0;
+    api_key.is_active = true;
+    self.api_keys[self.api_key_count] = api_key;
+    self.api_key_count += 1;
+    std.debug.assert(key_len <= MAX_API_KEY_LEN);
+    std.debug.assert(self.api_key_count <= MAX_API_KEYS);
+    return key_len;
+}
+
+// Validate API key and return metadata
+pub fn validate_api_key(
+    self: *AuthService,
+    api_key: []const u8,
+    current_time: u64,
+    metadata_out: ?*ApiKey,
+) bool {
+    std.debug.assert(api_key.len > 0);
+    std.debug.assert(api_key.len <= MAX_API_KEY_LEN);
+    var key_hash: [HASH_LEN]u8 = undefined;
+    hash_api_key(api_key, &key_hash);
+    var i: u32 = 0;
+    while (i < self.revoked_api_key_count) : (i += 1) {
+        if (std.mem.eql(u8, &key_hash, &self.revoked_api_keys[i])) {
+            return false;
+        }
+    }
+    i = 0;
+    while (i < self.api_key_count) : (i += 1) {
+        const stored_key = &self.api_keys[i];
+        if (std.mem.eql(u8, &key_hash, &stored_key.key_hash)) {
+            if (!stored_key.is_active) {
+                return false;
+            }
+            if (current_time > stored_key.expires_at) {
+                return false;
+            }
+            stored_key.last_used_at = current_time;
+            if (metadata_out) |meta| {
+                meta.* = stored_key.*;
+            }
+            std.debug.assert(api_key.len > 0);
+            return true;
+        }
+    }
+    std.debug.assert(api_key.len > 0);
     return false;
 }
 
-// Note: Full Argon2id implementation will be added in Phase 2.1
-// The complete Argon2 algorithm is complex and will require:
-// - Memory-hard function implementation (RFC 9106 Section 3.2)
-// - Block compression algorithm (Blake2b-based)
-// - Hash string encoding/decoding (RFC 9106 Section 3.1)
-// - Comprehensive testing against RFC 9106 test vectors
-// - Performance optimization for RISC-V
+// Revoke API key
+pub fn revoke_api_key(self: *AuthService, api_key: []const u8) bool {
+    std.debug.assert(api_key.len > 0);
+    std.debug.assert(api_key.len <= MAX_API_KEY_LEN);
+    std.debug.assert(self.revoked_api_key_count < MAX_API_KEYS);
+    var key_hash: [HASH_LEN]u8 = undefined;
+    hash_api_key(api_key, &key_hash);
+    var i: u32 = 0;
+    while (i < self.api_key_count) : (i += 1) {
+        if (std.mem.eql(u8, &key_hash, &self.api_keys[i].key_hash)) {
+            self.api_keys[i].is_active = false;
+        }
+    }
+    if (self.revoked_api_key_count < MAX_API_KEYS) {
+        std.mem.copyForwards(u8, &self.revoked_api_keys[self.revoked_api_key_count], &key_hash);
+        self.revoked_api_key_count += 1;
+        std.debug.assert(self.revoked_api_key_count <= MAX_API_KEYS);
+        return true;
+    }
+    std.debug.assert(api_key.len > 0);
+    return false;
+}
+
+// Check if API key has required scope (static function)
+pub fn api_key_has_scope(api_key_meta: *const ApiKey, scope: ApiKeyScope) bool {
+    std.debug.assert(api_key_meta != null);
+    var i: u32 = 0;
+    while (i < api_key_meta.scope_count) : (i += 1) {
+        if (api_key_meta.scopes[i] == scope) {
+            return true;
+        }
+        if (api_key_meta.scopes[i] == ApiKeyScope.admin) {
+            return true;
+        }
+    }
+    std.debug.assert(api_key_meta.scope_count > 0);
+    return false;
+}
+
+// ============================================================================
+// Role-Based Access Control (RBAC) - Phase 5
+// ============================================================================
+
+// Create a new role
+pub fn create_role(
+    self: *AuthService,
+    name: []const u8,
+    parent_role_id: ?u32,
+) ?u32 {
+    std.debug.assert(name.len > 0);
+    std.debug.assert(name.len <= MAX_ROLE_NAME_LEN);
+    std.debug.assert(self.role_count < MAX_ROLES);
+    if (parent_role_id) |parent_id| {
+        var parent_found = false;
+        var i: u32 = 0;
+        while (i < self.role_count) : (i += 1) {
+            if (self.roles[i].role_id == parent_id) {
+                parent_found = true;
+                break;
+            }
+        }
+        if (!parent_found) {
+            return null;
+        }
+    }
+    const role_id = self.next_role_id;
+    self.next_role_id += 1;
+    var role: Role = undefined;
+    role.role_id = role_id;
+    std.mem.set(u8, &role.name, 0);
+    std.mem.copyForwards(u8, role.name[0..name.len], name);
+    role.name_len = @intCast(name.len);
+    role.permission_count = 0;
+    role.parent_role_id = parent_role_id;
+    role.is_active = true;
+    self.roles[self.role_count] = role;
+    self.role_count += 1;
+    std.debug.assert(name.len > 0);
+    std.debug.assert(self.role_count <= MAX_ROLES);
+    return role_id;
+}
+
+// Add permission to role
+pub fn add_permission_to_role(
+    self: *AuthService,
+    role_id: u32,
+    permission_name: []const u8,
+    resource: []const u8,
+    action: PermissionAction,
+) bool {
+    std.debug.assert(permission_name.len > 0);
+    std.debug.assert(permission_name.len <= MAX_PERMISSION_NAME_LEN);
+    std.debug.assert(resource.len > 0);
+    std.debug.assert(resource.len <= MAX_RESOURCE_NAME_LEN);
+    var i: u32 = 0;
+    while (i < self.role_count) : (i += 1) {
+        if (self.roles[i].role_id == role_id) {
+            const role = &self.roles[i];
+            if (role.permission_count >= MAX_PERMISSIONS_PER_ROLE) {
+                return false;
+            }
+            var perm: Permission = undefined;
+            std.mem.set(u8, &perm.name, 0);
+            std.mem.copyForwards(u8, perm.name[0..permission_name.len], permission_name);
+            perm.name_len = @intCast(permission_name.len);
+            std.mem.set(u8, &perm.resource, 0);
+            std.mem.copyForwards(u8, perm.resource[0..resource.len], resource);
+            perm.resource_len = @intCast(resource.len);
+            perm.action = action;
+            role.permissions[role.permission_count] = perm;
+            role.permission_count += 1;
+            std.debug.assert(permission_name.len > 0);
+            std.debug.assert(resource.len > 0);
+            return true;
+        }
+    }
+    std.debug.assert(permission_name.len > 0);
+    std.debug.assert(resource.len > 0);
+    return false;
+}
+
+// Check if user has permission (via role IDs in JWT claims)
+pub fn user_has_permission(
+    self: *AuthService,
+    claims: *const JwtClaims,
+    resource: []const u8,
+    action: PermissionAction,
+) bool {
+    std.debug.assert(claims != null);
+    std.debug.assert(resource.len > 0);
+    std.debug.assert(resource.len <= MAX_RESOURCE_NAME_LEN);
+    var i: u32 = 0;
+    while (i < claims.role_count) : (i += 1) {
+        const role_id = claims.roles[i];
+        var j: u32 = 0;
+        while (j < self.role_count) : (j += 1) {
+            if (self.roles[j].role_id == role_id and self.roles[j].is_active) {
+                const role = &self.roles[j];
+                var k: u32 = 0;
+                while (k < role.permission_count) : (k += 1) {
+                    const perm = &role.permissions[k];
+                    const resource_match = std.mem.eql(
+                        u8,
+                        resource,
+                        perm.resource[0..perm.resource_len],
+                    );
+                    const is_admin = perm.action == PermissionAction.admin;
+                    const action_match = perm.action == action or is_admin;
+                    if (resource_match and action_match) {
+                        std.debug.assert(resource.len > 0);
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    std.debug.assert(resource.len > 0);
+    return false;
+}
+
+// Get role by ID
+pub fn get_role_by_id(self: *AuthService, role_id: u32) ?*Role {
+    std.debug.assert(role_id > 0);
+    var i: u32 = 0;
+    while (i < self.role_count) : (i += 1) {
+        if (self.roles[i].role_id == role_id) {
+            std.debug.assert(role_id > 0);
+            return &self.roles[i];
+        }
+    }
+    std.debug.assert(role_id > 0);
+    return null;
+}
+
+// Assign role to user (returns role IDs array for JWT claims)
+pub fn assign_role_to_user(
+    self: *AuthService,
+    user_id: []const u8,
+    role_id: u32,
+    current_roles: []u32,
+    current_role_count: u32,
+    roles_out: []u32,
+) u32 {
+    std.debug.assert(user_id.len > 0);
+    std.debug.assert(user_id.len <= MAX_USER_ID_LEN);
+    std.debug.assert(current_role_count <= MAX_ROLES_PER_USER);
+    std.debug.assert(roles_out.len >= MAX_ROLES_PER_USER);
+    var role_exists = false;
+    var i: u32 = 0;
+    while (i < self.role_count) : (i += 1) {
+        if (self.roles[i].role_id == role_id and self.roles[i].is_active) {
+            role_exists = true;
+            break;
+        }
+    }
+    if (!role_exists) {
+        return current_role_count;
+    }
+    i = 0;
+    while (i < current_role_count) : (i += 1) {
+        if (current_roles[i] == role_id) {
+            return current_role_count;
+        }
+    }
+    if (current_role_count >= MAX_ROLES_PER_USER) {
+        return current_role_count;
+    }
+    i = 0;
+    while (i < current_role_count) : (i += 1) {
+        roles_out[i] = current_roles[i];
+    }
+    roles_out[current_role_count] = role_id;
+    const new_count = current_role_count + 1;
+    std.debug.assert(user_id.len > 0);
+    std.debug.assert(new_count <= MAX_ROLES_PER_USER);
+    return new_count;
+}
+
+// ============================================================================
+// Security Hardening (Phase 6)
+// ============================================================================
+
+// Generate CSRF token for session
+pub fn generate_csrf_token(
+    self: *AuthService,
+    session_id: []const u8,
+    current_time: u64,
+    token_out: []u8,
+) u32 {
+    std.debug.assert(session_id.len > 0);
+    std.debug.assert(session_id.len <= MAX_SESSION_ID_LEN);
+    std.debug.assert(self.csrf_token_count < MAX_CSRF_TOKENS);
+    std.debug.assert(token_out.len >= CSRF_TOKEN_STRING_LEN);
+    var token_bytes: [CSRF_TOKEN_LEN]u8 = undefined;
+    std.crypto.random.bytes(&token_bytes);
+    const encoded_len = base64url_encode(&token_bytes, token_out);
+    var csrf_token: CsrfToken = undefined;
+    std.mem.copyForwards(u8, &csrf_token.token, &token_bytes);
+    std.mem.set(u8, &csrf_token.session_id, 0);
+    std.mem.copyForwards(u8, csrf_token.session_id[0..session_id.len], session_id);
+    csrf_token.session_id_len = @intCast(session_id.len);
+    csrf_token.created_at = current_time;
+    csrf_token.expires_at = current_time + CSRF_TOKEN_EXPIRY;
+    csrf_token.is_used = false;
+    self.csrf_tokens[self.csrf_token_count] = csrf_token;
+    self.csrf_token_count += 1;
+    std.debug.assert(encoded_len <= token_out.len);
+    std.debug.assert(self.csrf_token_count <= MAX_CSRF_TOKENS);
+    return encoded_len;
+}
+
+// Validate CSRF token
+pub fn validate_csrf_token(
+    self: *AuthService,
+    token: []const u8,
+    session_id: []const u8,
+    current_time: u64,
+) bool {
+    std.debug.assert(token.len > 0);
+    std.debug.assert(session_id.len > 0);
+    std.debug.assert(session_id.len <= MAX_SESSION_ID_LEN);
+    var token_bytes: [CSRF_TOKEN_LEN]u8 = undefined;
+    const decoded_len = base64url_decode(token, &token_bytes);
+    if (decoded_len != CSRF_TOKEN_LEN) {
+        return false;
+    }
+    var i: u32 = 0;
+    while (i < self.csrf_token_count) : (i += 1) {
+        const csrf = &self.csrf_tokens[i];
+        if (std.mem.eql(u8, &csrf.token, &token_bytes)) {
+            if (csrf.is_used) {
+                return false;
+            }
+            if (current_time > csrf.expires_at) {
+                return false;
+            }
+            const session_match = std.mem.eql(
+                u8,
+                session_id,
+                csrf.session_id[0..csrf.session_id_len],
+            );
+            if (!session_match) {
+                return false;
+            }
+            csrf.is_used = true;
+            std.debug.assert(token.len > 0);
+            std.debug.assert(session_id.len > 0);
+            return true;
+        }
+    }
+    std.debug.assert(token.len > 0);
+    std.debug.assert(session_id.len > 0);
+    return false;
+}
+
+// Check rate limit for identifier (user ID or IP)
+pub fn check_rate_limit(
+    self: *AuthService,
+    identifier: []const u8,
+    current_time: u64,
+    limit: u32,
+) bool {
+    std.debug.assert(identifier.len > 0);
+    std.debug.assert(identifier.len <= MAX_USER_ID_LEN);
+    std.debug.assert(limit > 0);
+    const window_start = current_time - (current_time % RATE_LIMIT_WINDOW);
+    var i: u32 = 0;
+    while (i < self.rate_limit_count) : (i += 1) {
+        const entry = &self.rate_limits[i];
+        const id_match = std.mem.eql(
+            u8,
+            identifier,
+            entry.identifier[0..entry.identifier_len],
+        );
+        if (id_match and entry.window_start == window_start) {
+            entry.request_count += 1;
+            const allowed = entry.request_count <= entry.limit;
+            std.debug.assert(identifier.len > 0);
+            return allowed;
+        }
+    }
+    if (self.rate_limit_count >= MAX_RATE_LIMIT_ENTRIES) {
+        std.debug.assert(identifier.len > 0);
+        return false;
+    }
+    var entry: RateLimitEntry = undefined;
+    std.mem.set(u8, &entry.identifier, 0);
+    std.mem.copyForwards(u8, entry.identifier[0..identifier.len], identifier);
+    entry.identifier_len = @intCast(identifier.len);
+    entry.window_start = window_start;
+    entry.request_count = 1;
+    entry.limit = limit;
+    self.rate_limits[self.rate_limit_count] = entry;
+    self.rate_limit_count += 1;
+    std.debug.assert(identifier.len > 0);
+    std.debug.assert(self.rate_limit_count <= MAX_RATE_LIMIT_ENTRIES);
+    return true;
+}
+
+// Cleanup expired CSRF tokens
+pub fn cleanup_expired_csrf_tokens(self: *AuthService, current_time: u64) void {
+    std.debug.assert(current_time > 0);
+    var i: u32 = 0;
+    var write_idx: u32 = 0;
+    while (i < self.csrf_token_count) : (i += 1) {
+        const csrf = &self.csrf_tokens[i];
+        if (current_time <= csrf.expires_at and !csrf.is_used) {
+            if (write_idx != i) {
+                self.csrf_tokens[write_idx] = self.csrf_tokens[i];
+            }
+            write_idx += 1;
+        }
+    }
+    self.csrf_token_count = write_idx;
+    std.debug.assert(self.csrf_token_count <= MAX_CSRF_TOKENS);
+}
+
+// Cleanup expired rate limit entries
+pub fn cleanup_expired_rate_limits(self: *AuthService, current_time: u64) void {
+    std.debug.assert(current_time > 0);
+    const window_start = current_time - (current_time % RATE_LIMIT_WINDOW);
+    var i: u32 = 0;
+    var write_idx: u32 = 0;
+    while (i < self.rate_limit_count) : (i += 1) {
+        const entry = &self.rate_limits[i];
+        if (entry.window_start >= window_start) {
+            if (write_idx != i) {
+                self.rate_limits[write_idx] = self.rate_limits[i];
+            }
+            write_idx += 1;
+        }
+    }
+    self.rate_limit_count = write_idx;
+    std.debug.assert(self.rate_limit_count <= MAX_RATE_LIMIT_ENTRIES);
+}
 

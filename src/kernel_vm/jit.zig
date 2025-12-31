@@ -256,7 +256,8 @@ pub const Instruction = struct {
                 const bit11 = (raw >> 20) & 0x1;
                 const bits1_10 = (raw >> 21) & 0x3FF;
                 const bit20 = (raw >> 31) & 0x1;
-                const combined = (bits1_10 << 1) | (bit11 << 11) | (bits12_19 << 12) | (bit20 << 20);
+                const combined = (bits1_10 << 1) | (bit11 << 11) |
+                    (bits12_19 << 12) | (bit20 << 20);
                 imm = (@as(i32, @intCast(combined)) << 11) >> 11;
             },
             else => {},
@@ -297,7 +298,12 @@ pub const JitContext = struct {
     pending_fixups: std.AutoHashMap(u64, *Fixup),
     compilation_threshold: u32, // Minimum executions before compiling (0 = compile immediately)
 
-    pub fn init(allocator: std.mem.Allocator, guest_state: *GuestState, guest_ram: []u8, memory_size: u64) !JitContext {
+    pub fn init(
+        allocator: std.mem.Allocator,
+        guest_state: *GuestState,
+        guest_ram: []u8,
+        memory_size: u64,
+    ) !JitContext {
         // Assert: guest RAM must be non-empty
         std.debug.assert(guest_ram.len > 0);
         // Assert: guest state must be aligned
@@ -591,8 +597,12 @@ pub const JitContext = struct {
     /// Why: Enable block chaining by calling next block directly.
     /// Contract: Calls target function with guest_state as argument.
     /// GrainStyle: Explicit function pointer, deterministic call.
-    pub fn emit_call_target(self: *JitContext, target_func: *const fn (*GuestState) callconv(.c) void) void {
-        std.debug.assert(self.cursor + 16 <= self.code_buffer.len); // Max 4 instructions for 64-bit address
+    pub fn emit_call_target(
+        self: *JitContext,
+        target_func: *const fn (*GuestState) callconv(.c) void,
+    ) void {
+        // Max 4 instructions for 64-bit address
+        std.debug.assert(self.cursor + 16 <= self.code_buffer.len);
         std.debug.assert(self.cursor % 4 == 0);
         const start_cursor = self.cursor;
         
@@ -729,7 +739,11 @@ pub const JitContext = struct {
         const start_cursor = self.cursor;
         const immr = @as(u6, @truncate((64 - @as(u7, shift)) % 64));
         const imms = 63 - shift;
-        const inst = 0xD3400000 | (@as(u32, immr) << 16) | (@as(u32, imms) << 10) | (@as(u32, rn) << 5) | @as(u32, rd);
+        const immr_u32 = @as(u32, immr) << 16;
+        const imms_u32 = @as(u32, imms) << 10;
+        const rn_u32 = @as(u32, rn) << 5;
+        const rd_u32 = @as(u32, rd);
+        const inst = 0xD3400000 | immr_u32 | imms_u32 | rn_u32 | rd_u32;
         self.emit_u32(inst);
         std.debug.assert(self.cursor == start_cursor + 4);
         std.debug.assert(self.cursor <= self.code_buffer.len);
@@ -742,7 +756,11 @@ pub const JitContext = struct {
         const start_cursor = self.cursor;
         const immr = shift;
         const imms = 63;
-        const inst = 0xD3400000 | (@as(u32, immr) << 16) | (@as(u32, imms) << 10) | (@as(u32, rn) << 5) | @as(u32, rd);
+        const immr_u32 = @as(u32, immr) << 16;
+        const imms_u32 = @as(u32, imms) << 10;
+        const rn_u32 = @as(u32, rn) << 5;
+        const rd_u32 = @as(u32, rd);
+        const inst = 0xD3400000 | immr_u32 | imms_u32 | rn_u32 | rd_u32;
         self.emit_u32(inst);
         std.debug.assert(self.cursor == start_cursor + 4);
         std.debug.assert(self.cursor <= self.code_buffer.len);
@@ -755,7 +773,11 @@ pub const JitContext = struct {
         const start_cursor = self.cursor;
         const immr = shift;
         const imms = 63;
-        const inst = 0x93400000 | (@as(u32, immr) << 16) | (@as(u32, imms) << 10) | (@as(u32, rn) << 5) | @as(u32, rd);
+        const immr_u32 = @as(u32, immr) << 16;
+        const imms_u32 = @as(u32, imms) << 10;
+        const rn_u32 = @as(u32, rn) << 5;
+        const rd_u32 = @as(u32, rd);
+        const inst = 0x93400000 | immr_u32 | imms_u32 | rn_u32 | rd_u32;
         self.emit_u32(inst);
         std.debug.assert(self.cursor == start_cursor + 4);
         std.debug.assert(self.cursor <= self.code_buffer.len);
@@ -796,7 +818,8 @@ pub const JitContext = struct {
     /// Contract: Takes guest address in addr_reg, outputs physical offset in same register
     /// GrainStyle: Explicit bounds checking, deterministic translation
     /// Address translation logic:
-    ///   - 0x90000000+: Framebuffer -> offset = memory_size - framebuffer_size + (addr - 0x90000000)
+    ///   - 0x90000000+: Framebuffer -> offset = memory_size - framebuffer_size +
+    ///     (addr - 0x90000000)
     ///   - 0x80000000+: Kernel -> offset = addr - 0x80000000
     ///   - Otherwise: Direct mapping -> offset = addr
     fn emit_translate_address(self: *JitContext, addr_reg: u5) void {
@@ -822,7 +845,8 @@ pub const JitContext = struct {
         
         // Check if address >= KERNEL_BASE (0x80000000)
         self.emit_mov_u64(tmp1, KERNEL_BASE);
-        self.emit_subs(tmp3, addr_reg, tmp1); // tmp3 = addr - 0x80000000, sets flags (use tmp3 to preserve tmp2)
+        // tmp3 = addr - 0x80000000, sets flags (use tmp3 to preserve tmp2)
+        self.emit_subs(tmp3, addr_reg, tmp1);
         
         // Branch to kernel translation if addr >= 0x80000000
         self.emit_b_cond(0x2, 0); // HS (unsigned >=), will patch later
@@ -838,7 +862,8 @@ pub const JitContext = struct {
         self.emit_mov_u64(tmp1, @as(u64, self.memory_size));
         self.emit_mov_u64(tmp3, @as(u64, self.framebuffer_size));
         self.emit_subs(tmp1, tmp1, tmp3); // tmp1 = memory_size - framebuffer_size
-        self.emit_add(addr_reg, tmp1, tmp2); // addr_reg = (memory_size - framebuffer_size) + (addr - 0x90000000)
+        // addr_reg = (memory_size - framebuffer_size) + (addr - 0x90000000)
+        self.emit_add(addr_reg, tmp1, tmp2);
         self.emit_b(0); // Jump to done, will patch later
         const framebuffer_done_patch: u32 = self.cursor - 4;
         
@@ -855,27 +880,37 @@ pub const JitContext = struct {
         // Patch branch offsets
         // GrainStyle: Use explicit u32 for offsets, cast to i19/i28 for branch instructions
         // Framebuffer branch: from framebuffer_patch_pos to framebuffer_code_start
-        const framebuffer_diff: i32 = @as(i32, @intCast(framebuffer_code_start)) - @as(i32, @intCast(framebuffer_patch_pos));
+        const framebuffer_start_i32 = @as(i32, @intCast(framebuffer_code_start));
+        const framebuffer_patch_i32 = @as(i32, @intCast(framebuffer_patch_pos));
+        const framebuffer_diff: i32 = framebuffer_start_i32 - framebuffer_patch_i32;
         const framebuffer_offset = @as(i19, @intCast(framebuffer_diff >> 2));
         self.patch_b_cond(framebuffer_patch_pos, framebuffer_offset);
         
         // Kernel branch: from kernel_patch_pos to kernel_code_start
-        const kernel_diff: i32 = @as(i32, @intCast(kernel_code_start)) - @as(i32, @intCast(kernel_patch_pos));
+        const kernel_start_i32 = @as(i32, @intCast(kernel_code_start));
+        const kernel_patch_i32 = @as(i32, @intCast(kernel_patch_pos));
+        const kernel_diff: i32 = kernel_start_i32 - kernel_patch_i32;
         const kernel_offset = @as(i19, @intCast(kernel_diff >> 2));
         self.patch_b_cond(kernel_patch_pos, kernel_offset);
         
         // Done branch: from done_patch_pos to done_code_start
-        const done_diff: i32 = @as(i32, @intCast(done_code_start)) - @as(i32, @intCast(done_patch_pos));
+        const done_start_i32 = @as(i32, @intCast(done_code_start));
+        const done_patch_i32 = @as(i32, @intCast(done_patch_pos));
+        const done_diff: i32 = done_start_i32 - done_patch_i32;
         const done_offset = @as(i28, @intCast(done_diff >> 2));
         self.patch_b(done_patch_pos, done_offset);
         
         // Framebuffer done branch: from framebuffer_done_patch to done_code_start
-        const framebuffer_done_diff: i32 = @as(i32, @intCast(done_code_start)) - @as(i32, @intCast(framebuffer_done_patch));
+        const fb_done_start_i32 = @as(i32, @intCast(done_code_start));
+        const fb_done_patch_i32 = @as(i32, @intCast(framebuffer_done_patch));
+        const framebuffer_done_diff: i32 = fb_done_start_i32 - fb_done_patch_i32;
         const framebuffer_done_offset = @as(i28, @intCast(framebuffer_done_diff >> 2));
         self.patch_b(framebuffer_done_patch, framebuffer_done_offset);
         
         // Kernel done branch: from kernel_done_patch to done_code_start
-        const kernel_done_diff: i32 = @as(i32, @intCast(done_code_start)) - @as(i32, @intCast(kernel_done_patch));
+        const k_done_start_i32 = @as(i32, @intCast(done_code_start));
+        const k_done_patch_i32 = @as(i32, @intCast(kernel_done_patch));
+        const kernel_done_diff: i32 = k_done_start_i32 - k_done_patch_i32;
         const kernel_done_offset = @as(i28, @intCast(kernel_done_diff >> 2));
         self.patch_b(kernel_done_patch, kernel_done_offset);
     }
@@ -1009,7 +1044,10 @@ pub const JitContext = struct {
     fn expand_c_li(raw16: u16) ?u32 {
         const rd: u5 = @truncate((raw16 >> 7) & 0x1F);
         const imm_raw = ((raw16 >> 7) & 0x20) | ((raw16 >> 2) & 0x1F);
-        const imm = if ((imm_raw & 0x20) != 0) @as(u32, imm_raw) | 0xFFFFFFC0 else @as(u32, imm_raw);
+        const imm = if ((imm_raw & 0x20) != 0)
+            @as(u32, imm_raw) | 0xFFFFFFC0
+        else
+            @as(u32, imm_raw);
         return 0x00000013 | (@as(u32, rd) << 7) | (@as(u32, imm) << 20);
     }
 
@@ -1041,12 +1079,28 @@ pub const JitContext = struct {
         if (funct2 < 3) {
             const shamt = ((raw16 >> 7) & 0x20) | ((raw16 >> 2) & 0x1F);
             return switch (funct2) {
-                0 => 0x00005013 | (@as(u32, rd) << 7) | (@as(u32, rd) << 15) | (@as(u32, shamt) << 20),
-                1 => 0x40005013 | (@as(u32, rd) << 7) | (@as(u32, rd) << 15) | (@as(u32, shamt) << 20),
+                 0 => {
+                    const rd_u32_7 = @as(u32, rd) << 7;
+                    const rd_u32_15 = @as(u32, rd) << 15;
+                    const shamt_u32 = @as(u32, shamt) << 20;
+                    0x00005013 | rd_u32_7 | rd_u32_15 | shamt_u32;
+                },
+                 1 => {
+                    const rd_u32_7 = @as(u32, rd) << 7;
+                    const rd_u32_15 = @as(u32, rd) << 15;
+                    const shamt_u32 = @as(u32, shamt) << 20;
+                    0x40005013 | rd_u32_7 | rd_u32_15 | shamt_u32;
+                },
                 2 => blk: {
                     const imm_raw = ((raw16 >> 7) & 0x20) | ((raw16 >> 2) & 0x1F);
-                    const imm = if ((imm_raw & 0x20) != 0) @as(u32, imm_raw) | 0xFFFFFFC0 else @as(u32, imm_raw);
-                    break :blk 0x00007013 | (@as(u32, rd) << 7) | (@as(u32, rd) << 15) | (@as(u32, imm) << 20);
+                    const imm = if ((imm_raw & 0x20) != 0)
+            @as(u32, imm_raw) | 0xFFFFFFC0
+        else
+            @as(u32, imm_raw);
+                    const rd_u32_7 = @as(u32, rd) << 7;
+                    const rd_u32_15 = @as(u32, rd) << 15;
+                    const imm_u32 = @as(u32, imm) << 20;
+                    break :blk 0x00007013 | rd_u32_7 | rd_u32_15 | imm_u32;
                 },
                 else => null,
             };
@@ -1057,10 +1111,30 @@ pub const JitContext = struct {
             const bit5 = (raw16 >> 12) & 0x1;
             const op = (funct6 << 1) | bit5;
             return switch (op) {
-                0x3 => 0x40000033 | (@as(u32, rd) << 7) | (@as(u32, rd) << 15) | (@as(u32, rs2) << 20),
-                0x4 => 0x00004033 | (@as(u32, rd) << 7) | (@as(u32, rd) << 15) | (@as(u32, rs2) << 20),
-                0x5 => 0x00006033 | (@as(u32, rd) << 7) | (@as(u32, rd) << 15) | (@as(u32, rs2) << 20),
-                0x6 => 0x00007033 | (@as(u32, rd) << 7) | (@as(u32, rd) << 15) | (@as(u32, rs2) << 20),
+                0x3 => {
+                    const rd_u32_7 = @as(u32, rd) << 7;
+                    const rd_u32_15 = @as(u32, rd) << 15;
+                    const rs2_u32 = @as(u32, rs2) << 20;
+                    0x40000033 | rd_u32_7 | rd_u32_15 | rs2_u32;
+                },
+                0x4 => {
+                    const rd_u32_7 = @as(u32, rd) << 7;
+                    const rd_u32_15 = @as(u32, rd) << 15;
+                    const rs2_u32 = @as(u32, rs2) << 20;
+                    0x00004033 | rd_u32_7 | rd_u32_15 | rs2_u32;
+                },
+                0x5 => {
+                    const rd_u32_7 = @as(u32, rd) << 7;
+                    const rd_u32_15 = @as(u32, rd) << 15;
+                    const rs2_u32 = @as(u32, rs2) << 20;
+                    0x00006033 | rd_u32_7 | rd_u32_15 | rs2_u32;
+                },
+                0x6 => {
+                    const rd_u32_7 = @as(u32, rd) << 7;
+                    const rd_u32_15 = @as(u32, rd) << 15;
+                    const rs2_u32 = @as(u32, rs2) << 20;
+                    0x00007033 | rd_u32_7 | rd_u32_15 | rs2_u32;
+                },
                 else => null,
             };
         }
@@ -1144,7 +1218,10 @@ pub const JitContext = struct {
                 return 0x000000E7 | (1 << 7) | (@as(u32, rs1) << 15);
             } else {
                 // C.ADD
-                return 0x00000033 | (@as(u32, rs1) << 7) | (@as(u32, rs1) << 15) | (@as(u32, rs2) << 20);
+                const rs1_u32_7 = @as(u32, rs1) << 7;
+                const rs1_u32_15 = @as(u32, rs1) << 15;
+                const rs2_u32 = @as(u32, rs2) << 20;
+                return 0x00000033 | rs1_u32_7 | rs1_u32_15 | rs2_u32;
             }
         }
     }
@@ -1251,7 +1328,10 @@ pub const JitContext = struct {
         self.compilation_threshold = threshold;
     }
 
-    pub fn compile_block(self: *JitContext, guest_pc: u64) !*const fn (*GuestState) callconv(.c) void {
+    pub fn compile_block(
+        self: *JitContext,
+        guest_pc: u64,
+    ) !*const fn (*GuestState) callconv(.c) void {
         self.unprotect_code();
         defer self.protect_code();
 
@@ -1262,7 +1342,11 @@ pub const JitContext = struct {
         if (self.block_cache.get(guest_pc)) |addr| {
             // Cache hit: return existing compiled block.
             self.perf_counters.cache_hits += 1;
-            return @ptrCast(@alignCast(@as(*const anyopaque, @ptrFromInt(@intFromPtr(self.code_buffer.ptr) + @as(usize, addr)))));
+            const base_ptr = @intFromPtr(self.code_buffer.ptr);
+            const offset_ptr = base_ptr + @as(usize, addr);
+            const code_anyopaque: *const anyopaque = @ptrFromInt(offset_ptr);
+            const FuncType = *const fn (*GuestState) callconv(.c) void;
+            return @as(FuncType, @ptrCast(@alignCast(code_anyopaque)));
         }
 
         // Check compilation threshold before compiling.
@@ -1301,18 +1385,23 @@ pub const JitContext = struct {
         const block_size: u32 = self.cursor - start_offset;
         const block_size_u64: u64 = @intCast(block_size);
         self.perf_counters.total_code_size_bytes += block_size_u64;
-        if (self.perf_counters.max_code_size_bytes == 0 or block_size_u64 > self.perf_counters.max_code_size_bytes) {
+        const max_size = self.perf_counters.max_code_size_bytes;
+        if (max_size == 0 or block_size_u64 > max_size) {
             self.perf_counters.max_code_size_bytes = block_size_u64;
         }
-        if (self.perf_counters.min_code_size_bytes == 0 or block_size_u64 < self.perf_counters.min_code_size_bytes) {
+        const min_size = self.perf_counters.min_code_size_bytes;
+        if (min_size == 0 or block_size_u64 < min_size) {
             self.perf_counters.min_code_size_bytes = block_size_u64;
         }
 
         self.flush_cache(start_offset, self.cursor - start_offset);
 
         // GrainStyle: Cast u32 to usize only for pointer arithmetic
-        const code_ptr = @intFromPtr(self.code_buffer.ptr) + @as(usize, start_offset);
-        return @ptrCast(@alignCast(@as(*const anyopaque, @ptrFromInt(code_ptr))));
+        const base_ptr = @intFromPtr(self.code_buffer.ptr);
+        const offset_ptr = base_ptr + @as(usize, start_offset);
+        const code_anyopaque: *const anyopaque = @ptrFromInt(offset_ptr);
+        const FuncType = *const fn (*GuestState) callconv(.c) void;
+        return @as(FuncType, @ptrCast(@alignCast(code_anyopaque)));
     }
 
     /// Translate a single instruction to ARM64 code.
@@ -1549,7 +1638,11 @@ pub const JitContext = struct {
         // Try to chain if target block exists in cache.
         if (self.block_cache.get(target_pc)) |target_offset| {
             // Target block exists: chain directly to it.
-            const target_func = @ptrCast(@alignCast(@as(*const anyopaque, @ptrFromInt(@intFromPtr(self.code_buffer.ptr) + @as(usize, target_offset)))));
+            const base_ptr = @intFromPtr(self.code_buffer.ptr);
+            const target_ptr = base_ptr + @as(usize, target_offset);
+            const target_anyopaque: *const anyopaque = @ptrFromInt(target_ptr);
+            const FuncType = *const fn (*GuestState) callconv(.c) void;
+            const target_func: FuncType = @as(FuncType, @ptrCast(@alignCast(target_anyopaque)));
             self.emit_call_target(target_func);
             self.emit_ret();
             self.perf_counters.chains_created += 1;
@@ -1580,22 +1673,30 @@ pub const JitContext = struct {
         if (self.pending_fixups.fetchRemove(target_pc)) |entry| {
             var current: ?*Fixup = entry.value;
             while (current) |fixup| {
-                const offset = @as(i64, @intCast(target_addr)) - @as(i64, @intCast(fixup.patch_addr));
+                const target_i64 = @as(i64, @intCast(target_addr));
+                const patch_i64 = @as(i64, @intCast(fixup.patch_addr));
+                const offset = target_i64 - patch_i64;
 
-                const existing = std.mem.readInt(u32, self.code_buffer[fixup.patch_addr..][0..4], .little);
+                const patch_addr_slice = self.code_buffer[fixup.patch_addr..][0..4];
+                const existing = std.mem.readInt(u32, patch_addr_slice, .little);
 
                 var inst: u32 = 0;
                 if ((existing & 0x7C000000) == 0x14000000) {
-                    const imm26: u32 = @as(u32, @bitCast(@as(i32, @intCast(offset >> 2)))) & 0x03FFFFFF;
+                    const offset_shifted = offset >> 2;
+                    const imm26_i32 = @as(i32, @intCast(offset_shifted));
+                    const imm26: u32 = @as(u32, @bitCast(imm26_i32)) & 0x03FFFFFF;
                     inst = 0x14000000 | imm26;
                 } else if ((existing & 0xFF000000) == 0x54000000) {
-                    const imm19: u32 = @as(u32, @bitCast(@as(i32, @intCast(offset >> 2)))) & 0x7FFFF;
+                    const offset_shifted = offset >> 2;
+                    const imm19_i32 = @as(i32, @intCast(offset_shifted));
+                    const imm19: u32 = @as(u32, @bitCast(imm19_i32)) & 0x7FFFF;
                     const cond = existing & 0xF;
                     inst = 0x54000000 | (imm19 << 5) | cond;
                 }
 
                 if (inst != 0) {
-                    std.mem.writeInt(u32, self.code_buffer[fixup.patch_addr..][0..4], inst, .little);
+                    const patch_write_slice = self.code_buffer[fixup.patch_addr..][0..4];
+                    std.mem.writeInt(u32, patch_write_slice, inst, .little);
                 }
 
                 const next = fixup.next;
@@ -1727,9 +1828,11 @@ test "JIT: Load/Store/Logic" {
     JitContext.enter_jit(func, &state, ram.ptr);
 
     // Verify Registers
-    try std.testing.expectEqual(@as(u64, 0xFFFFFFFFDEADBEEF), state.regs[3]); // LW result (sign-extended)
+    // LW result (sign-extended)
+    try std.testing.expectEqual(@as(u64, 0xFFFFFFFFDEADBEEF), state.regs[3]);
     try std.testing.expectEqual(@as(u64, 16), state.regs[4]); // SLLI result
-    try std.testing.expectEqual(@as(u64, 0xFFFFFFFFDEADBEFF), state.regs[5]); // OR result (sign-extended)
+    // OR result (sign-extended)
+    try std.testing.expectEqual(@as(u64, 0xFFFFFFFFDEADBEFF), state.regs[5]);
 
     // Verify Memory Store
     const stored = std.mem.readInt(u32, ram[0x104..][0..4], .little);
@@ -1853,7 +1956,10 @@ test "Fuzz: Random Valid R-Type Instructions" {
 
         // Should not crash during compilation
         const func = jit.compile_block(0x80000000) catch |err| {
-            std.debug.print("Iteration {}: Failed to compile R-Type 0x{X:0>8}: {}\n", .{ iteration, inst, err });
+            std.debug.print(
+                "Iteration {}: Failed to compile R-Type 0x{X:0>8}: {}\n",
+                .{ iteration, inst, err },
+            );
             return err;
         };
 
@@ -1892,7 +1998,10 @@ test "Fuzz: Random Valid I-Type Instructions" {
 
         // Should not crash during compilation
         const func = jit.compile_block(0x80000000) catch |err| {
-            std.debug.print("Iteration {}: Failed to compile I-Type 0x{X:0>8}: {}\n", .{ iteration, inst, err });
+            std.debug.print(
+                "Iteration {}: Failed to compile I-Type 0x{X:0>8}: {}\n",
+                .{ iteration, inst, err },
+            );
             return err;
         };
 
@@ -1931,7 +2040,10 @@ test "Fuzz: Random Compressed Instructions" {
 
         // Should not crash during compilation
         const func = jit.compile_block(0x80000000) catch |err| {
-            std.debug.print("Iteration {}: Failed to compile compressed 0x{X:0>4}: {}\n", .{ iteration, inst, err });
+            std.debug.print(
+                "Iteration {}: Failed to compile compressed 0x{X:0>4}: {}\n",
+                .{ iteration, inst, err },
+            );
             return err;
         };
 
@@ -2119,7 +2231,8 @@ pub const SoftTLB = struct {
         std.debug.assert(TLB_SIZE & (TLB_SIZE - 1) == 0);
         // Assert: TLB size must be positive
         std.debug.assert(TLB_SIZE > 0);
-        return .{ .entries = [_]TLBEntry{.{ .guest_page = 0, .host_offset = 0, .valid = false }} ** TLB_SIZE };
+        const default_entry = TLBEntry{ .guest_page = 0, .host_offset = 0, .valid = false };
+        return .{ .entries = [_]TLBEntry{default_entry} ** TLB_SIZE };
     }
 
     pub fn lookup(self: *const SoftTLB, guest_addr: u64) ?usize {
@@ -2243,7 +2356,13 @@ pub const Tracer = struct {
         allocator.free(self.entries);
     }
 
-    pub fn record(self: *Tracer, pc: u64, inst: u32, regs_before: [32]u64, regs_after: [32]u64) void {
+    pub fn record(
+        self: *Tracer,
+        pc: u64,
+        inst: u32,
+        regs_before: [32]u64,
+        regs_after: [32]u64,
+    ) void {
         // Assert: PC must be aligned (2-byte for RVC)
         std.debug.assert(pc % 2 == 0);
         // Assert: entries must be allocated if enabled
@@ -2268,7 +2387,10 @@ pub const Tracer = struct {
         
         std.debug.print("\nInstruction Trace ({} entries):\n", .{self.cursor});
         for (self.entries[0..self.cursor], 0..) |entry, i| {
-            std.debug.print("  [{}] PC: 0x{X:0>16} INST: 0x{X:0>8}\n", .{ i, entry.pc, entry.inst });
+            std.debug.print(
+                "  [{}] PC: 0x{X:0>16} INST: 0x{X:0>8}\n",
+                .{ i, entry.pc, entry.inst },
+            );
         }
     }
 

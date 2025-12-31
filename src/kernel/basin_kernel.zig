@@ -1610,5 +1610,8 @@ pub const basin_kernel = struct {
     pub const boot_kernel = @import("boot.zig").boot_kernel;
     pub const ExceptionType = @import("trap.zig").ExceptionType;
     pub const handle_exception = @import("trap.zig").handle_exception;
+    // Debug and platform modules for testing
+    pub const Debug = @import("debug.zig");
+    pub const platform = @import("platform.zig");
 };
 

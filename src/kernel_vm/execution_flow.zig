@@ -1,7 +1,9 @@
 //! VM Execution Flow Tracking System
 //!
-//! Objective: Track program counter sequences to identify execution patterns, loops, and control flow.
-//! Why: Understand execution flow, detect loops, identify hot code regions, optimize JIT compilation.
+//! Objective: Track program counter sequences to identify execution patterns,
+//! loops, and control flow.
+//! Why: Understand execution flow, detect loops, identify hot code regions,
+//! optimize JIT compilation.
 //! GrainStyle: Static allocation, bounded buffers, explicit types, deterministic tracking.
 //!
 //! Methodology:
@@ -107,7 +109,8 @@ pub const VMExecutionFlow = struct {
         if (self.pc_history_len < 4) {
             return null;
         }
-        const last_pc = self.pc_history[(self.pc_history_index + MAX_PC_HISTORY - 1) % MAX_PC_HISTORY];
+        const history_idx = (self.pc_history_index + MAX_PC_HISTORY - 1) % MAX_PC_HISTORY;
+        const last_pc = self.pc_history[history_idx];
         var repeat_count: u32 = 0;
         var i: u32 = 0;
         while (i < self.pc_history_len and i < 16) : (i += 1) {

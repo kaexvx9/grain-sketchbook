@@ -262,7 +262,8 @@ pub fn main() !void {
     vm.start();
     try vm.step();
     const sra_result = vm.regs.get(1);
-    std.debug.assert(sra_result == @as(u64, @bitCast(@as(i64, -10)))); // x1 = -40 >> 2 = -10 (sign-extended)
+    // x1 = -40 >> 2 = -10 (sign-extended)
+    std.debug.assert(sra_result == @as(u64, @bitCast(@as(i64, -10))));
     std.debug.print("[kernel_vm_test] ✓ SRA instruction works\n", .{});
 
     std.debug.print("[kernel_vm_test] All tests passed!\n", .{});

@@ -6,6 +6,7 @@
 
 const std = @import("std");
 const api_server = @import("api_server.zig");
+const rate_limiter = @import("rate_limiter.zig");
 
 // CORS middleware: Add CORS headers to response.
 pub fn cors_middleware(
@@ -43,16 +44,79 @@ pub fn logging_middleware(
     return true;
 }
 
-// Rate limiting middleware: Check rate limit (stub for now).
+// Rate limiting middleware: Check rate limit using rate limiter.
+// Note: Uses a static rate limiter instance (should be passed via context in future).
+var global_rate_limiter: ?rate_limiter.RateLimiter = null;
+
+fn get_nano_timestamp() u64 {
+    return std.time.nanoTimestamp();
+}
+
+pub fn init_rate_limiter(tokens_per_second: u32, max_tokens: u32) void {
+    std.debug.assert(tokens_per_second > 0);
+    std.debug.assert(max_tokens > 0);
+    global_rate_limiter = rate_limiter.RateLimiter.init(
+        tokens_per_second,
+        max_tokens,
+        get_nano_timestamp,
+    );
+}
+
+// Rate limiting middleware: Check rate limit using rate limiter.
 pub fn rate_limit_middleware(
-    _request: *api_server.HttpRequest,
+    request: *api_server.HttpRequest,
     response: *api_server.HttpResponse,
 ) bool {
-    std.debug.assert(_request != null);
+    std.debug.assert(request != null);
     std.debug.assert(response != null);
-    _ = _request;
-    _ = response;
+    if (global_rate_limiter == null) {
+        init_rate_limiter(10, 100);
+    }
+    const ip_address = get_client_ip(request);
+    if (ip_address.len == 0) {
+        response.status = api_server.HttpStatus.bad_request;
+        _ = response.add_header("Content-Type", "application/json");
+        const error_body = "{\"error\":\"bad_request\",\"message\":\"Unable to determine client IP\"}";
+        const body_len = @min(error_body.len, api_server.MAX_RESPONSE_SIZE);
+        var i: u32 = 0;
+        while (i < body_len) : (i += 1) {
+            response.body[i] = error_body[i];
+        }
+        response.body_len = @intCast(body_len);
+        return false;
+    }
+    const limiter = &global_rate_limiter.?;
+    if (!limiter.check_rate_limit(ip_address)) {
+        response.status = api_server.HttpStatus.too_many_requests;
+        _ = response.add_header("Content-Type", "application/json");
+        const error_body = "{\"error\":\"rate_limit\",\"message\":\"Rate limit exceeded\"}";
+        const body_len = @min(error_body.len, api_server.MAX_RESPONSE_SIZE);
+        var j: u32 = 0;
+        while (j < body_len) : (j += 1) {
+            response.body[j] = error_body[j];
+        }
+        response.body_len = @intCast(body_len);
+        return false;
+    }
     return true;
+}
+
+// Get client IP address from request headers.
+fn get_client_ip(request: *api_server.HttpRequest) []const u8 {
+    std.debug.assert(request != null);
+    if (request.get_header("X-Forwarded-For")) |xff| {
+        if (xff.len > 0) {
+            var i: u32 = 0;
+            while (i < xff.len and xff[i] != ',') : (i += 1) {}
+            return xff[0..i];
+        }
+    }
+    if (request.get_header("X-Real-IP")) |xri| {
+        if (xri.len > 0) {
+            return xri;
+        }
+    }
+    return "";
 }
 
 // Authentication middleware: Check Authorization header and validate JWT.

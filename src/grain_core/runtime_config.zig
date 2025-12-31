@@ -131,7 +131,13 @@ pub const RuntimeConfig = struct {
     }
 
     // Split command string into parts (space-separated).
-    fn split_command(self: *RuntimeConfig, cmd_str: []const u8) struct { parts: [MAX_COMMANDS][]const u8, len: u32 } {
+    fn split_command(
+        self: *RuntimeConfig,
+        cmd_str: []const u8,
+    ) struct {
+        parts: [MAX_COMMANDS][]const u8,
+        len: u32,
+    } {
         _ = self;
         std.debug.assert(cmd_str.len > 0);
         // Simple split: find spaces.

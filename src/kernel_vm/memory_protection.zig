@@ -72,7 +72,12 @@ pub const VMMemoryProtection = struct {
         return protection;
     }
 
-    pub fn map_page(self: *VMMemoryProtection, virtual_addr: u64, physical_addr: u64, permissions: u8) bool {
+    pub fn map_page(
+        self: *VMMemoryProtection,
+        virtual_addr: u64,
+        physical_addr: u64,
+        permissions: u8,
+    ) bool {
         if (self.page_table_len >= MAX_PAGE_TABLE_ENTRIES) {
             return false;
         }
@@ -127,7 +132,11 @@ pub const VMMemoryProtection = struct {
         return null;
     }
 
-    pub fn check_permission(self: *const VMMemoryProtection, virtual_addr: u64, required_perm: u8) bool {
+    pub fn check_permission(
+        self: *const VMMemoryProtection,
+        virtual_addr: u64,
+        required_perm: u8,
+    ) bool {
         const perms_opt = self.get_permissions(virtual_addr);
         if (perms_opt == null) {
             return false;
@@ -149,7 +158,12 @@ pub const VMMemoryProtection = struct {
         return null;
     }
 
-    pub fn protect_region(self: *VMMemoryProtection, start_addr: u64, end_addr: u64, permissions: u8) bool {
+    pub fn protect_region(
+        self: *VMMemoryProtection,
+        start_addr: u64,
+        end_addr: u64,
+        permissions: u8,
+    ) bool {
         var addr = (start_addr / PAGE_SIZE) * PAGE_SIZE;
         const end = (end_addr / PAGE_SIZE) * PAGE_SIZE;
         while (addr <= end) {

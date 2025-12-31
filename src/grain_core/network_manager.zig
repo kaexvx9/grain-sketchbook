@@ -311,7 +311,124 @@ pub const NetworkManager = struct {
 
     // Get interface count.
     pub fn get_interface_count(self: *const NetworkManager) u32 {
-        return self.interfaces_len;
+        std.debug.assert(self.interfaces_len <= MAX_INTERFACES);
+        const count = self.interfaces_len;
+        std.debug.assert(count <= MAX_INTERFACES);
+        return count;
+    }
+
+    // Enumerate all active interfaces (returns count).
+    pub fn enumerate_interfaces(
+        self: *NetworkManager,
+        interfaces_out: []NetworkInterface,
+    ) u32 {
+        std.debug.assert(interfaces_out.len <= MAX_INTERFACES);
+        std.debug.assert(self.interfaces_len <= MAX_INTERFACES);
+        const count = @min(self.interfaces_len, @intCast(interfaces_out.len));
+        var i: u32 = 0;
+        var out_idx: u32 = 0;
+        while (i < self.interfaces_len and out_idx < count) : (i += 1) {
+            if (self.interfaces[i].active) {
+                interfaces_out[out_idx] = self.interfaces[i];
+                out_idx += 1;
+            }
+        }
+        std.debug.assert(out_idx <= count);
+        std.debug.assert(out_idx <= interfaces_out.len);
+        return out_idx;
+    }
+
+    // Get interface by name.
+    pub fn find_interface_by_name(
+        self: *NetworkManager,
+        name: []const u8,
+    ) ?*NetworkInterface {
+        std.debug.assert(name.len > 0);
+        std.debug.assert(name.len <= MAX_INTERFACE_NAME_LEN);
+        var i: u32 = 0;
+        while (i < self.interfaces_len) : (i += 1) {
+            if (self.interfaces[i].active and self.interfaces[i].name_len == name.len) {
+                var match = true;
+                var j: u32 = 0;
+                while (j < name.len) : (j += 1) {
+                    if (self.interfaces[i].name[j] != name[j]) {
+                        match = false;
+                        break;
+                    }
+                }
+                if (match) {
+                    std.debug.assert(self.interfaces[i].interface_id > 0);
+                    return &self.interfaces[i];
+                }
+            }
+        }
+        return null;
+    }
+
+    // Get interface addresses (IP, netmask, gateway) as strings.
+    pub fn get_interface_addresses(
+        self: *const NetworkManager,
+        interface_id: u32,
+        ip_out: []u8,
+        netmask_out: []u8,
+        gateway_out: []u8,
+    ) bool {
+        std.debug.assert(interface_id > 0);
+        std.debug.assert(ip_out.len >= MAX_IP_LEN);
+        std.debug.assert(netmask_out.len >= MAX_IP_LEN);
+        std.debug.assert(gateway_out.len >= MAX_IP_LEN);
+        var i: u32 = 0;
+        while (i < self.interfaces_len) : (i += 1) {
+            if (self.interfaces[i].interface_id == interface_id and self.interfaces[i].active) {
+                const iface = &self.interfaces[i];
+                var j: u32 = 0;
+                while (j < iface.ip_address_len) : (j += 1) {
+                    ip_out[j] = iface.ip_address[j];
+                }
+                while (j < ip_out.len) : (j += 1) {
+                    ip_out[j] = 0;
+                }
+                j = 0;
+                while (j < iface.netmask_len) : (j += 1) {
+                    netmask_out[j] = iface.netmask[j];
+                }
+                while (j < netmask_out.len) : (j += 1) {
+                    netmask_out[j] = 0;
+                }
+                j = 0;
+                while (j < iface.gateway_len) : (j += 1) {
+                    gateway_out[j] = iface.gateway[j];
+                }
+                while (j < gateway_out.len) : (j += 1) {
+                    gateway_out[j] = 0;
+                }
+                std.debug.assert(iface.interface_id == interface_id);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Get interface status (state, type, active).
+    pub fn get_interface_status(
+        self: *const NetworkManager,
+        interface_id: u32,
+        state_out: *InterfaceState,
+        type_out: *InterfaceType,
+    ) bool {
+        std.debug.assert(interface_id > 0);
+        std.debug.assert(state_out != null);
+        std.debug.assert(type_out != null);
+        var i: u32 = 0;
+        while (i < self.interfaces_len) : (i += 1) {
+            if (self.interfaces[i].interface_id == interface_id and self.interfaces[i].active) {
+                state_out.* = self.interfaces[i].state;
+                type_out.* = self.interfaces[i].interface_type;
+                std.debug.assert(self.interfaces[i].interface_id == interface_id);
+                return true;
+            }
+        }
+        return false;
     }
 };
 

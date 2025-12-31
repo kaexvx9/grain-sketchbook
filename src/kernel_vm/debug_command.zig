@@ -63,7 +63,13 @@ pub const VMDebugCommand = struct {
         return self.debug_interface.remove_breakpoint(pc);
     }
 
-    pub fn set_watchpoint(self: *VMDebugCommand, address: u64, size: u64, watch_reads: bool, watch_writes: bool) bool {
+    pub fn set_watchpoint(
+        self: *VMDebugCommand,
+        address: u64,
+        size: u64,
+        watch_reads: bool,
+        watch_writes: bool,
+    ) bool {
         return self.debug_interface.set_watchpoint(address, size, watch_reads, watch_writes);
     }
 
@@ -105,7 +111,11 @@ pub const VMDebugCommand = struct {
         return self.state_inspector.get_pc();
     }
 
-    pub fn dump_memory(self: *const VMDebugCommand, address: u64, size: u32) ?state_inspection_mod.MemoryDump {
+    pub fn dump_memory(
+        self: *const VMDebugCommand,
+        address: u64,
+        size: u32,
+    ) ?state_inspection_mod.MemoryDump {
         return self.state_inspector.dump_memory(address, size);
     }
 
@@ -117,7 +127,10 @@ pub const VMDebugCommand = struct {
         return self.state_inspector.read_memory_u32(address);
     }
 
-    pub fn dump_stack(self: *const VMDebugCommand, stack_pointer: u64) ?state_inspection_mod.MemoryDump {
+    pub fn dump_stack(
+        self: *const VMDebugCommand,
+        stack_pointer: u64,
+    ) ?state_inspection_mod.MemoryDump {
         return self.state_inspector.dump_stack(stack_pointer);
     }
 

@@ -241,15 +241,21 @@ fn terminate_process_on_exception(
         return;
     }
     
-    // Find process in process table.
+    // Find process in process table (using cached lookup if available).
     // Why: Locate process to terminate.
     var found: ?u32 = null;
-    const max_processes: u32 = 64; // MAX_PROCESSES constant (from BasinKernel).
-    var i: u32 = 0;
-    while (i < max_processes) : (i += 1) {
-        if (kernel.processes[i].allocated and kernel.processes[i].id == current_process_id) {
-            found = i;
-            break;
+    const parent_idx = kernel.find_current_process_index();
+    if (parent_idx) |idx_val| {
+        found = idx_val;
+    } else {
+        // Fallback: linear search if cache miss.
+        const max_processes: u32 = 16; // MAX_PROCESSES constant (from BasinKernel).
+        var i: u32 = 0;
+        while (i < max_processes) : (i += 1) {
+            if (kernel.processes[i].allocated and kernel.processes[i].id == current_process_id) {
+                found = i;
+                break;
+            }
         }
     }
     
@@ -268,6 +274,9 @@ fn terminate_process_on_exception(
         // Clear from scheduler.
         if (kernel.scheduler.is_current(current_process_id)) {
             kernel.scheduler.clear_current();
+            // Invalidate current process cache when process terminates due to exception.
+            // Why: Ensure cache doesn't point to terminated process.
+            kernel.invalidate_current_process_cache();
         }
         
         // Clean up process resources (memory mappings, handles, channels).

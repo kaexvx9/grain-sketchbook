@@ -87,20 +87,16 @@ pub const FileSyscalls = struct {
             return SyscallResult.fail(BasinError.out_of_memory); // Handle table full
         };
         
-        // Get current process ID from scheduler.
+        // Get current process index (with caching optimization).
         // Why: Track which process owns this handle for resource cleanup.
-        const current_process_id = self.scheduler.get_current();
-        const owner_process_id = @as(u32, @truncate(current_process_id));
+        const current_process_idx = self.find_current_process_index();
+        const owner_process_id = if (current_process_idx) |idx| @as(u32, @truncate(self.processes[idx].id)) else 0;
         
         // Check file descriptor limit for current process.
-        if (current_process_id > 0) {
-            for (0..MAX_PROCESSES) |i| {
-                if (self.processes[i].allocated and self.processes[i].id == current_process_id) {
-                    if (!self.can_open_file_descriptor(self, &self.processes[i])) {
-                        return SyscallResult.fail(BasinError.resource_exhausted); // File descriptor limit exceeded
-                    }
-                    break;
-                }
+        if (current_process_idx) |idx| {
+            const current_process = &self.processes[idx];
+            if (!self.can_open_file_descriptor(self, current_process)) {
+                return SyscallResult.fail(BasinError.resource_exhausted); // File descriptor limit exceeded
             }
         }
         
@@ -133,13 +129,8 @@ pub const FileSyscalls = struct {
         }
         
         // Update process resource usage (increment file descriptor count).
-        if (current_process_id > 0) {
-            for (0..MAX_PROCESSES) |i| {
-                if (self.processes[i].allocated and self.processes[i].id == current_process_id) {
-                    self.processes[i].open_file_descriptors += 1;
-                    break;
-                }
-            }
+        if (current_process_idx) |idx| {
+            self.processes[idx].open_file_descriptors += 1;
         }
         
         // Assert: Handle must be allocated correctly.
@@ -392,12 +383,19 @@ pub const FileSyscalls = struct {
         // Close handle (free entry).
         var file_handle = &self.handles[handle_idx];
         const owner_pid = file_handle.owner_process_id;
+        const closed_handle_id = file_handle.id;
         file_handle.allocated = false;
         file_handle.id = 0;
         file_handle.path_len = 0;
         file_handle.position = 0;
         file_handle.buffer_size = 0;
         file_handle.owner_process_id = 0;
+        
+        // Invalidate MRU cache if closed handle was the MRU handle.
+        // Why: Ensure MRU cache doesn't point to deallocated handle.
+        if (self.mru_handle_id == closed_handle_id) {
+            self.invalidate_mru_handle_cache();
+        }
         
         // Update process resource usage (decrement file descriptor count).
         if (owner_pid > 0) {

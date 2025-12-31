@@ -51,6 +51,7 @@ pub const HttpStatus = enum(u16) {
     forbidden = 403,
     not_found = 404,
     conflict = 409,
+    too_many_requests = 429,
     internal_server_error = 500,
     service_unavailable = 503,
 };
@@ -623,7 +624,6 @@ pub const ApiServer = struct {
         raw_request: []const u8,
         request: *HttpRequest,
     ) bool {
-        _ = self;
         std.debug.assert(raw_request.len > 0);
         std.debug.assert(request != null);
         if (raw_request.len > MAX_REQUEST_SIZE) {
@@ -694,6 +694,7 @@ pub const ApiServer = struct {
             HttpStatus.forbidden => "HTTP/1.1 403 Forbidden\r\n",
             HttpStatus.not_found => "HTTP/1.1 404 Not Found\r\n",
             HttpStatus.conflict => "HTTP/1.1 409 Conflict\r\n",
+            HttpStatus.too_many_requests => "HTTP/1.1 429 Too Many Requests\r\n",
             HttpStatus.internal_server_error => "HTTP/1.1 500 Internal Server Error\r\n",
             HttpStatus.service_unavailable => "HTTP/1.1 503 Service Unavailable\r\n",
         };
@@ -1040,6 +1041,88 @@ pub const ApiServer = struct {
         response.body_len += 1;
         std.debug.assert(response.body_len <= MAX_RESPONSE_SIZE);
         return true;
+    }
+
+    // Negotiate content type based on Accept header.
+    pub fn negotiate_content_type(
+        self: *const ApiServer,
+        request: *const HttpRequest,
+        available_types: []const []const u8,
+    ) ?[]const u8 {
+        _ = self;
+        std.debug.assert(available_types.len > 0);
+        std.debug.assert(available_types.len <= 16);
+        const content_negotiation = @import("content_negotiation.zig");
+        if (request.get_header("Accept")) |accept_header| {
+            var negotiator = content_negotiation.ContentNegotiator.init();
+            if (negotiator.parse_accept_header(accept_header)) {
+                return negotiator.negotiate_content_type(available_types);
+            }
+        }
+        if (available_types.len > 0) {
+            return available_types[0];
+        }
+        return null;
+    }
+
+    // Set Content-Type header based on negotiation.
+    pub fn set_negotiated_content_type(
+        self: *const ApiServer,
+        request: *const HttpRequest,
+        response: *HttpResponse,
+        available_types: []const []const u8,
+    ) bool {
+        std.debug.assert(available_types.len > 0);
+        std.debug.assert(available_types.len <= 16);
+        const negotiated = self.negotiate_content_type(request, available_types);
+        if (negotiated) |content_type| {
+            return response.add_header("Content-Type", content_type);
+        }
+        if (available_types.len > 0) {
+            return response.add_header("Content-Type", available_types[0]);
+        }
+        return false;
+    }
+
+    // Generate chunked HTTP response (for streaming).
+    pub fn generate_chunked_response(
+        self: *const ApiServer,
+        response: *const HttpResponse,
+        output: []u8,
+    ) ?u32 {
+        std.debug.assert(output.len > 0);
+        std.debug.assert(response.body_len <= MAX_RESPONSE_SIZE);
+        const chunked_transfer_mod = @import("chunked_transfer.zig");
+        var pos: u32 = 0;
+        const status_line = self.get_status_line(response.status);
+        if (!self.write_status_line(status_line, output, &pos)) {
+            return null;
+        }
+        if (!self.write_headers(response, output, &pos)) {
+            return null;
+        }
+        const transfer_encoding_header = "Transfer-Encoding: chunked\r\n";
+        if (pos + transfer_encoding_header.len > output.len) {
+            return null;
+        }
+        var i: u32 = 0;
+        while (i < transfer_encoding_header.len) : (i += 1) {
+            output[pos] = transfer_encoding_header[i];
+            pos += 1;
+        }
+        if (pos + 2 > output.len) {
+            return null;
+        }
+        output[pos] = '\r';
+        pos += 1;
+        output[pos] = '\n';
+        pos += 1;
+        const body = response.body[0..response.body_len];
+        if (!chunked_transfer_mod.write_chunked_body(body, output, &pos)) {
+            return null;
+        }
+        std.debug.assert(pos <= output.len);
+        return pos;
     }
 };
 

@@ -144,7 +144,27 @@ Following Vantage 3 Subcore guidance (2025-12-30-223543-pst), conducted comprehe
 - **Priority**: Medium (if IPC operations are hot paths)
 - **Note**: Channel operations involve VM memory I/O which may be the dominant cost
 
-### 6. Network Syscalls (Syscalls 90-116)
+### 6. Framebuffer Syscalls (Syscalls 70-72)
+- **Status**: ✅ **Reviewed**
+- **Implementation**:
+  - `syscall_fb_clear`: Clears framebuffer (simple memory write loop)
+  - `syscall_fb_draw_pixel`: Draws single pixel (direct memory write)
+  - `syscall_fb_draw_text`: Draws text (iterates through characters, draws pixels)
+- **Optimization Opportunities**: None identified
+- **Priority**: Low (simple memory operations, unlikely bottlenecks)
+- **Note**: Framebuffer operations are direct memory writes, already optimal
+
+### 7. Signal Syscalls (Syscalls 80-82)
+- **Status**: ✅ **Reviewed**
+- **Implementation**:
+  - `syscall_kill`: Finds process by PID (linear search through MAX_PROCESSES=16), sends signal
+  - `syscall_signal`/`syscall_sigaction`: Finds current process (linear search), registers signal handler
+- **Optimization Opportunities**:
+  - **Process lookup**: Linear search through MAX_PROCESSES=16 (small array, effectively constant time) - **LOW PRIORITY**
+- **Priority**: Low (small arrays, signal operations are infrequent)
+- **Note**: Signal operations are infrequent, and process lookup uses small array
+
+### 8. Network Syscalls (Syscalls 90-116)
 - **Status**: ✅ **Reviewed**
 - **Implementation**:
   - Validates arguments (socket ID, data pointers, lengths)

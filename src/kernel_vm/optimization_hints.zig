@@ -101,7 +101,11 @@ pub const VMOptimizationHints = struct {
             hint.hint_type = .hot_instruction;
             hint.address = 0;
             hint.priority = 3;
-            const desc = std.fmt.bufPrint(hint.description[0..], "Hot instruction: opcode 0x{x} executed {} times", .{ hot_opcode, max_count }) catch "";
+            const desc = std.fmt.bufPrint(
+                hint.description[0..],
+                "Hot instruction: opcode 0x{x} executed {} times",
+                .{ hot_opcode, max_count },
+            ) catch "";
             hint.description_len = @as(u32, @intCast(desc.len));
             self.hints_count += 1;
         }
@@ -126,7 +130,11 @@ pub const VMOptimizationHints = struct {
             hint.hint_type = .memory_hot_spot;
             hint.address = region.start_address;
             hint.priority = 2;
-            const desc = std.fmt.bufPrint(hint.description[0..], "Memory hot spot: 0x{x}-0x{x} accessed {} times", .{ region.start_address, region.end_address, max_accesses }) catch "";
+            const desc = std.fmt.bufPrint(
+                hint.description[0..],
+                "Memory hot spot: 0x{x}-0x{x} accessed {} times",
+                .{ region.start_address, region.end_address, max_accesses },
+            ) catch "";
             hint.description_len = @as(u32, @intCast(desc.len));
             self.hints_count += 1;
         }
@@ -150,7 +158,12 @@ pub const VMOptimizationHints = struct {
             hint.hint_type = .branch_misprediction;
             hint.address = worst_pc;
             hint.priority = 1;
-            const desc = std.fmt.bufPrint(hint.description[0..], "Branch misprediction: PC 0x{x} taken rate {d:.2}%", .{ worst_pc, worst_rate * 100.0 }) catch "";
+            const taken_rate_pct = worst_rate * 100.0;
+            const desc = std.fmt.bufPrint(
+                hint.description[0..],
+                "Branch misprediction: PC 0x{x} taken rate {d:.2}%",
+                .{ worst_pc, taken_rate_pct },
+            ) catch "";
             hint.description_len = @as(u32, @intCast(desc.len));
             self.hints_count += 1;
         }
@@ -174,7 +187,11 @@ pub const VMOptimizationHints = struct {
             hint.hint_type = .register_pressure;
             hint.address = hot_register;
             hint.priority = 2;
-            const desc = std.fmt.bufPrint(hint.description[0..], "Register pressure: x{} accessed {} times", .{ hot_register, max_usage }) catch "";
+            const desc = std.fmt.bufPrint(
+                hint.description[0..],
+                "Register pressure: x{} accessed {} times",
+                .{ hot_register, max_usage },
+            ) catch "";
             hint.description_len = @as(u32, @intCast(desc.len));
             self.hints_count += 1;
         }
@@ -185,16 +202,25 @@ pub const VMOptimizationHints = struct {
             return;
         }
         const jit_ctx = vm.jit.?;
-        const cache_hit_rate: f64 = if (jit_ctx.perf_counters.cache_hits + jit_ctx.perf_counters.cache_misses > 0)
-            @as(f64, @floatFromInt(jit_ctx.perf_counters.cache_hits)) / @as(f64, @floatFromInt(jit_ctx.perf_counters.cache_hits + jit_ctx.perf_counters.cache_misses))
-        else
-            0.0;
+        const cache_hits = jit_ctx.perf_counters.cache_hits;
+        const cache_misses = jit_ctx.perf_counters.cache_misses;
+        const total_cache_ops = cache_hits + cache_misses;
+        const cache_hit_rate: f64 = if (total_cache_ops > 0) blk: {
+            const hits_f64 = @as(f64, @floatFromInt(cache_hits));
+            const total_f64 = @as(f64, @floatFromInt(total_cache_ops));
+            break :blk hits_f64 / total_f64;
+        } else 0.0;
         if (cache_hit_rate < 0.5 and self.hints_count < MAX_HINTS) {
             const hint = &self.hints[self.hints_count];
             hint.hint_type = .jit_opportunity;
             hint.address = 0;
             hint.priority = 1;
-            const desc = std.fmt.bufPrint(hint.description[0..], "JIT cache hit rate: {d:.2}% (low)", .{cache_hit_rate * 100.0}) catch "";
+            const hit_rate_pct = cache_hit_rate * 100.0;
+            const desc = std.fmt.bufPrint(
+                hint.description[0..],
+                "JIT cache hit rate: {d:.2}% (low)",
+                .{hit_rate_pct},
+            ) catch "";
             hint.description_len = @as(u32, @intCast(desc.len));
             self.hints_count += 1;
         }

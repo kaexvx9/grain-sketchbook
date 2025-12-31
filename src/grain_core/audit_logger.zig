@@ -34,6 +34,18 @@ pub const FileOperationType = enum(u8) {
     unlock,
 };
 
+// Security event type.
+pub const SecurityEventType = enum(u8) {
+    access_denied,
+    permission_denied,
+    unauthorized_access,
+    encryption_failed,
+    decryption_failed,
+    key_rotation,
+    acl_violation,
+    rbac_violation,
+};
+
 // Audit log entry.
 pub const AuditLogEntry = struct {
     entry_id: u64,
@@ -226,5 +238,32 @@ pub const AuditLogger = struct {
     pub fn get_entry_count(self: *const AuditLogger) u32 {
         std.debug.assert(self != null);
         return self.entries_len;
+    }
+
+    pub fn log_security_event(
+        self: *AuditLogger,
+        timestamp: u64,
+        user_id: u32,
+        event_type: SecurityEventType,
+        file_path: []const u8,
+        details: []const u8,
+    ) bool {
+        std.debug.assert(user_id > 0);
+        std.debug.assert(file_path.len > 0);
+        std.debug.assert(self != null);
+        const operation = switch (event_type) {
+            .access_denied, .permission_denied, .unauthorized_access => FileOperationType.open,
+            .encryption_failed => FileOperationType.write,
+            .decryption_failed => FileOperationType.read,
+            .key_rotation, .acl_violation, .rbac_violation => FileOperationType.chmod,
+        };
+        return self.log_operation(
+            timestamp,
+            user_id,
+            operation,
+            file_path,
+            false,
+            1,
+        );
     }
 };

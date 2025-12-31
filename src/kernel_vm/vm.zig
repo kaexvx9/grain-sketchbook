@@ -172,7 +172,13 @@ pub const FramebufferDirtyRegion = struct {
     /// Get dirty region bounds (if dirty).
     /// Why: Query dirty region for optimized sync.
     /// Returns: true if dirty, false if clean.
-    pub fn get_bounds(self: *const FramebufferDirtyRegion, min_x: *u32, min_y: *u32, max_x: *u32, max_y: *u32) bool {
+    pub fn get_bounds(
+        self: *const FramebufferDirtyRegion,
+        min_x: *u32,
+        min_y: *u32,
+        max_x: *u32,
+        max_y: *u32,
+    ) bool {
         if (!self.is_dirty) {
             return false;
         }
@@ -271,14 +277,21 @@ pub const VM = struct {
     /// Syscall handler callback (optional).
     /// Why: Allow external syscall handling (e.g., Grain Basin kernel).
     /// Note: Type-erased to avoid requiring basin_kernel import at module level.
-    syscall_handler: ?*const fn (syscall_num: u32, arg1: u64, arg2: u64, arg3: u64, arg4: u64) u64 = null,
+    syscall_handler: ?*const fn (
+        syscall_num: u32,
+        arg1: u64,
+        arg2: u64,
+        arg3: u64,
+        arg4: u64,
+    ) u64 = null,
     /// User data for syscall handler (optional).
     /// Why: Pass context to syscall handler (e.g., Basin Kernel instance).
     syscall_user_data: ?*anyopaque = null,
     /// Memory permission check callback (optional).
     /// Why: Enforce memory protection by checking read/write/execute permissions.
     /// Note: Type-erased to avoid requiring basin_kernel import at module level.
-    /// Returns: u32 with permission bits (bit 0=read, bit 1=write, bit 2=execute), or 0 if not mapped.
+    /// Returns: u32 with permission bits (bit 0=read, bit 1=write, bit 2=execute),
+    /// or 0 if not mapped.
     permission_checker: ?*const fn (addr: u64) u32 = null,
     /// User data for permission checker (optional).
     /// Why: Pass context to permission checker (e.g., Basin Kernel instance).
@@ -350,15 +363,18 @@ pub const VM = struct {
     /// Instruction performance profiler.
     /// Why: Track execution time per instruction type for performance analysis.
     /// GrainStyle: Static allocation, bounded counters, explicit types.
-    instruction_perf: instruction_perf_mod.VMInstructionPerf = instruction_perf_mod.VMInstructionPerf.init(),
+    instruction_perf: instruction_perf_mod.VMInstructionPerf =
+        instruction_perf_mod.VMInstructionPerf.init(),
     /// Debugging interface.
     /// Why: Provide breakpoints, watchpoints, and step debugging capabilities.
     /// GrainStyle: Static allocation, bounded arrays, explicit types.
-    debug_interface: debug_interface_mod.VMDebugInterface = debug_interface_mod.VMDebugInterface.init(),
+    debug_interface: debug_interface_mod.VMDebugInterface =
+        debug_interface_mod.VMDebugInterface.init(),
     /// Instruction trace logger.
     /// Why: Record instruction execution history for debugging.
     /// GrainStyle: Static allocation, bounded circular buffer, explicit types.
-    instruction_trace: instruction_trace_mod.VMInstructionTrace = instruction_trace_mod.VMInstructionTrace.init(),
+    instruction_trace: instruction_trace_mod.VMInstructionTrace =
+        instruction_trace_mod.VMInstructionTrace.init(),
     /// Checkpoint manager.
     /// Why: Save and restore VM state for debugging and state management.
     /// GrainStyle: Static allocation, bounded buffers, explicit types.
@@ -366,11 +382,13 @@ pub const VM = struct {
     /// Optimization hints analyzer.
     /// Why: Analyze statistics and provide optimization recommendations.
     /// GrainStyle: Static allocation, bounded buffers, explicit types.
-    optimization_hints: optimization_hints_mod.VMOptimizationHints = optimization_hints_mod.VMOptimizationHints.init(),
+    optimization_hints: optimization_hints_mod.VMOptimizationHints =
+        optimization_hints_mod.VMOptimizationHints.init(),
     /// Memory protection manager.
     /// Why: Provide memory protection capabilities (page tables, permissions).
     /// GrainStyle: Static allocation, bounded page tables, explicit types.
-    memory_protection: memory_protection_mod.VMMemoryProtection = memory_protection_mod.VMMemoryProtection.init(),
+    memory_protection: memory_protection_mod.VMMemoryProtection =
+        memory_protection_mod.VMMemoryProtection.init(),
 
     const Self = @This();
 
@@ -378,7 +396,14 @@ pub const VM = struct {
     /// Why: Route macOS mouse events to kernel via VM.
     /// GrainStyle: Explicit bounds checking, deterministic encoding.
     /// Note: Takes simplified event data to avoid cross-module dependency.
-    pub fn inject_mouse_event(self: *Self, kind: u8, button: u8, x: f64, y: f64, modifiers: u8) void {
+    pub fn inject_mouse_event(
+        self: *Self,
+        kind: u8,
+        button: u8,
+        x: f64,
+        y: f64,
+        modifiers: u8,
+    ) void {
         // Assert: VM must be initialized.
         std.debug.assert(self.memory_size > 0);
         
@@ -412,12 +437,14 @@ pub const VM = struct {
         
         // Enqueue event (handle queue full by dropping oldest).
         if (self.input_event_queue.count >= MAX_INPUT_EVENTS) {
-            self.input_event_queue.read_idx = (self.input_event_queue.read_idx + 1) % MAX_INPUT_EVENTS;
+            const new_read_idx = (self.input_event_queue.read_idx + 1) % MAX_INPUT_EVENTS;
+            self.input_event_queue.read_idx = new_read_idx;
             self.input_event_queue.count -= 1;
         }
         
         self.input_event_queue.events[self.input_event_queue.write_idx] = input_event;
-        self.input_event_queue.write_idx = (self.input_event_queue.write_idx + 1) % MAX_INPUT_EVENTS;
+        const new_write_idx = (self.input_event_queue.write_idx + 1) % MAX_INPUT_EVENTS;
+        self.input_event_queue.write_idx = new_write_idx;
         self.input_event_queue.count += 1;
         
         // Assert: Event must be enqueued (queue size increased or oldest dropped).
@@ -428,7 +455,13 @@ pub const VM = struct {
     /// Why: Route macOS keyboard events to kernel via VM.
     /// GrainStyle: Explicit bounds checking, deterministic encoding.
     /// Note: Takes simplified event data to avoid cross-module dependency.
-    pub fn inject_keyboard_event(self: *Self, kind: u8, key_code: u32, character: u32, modifiers: u8) void {
+    pub fn inject_keyboard_event(
+        self: *Self,
+        kind: u8,
+        key_code: u32,
+        character: u32,
+        modifiers: u8,
+    ) void {
         // Assert: VM must be initialized.
         std.debug.assert(self.memory_size > 0);
         
@@ -455,12 +488,14 @@ pub const VM = struct {
         
         // Enqueue event (handle queue full by dropping oldest).
         if (self.input_event_queue.count >= MAX_INPUT_EVENTS) {
-            self.input_event_queue.read_idx = (self.input_event_queue.read_idx + 1) % MAX_INPUT_EVENTS;
+            const new_read_idx = (self.input_event_queue.read_idx + 1) % MAX_INPUT_EVENTS;
+            self.input_event_queue.read_idx = new_read_idx;
             self.input_event_queue.count -= 1;
         }
         
         self.input_event_queue.events[self.input_event_queue.write_idx] = input_event;
-        self.input_event_queue.write_idx = (self.input_event_queue.write_idx + 1) % MAX_INPUT_EVENTS;
+        const new_write_idx = (self.input_event_queue.write_idx + 1) % MAX_INPUT_EVENTS;
+        self.input_event_queue.write_idx = new_write_idx;
         self.input_event_queue.count += 1;
         
         // Assert: Event must be enqueued (queue size increased or oldest dropped).
@@ -503,7 +538,8 @@ pub const VM = struct {
     }
 
     /// Initialize VM with kernel image loaded at address (GrainStyle: in-place initialization).
-    /// Why: Explicit initialization ensures deterministic state. In-place initialization avoids stack overflow.
+    /// Why: Explicit initialization ensures deterministic state.
+    /// In-place initialization avoids stack overflow.
     /// Contract: target must point to uninitialized VM struct.
     /// Contract: load_address must be 4-byte aligned (RISC-V requirement).
     /// Contract: kernel_image must fit in VM memory if non-empty.
@@ -546,7 +582,8 @@ pub const VM = struct {
             std.debug.assert(target.regs.pc == load_address);
 
             // Assert: kernel image must be loaded correctly.
-            std.debug.assert(std.mem.eql(u8, target.memory[@intCast(load_address)..][0..kernel_image.len], kernel_image));
+            const mem_slice = target.memory[@intCast(load_address)..][0..kernel_image.len];
+            std.debug.assert(std.mem.eql(u8, mem_slice, kernel_image));
         } else {
             // No kernel image - PC remains 0 (will be set by ELF loader).
             target.regs.pc = 0;
@@ -559,9 +596,15 @@ pub const VM = struct {
 
     /// Initialize VM with JIT support
     /// Why: Enable near-native performance for kernel execution
-    pub fn init_with_jit(target: *Self, allocator: std.mem.Allocator, kernel_image: []const u8, load_address: u64) !void {
+    pub fn init_with_jit(
+        target: *Self,
+        allocator: std.mem.Allocator,
+        kernel_image: []const u8,
+        load_address: u64,
+    ) !void {
         std.debug.assert(load_address % 4 == 0);
-        std.debug.assert(kernel_image.len == 0 or load_address + kernel_image.len <= VM_MEMORY_SIZE);
+        const load_end = load_address + kernel_image.len;
+        std.debug.assert(kernel_image.len == 0 or load_end <= VM_MEMORY_SIZE);
         
         // Initialize VM normally
         target.init(kernel_image, load_address);
@@ -573,7 +616,13 @@ pub const VM = struct {
         };
         
         const jit_ctx = try allocator.create(jit_mod.JitContext);
-        jit_ctx.* = try jit_mod.JitContext.init(allocator, &guest_state, target.memory[0..target.memory_size], target.memory_size);
+        const mem_slice = target.memory[0..target.memory_size];
+        jit_ctx.* = try jit_mod.JitContext.init(
+            allocator,
+            &guest_state,
+            mem_slice,
+            target.memory_size,
+        );
         target.jit = jit_ctx;
         target.jit_enabled = true;
         
@@ -656,7 +705,13 @@ pub const VM = struct {
         
         const jit_ctx = try allocator.create(jit_mod.JitContext);
         const FRAMEBUFFER_SIZE: u32 = 1024 * 768 * 4; // 3MB
-        jit_ctx.* = try jit_mod.JitContext.init(allocator, &guest_state, self.memory[0..self.memory_size], self.memory_size);
+        const mem_slice = self.memory[0..self.memory_size];
+        jit_ctx.* = try jit_mod.JitContext.init(
+            allocator,
+            &guest_state,
+            mem_slice,
+            self.memory_size,
+        );
         jit_ctx.framebuffer_size = FRAMEBUFFER_SIZE;
         self.jit = jit_ctx;
         self.jit_enabled = true;
@@ -785,7 +840,8 @@ pub const VM = struct {
     /// Initialize framebuffer from host-side code
     /// Why: Set up framebuffer before kernel starts, clear to background, draw test pattern
     /// Contract: Initializes framebuffer memory with test pattern for visual verification
-    /// GrainStyle: Explicit assertions, bounded execution, static allocation, no external dependencies
+    /// GrainStyle: Explicit assertions, bounded execution,
+    /// static allocation, no external dependencies
     pub fn init_framebuffer(self: *Self) void {
         // Mark entire framebuffer as dirty (initialization changes everything).
         self.framebuffer_dirty.mark_all();
@@ -794,7 +850,8 @@ pub const VM = struct {
         const FRAMEBUFFER_WIDTH: u32 = 1024;
         const FRAMEBUFFER_HEIGHT: u32 = 768;
         const FRAMEBUFFER_BPP: u32 = 4; // 32-bit RGBA
-        const FRAMEBUFFER_SIZE: u32 = FRAMEBUFFER_WIDTH * FRAMEBUFFER_HEIGHT * FRAMEBUFFER_BPP; // 3MB
+        // 3MB framebuffer
+        const FRAMEBUFFER_SIZE: u32 = FRAMEBUFFER_WIDTH * FRAMEBUFFER_HEIGHT * FRAMEBUFFER_BPP;
         
         // Color constants (32-bit RGBA format)
         const COLOR_DARK_BG: u32 = 0x1E1E2EFF; // Dark background
@@ -875,13 +932,17 @@ pub const VM = struct {
         draw_rect(fb_memory, spacing, spacing, rect_size, rect_size, COLOR_RED);
         
         // Green rectangle (top-right)
-        draw_rect(fb_memory, FRAMEBUFFER_WIDTH - rect_size - spacing, spacing, rect_size, rect_size, COLOR_GREEN);
+        const green_x = FRAMEBUFFER_WIDTH - rect_size - spacing;
+        draw_rect(fb_memory, green_x, spacing, rect_size, rect_size, COLOR_GREEN);
         
         // Blue rectangle (bottom-left)
-        draw_rect(fb_memory, spacing, FRAMEBUFFER_HEIGHT - rect_size - spacing, rect_size, rect_size, COLOR_BLUE);
+        const blue_y = FRAMEBUFFER_HEIGHT - rect_size - spacing;
+        draw_rect(fb_memory, spacing, blue_y, rect_size, rect_size, COLOR_BLUE);
         
         // White rectangle (bottom-right)
-        draw_rect(fb_memory, FRAMEBUFFER_WIDTH - rect_size - spacing, FRAMEBUFFER_HEIGHT - rect_size - spacing, rect_size, rect_size, COLOR_WHITE);
+        const white_x = FRAMEBUFFER_WIDTH - rect_size - spacing;
+        const white_y = FRAMEBUFFER_HEIGHT - rect_size - spacing;
+        draw_rect(fb_memory, white_x, white_y, rect_size, rect_size, COLOR_WHITE);
         
         // Assert: test pattern must be drawn (check first red pixel)
         const red_offset: u32 = (spacing * FRAMEBUFFER_WIDTH + spacing) * FRAMEBUFFER_BPP;
@@ -897,7 +958,14 @@ pub const VM = struct {
     /// Draw text inline (helper for init_framebuffer)
     /// Why: Render text directly to framebuffer memory without Framebuffer struct
     /// GrainStyle: Explicit bounds checking, deterministic rendering
-    fn draw_text_inline(memory: []u8, text: []const u8, start_x: u32, start_y: u32, fg_color: u32, bg_color: u32) void {
+    fn draw_text_inline(
+        memory: []u8,
+        text: []const u8,
+        start_x: u32,
+        start_y: u32,
+        fg_color: u32,
+        bg_color: u32,
+    ) void {
         const FRAMEBUFFER_WIDTH: u32 = 1024;
         const FRAMEBUFFER_BPP: u32 = 4;
         const CHAR_WIDTH: u32 = 8;
@@ -1047,13 +1115,15 @@ pub const VM = struct {
             }
             const has_execute = (permissions & 4) != 0;
             if (!has_execute) {
-                // Page mapped but no execute permission: record access fault (instruction access fault, code 1).
+                // Page mapped but no execute permission:
+                // record access fault (instruction access fault, code 1).
                 self.exception_stats.record_exception(1);
                 return VMError.invalid_memory_access;
             }
         } else {
             // Use memory protection system if no external permission checker.
-            if (!self.memory_protection.check_permission(pc, memory_protection_mod.MemoryPermissions.EXECUTE)) {
+            const exec_perm = memory_protection_mod.MemoryPermissions.EXECUTE;
+            if (!self.memory_protection.check_permission(pc, exec_perm)) {
                 // Check if page is mapped at all.
                 const perms_opt = self.memory_protection.get_permissions(pc);
                 if (perms_opt == null) {
@@ -1061,7 +1131,8 @@ pub const VM = struct {
                     self.exception_stats.record_exception(12);
                     return VMError.invalid_memory_access;
                 }
-                // Page mapped but no execute permission: record access fault (instruction access fault, code 1).
+                // Page mapped but no execute permission:
+                // record access fault (instruction access fault, code 1).
                 self.exception_stats.record_exception(1);
                 return VMError.invalid_memory_access;
             }
@@ -1199,7 +1270,10 @@ pub const VM = struct {
             try self.execute_addi(inst);
         } else {
             // Unsupported I-type instruction variant.
-            std.debug.print("DEBUG vm.zig: Unsupported I-type variant: funct3=0b{b:0>3}\n", .{funct3});
+            std.debug.print(
+                "DEBUG vm.zig: Unsupported I-type variant: funct3=0b{b:0>3}\n",
+                .{funct3},
+            );
             self.state = .errored;
             self.last_error = VMError.invalid_instruction;
             self.exception_stats.record_exception(2);
@@ -1248,7 +1322,10 @@ pub const VM = struct {
         if (funct7 == 0b0000000) {
             try self.execute_sll(inst);
         } else {
-            std.debug.print("DEBUG vm.zig: SLL with non-zero funct7=0x{x}, executing as SLL\n", .{funct7});
+                std.debug.print(
+                    "DEBUG vm.zig: SLL with non-zero funct7=0x{x}, executing as SLL\n",
+                    .{funct7},
+                );
             try self.execute_sll(inst);
         }
     }
@@ -1388,22 +1465,40 @@ pub const VM = struct {
     /// Why: Extract Zig compatibility handling to reduce execute_opcode() length.
     fn execute_zig_compat_i_type(self: *Self, opcode_val: u8, inst: u32) VMError!void {
         const funct3 = @as(u3, @truncate(inst >> 12));
-        std.debug.print("DEBUG vm.zig: Opcode 0x{x:02X} detected: inst=0x{x}, funct3=0b{b:0>3}\n", .{ opcode_val, inst, funct3 });
+        std.debug.print(
+            "DEBUG vm.zig: Opcode 0x{x:02X} detected: inst=0x{x}, funct3=0b{b:0>3}\n",
+            .{ opcode_val, inst, funct3 },
+        );
 
         if (funct3 == 0b000) {
-            std.debug.print("DEBUG vm.zig: Executing opcode 0x{x:02X} with funct3=0b000 as ADDI\n", .{opcode_val});
+            std.debug.print(
+                "DEBUG vm.zig: Executing opcode 0x{x:02X} with funct3=0b000 as ADDI\n",
+                .{opcode_val},
+            );
             try self.execute_addi(inst);
         } else if (funct3 == 0b100) {
-            std.debug.print("DEBUG vm.zig: Executing opcode 0x{x:02X} with funct3=0b100 as XORI\n", .{opcode_val});
+            std.debug.print(
+                "DEBUG vm.zig: Executing opcode 0x{x:02X} with funct3=0b100 as XORI\n",
+                .{opcode_val},
+            );
             try self.execute_xori(inst);
         } else if (funct3 == 0b110) {
-            std.debug.print("DEBUG vm.zig: Executing opcode 0x{x:02X} with funct3=0b110 as ORI\n", .{opcode_val});
+            std.debug.print(
+                "DEBUG vm.zig: Executing opcode 0x{x:02X} with funct3=0b110 as ORI\n",
+                .{opcode_val},
+            );
             try self.execute_ori(inst);
         } else if (funct3 == 0b111) {
-            std.debug.print("DEBUG vm.zig: Executing opcode 0x{x:02X} with funct3=0b111 as ANDI\n", .{opcode_val});
+            std.debug.print(
+                "DEBUG vm.zig: Executing opcode 0x{x:02X} with funct3=0b111 as ANDI\n",
+                .{opcode_val},
+            );
             try self.execute_andi(inst);
         } else {
-            std.debug.print("DEBUG vm.zig: Unknown opcode 0x{x:02X} variant (funct3=0b{b:0>3}), treating as NOP\n", .{ opcode_val, funct3 });
+            std.debug.print(
+                "DEBUG vm.zig: Unknown opcode 0x{x:02X} variant (funct3=0b{b:0>3}), treating as NOP\n",
+                .{ opcode_val, funct3 },
+            );
         }
     }
 
@@ -1412,13 +1507,19 @@ pub const VM = struct {
     fn execute_zig_compat_r_type(self: *Self, inst: u32) VMError!void {
         const funct3 = @as(u3, @truncate(inst >> 12));
         const funct7 = @as(u7, @truncate(inst >> 25));
-        std.debug.print("DEBUG vm.zig: Opcode 0x00 detected: inst=0x{x}, funct3=0b{b:0>3}, funct7=0b{b:0>7} (0x{x})\n", .{ inst, funct3, funct7, funct7 });
+        std.debug.print(
+            "DEBUG vm.zig: Opcode 0x00 detected: inst=0x{x}, funct3=0b{b:0>3}, funct7=0b{b:0>7} (0x{x})\n",
+            .{ inst, funct3, funct7, funct7 },
+        );
 
         if (funct3 == 0b001) {
             std.debug.print("DEBUG vm.zig: Treating opcode 0x00 with funct3=1 as SLL\n", .{});
             try self.execute_sll(inst);
         } else {
-            std.debug.print("DEBUG vm.zig: Unknown opcode 0x00 variant (funct3=0b{b:0>3}), treating as NOP\n", .{funct3});
+            std.debug.print(
+                "DEBUG vm.zig: Unknown opcode 0x00 variant (funct3=0b{b:0>3}), treating as NOP\n",
+                .{funct3},
+            );
         }
     }
 
@@ -1427,24 +1528,45 @@ pub const VM = struct {
     fn execute_zig_compat_fallback(self: *Self, opcode: u7, inst: u32) VMError!void {
         const funct3 = @as(u3, @truncate(inst >> 12));
         if (funct3 == 0b000) {
-            std.debug.print("DEBUG vm.zig: Non-standard opcode 0b{b:0>7} (0x{x}) with funct3=0b000, treating as ADDI\n", .{ opcode, opcode });
+            std.debug.print(
+                "DEBUG vm.zig: Non-standard opcode 0b{b:0>7} (0x{x}) with funct3=0b000, treating as ADDI\n",
+                .{ opcode, opcode },
+            );
             try self.execute_addi(inst);
         } else if (funct3 == 0b001) {
-            std.debug.print("DEBUG vm.zig: Non-standard opcode 0b{b:0>7} (0x{x}) with funct3=0b001, treating as SLLI\n", .{ opcode, opcode });
+            std.debug.print(
+                "DEBUG vm.zig: Non-standard opcode 0b{b:0>7} (0x{x}) with funct3=0b001, treating as SLLI\n",
+                .{ opcode, opcode },
+            );
             try self.execute_slli(inst);
         } else if (funct3 == 0b011) {
-            std.debug.print("DEBUG vm.zig: Non-standard opcode 0b{b:0>7} (0x{x}) with funct3=0b011, treating as NOP\n", .{ opcode, opcode });
+            std.debug.print(
+                "DEBUG vm.zig: Non-standard opcode 0b{b:0>7} (0x{x}) with funct3=0b011, treating as NOP\n",
+                .{ opcode, opcode },
+            );
         } else if (funct3 == 0b100) {
-            std.debug.print("DEBUG vm.zig: Non-standard opcode 0b{b:0>7} (0x{x}) with funct3=0b100, treating as XORI\n", .{ opcode, opcode });
+            std.debug.print(
+                "DEBUG vm.zig: Non-standard opcode 0b{b:0>7} (0x{x}) with funct3=0b100, treating as XORI\n",
+                .{ opcode, opcode },
+            );
             try self.execute_xori(inst);
         } else if (funct3 == 0b110) {
-            std.debug.print("DEBUG vm.zig: Non-standard opcode 0b{b:0>7} (0x{x}) with funct3=0b110, treating as ORI\n", .{ opcode, opcode });
+            std.debug.print(
+                "DEBUG vm.zig: Non-standard opcode 0b{b:0>7} (0x{x}) with funct3=0b110, treating as ORI\n",
+                .{ opcode, opcode },
+            );
             try self.execute_ori(inst);
         } else if (funct3 == 0b111) {
-            std.debug.print("DEBUG vm.zig: Non-standard opcode 0b{b:0>7} (0x{x}) with funct3=0b111, treating as ANDI\n", .{ opcode, opcode });
+            std.debug.print(
+                "DEBUG vm.zig: Non-standard opcode 0b{b:0>7} (0x{x}) with funct3=0b111, treating as ANDI\n",
+                .{ opcode, opcode },
+            );
             try self.execute_andi(inst);
         } else {
-            std.debug.print("DEBUG vm.zig: Unknown non-standard opcode 0b{b:0>7} (0x{x}) with funct3=0b{b:0>3}, treating as NOP\n", .{ opcode, opcode, funct3 });
+            std.debug.print(
+                "DEBUG vm.zig: Unknown non-standard opcode 0b{b:0>7} (0x{x}) with funct3=0b{b:0>3}, treating as NOP\n",
+                .{ opcode, opcode, funct3 },
+            );
         }
     }
 
@@ -1497,7 +1619,10 @@ pub const VM = struct {
 
         // Debug: Print AUIPC execution for troubleshooting.
         if (rd == 1 or rd == 18) {
-            std.debug.print("DEBUG vm.zig: AUIPC x{}: PC=0x{x}, imm_31_12_raw=0x{x}, imm64_unsigned=0x{x}, result=0x{x}\n", .{ rd, pc, imm_31_12_raw, imm64_unsigned, result });
+            std.debug.print(
+                "DEBUG vm.zig: AUIPC x{}: PC=0x{x}, imm_31_12_raw=0x{x}, imm64_unsigned=0x{x}, result=0x{x}\n",
+                .{ rd, pc, imm_31_12_raw, imm64_unsigned, result },
+            );
         }
 
         // Write result to rd.
@@ -1828,7 +1953,10 @@ pub const VM = struct {
 
         // Debug: Print SLL execution for troubleshooting.
         if (rd == 8) {
-            std.debug.print("DEBUG vm.zig: SLL x8: rs1=x{} (0x{x}), rs2=x{} (0x{x}), shift_amount={}, result=0x{x}\n", .{ rs1, rs1_value, rs2, rs2_value, shift_amount, result });
+            std.debug.print(
+                "DEBUG vm.zig: SLL x8: rs1=x{} (0x{x}), rs2=x{} (0x{x}), shift_amount={}, result=0x{x}\n",
+                .{ rs1, rs1_value, rs2, rs2_value, shift_amount, result },
+            );
         }
 
         // Write result to rd.
@@ -1980,7 +2108,10 @@ pub const VM = struct {
                     const sp_eff = sp +% offset;
                     const sp_phys = self.translate_address(sp_eff);
                     if (sp_phys != null and sp_phys.? + 4 <= self.memory_size) {
-                        std.debug.print("DEBUG vm.zig: LW: x8=0x0 gives invalid addr 0x{x}, trying sp (x2=0x{x})\n", .{ eff_addr, sp });
+                        std.debug.print(
+                            "DEBUG vm.zig: LW: x8=0x0 gives invalid addr 0x{x}, trying sp (x2=0x{x})\n",
+                            .{ eff_addr, sp },
+                        );
                         base_addr = sp;
                         eff_addr = base_addr +% offset;
                     }
@@ -2028,7 +2159,8 @@ pub const VM = struct {
     /// Encoding: imm[11:5] | rs2 | rs1 | 010 | imm[4:0] | 0100011
     /// Why: Store 32-bit word to memory for kernel data writes.
     pub fn execute_sw(self: *Self, inst: u32) !void {
-        // Decode S-type: rs2 = bits [24:20], rs1 = bits [19:15], imm[11:5] = bits [31:25], imm[4:0] = bits [11:7].
+        // Decode S-type: rs2 = bits [24:20], rs1 = bits [19:15],
+        // imm[11:5] = bits [31:25], imm[4:0] = bits [11:7].
         const rs2 = @as(u5, @truncate(inst >> 20));
         const rs1 = @as(u5, @truncate(inst >> 15));
         const imm_11_5 = @as(u7, @truncate(inst >> 25));
@@ -2112,7 +2244,8 @@ pub const VM = struct {
 
         const base_addr = self.regs.get(rs1);
         const imm64 = @as(i64, imm12);
-        const offset: u64 = @bitCast(imm64); // Use @bitCast to handle negative immediates correctly
+        // Use @bitCast to handle negative immediates correctly
+        const offset: u64 = @bitCast(imm64);
         const eff_addr = base_addr +% offset;
 
         // Check memory permissions (if permission checker is set).
@@ -2129,7 +2262,8 @@ pub const VM = struct {
             }
             const has_read = (permissions & 1) != 0;
             if (!has_read) {
-                // Page mapped but no read permission: record access fault (load access fault, code 5).
+                // Page mapped but no read permission:
+                // record access fault (load access fault, code 5).
                 self.exception_stats.record_exception(5);
                 self.state = .errored;
                 self.last_error = VMError.invalid_memory_access;
@@ -2181,7 +2315,8 @@ pub const VM = struct {
 
         const base_addr = self.regs.get(rs1);
         const imm64 = @as(i64, imm12);
-        const offset: u64 = @bitCast(imm64); // Use @bitCast to handle negative immediates correctly
+        // Use @bitCast to handle negative immediates correctly
+        const offset: u64 = @bitCast(imm64);
         const eff_addr = base_addr +% offset;
 
         // Assert: effective address must be 2-byte aligned for halfword load.
@@ -2205,7 +2340,8 @@ pub const VM = struct {
             }
             const has_read = (permissions & 1) != 0;
             if (!has_read) {
-                // Page mapped but no read permission: record access fault (load access fault, code 5).
+                // Page mapped but no read permission:
+                // record access fault (load access fault, code 5).
                 self.exception_stats.record_exception(5);
                 self.state = .errored;
                 self.last_error = VMError.invalid_memory_access;
@@ -2271,7 +2407,10 @@ pub const VM = struct {
                     const sp_eff = sp +% offset;
                     const sp_phys = self.translate_address(sp_eff);
                     if (sp_phys != null and sp_phys.? + 8 <= self.memory_size) {
-                        std.debug.print("DEBUG vm.zig: LD: x8=0x0 gives invalid addr 0x{x}, trying sp (x2=0x{x})\n", .{ eff_addr, sp });
+                        std.debug.print(
+                            "DEBUG vm.zig: LD: x8=0x0 gives invalid addr 0x{x}, trying sp (x2=0x{x})\n",
+                            .{ eff_addr, sp },
+                        );
                         base_addr = sp;
                         eff_addr = base_addr +% offset;
                     }
@@ -2300,7 +2439,8 @@ pub const VM = struct {
             }
             const has_read = (permissions & 1) != 0;
             if (!has_read) {
-                // Page mapped but no read permission: record access fault (load access fault, code 5).
+                // Page mapped but no read permission:
+                // record access fault (load access fault, code 5).
                 self.exception_stats.record_exception(5);
                 self.state = .errored;
                 self.last_error = VMError.invalid_memory_access;
@@ -2351,7 +2491,8 @@ pub const VM = struct {
 
         const base_addr = self.regs.get(rs1);
         const imm64 = @as(i64, imm12);
-        const offset: u64 = @bitCast(imm64); // Use @bitCast to handle negative immediates correctly
+        // Use @bitCast to handle negative immediates correctly
+        const offset: u64 = @bitCast(imm64);
         const eff_addr = base_addr +% offset;
 
         // Check memory permissions (if permission checker is set).
@@ -2368,7 +2509,8 @@ pub const VM = struct {
             }
             const has_read = (permissions & 1) != 0;
             if (!has_read) {
-                // Page mapped but no read permission: record access fault (load access fault, code 5).
+                // Page mapped but no read permission:
+                // record access fault (load access fault, code 5).
                 self.exception_stats.record_exception(5);
                 self.state = .errored;
                 self.last_error = VMError.invalid_memory_access;
@@ -2418,7 +2560,8 @@ pub const VM = struct {
 
         const base_addr = self.regs.get(rs1);
         const imm64 = @as(i64, imm12);
-        const offset: u64 = @bitCast(imm64); // Use @bitCast to handle negative immediates correctly
+        // Use @bitCast to handle negative immediates correctly
+        const offset: u64 = @bitCast(imm64);
         const eff_addr = base_addr +% offset;
 
         // Assert: effective address must be 2-byte aligned for halfword load.
@@ -2442,7 +2585,8 @@ pub const VM = struct {
             }
             const has_read = (permissions & 1) != 0;
             if (!has_read) {
-                // Page mapped but no read permission: record access fault (load access fault, code 5).
+                // Page mapped but no read permission:
+                // record access fault (load access fault, code 5).
                 self.exception_stats.record_exception(5);
                 self.state = .errored;
                 self.last_error = VMError.invalid_memory_access;
@@ -2493,7 +2637,8 @@ pub const VM = struct {
 
         const base_addr = self.regs.get(rs1);
         const imm64 = @as(i64, imm12);
-        const offset: u64 = @bitCast(imm64); // Use @bitCast to handle negative immediates correctly
+        // Use @bitCast to handle negative immediates correctly
+        const offset: u64 = @bitCast(imm64);
         const eff_addr = base_addr +% offset;
 
         // Assert: effective address must be 4-byte aligned for word load.
@@ -2517,7 +2662,8 @@ pub const VM = struct {
             }
             const has_read = (permissions & 1) != 0;
             if (!has_read) {
-                // Page mapped but no read permission: record access fault (load access fault, code 5).
+                // Page mapped but no read permission:
+                // record access fault (load access fault, code 5).
                 self.exception_stats.record_exception(5);
                 self.state = .errored;
                 self.last_error = VMError.invalid_memory_access;
@@ -2575,7 +2721,8 @@ pub const VM = struct {
 
         var base_addr = self.regs.get(rs1);
         const imm64 = @as(i64, imm12);
-        const offset: u64 = @bitCast(imm64); // Use @bitCast to handle negative immediates correctly
+        // Use @bitCast to handle negative immediates correctly
+        const offset: u64 = @bitCast(imm64);
 
         // Workaround: If x8 (s0/fp) is 0x0, check if the address would be valid.
         // If not, try using sp instead (for stack-relative accesses).
@@ -2588,7 +2735,10 @@ pub const VM = struct {
                 if (sp != 0x0) {
                     const sp_phys = self.translate_address(sp +% offset);
                     if (sp_phys != null and sp_phys.? < self.memory_size) {
-                        std.debug.print("DEBUG vm.zig: SB: x8=0x0 gives invalid addr 0x{x}, trying sp (x2=0x{x})\n", .{ eff_addr, sp });
+                        std.debug.print(
+                            "DEBUG vm.zig: SB: x8=0x0 gives invalid addr 0x{x}, trying sp (x2=0x{x})\n",
+                            .{ eff_addr, sp },
+                        );
                         base_addr = sp;
                         eff_addr = base_addr +% offset;
                     }
@@ -2658,7 +2808,8 @@ pub const VM = struct {
 
         const base_addr = self.regs.get(rs1);
         const imm64 = @as(i64, imm12);
-        const offset: u64 = @bitCast(imm64); // Use @bitCast to handle negative immediates correctly
+        // Use @bitCast to handle negative immediates correctly
+        const offset: u64 = @bitCast(imm64);
         const eff_addr = base_addr +% offset;
 
         // Assert: effective address must be 2-byte aligned for halfword store.
@@ -2742,7 +2893,10 @@ pub const VM = struct {
                     const sp_eff = sp +% offset;
                     const sp_phys = self.translate_address(sp_eff);
                     if (sp_phys != null and sp_phys.? + 8 <= self.memory_size) {
-                        std.debug.print("DEBUG vm.zig: SD: x8=0x0 gives invalid addr 0x{x}, trying sp (x2=0x{x})\n", .{ eff_addr, sp });
+                        std.debug.print(
+                            "DEBUG vm.zig: SD: x8=0x0 gives invalid addr 0x{x}, trying sp (x2=0x{x})\n",
+                            .{ eff_addr, sp },
+                        );
                         base_addr = sp;
                         eff_addr = base_addr +% offset;
                     }
@@ -2787,7 +2941,8 @@ pub const VM = struct {
     /// Encoding: imm[12] | imm[10:5] | rs2 | rs1 | 000 | imm[4:1] | imm[11] | 1100011
     /// Why: Conditional branch for kernel control flow.
     fn execute_beq(self: *Self, inst: u32) !void {
-        // Decode B-type: rs2 = bits [24:20], rs1 = bits [19:15], imm[12] = bit [31], imm[10:5] = bits [30:25],
+        // Decode B-type: rs2 = bits [24:20], rs1 = bits [19:15],
+        // imm[12] = bit [31], imm[10:5] = bits [30:25],
         // imm[4:1] = bits [11:8], imm[11] = bit [7].
         const rs2 = @as(u5, @truncate(inst >> 20));
         const rs1 = @as(u5, @truncate(inst >> 15));
@@ -2800,8 +2955,13 @@ pub const VM = struct {
         std.debug.assert(rs2 < 32);
         std.debug.assert(rs1 < 32);
 
-        // Reconstruct 13-bit immediate (sign-extended): imm[12] | imm[11] | imm[10:5] | imm[4:1] | 0.
-        const imm13_raw = (@as(u13, imm_12) << 12) | (@as(u13, imm_11) << 11) | (@as(u13, imm_10_5) << 5) | (@as(u13, imm_4_1) << 1);
+        // Reconstruct 13-bit immediate (sign-extended):
+        // imm[12] | imm[11] | imm[10:5] | imm[4:1] | 0.
+        const imm_12_u13 = @as(u13, imm_12) << 12;
+        const imm_11_u13 = @as(u13, imm_11) << 11;
+        const imm_10_5_u13 = @as(u13, imm_10_5) << 5;
+        const imm_4_1_u13 = @as(u13, imm_4_1) << 1;
+        const imm13_raw = imm_12_u13 | imm_11_u13 | imm_10_5_u13 | imm_4_1_u13;
         const imm13 = @as(i13, @bitCast(imm13_raw));
 
         // Read register values.
@@ -2816,13 +2976,15 @@ pub const VM = struct {
         if (branch_taken) {
             // Sign-extend immediate to 64 bits and add to PC.
             const imm64 = @as(i64, imm13);
-            const offset: u64 = @bitCast(imm64); // Use @bitCast to handle negative immediates correctly
+            // Use @bitCast to handle negative immediates correctly
+        const offset: u64 = @bitCast(imm64);
 
             // Calculate branch target: PC + offset.
             const branch_target = self.regs.pc +% offset;
 
             // Align branch target to 4-byte boundary (clear bottom 2 bits).
-            // Why: RISC-V instructions must be 4-byte aligned, but branch offsets can be misaligned.
+            // Why: RISC-V instructions must be 4-byte aligned,
+            // but branch offsets can be misaligned.
             const aligned_target = branch_target & ~@as(u64, 3);
 
             // Assert: branch target must be within memory bounds.
@@ -2865,7 +3027,11 @@ pub const VM = struct {
         std.debug.assert(rs2 < 32);
         std.debug.assert(rs1 < 32);
 
-        const imm13_raw = (@as(u13, imm_12) << 12) | (@as(u13, imm_11) << 11) | (@as(u13, imm_10_5) << 5) | (@as(u13, imm_4_1) << 1);
+        const imm_12_u13 = @as(u13, imm_12) << 12;
+        const imm_11_u13 = @as(u13, imm_11) << 11;
+        const imm_10_5_u13 = @as(u13, imm_10_5) << 5;
+        const imm_4_1_u13 = @as(u13, imm_4_1) << 1;
+        const imm13_raw = imm_12_u13 | imm_11_u13 | imm_10_5_u13 | imm_4_1_u13;
         const imm13 = @as(i13, @bitCast(imm13_raw));
 
         const rs1_value = self.regs.get(rs1);
@@ -2877,7 +3043,8 @@ pub const VM = struct {
         const branch_taken = (rs1_value != rs2_value);
         if (branch_taken) {
             const imm64 = @as(i64, imm13);
-            const offset: u64 = @bitCast(imm64); // Use @bitCast to handle negative immediates correctly
+            // Use @bitCast to handle negative immediates correctly
+        const offset: u64 = @bitCast(imm64);
             const branch_target = self.regs.pc +% offset;
 
             if (branch_target % 4 != 0) {
@@ -2920,7 +3087,11 @@ pub const VM = struct {
         std.debug.assert(rs2 < 32);
         std.debug.assert(rs1 < 32);
 
-        const imm13_raw = (@as(u13, imm_12) << 12) | (@as(u13, imm_11) << 11) | (@as(u13, imm_10_5) << 5) | (@as(u13, imm_4_1) << 1);
+        const imm_12_u13 = @as(u13, imm_12) << 12;
+        const imm_11_u13 = @as(u13, imm_11) << 11;
+        const imm_10_5_u13 = @as(u13, imm_10_5) << 5;
+        const imm_4_1_u13 = @as(u13, imm_4_1) << 1;
+        const imm13_raw = imm_12_u13 | imm_11_u13 | imm_10_5_u13 | imm_4_1_u13;
         const imm13 = @as(i13, @bitCast(imm13_raw));
 
         const rs1_value = self.regs.get(rs1);
@@ -2934,7 +3105,8 @@ pub const VM = struct {
         const branch_taken = (rs1_signed < rs2_signed);
         if (branch_taken) {
             const imm64 = @as(i64, imm13);
-            const offset: u64 = @bitCast(imm64); // Use @bitCast to handle negative immediates correctly
+            // Use @bitCast to handle negative immediates correctly
+        const offset: u64 = @bitCast(imm64);
             const branch_target = self.regs.pc +% offset;
 
             if (branch_target % 4 != 0) {
@@ -2977,7 +3149,11 @@ pub const VM = struct {
         std.debug.assert(rs2 < 32);
         std.debug.assert(rs1 < 32);
 
-        const imm13_raw = (@as(u13, imm_12) << 12) | (@as(u13, imm_11) << 11) | (@as(u13, imm_10_5) << 5) | (@as(u13, imm_4_1) << 1);
+        const imm_12_u13 = @as(u13, imm_12) << 12;
+        const imm_11_u13 = @as(u13, imm_11) << 11;
+        const imm_10_5_u13 = @as(u13, imm_10_5) << 5;
+        const imm_4_1_u13 = @as(u13, imm_4_1) << 1;
+        const imm13_raw = imm_12_u13 | imm_11_u13 | imm_10_5_u13 | imm_4_1_u13;
         const imm13 = @as(i13, @bitCast(imm13_raw));
 
         const rs1_value = self.regs.get(rs1);
@@ -2991,7 +3167,8 @@ pub const VM = struct {
         const branch_taken = (rs1_signed >= rs2_signed);
         if (branch_taken) {
             const imm64 = @as(i64, imm13);
-            const offset: u64 = @bitCast(imm64); // Use @bitCast to handle negative immediates correctly
+            // Use @bitCast to handle negative immediates correctly
+        const offset: u64 = @bitCast(imm64);
             const branch_target = self.regs.pc +% offset;
 
             if (branch_target % 4 != 0) {
@@ -3034,7 +3211,11 @@ pub const VM = struct {
         std.debug.assert(rs2 < 32);
         std.debug.assert(rs1 < 32);
 
-        const imm13_raw = (@as(u13, imm_12) << 12) | (@as(u13, imm_11) << 11) | (@as(u13, imm_10_5) << 5) | (@as(u13, imm_4_1) << 1);
+        const imm_12_u13 = @as(u13, imm_12) << 12;
+        const imm_11_u13 = @as(u13, imm_11) << 11;
+        const imm_10_5_u13 = @as(u13, imm_10_5) << 5;
+        const imm_4_1_u13 = @as(u13, imm_4_1) << 1;
+        const imm13_raw = imm_12_u13 | imm_11_u13 | imm_10_5_u13 | imm_4_1_u13;
         const imm13 = @as(i13, @bitCast(imm13_raw));
 
         const rs1_value = self.regs.get(rs1);
@@ -3046,11 +3227,13 @@ pub const VM = struct {
         const branch_taken = (rs1_value < rs2_value);
         if (branch_taken) {
             const imm64 = @as(i64, imm13);
-            const offset: u64 = @bitCast(imm64); // Use @bitCast to handle negative immediates correctly
+            // Use @bitCast to handle negative immediates correctly
+        const offset: u64 = @bitCast(imm64);
             const branch_target = self.regs.pc +% offset;
 
             // Align branch target to 4-byte boundary (clear bottom 2 bits).
-            // Why: RISC-V instructions must be 4-byte aligned, but branch offsets can be misaligned.
+            // Why: RISC-V instructions must be 4-byte aligned,
+            // but branch offsets can be misaligned.
             const aligned_target = branch_target & ~@as(u64, 3);
 
             if (aligned_target >= self.memory_size) {
@@ -3087,7 +3270,11 @@ pub const VM = struct {
         std.debug.assert(rs2 < 32);
         std.debug.assert(rs1 < 32);
 
-        const imm13_raw = (@as(u13, imm_12) << 12) | (@as(u13, imm_11) << 11) | (@as(u13, imm_10_5) << 5) | (@as(u13, imm_4_1) << 1);
+        const imm_12_u13 = @as(u13, imm_12) << 12;
+        const imm_11_u13 = @as(u13, imm_11) << 11;
+        const imm_10_5_u13 = @as(u13, imm_10_5) << 5;
+        const imm_4_1_u13 = @as(u13, imm_4_1) << 1;
+        const imm13_raw = imm_12_u13 | imm_11_u13 | imm_10_5_u13 | imm_4_1_u13;
         const imm13 = @as(i13, @bitCast(imm13_raw));
 
         const rs1_value = self.regs.get(rs1);
@@ -3095,7 +3282,8 @@ pub const VM = struct {
 
         if (rs1_value >= rs2_value) {
             const imm64 = @as(i64, imm13);
-            const offset: u64 = @bitCast(imm64); // Use @bitCast to handle negative immediates correctly
+            // Use @bitCast to handle negative immediates correctly
+        const offset: u64 = @bitCast(imm64);
             const branch_target = self.regs.pc +% offset;
 
             if (branch_target % 4 != 0) {
@@ -3130,7 +3318,11 @@ pub const VM = struct {
         std.debug.assert(rd < 32);
 
         // Reconstruct 21-bit immediate (sign-extended): imm[20] | imm[19:12] | imm[11] | imm[10:1] | 0
-        const imm21_raw = (@as(u21, imm_20) << 20) | (@as(u21, imm_19_12) << 12) | (@as(u21, imm_11) << 11) | (@as(u21, imm_10_1) << 1);
+        const imm_20_u21 = @as(u21, imm_20) << 20;
+        const imm_19_12_u21 = @as(u21, imm_19_12) << 12;
+        const imm_11_u21 = @as(u21, imm_11) << 11;
+        const imm_10_1_u21 = @as(u21, imm_10_1) << 1;
+        const imm21_raw = imm_20_u21 | imm_19_12_u21 | imm_11_u21 | imm_10_1_u21;
         const imm21 = @as(i21, @bitCast(imm21_raw));
 
         // Save return address (PC + 4) in rd.
@@ -3139,7 +3331,8 @@ pub const VM = struct {
 
         // Calculate jump target: PC + offset.
         const imm64 = @as(i64, imm21);
-        const offset: u64 = @bitCast(imm64); // Use @bitCast to handle negative immediates correctly
+        // Use @bitCast to handle negative immediates correctly
+        const offset: u64 = @bitCast(imm64);
         const jump_target = self.regs.pc +% offset;
 
         // Align jump target to 4-byte boundary (clear bottom 2 bits).
@@ -3187,14 +3380,20 @@ pub const VM = struct {
         const jump_target = jump_target_raw & ~@as(u64, 3);
 
         // Debug: Print JALR execution for troubleshooting.
-        std.debug.print("DEBUG vm.zig: JALR instruction: rs1={} (x{}), base_addr=0x{x}, imm12={} (0x{x}), offset=0x{x}, jump_target_raw=0x{x}, jump_target=0x{x}, memory_size=0x{x}\n", .{ rs1, rs1, base_addr, imm12, imm12, offset, jump_target_raw, jump_target, self.memory_size });
+        std.debug.print(
+            "DEBUG vm.zig: JALR instruction: rs1={} (x{}), base_addr=0x{x}, imm12={} (0x{x}), offset=0x{x}, jump_target_raw=0x{x}, jump_target=0x{x}, memory_size=0x{x}\n",
+            .{ rs1, rs1, base_addr, imm12, imm12, offset, jump_target_raw, jump_target, self.memory_size },
+        );
 
         // Assert: jump target must be 4-byte aligned (enforced by & ~3).
         std.debug.assert(jump_target % 4 == 0);
 
         // Assert: jump target must be within memory bounds.
         if (jump_target >= self.memory_size) {
-            std.debug.print("DEBUG vm.zig: JALR out of bounds: jump_target=0x{x}, memory_size=0x{x}\n", .{ jump_target, self.memory_size });
+            std.debug.print(
+                "DEBUG vm.zig: JALR out of bounds: jump_target=0x{x}, memory_size=0x{x}\n",
+                .{ jump_target, self.memory_size },
+            );
             self.state = .errored;
             self.last_error = VMError.invalid_memory_access;
             return VMError.invalid_memory_access;
@@ -3229,14 +3428,14 @@ pub const VM = struct {
         const syscall_num = self.regs.get(17); // a7 register
 
         // Debug: Print ECALL execution for troubleshooting.
-        std.debug.print("DEBUG vm.zig: ECALL instruction: syscall_num={} (0x{x}), a0=0x{x}, a1=0x{x}, a2=0x{x}, a3=0x{x}, PC=0x{x}\n", .{
-            syscall_num, syscall_num,
-            self.regs.get(10), // a0
-            self.regs.get(11), // a1
-            self.regs.get(12), // a2
-            self.regs.get(13), // a3
-            self.regs.pc,
-        });
+        const a0 = self.regs.get(10);
+        const a1 = self.regs.get(11);
+        const a2 = self.regs.get(12);
+        const a3 = self.regs.get(13);
+        std.debug.print(
+            "DEBUG vm.zig: ECALL instruction: syscall_num={} (0x{x}), a0=0x{x}, a1=0x{x}, a2=0x{x}, a3=0x{x}, PC=0x{x}\n",
+            .{ syscall_num, syscall_num, a0, a1, a2, a3, self.regs.pc },
+        );
 
         // Assert: syscall number must fit in u32.
         std.debug.assert(syscall_num <= 0xFFFFFFFF);
@@ -3286,7 +3485,8 @@ pub const VM = struct {
                     arg4,
                 );
 
-                // Assert: result must be valid (can be error code if negative when interpreted as i64).
+                // Assert: result must be valid
+                // (can be error code if negative when interpreted as i64).
                 // Note: Error codes are negative, success values are non-negative.
 
                 // Store result in a0 (x10) register (RISC-V convention).
@@ -3442,7 +3642,17 @@ pub const VM = struct {
 
     /// Set syscall handler callback.
     /// Why: Allow external syscall handling (e.g., Grain Basin kernel).
-    pub fn set_syscall_handler(self: *Self, handler: *const fn (syscall_num: u32, arg1: u64, arg2: u64, arg3: u64, arg4: u64) u64, user_data: ?*anyopaque) void {
+    pub fn set_syscall_handler(
+        self: *Self,
+        handler: *const fn (
+            syscall_num: u32,
+            arg1: u64,
+            arg2: u64,
+            arg3: u64,
+            arg4: u64,
+        ) u64,
+        user_data: ?*anyopaque,
+    ) void {
         self.syscall_handler = handler;
         self.syscall_user_data = user_data;
     }
