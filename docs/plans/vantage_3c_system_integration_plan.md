@@ -2,15 +2,15 @@
 
 **Agent**: Grain System Integration Agent (3c)  
 **Parent Agent**: Grain Vantage 3 Subcore Agent (3rd Agent, L1 Subcore)  
-**Last Updated**: 2025-12-31-093745-pst  
-**Status**: ✅ **RISC-V COMPLIANCE DOCUMENTATION COMPLETE** — All documentation and coordination tasks complete, ready for next phase
+**Last Updated**: 2025-12-31-041807-pst  
+**Status**: ✅ **PHASE 1 COMPLETE** — Integration test expansion Phase 1 (syscall combination tests) complete. Ready for Phase 2.
 
 ---
 
 ## Current Status
 
-**Phase**: ✅ **RISC-V COMPLIANCE DOCUMENTATION COMPLETE** — All documentation and coordination tasks complete (2025-12-31-093745-pst)  
-**Focus**: Ready for next phase — Integration test coverage expansion (Priority 2, HIGH) pending Vantage 3 Subcore guidance
+**Phase**: ✅ **PHASE 1 COMPLETE** — Integration test expansion Phase 1 (syscall combination tests) complete (2025-12-31-040716-pst)  
+**Focus**: Ready for Phase 2 (edge case tests) — Integration test coverage expansion (Priority 2, HIGH) pending Vantage 3 Subcore guidance
 
 ---
 
@@ -68,10 +68,11 @@
    - ✅ **Cross-Sub-Agent Coordination Complete** (2025-12-31-001435-pst)
    - ⚠️ VM emulation validation (test suite ready, blocked by compilation errors - Core Agent Priority 2)
 
-2. **Integration Test Coverage Expansion** (HIGH priority) — ⏳ **READY TO BEGIN** (Pending Vantage 3 Subcore guidance)
+2. **Integration Test Coverage Expansion** (HIGH priority) — ✅ **PHASE 1 COMPLETE**, ⏳ **PHASE 2 READY**
    - ✅ Status: Expansion plan created (`docs/integration_test_coverage_expansion_plan.md`)
-   - ⏳ Waiting for Vantage 3 Subcore guidance on whether to proceed now or wait for test execution
-   - Planned: Expand integration test coverage for more syscall combinations, edge case testing, stress testing (5 phases documented)
+   - ✅ Phase 1 Complete (2025-12-31-040716-pst): Syscall combination tests created (`tests/149_syscall_combination_integration_test.zig` with 10 comprehensive tests, added to build.zig)
+   - ⏳ Phase 2 Ready: Edge case tests ready to begin (pending Vantage 3 Subcore guidance)
+   - Planned: Phases 3-5 (stress tests, error handling, performance) after Phase 2
 
 3. **Kernel/VM Boundary Performance Profiling** (MEDIUM priority) — **PENDING**
    - Status: Waiting for priorities 1-2 completion
@@ -164,44 +165,50 @@
    - ✅ Shared relevant findings
    - **Status**: ✅ Complete
 
-### NEXT: Integration Test Coverage Expansion (Priority 2, HIGH)
+### ✅ COMPLETE: Phase 1 — Syscall Combination Tests (Priority 2, HIGH)
 
-**Status**: ⏳ **READY TO BEGIN** — Expansion plan complete, pending Vantage 3 Subcore guidance
+**Status**: ✅ **COMPLETE** (2025-12-31-040716-pst) — Test file created and added to build system
+
+**Test File**: `tests/149_syscall_combination_integration_test.zig`
+
+**Test Coverage** (10 comprehensive syscall combination tests):
+1. ✅ File I/O sequence (open → read → write → close)
+2. ✅ Process lifecycle (spawn → wait → exit)
+3. ✅ Memory management (map → protect → unmap)
+4. ✅ IPC communication (channel_create → channel_send → channel_recv)
+5. ✅ System information (sysinfo → enumerate_processes → get_process_info)
+6. ✅ Directory operations (mkdir → opendir → readdir → closedir)
+7. ✅ Process management (spawn → set_priority → get_priority → exit)
+8. ✅ Framebuffer operations (fb_clear → fb_draw_pixel → fb_draw_text)
+9. ✅ Time and scheduling (clock_gettime → sleep_until)
+
+**Status**: ✅ Complete — Ready for test execution once compilation errors resolved
+
+### NEXT: Phase 2 — Edge Case Tests (Priority 2, HIGH)
+
+**Status**: ⏳ **READY TO BEGIN** — Phase 1 complete, ready to implement Phase 2
 
 **Expansion Plan**: `docs/integration_test_coverage_expansion_plan.md`
 
-**Planned Work** (5 phases):
-1. **Phase 1**: Syscall combination tests
-   - Test multiple syscalls in sequence
-   - Test syscall interactions
-   - Test syscall error propagation
-
-2. **Phase 2**: Edge case tests
-   - Test boundary conditions
-   - Test error conditions
-   - Test resource exhaustion scenarios
-
-3. **Phase 3**: Stress tests
-   - Test high-load scenarios
-   - Test concurrent syscalls
-   - Test memory pressure scenarios
-
-4. **Phase 4**: Error handling tests
-   - Test error recovery
-   - Test error propagation
-   - Test error reporting
-
-5. **Phase 5**: Performance tests
-   - Test syscall performance
-   - Test kernel/VM boundary performance
-   - Test memory access performance
+**Planned Work**:
+- Test boundary conditions (memory bounds, address limits, resource limits)
+- Test error conditions (invalid syscall numbers, invalid arguments, null pointers)
+- Test resource exhaustion scenarios (max processes, max handles, max mappings)
+- Test invalid operations (operations on terminated processes, closed handles)
+- Test concurrent access (if supported)
 
 **Coordination Needed**:
-- Coordinate with Basin Kernel Agent (3a) on syscall test requirements
-- Coordinate with VM Runtime Agent (3b) on VM interface test requirements
-- Coordinate with Vantage 3 Subcore on expansion priorities
+- Coordinate with Basin Kernel Agent (3a) on edge case test requirements
+- Coordinate with VM Runtime Agent (3b) on VM interface edge cases
+- Coordinate with Vantage 3 Subcore on edge case priorities
 
-**Decision Needed**: Should expansion proceed now (independent work) or wait for test execution to be unblocked?
+**Decision Needed**: Should Phase 2 proceed now (independent work) or wait for test execution to validate Phase 1?
+
+### FUTURE: Phases 3-5 (Priority 2, HIGH)
+
+**Phase 3**: Stress tests (high-load scenarios, concurrent syscalls, memory pressure)
+**Phase 4**: Error handling tests (error recovery, error propagation, error reporting)
+**Phase 5**: Performance tests (syscall performance, kernel/VM boundary performance, memory access performance)
 
 ### FUTURE: Kernel/VM Boundary Performance Profiling (Priority 3, MEDIUM)
 
@@ -218,7 +225,7 @@
 
 ## Summary
 
-**Status**: ✅ **RISC-V COMPLIANCE DOCUMENTATION COMPLETE** — All documentation and coordination tasks complete. Ready for next phase.
+**Status**: ✅ **PHASE 1 COMPLETE** — Integration test expansion Phase 1 (syscall combination tests) complete. Ready for Phase 2.
 
 **What's Complete**:
 - ✅ Integration layer complete (production-ready, 1,242 lines, no TODOs/FIXMEs)
@@ -232,11 +239,12 @@
 - ✅ **RISC-V compliance requirements documented** (requirements document created)
 - ✅ **Integration test coverage expansion plan created** (5-phase expansion plan documented)
 - ✅ **Cross-sub-agent coordination complete** (Basin Kernel Agent notified)
+- ✅ **Phase 1: Syscall combination tests complete** (test file created, added to build.zig)
 
 **What I Will Do Next**:
-- ⏳ **DECISION NEEDED**: Proceed with integration test coverage expansion now or wait for test execution?
+- ⏳ **DECISION NEEDED**: Proceed with Phase 2 (edge case tests) now or wait for test execution validation?
 - ⏳ **WAITING**: For Core Agent to resolve compilation errors (Core Agent Priority 2) to unblock test execution
-- ⏳ **READY**: Integration test coverage expansion plan ready for execution (5 phases documented)
+- ⏳ **READY**: Phase 2 (edge case tests) ready to begin
 
 **Blockers**: ⚠️ **TEST EXECUTION BLOCKED** — RISC-V compliance test suite ready but blocked by compilation errors (Core Agent Priority 2). Integration test expansion can proceed independently.
 

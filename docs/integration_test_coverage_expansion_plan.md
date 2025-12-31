@@ -1,8 +1,8 @@
 # Integration Test Coverage Expansion Plan
 
-**Date**: 2025-12-31-002825-pst  
+**Date**: 2025-12-31-040716-pst  
 **Agent**: Grain System Integration Agent (3c)  
-**Status**: ⏳ **PLANNING** — Plan for expanding integration test coverage (Priority 2, HIGH)
+**Status**: ✅ **PHASE 1 IN PROGRESS** — Syscall combination tests implementation started (Priority 2, HIGH)
 
 ---
 
@@ -198,14 +198,21 @@
 
 ### Phase 1: Syscall Combination Tests
 - **Priority**: HIGH
-- **Timeline**: After RISC-V compliance validation
+- **Status**: ✅ **IN PROGRESS** (2025-12-31-040716-pst)
+- **Timeline**: Started per Core 1 Subcore guidance (independent work, doesn't require test execution)
 - **Tasks**:
-  1. Create test file: `tests/149_syscall_combination_integration_test.zig`
-  2. Implement file I/O sequence tests
-  3. Implement process lifecycle tests
-  4. Implement memory management tests
-  5. Implement IPC communication tests
-  6. Implement network operation tests
+  1. ✅ Create test file: `tests/149_syscall_combination_integration_test.zig` (2025-12-31-040716-pst)
+  2. ✅ Implement file I/O sequence tests (2025-12-31-040716-pst)
+  3. ✅ Implement process lifecycle tests (2025-12-31-040716-pst)
+  4. ✅ Implement memory management tests (2025-12-31-040716-pst)
+  5. ✅ Implement IPC communication tests (2025-12-31-040716-pst)
+  6. ✅ Implement system information tests (2025-12-31-040716-pst)
+  7. ✅ Implement directory operations tests (2025-12-31-040716-pst)
+  8. ✅ Implement process management tests (2025-12-31-040716-pst)
+  9. ✅ Implement framebuffer operations tests (2025-12-31-040716-pst)
+  10. ✅ Implement time and scheduling tests (2025-12-31-040716-pst)
+  11. ⏳ Add test file to build.zig (in progress)
+  12. ⏳ Test and refine tests once compilation errors resolved
 
 ### Phase 2: Edge Case Tests
 - **Priority**: HIGH

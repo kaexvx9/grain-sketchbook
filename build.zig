@@ -1442,6 +1442,21 @@ pub fn build(b: *std.Build) void {
     const run_riscv_compliance_validation_tests = b.addRunArtifact(riscv_compliance_validation_tests);
     test_step.dependOn(&run_riscv_compliance_validation_tests.step);
     
+    // Syscall Combination Integration Tests (Phase 1)
+    const syscall_combination_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("tests/149_syscall_combination_integration_test.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "kernel_vm", .module = kernel_vm_module },
+                .{ .name = "basin_kernel", .module = basin_kernel_module },
+            },
+        }),
+    });
+    const run_syscall_combination_tests = b.addRunArtifact(syscall_combination_tests);
+    test_step.dependOn(&run_syscall_combination_tests.step);
+    
     const run_outputs_tests = b.addRunArtifact(outputs_tests);
     test_step.dependOn(&run_outputs_tests.step);
     const run_grain_carry_core_validation_tests = b.addRunArtifact(grain_carry_core_validation_tests);
