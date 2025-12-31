@@ -272,6 +272,56 @@
 - [x] WorkflowMetricsAnalyzer Extension — RecoveryStatus enum and FailureDataEntry structure added, parse_failure_metrics extended, parse_recovery_status helper added, 4 new tests added (2025-12-29-041147-pst)
 - [x] Core Agent New Coordination Plan Acknowledged — JG Project Multi-Agent Integration plan received (2025-12-29-105655-pst), Research Agent responsibilities assigned (Months 6-12)
 
+### Grain Dispatch Research & Analysis (First-Responder Systems)
+
+**Status**: ⏳ **IN PROGRESS** — Phase 1 Technical Requirements Research Complete ✅  
+**Context**: Petaluma Police Department volunteer opportunity, NixOS touch-screen tablets, 911/dispatch/coordination tools  
+**Research Document**: `docs/research/grain_dispatch_research_analysis_2025-12-30.md`
+
+#### Phase 1: Initial Research (Weeks 1-2)
+
+**Technical Requirements Research**:
+- [x] Research NixOS touch input and Wayland compositor support — ✅ Complete (2025-12-31)
+- [x] Research real-time dispatch system performance requirements — ✅ Complete (2025-12-31)
+- [x] Evaluate vehicle integration requirements — ✅ Complete (2025-12-31)
+- [x] Create Phase 1 technical findings document — ✅ Complete (`docs/research/grain_dispatch_phase1_technical_findings_2025-12-31.md`)
+- [ ] Analyze Vantage VM codebase for NixOS porting requirements — ⏳ In Progress
+- [ ] Assess JIT compilation adaptation needs — ⏳ Pending
+
+**Coordination Overhead Analysis**:
+- [ ] Analyze coordination points across Vantage 3 Subcore and Core 1 Subcore
+- [ ] Evaluate coordination complexity for dispatch work
+- [ ] Assess coordination overhead vs. development velocity
+- [ ] Research coordination patterns for similar projects
+
+**Architecture Evaluation**:
+- [ ] Evaluate whether Dispatch Subcore is needed
+- [ ] Analyze scope and complexity of dispatch work
+- [ ] Assess future expansion potential
+- [ ] Research similar subcore creation patterns
+
+#### Phase 2: Performance Analysis (Weeks 3-4)
+
+- [ ] Research real-time dispatch system latency requirements (detailed analysis)
+- [ ] Analyze kernel performance for real-time workloads
+- [ ] Evaluate VM performance for dispatch modules
+- [ ] Research performance optimization techniques
+- [ ] Analyze integration requirements for dispatch modules
+- [ ] Evaluate integration complexity across subcores
+- [ ] Assess integration patterns and best practices
+- [ ] Research integration testing approaches
+
+#### Phase 3: Evaluation and Recommendations (Weeks 5-6)
+
+- [ ] Monitor coordination overhead during initial dispatch work
+- [ ] Evaluate development velocity
+- [ ] Assess integration complexity
+- [ ] Compare coordination overhead with/without Dispatch Subcore
+- [ ] Evaluate whether Dispatch Subcore is needed
+- [ ] Provide recommendation to Grain Core Agent
+- [ ] Document evaluation criteria and findings
+- [ ] Create architecture decision record
+
 ### Long-term: Research as System Capability
 
 - [ ] Research Agent becomes the "memory" of the system
