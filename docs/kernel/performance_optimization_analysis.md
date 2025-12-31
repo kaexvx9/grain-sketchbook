@@ -85,9 +85,12 @@ Based on typical kernel workloads, these syscalls are likely to be called freque
 2. **`read`** / **`write`** (Syscalls 31, 32):
    - Called frequently for I/O operations
    - May involve file system or network operations
-   - **Current Implementation**: Validates arguments, looks up handle, checks permissions
-   - **Optimization Opportunity**: Reduce handle lookup overhead, optimize validation
+   - **Current Implementation**: Validates arguments, looks up handle (linear search through MAX_HANDLES=64), checks permissions
+   - **Optimization Opportunities**:
+     - Handle lookup: Currently uses linear search (`find_handle_by_id`). With MAX_HANDLES=64, this is O(n). Could optimize with hash table or direct index if handle IDs are dense.
+     - Validation overhead: Multiple argument checks per syscall (necessary for security, but could be optimized if profiling shows it's a bottleneck)
    - **Priority**: High (if confirmed hot path)
+   - **Note**: Linear search through 64 handles is still relatively fast, but if profiling shows this is a bottleneck, a hash table optimization could help
 
 3. **`clock_gettime`** (Syscall 40):
    - Called frequently for time queries
@@ -155,7 +158,19 @@ These syscalls may have high execution times due to complexity:
 
 **Note**: Timer calls are only made when profiling is enabled, so overhead is acceptable.
 
-### 3. Memory Operations
+### 3. Handle Lookup Optimization
+
+**Current**: `find_handle_by_id()` uses linear search through handles array (MAX_HANDLES=64).
+
+**Opportunity**: Use hash table or direct index lookup if handle IDs are dense.
+
+**Impact**: Medium (if handle lookup is identified as bottleneck in hot paths like read/write)
+
+**Priority**: Medium (if profiling confirms handle lookup is a bottleneck)
+
+**Note**: Linear search through 64 handles is O(64) = constant time in practice, but hash table could reduce to O(1). Only worth optimizing if profiling shows it's a bottleneck.
+
+### 4. Memory Operations
 
 **Current**: Some syscalls may involve unnecessary memory copies.
 
@@ -177,7 +192,7 @@ These syscalls may have high execution times due to complexity:
 
 **Priority**: N/A
 
-### 5. Yield Syscall Optimization
+### 6. Yield Syscall Optimization
 
 **Current**: `syscall_yield` is a no-op (returns success immediately).
 

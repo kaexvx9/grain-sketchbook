@@ -106,12 +106,12 @@ pub const QueryType = retrieval_accuracy.Query.QueryType;
 pub const RetrievalResult = retrieval_accuracy.RetrievalResult;
 pub const LlmIntegration = llm_integration.LlmIntegration;
 pub const LlmIntegrationResult = llm_integration.LlmIntegrationResult;
-pub const SerializationFormat = llm_integration.SerializationFormat;
+pub const SerializationFormat = llm_integration.SerializationFormat; // Used by LLM integration
 pub const QueryTestResult = retrieval_llm_integration.QueryTestResult;
 pub const execute_query_test = retrieval_llm_integration.execute_query_test;
 pub const Serializer = retrieval_serialization.Serializer;
 pub const SerializationResult = retrieval_serialization.SerializationResult;
-pub const SerializationFormat = retrieval_serialization.SerializationResult.SerializationFormat;
+// Note: SerializationResult.SerializationFormat is the same as SerializationFormat above
 pub const CostSavingsCalculator = cost_savings.CostSavingsCalculator;
 pub const UseCase = cost_savings.UseCase;
 pub const Pricing = cost_savings.Pricing;

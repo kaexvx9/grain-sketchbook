@@ -276,7 +276,7 @@ pub const SyscallPerformanceProfiler = struct {
 
 // Test: Profiler initialization.
 test "profiler init" {
-    var profiler = SyscallPerformanceProfiler.init();
+    const profiler = SyscallPerformanceProfiler.init();
     
     // Assert: Profiler must be initialized.
     try std.testing.expect(!profiler.enabled);

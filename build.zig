@@ -1415,6 +1415,22 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_orchestrator_tests.step);
     const run_riscv_tests = b.addRunArtifact(riscv_tests);
     test_step.dependOn(&run_riscv_tests.step);
+    
+    // RISC-V Compliance Validation Test Suite
+    const riscv_compliance_validation_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("tests/riscv_compliance_validation_test.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "kernel_vm", .module = kernel_vm_module },
+                .{ .name = "basin_kernel", .module = basin_kernel_module },
+            },
+        }),
+    });
+    const run_riscv_compliance_validation_tests = b.addRunArtifact(riscv_compliance_validation_tests);
+    test_step.dependOn(&run_riscv_compliance_validation_tests.step);
+    
     const run_outputs_tests = b.addRunArtifact(outputs_tests);
     test_step.dependOn(&run_outputs_tests.step);
     const run_grain_carry_core_validation_tests = b.addRunArtifact(grain_carry_core_validation_tests);

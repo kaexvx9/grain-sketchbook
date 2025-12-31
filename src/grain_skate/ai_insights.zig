@@ -6,6 +6,7 @@ const grain_core = @import("grain_core");
 const LlmProvider = grain_court.LlmProvider;
 const ProviderPool = LlmProvider.ProviderPool;
 const OpenAIProvider = grain_court.OpenAIProvider;
+const zon_format = grain_court.zon_format;
 
 /// AI-Powered Graph Insights: Multi-provider LLM powered insights for knowledge graph.
 /// ~<~ Glow Airbend: explicit AI suggestions, bounded analysis.

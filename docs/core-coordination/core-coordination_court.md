@@ -1,13 +1,14 @@
 # Core Coordination: Grain Court Agent
 
-**Last Updated**: 2025-12-29-160000-pst  
+**Last Updated**: 2025-12-30-110000-pst  
 **Agent**: Grain Court Agent (11th Agent)
 
 **Coordination Plans Acknowledged**: 
 - 2025-12-29-001544-pst (previous coordination plan)
 - 2025-12-29-041147-pst (ZON Format Integration Complete ✅, Coordination Decisions Complete ✅)
 - 2025-12-29-105655-pst (Kernel Refactoring Complete ✅, JG Project Design Complete ✅, JG Project Multi-Agent Integration)
-- 2025-12-29-152539-pst (Architecture Evolution Complete ✅, Vantage Sub-Agents Created ✅)
+- 2025-12-29-152539-pst (Architecture Evolution Complete ✅, Vantage 3 Subcore + L2 Sub-Agents Created ✅)
+- 2025-12-30-093745-pst (Agent Status Updates Complete ✅, JG Project Planning Progress ✅, Critical Blockers Identified ⏳)
 
 ---
 
@@ -34,11 +35,15 @@
 - Court Agent uses Core Agent's HTTP Client (userspace, no kernel dependencies)
 
 **Current Blockers**:
-- ⏳ **Core Agent**: Payment/Vault/Bank storage schema approval (blocks Silo Agent PasswordStorage API design)
-- ⏳ **Silo Agent**: Waiting on Core Agent approval, then will design `PasswordStorage` helper API (Payment Integration Phase 1)
-- ⏳ **Core Agent**: Waiting on Grain Passwords module implementation (Payment Integration Phase 1)
+- ⏳ **Core Agent**: Payment/Vault/Bank storage schema approval (IMMEDIATE, HIGH priority, 4-7 hours) — **BLOCKING Silo Agent and Court Agent**
+- ⏳ **Silo Agent**: Waiting on Core Agent approval, then will design `PasswordStorage` helper API (~1 day after approval)
+- ⏳ **Core Agent**: Grain Passwords module implementation (2-3 days) — **BLOCKING Court Agent Payment Integration Phase 1**
 
 **Blocking Chain**: Court Agent → Silo Agent → Core Agent (storage schema approval needed first)
+
+**Other Critical Blockers** (per Core Agent coordination plan 2025-12-30-093745-pst):
+- ⏳ **Core Agent**: Codebase compilation errors (Priority 1, HIGH) — **BLOCKING Research Agent validation testing** (17 tests ready, cannot execute)
+- ⏳ **Aurora Agent**: Component API design coordination (IMMEDIATE) — **BLOCKING Bubble Agent JG Project UI component integration**
 
 **Ready for Integration**:
 - ✅ Flow Agent: Integration complete
@@ -277,9 +282,9 @@
 - ✅ **Self-Hosted Provider**: Foundation skeleton complete — ready for API integration when funded
 - ⏳ **Payment Integration**: Phase 1 coordination in progress — **BLOCKED ON CORE AGENT**
 
-### What Core Agent Needs to Do IMMEDIATELY (Payment Integration Phase 1)
+### What Core Agent Needs to Do IMMEDIATELY (per Core Agent coordination plan 2025-12-30-093745-pst)
 
-**1. Approve Payment/Vault/Bank Storage Schema** (IMMEDIATE, HIGH Priority)
+**IMMEDIATE PRIORITY 1** (HIGH): **Approve Payment/Vault/Bank Storage Schema** (4-7 hours)
 
 **Status**: ⏳ **WAITING ON CORE AGENT** — **BLOCKING SILO AGENT AND COURT AGENT**
 
@@ -308,7 +313,26 @@
 
 **Action**: **IMMEDIATE** — Review and approve `docs/grain_database/payment_vault_storage_schema.md`
 
-**2. Implement Grain Passwords Module** (HIGH Priority, 2-3 days)
+**IMMEDIATE PRIORITY 2** (HIGH): **Resolve Codebase Compilation Errors** (Priority 1, HIGH)
+
+**Status**: ⏳ **BLOCKING RESEARCH AGENT VALIDATION TESTING**
+
+**What's Needed**:
+- Resolve codebase compilation errors (unused parameters, syntax errors in various files)
+- Research Agent has 17 validation tests ready (9 Phase 2 Token Counting, 8 Phase 3 Cost Tracking)
+- Cannot execute validation tests until compilation errors are resolved
+
+**Impact**: Blocks Research Agent validation testing (Priority 1, HIGH)
+
+**IMMEDIATE PRIORITY 3** (MEDIUM): **Update HTTP/WebSocket Clients to Use Error Types Consistently** (1 day)
+
+**Status**: ⏳ In progress
+
+**What's Needed**:
+- Update HTTP/WebSocket clients to use error types consistently
+- Ensure all error handling follows Grain Style patterns
+
+**Priority 4** (MEDIUM): **Implement Grain Passwords Module** (2-3 days)
 
 **Status**: ⏳ Waiting on Core Agent implementation
 
@@ -437,7 +461,7 @@
 
 ## Next Steps for Research Agent
 
-**Status**: All Integration Phases Complete ✅ — Validation Testing In Progress ⏳
+**Status**: All Integration Phases Complete ✅ — Validation Testing Ready but BLOCKED ⏳
 
 ### Current Progress
 
@@ -451,7 +475,13 @@
   - `tests/161_grain_research_token_counting_adapter_test.zig` — Token counting adapter tests
   - `tests/162_grain_research_cost_tracking_integration_test.zig` — Cost tracking integration tests
 
-**In Progress**:
+**BLOCKED** (per Core Agent coordination plan 2025-12-30-093745-pst):
+- ⏳ **IMMEDIATE PRIORITY**: Waiting on Core Agent to resolve codebase compilation errors (Priority 1, HIGH)
+- ⏳ **Status**: All 17 validation tests ready (9 Phase 2 Token Counting, 8 Phase 3 Cost Tracking)
+- ⏳ **Blocker**: Codebase compilation errors (unused parameters, syntax errors in various files)
+- ⏳ **Impact**: Cannot execute validation tests until compilation errors are resolved
+
+**Pending** (after compilation errors resolved):
 - ⏳ **Validation Testing**: Phase 2 Token Counting, Phase 3 Cost Tracking
 - ⏳ **Phase 2 LLM Integration Testing**: 3-5 days (requires provider setup)
 
@@ -667,11 +697,25 @@
 - **Action**: Check in when Silo Agent responds, or if Core Agent coordination plan indicates module is ready
 - **Blocking**: Cannot proceed with Payment Integration Phase 1 implementation until Grain Passwords module is available
 
-### ⏳ **MONITORING** (Not Blocking, But Coordination Helpful)
+### ⏳ **MONITORING** (Not Blocking Court Agent, But Critical for Other Agents)
 
-**4. Research Agent** — Validation Testing Support
-- **Status**: Validation testing in progress (Phase 2 Token Counting, Phase 3 Cost Tracking)
-- **Timeline**: Ongoing (Phase 2 LLM Integration testing: 3-5 days)
+**4. Core Agent** — Resolve Codebase Compilation Errors (HIGH Priority)
+- **Status**: ⏳ **BLOCKING RESEARCH AGENT** — Codebase compilation errors (Priority 1, HIGH)
+- **Timeline**: Immediate (Research Agent has 17 validation tests ready, cannot execute)
+- **Action**: Core Agent should resolve compilation errors immediately
+- **Impact**: Blocks Research Agent validation testing (all integration phases complete, tests ready)
+- **Not Blocking Court Agent**: Court Agent can continue independent work, but Research Agent is blocked
+
+**5. Aurora Agent** — Component API Design Coordination (IMMEDIATE)
+- **Status**: ⏳ **BLOCKING BUBBLE AGENT** — Bubble Agent waiting on Aurora Agent component API structure
+- **Timeline**: Immediate
+- **Action**: Aurora Agent should coordinate with Bubble Agent on component API design
+- **Impact**: Blocks Bubble Agent JG Project UI component integration
+- **Not Blocking Court Agent**: Court Agent can continue independent work, but Bubble Agent is blocked
+
+**6. Research Agent** — Validation Testing Support
+- **Status**: Validation testing ready but blocked on compilation errors (Phase 2 Token Counting, Phase 3 Cost Tracking)
+- **Timeline**: After compilation errors resolved (Phase 2 LLM Integration testing: 3-5 days)
 - **Action**: Continue supporting as needed, check in if Research Agent requests assistance
 - **Not Blocking**: Court Agent can continue independent work while supporting Research Agent
 
@@ -683,9 +727,10 @@
 
 ### ✅ **NO CHECK-IN NEEDED** (All APIs Ready)
 
-**6. Flow Agent** — Integration complete ✅
-**7. Aurora/Bubble/Skate Agents** — All APIs ready, can integrate when ready ✅
-**8. Vantage/Workspace/Carry Agents** — No dependencies, Court Agent ready ✅
+**7. Flow Agent** — Integration complete ✅
+**8. Aurora/Bubble/Skate Agents** — LLM timeout/error handling APIs ready, can integrate when ready ✅
+  - **Note**: Aurora Agent needs to coordinate with Bubble Agent on component API design (IMMEDIATE, blocking Bubble Agent)
+**9. Vantage/Workspace/Carry Agents** — No dependencies, Court Agent ready ✅
 
 ---
 
@@ -694,9 +739,11 @@
 | Agent | Integration Point | Status | Timeline | Next Action |
 |-------|------------------|--------|----------|-------------|
 | **Flow Agent** | ZON Format Export | ✅ **COMPLETE** | — | Integration complete, can test independently |
-| **Research Agent** | Phase 2 LLM Integration | ⏳ **VALIDATION TESTING** | 3-5 days | Complete validation testing (requires provider setup) |
-| **Research Agent** | Token Counting Integration | ⏳ **VALIDATION TESTING** | In progress | Complete validation testing |
-| **Research Agent** | Cost Tracking Integration | ⏳ **VALIDATION TESTING** | In progress | Complete validation testing |
+| **Research Agent** | Phase 2 LLM Integration | ⏳ **BLOCKED ON CORE** | After compilation errors | Complete validation testing (17 tests ready, blocked on compilation errors) |
+| **Research Agent** | Token Counting Integration | ⏳ **BLOCKED ON CORE** | After compilation errors | Complete validation testing (9 tests ready, blocked on compilation errors) |
+| **Research Agent** | Cost Tracking Integration | ⏳ **BLOCKED ON CORE** | After compilation errors | Complete validation testing (8 tests ready, blocked on compilation errors) |
+| **Core Agent** | Resolve Compilation Errors | ⏳ **IMMEDIATE** | Priority 1, HIGH | **Resolve compilation errors** (BLOCKING Research Agent) |
+| **Aurora Agent** | Component API Design | ⏳ **IMMEDIATE** | Immediate | Coordinate with Bubble Agent on component API (BLOCKING Bubble Agent) |
 | **Core Agent** | Payment/Vault/Bank Schema Approval | ⏳ **IMMEDIATE** | 4-7 hours | **Review and approve storage schema** (BLOCKING) |
 | **Silo Agent** | Payment Integration Phase 1 | ⏳ **BLOCKED ON CORE** | 1-2 days | Design `PasswordStorage` helper API after Core Agent approval |
 | **Core Agent** | Payment Integration Phase 1 | ⏳ **WAITING** | 2-3 days | Implement Grain Passwords module |
@@ -706,11 +753,13 @@
 
 **Integration Status**:
 - ✅ **Flow Agent**: Integration complete — can test independently
-- ⏳ **Research Agent**: All integration phases complete ✅, validation testing in progress — Court Agent actively supporting
+- ⏳ **Research Agent**: All integration phases complete ✅, validation testing ready but **BLOCKED ON CORE AGENT** compilation errors (17 tests ready, cannot execute) — Court Agent actively supporting
 - ⏳ **Core Agent**: **IMMEDIATE ACTION REQUIRED** — Payment/Vault/Bank storage schema approval (BLOCKING Silo Agent and Court Agent)
+- ⏳ **Core Agent**: **IMMEDIATE ACTION REQUIRED** — Resolve codebase compilation errors (BLOCKING Research Agent validation testing)
 - ⏳ **Silo Agent**: Ready to design PasswordStorage helper API, **BLOCKED ON CORE AGENT** storage schema approval
 - ⏳ **Core Agent**: Payment Integration Phase 1 waiting on Grain Passwords module implementation
-- ✅ **Aurora/Bubble/Skate Agents**: All APIs ready — can integrate when ready
+- ⏳ **Aurora Agent**: **IMMEDIATE ACTION REQUIRED** — Coordinate with Bubble Agent on component API design (BLOCKING Bubble Agent)
+- ✅ **Aurora/Bubble/Skate Agents**: LLM timeout/error handling APIs ready — can integrate when ready
 - ✅ **Vantage/Workspace/Carry Agents**: No dependencies — Court Agent ready
 
 **Blocking Chain**: Court Agent → Silo Agent → Core Agent (storage schema approval needed first)
@@ -732,10 +781,16 @@
 
 **2. Payment Integration Phase 1 Coordination** (Priority: HIGH)
 - ⏳ **BLOCKED**: Waiting on Core Agent storage schema approval (IMMEDIATE, HIGH priority)
+- ✅ **PREPARATION COMPLETE**: `ApiKeyManager` module design document created (2025-12-30-110000-pst)
+  - Design document: `docs/grain_court/api_key_manager_design_2025-12-30-110000-pst.md`
+  - Data structures defined (`ApiKeyIdentifier`, `ApiKeyMetadata`, `ApiKeyManager`)
+  - Key rotation patterns designed (scheduled, manual, zero-downtime)
+  - Environment separation patterns designed
+  - Integration points with ProviderPool defined
+  - Implementation notes and testing strategy documented
 - ⏳ Wait for Silo Agent response on `PasswordStorage` helper API design (after Core Agent approval)
-- ⏳ Review storage helper API once available
-- ⏳ Design `ApiKeyManager` module based on storage helper API
-- ⏳ Plan key rotation and environment separation patterns
+- ⏳ Review storage helper API once available (design ready, will adjust if needed)
+- ⏳ Implement `ApiKeyManager` module once dependencies available (2-3 days)
 - ⏳ Wait for Core Agent Grain Passwords module implementation
 
 **3. Continue Phase 3 Enhancements** (Priority: MEDIUM)
@@ -812,6 +867,11 @@
 - ✅ Response sent to Core Agent
 - ✅ Integration plan created
 - ✅ Coordination message sent to Silo Agent
+- ✅ **ApiKeyManager module design complete** (2025-12-30-110000-pst)
+  - Design document: `docs/grain_court/api_key_manager_design_2025-12-30-110000-pst.md`
+  - Data structures, key rotation patterns, environment separation designed
+  - Integration points with ProviderPool defined
+  - Implementation notes and testing strategy documented
 - ⏳ **BLOCKED**: Waiting on Core Agent storage schema approval (IMMEDIATE, HIGH priority)
 - ⏳ Waiting on Silo Agent response for storage helper API design (after Core Agent approval, ~1 day)
 - ⏳ Waiting on Core Agent Grain Passwords module implementation (2-3 days)
@@ -825,10 +885,10 @@
 
 ---
 
-**Date**: 2025-12-29-160000-pst  
+**Date**: 2025-12-30-110000-pst  
 **Agent**: Grain Court Agent (11th Agent)  
-**Status**: Phase 1 COMPLETE ✅ — Phase 2 COMPLETE ✅ — Phase 3 IN PROGRESS (Optimization Utilities Complete) — Phase 4 FOUNDATION STARTED — Research Agent Validation Testing In Progress — Payment Integration Phase 1 **BLOCKED ON CORE AGENT** (Storage Schema Approval Needed) — 🆕 JG Project LLM Planning Responsibilities Assigned (Months 4-12, Planning Substantially Complete ✅) — Architecture Evolution Acknowledged (Vantage Sub-Agents Created ✅)
+**Status**: Phase 1 COMPLETE ✅ — Phase 2 COMPLETE ✅ — Phase 3 IN PROGRESS (Optimization Utilities Complete) — Phase 4 FOUNDATION STARTED — Research Agent Validation Testing Ready but BLOCKED on Core Agent Compilation Errors — Payment Integration Phase 1 **BLOCKED ON CORE AGENT** (Storage Schema Approval Needed, ApiKeyManager Design Complete ✅) — 🆕 JG Project LLM Planning Responsibilities Assigned (Months 4-12, Planning Substantially Complete ✅) — Architecture Evolution Acknowledged (Vantage 3 Subcore + L2 Sub-Agents Created ✅) — Latest Coordination Plan Acknowledged (2025-12-30-093745-pst)
 
 ---
 
-**Summary**: Court Agent is currently **BLOCKED ON CORE AGENT** for Payment Integration Phase 1. **Core Agent must approve Payment/Vault/Bank storage schema** (IMMEDIATE, HIGH priority, 4-7 hours) to unblock Silo Agent PasswordStorage helper API design (~1 day), which will then unblock Court Agent Payment Integration Phase 1 implementation (2-3 days). All other integrations are either complete or non-blocking. Court Agent can continue Phase 3 enhancements, Phase 4 foundation work, and JG project planning refinement independently while waiting. **JG project planning is substantially complete** and ready for Core Agent coordination when JG module implementation begins (Months 1-6).
+**Summary**: Court Agent is currently **BLOCKED ON CORE AGENT** for Payment Integration Phase 1. **Core Agent must approve Payment/Vault/Bank storage schema** (IMMEDIATE, HIGH priority, 4-7 hours) to unblock Silo Agent PasswordStorage helper API design (~1 day), which will then unblock Court Agent Payment Integration Phase 1 implementation (2-3 days). **Core Agent must also resolve codebase compilation errors** (IMMEDIATE, HIGH priority) to unblock Research Agent validation testing (17 tests ready, cannot execute). All other integrations are either complete or non-blocking. Court Agent can continue Phase 3 enhancements, Phase 4 foundation work, and JG project planning refinement independently while waiting. **JG project planning is substantially complete** and ready for Core Agent coordination when JG module implementation begins (Months 1-6). **Aurora Agent needs to coordinate with Bubble Agent** on component API design (IMMEDIATE, blocking Bubble Agent JG Project UI component integration).

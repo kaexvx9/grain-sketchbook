@@ -1,6 +1,6 @@
 # Grain Silo Agent: Coordination Status
 
-**Last Updated**: 2025-12-30-094500-pst  
+**Last Updated**: 2025-12-30-100000-pst  
 **Agent**: Grain Silo Agent (Database)  
 **Status**: **PRODUCTION READY** ✅ — **ALL COORDINATION DECISIONS READY** ✅ — **PAYMENT/VAULT STORAGE SCHEMA COMPLETE** ✅ — **BLOCKED ON CORE AGENT APPROVAL** ⏳
 
@@ -170,6 +170,12 @@ All core phases complete and ready for production use:
   - ✅ Bubble Agent: Retry logic implementation complete (2025-12-30)
 
 **Silo Agent JG Project Responsibilities** (Months 1-3):
+- ✅ **Preliminary Storage Schema Design Complete** (2025-12-30-100000-pst):
+  - ✅ Preliminary storage schema design notes created for all 8 JG modules
+  - ✅ Key formats, data structures (JSON schemas), and storage helper API designs documented
+  - ✅ Integration points with Skate Agent knowledge graph identified
+  - ✅ Questions for Core Agent coordination prepared
+  - ⏳ **READY FOR CORE AGENT COORDINATION** — Awaiting Core Agent review and approval
 - ⏳ **Storage Schemas for All JG Modules**: Design and implement storage schemas for all JG project modules
   - **JG Modules to Design**:
     - `jg_project:*` — Grain JG Project Manager (project lifecycle management)
@@ -187,19 +193,25 @@ All core phases complete and ready for production use:
   - Provide index recommendations for JG data access patterns
 
 **Next Steps for Silo Agent**:
-- ⏳ **IMMEDIATE**: Review JG project design document (`docs/zyx/grainbank_mmt_job_guarantee_housing_program_2025-12-28-232324-pst.md`)
+- ✅ **COMPLETE**: Preliminary storage schema design notes created (2025-12-30-100000-pst)
 - ⏳ **IMMEDIATE**: Coordinate with Core Agent on JG module requirements and data structures (2-4 hours)
-- ⏳ **SHORT-TERM**: Design storage schemas for all JG modules (Months 1-3)
+  - Review preliminary storage schema design notes with Core Agent
+  - Answer coordination questions (data structures, key formats, API designs, integration points)
+  - Confirm storage helper API designs
+  - Approve final storage schema design
+- ⏳ **SHORT-TERM**: Finalize storage schemas for all JG modules (after Core Agent coordination)
   - Priority 1: `jg_project`, `jg_task` (project and task management)
   - Priority 2: `jg_inventory`, `jg_supply_chain` (material and logistics tracking)
   - Priority 3: `jg_architect`, `jg_worker`, `jg_cooperative`, `jg_housing` (3D planning, worker data, cooperatives, housing)
 - ⏳ **SHORT-TERM**: Implement storage helpers for JG modules (following Payment/Vault/Bank pattern)
 
 **Key Resources**:
+- **JG Storage Schema Preliminary Design**: `docs/grain_database/jg_storage_schema_preliminary_notes.md` (NEW - 2025-12-30-100000-pst)
 - Core Agent Coordination Plan: `docs/agent-communications/core_agent_coordination_plan_2025-12-30-093745-pst.md` (NEW - Latest)
 - Core Agent Summary: `docs/agent-communications/core_agent_coordination_summary_2025-12-30-093745-pst.md` (NEW - Latest)
 - Previous Coordination Plan: `docs/agent-communications/core_agent_coordination_plan_2025-12-29-152539-pst.md`
 - JG Project Design: `docs/zyx/grainbank_mmt_job_guarantee_housing_program_2025-12-28-232324-pst.md`
+- Skate Agent Knowledge Graph: `docs/grain_skate/jg_knowledge_graph_structure.md`
 - Payment/Vault/Bank Storage Schema (reference pattern): `docs/grain_database/payment_vault_storage_schema.md`
 - SLC Integration Helpers (reference pattern): `src/grain_database/slc_integration.zig`
 
