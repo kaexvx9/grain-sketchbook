@@ -109,7 +109,33 @@ This document outlines a complete **private zen office design** that integrates:
 
 #### Desktop Material Options
 
-**Option A: USA-Grown Hardwood** ⭐⭐⭐⭐⭐
+**Option A: USA-Grown Hemp (HempWood®)** ⭐⭐⭐⭐⭐
+
+**HempWood® Specifications**:
+- **Source**: USA-grown hemp (Kentucky, USA)
+- **Manufacturer**: HempWood® (Murray, Kentucky)
+- **Material**: Hemp fiber composite (hemp fibers + soy-based adhesive)
+- **Thickness**: 1.5" solid HempWood®
+- **Hardness**: Janka hardness ~2,200 (20% harder than hickory)
+- **Finish**: Natural oil (linseed, tung) or water-based polyurethane
+- **Edge**: Straight edge (standard)
+- **Price**: $400-$1,200 (depending on size)
+
+**Key Advantages**:
+- ✅ **USA-Grown**: Grown and manufactured in USA (Kentucky)
+- ✅ **Rapid Growth**: Hemp matures in ~120 days (vs decades for hardwoods)
+- ✅ **Eco-Friendly**: Soy-based adhesive (no formaldehyde, low VOCs)
+- ✅ **Durable**: Harder than hickory, suitable for furniture
+- ✅ **Sustainable**: Rapidly renewable, reduces deforestation
+
+**Suppliers**:
+- **HempWood® Manufacturing**: hempwoodmanufacturing.com (Murray, Kentucky)
+- **Greenr Building**: greenrbuilding.com (HempWood® lumber boards)
+- **Material Bank**: materialbank.com (HempWood® products)
+
+**Note**: HempWood® is a registered trademark, but the material itself (hemp fiber composite) can be sourced from other USA hemp manufacturers.
+
+**Option B: USA-Grown Hardwood** ⭐⭐⭐⭐⭐
 
 **Recommended Species**:
 - **Oak** (White Oak, Red Oak): Durable, beautiful grain
@@ -129,18 +155,21 @@ This document outlines a complete **private zen office design** that integrates:
 - Sustainable forestry certified suppliers
 - Reclaimed wood (recycled, repurposed)
 
-**Option B: Bamboo** ⭐⭐⭐⭐
+**Option C: Bamboo** ⭐⭐⭐
 
 **Specifications**:
-- **Source**: Rapidly renewable, sustainable
+- **Source**: Rapidly renewable, sustainable (but NOT USA-grown)
 - **Type**: Strand-woven bamboo (strongest)
 - **Thickness**: 1.5" solid bamboo
 - **Finish**: Natural oil or water-based finish
 - **Price**: $300-$1,000
 
-**Note**: Most bamboo is not USA-grown, but is sustainable and ecological.
+**Note**: **Bamboo is NOT commercially grown in the USA** for furniture production. Most bamboo furniture uses imported bamboo (primarily from Asia, especially China). While bamboo is sustainable and ecological, it does not meet the "USA-grown" requirement. However, some U.S. companies (like UPLIFT Desk in Austin, Texas) manufacture bamboo furniture domestically using imported Moso bamboo.
 
-**Recommendation**: **USA-Grown Hardwood** (Oak or Maple) for sustainability and durability.
+**Recommendation**: 
+- **Primary**: **USA-Grown Hemp (HempWood®)** for maximum sustainability, USA sourcing, and rapid renewability
+- **Alternative**: **USA-Grown Hardwood** (Oak or Maple) for traditional aesthetics and durability
+- **Note**: Bamboo is sustainable but not USA-grown (imported from Asia)
 
 ---
 
@@ -581,12 +610,15 @@ pub const ZenOfficeController = struct {
 
 | Component | Cost |
 |-----------|------|
-| Desktop (USA Hardwood) | $500-$2,000 |
+| Desktop (USA Hemp/Hardwood) | $400-$2,000 |
+| - HempWood® (USA-grown hemp) | $400-$1,200 |
+| - USA Hardwood (Oak/Maple) | $500-$2,000 |
+| - Bamboo (imported, not USA-grown) | $300-$1,000 |
 | Frame & Motors | $400-$800 |
 | Control System | $50-$300 |
 | Finishing | $100-$200 |
 | Assembly | $0-$1,000 (DIY or professional) |
-| **Subtotal** | **$1,050-$4,300** |
+| **Subtotal** | **$950-$4,300** |
 
 ---
 
@@ -619,10 +651,12 @@ pub const ZenOfficeController = struct {
 
 ### Total Office Cost
 
-**Minimum**: $2,715-$8,880
-**Maximum**: $3,515-$12,880
+**Minimum**: $2,615-$8,880 (with HempWood® desktop)
+**Maximum**: $3,515-$12,880 (with premium hardwood desktop)
 
-**Recommended Build**: $3,000-$10,000
+**Recommended Build**: $2,800-$10,000
+- **HempWood® Desktop**: $2,800-$9,000 (most sustainable, USA-grown)
+- **Hardwood Desktop**: $3,000-$10,000 (traditional, premium)
 
 ---
 
@@ -636,7 +670,7 @@ pub const ZenOfficeController = struct {
    - Source suppliers
 
 2. **Order Components**:
-   - Order desk materials (hardwood, steel)
+   - Order desk materials (HempWood®, hardwood, or bamboo; steel frame)
    - Order projector components
    - Order keyboard components
 
@@ -650,7 +684,7 @@ pub const ZenOfficeController = struct {
 ### Phase 2: Desk Assembly (Weeks 3-6)
 
 1. **Desktop Preparation**:
-   - Cut and finish desktop (hardwood)
+   - Cut and finish desktop (HempWood®, hardwood, or bamboo)
    - Sand and finish
    - Install cable management
 
@@ -764,16 +798,25 @@ zen-office-design/
 
 ### Materials
 
+**USA-Grown Hemp (HempWood®)** ⭐⭐⭐⭐⭐:
+- **USA-Grown**: Grown and manufactured in USA (Kentucky)
+- **Rapid Growth**: Matures in ~120 days (vs decades for hardwoods)
+- **Eco-Friendly**: Soy-based adhesive (no formaldehyde, low VOCs)
+- **Durable**: Janka hardness ~2,200 (20% harder than hickory)
+- **Sustainable**: Rapidly renewable, reduces deforestation
+- **Natural Finishes**: Natural oil or water-based finishes
+
 **USA-Grown Hardwoods**:
 - Sustainably harvested
 - Local sourcing (reduced transportation)
 - Long-lasting (durable)
 - Natural finishes (low-VOC)
 
-**Bamboo** (Alternative):
+**Bamboo** (Note: Not USA-grown, imported from Asia):
 - Rapidly renewable
-- Sustainable cultivation
+- Sustainable cultivation (but imported)
 - Ecological finish options
+- **Limitation**: Not grown in USA (mostly imported from China/Asia)
 
 **Steel Frame**:
 - Recyclable
@@ -795,7 +838,8 @@ zen-office-design/
 - Open-source replacement parts
 
 **Longevity**:
-- Durable materials (hardwood, steel)
+- Durable materials (HempWood®, hardwood, steel)
+- HempWood®: Janka hardness ~2,200 (20% harder than hickory)
 - Quality components (Cherry MX switches)
 - Repairable design (no proprietary parts)
 
@@ -808,7 +852,7 @@ zen-office-design/
 1. **4K Laser Projector**: Open-hardware, Grain OS integrated
 2. **Motorized Standing/Sitting Desk**: 8" to 28" range, sustainable materials
 3. **Open-Hardware Split Keyboard**: Patent-free, Cherry Silent Red MX, tenting kit
-4. **Sustainable Materials**: USA-grown hardwoods, ecological finishes
+4. **Sustainable Materials**: USA-grown hemp (HempWood®), hardwoods, or bamboo; ecological finishes
 5. **Grain OS Integration**: Unified control, native integration
 
 **Key Advantages**:
@@ -818,7 +862,9 @@ zen-office-design/
 - ✅ **Repairable**: Modular, standard parts, long-lasting
 - ✅ **Grain OS Native**: Full integration with Grain OS ecosystem
 
-**Total Cost**: $3,000-$10,000 (depending on material choices)
+**Total Cost**: $2,800-$10,000 (depending on material choices)
+- **HempWood® Desktop**: $2,800-$9,000 (recommended, USA-grown)
+- **Hardwood Desktop**: $3,000-$10,000 (traditional, premium)
 
 **Next Steps**: Begin Phase 1 (Planning & Sourcing), finalize material choices, order components.
 
@@ -828,6 +874,7 @@ zen-office-design/
 
 - **4K Projector Design**: `docs/zyx/open_hardware_4k_laser_projector_grain_os_2025-12-30.md`
 - **Open-Source Keyboards**: ergodox.io, keeb.io, bastardkb.com
+- **HempWood®**: hempwoodmanufacturing.com (Murray, Kentucky), greenrbuilding.com
 - **Sustainable Wood**: Local sawmills, sustainable forestry certified suppliers
 - **Linear Actuators**: Progressive Automations, Firgelli, Amazon
 - **Motor Controllers**: ESP32, Raspberry Pi Pico, open-source controllers
