@@ -1280,213 +1280,8 @@ pub const JitContext = struct {
             const fetch_result = try self.fetch_inst(current_pc);
             const inst = Instruction.decode(fetch_result.inst);
 
-            switch (inst.opcode) {
-                0x33 => { // ADD, SUB, SLL, SLT, SLTU, XOR, SRL, SRA, OR, AND (R-Type)
-                    self.emit_ldr_from_state(0, inst.rs1);
-                    self.emit_ldr_from_state(1, inst.rs2);
-
-                    switch (inst.funct3) {
-                        0x0 => { // ADD/SUB
-                            if (inst.funct7 == 0x00) { // ADD
-                                self.emit_add(0, 0, 1);
-                            } else if (inst.funct7 == 0x20) { // SUB
-                                self.emit_subs(0, 0, 1);
-                            }
-                        },
-                        0x1 => self.emit_lsl_v(0, 0, 1), // SLL
-                        0x4 => self.emit_eor(0, 0, 1), // XOR
-                        0x5 => { // SRL/SRA
-                            if (inst.funct7 == 0x00) { // SRL
-                                self.emit_lsr_v(0, 0, 1);
-                            } else if (inst.funct7 == 0x20) { // SRA
-                                self.emit_asr_v(0, 0, 1);
-                            }
-                        },
-                        0x2 => { // SLT (Set Less Than, signed)
-                            self.emit_cmp(0, 1); // Compare rs1 (reg 0) with rs2 (reg 1)
-                            self.emit_cset(0, 0xB); // Set reg 0 to 1 if LT (signed less than), else 0
-                        },
-                        0x3 => { // SLTU (Set Less Than Unsigned)
-                            self.emit_cmp(0, 1); // Compare rs1 (reg 0) with rs2 (reg 1)
-                            self.emit_cset(0, 0x3); // Set reg 0 to 1 if LO (unsigned less than), else 0
-                        },
-                        0x6 => self.emit_orr(0, 0, 1), // OR
-                        0x7 => self.emit_and(0, 0, 1), // AND
-                        else => {},
-                    }
-                    self.emit_str_to_state(0, inst.rd);
-                },
-                0x13 => { // ADDI, SLTI, SLTIU, XORI, ORI, ANDI, SLLI, SRLI, SRAI (I-Type)
-                    self.emit_ldr_from_state(0, inst.rs1);
-                    const imm_u: u64 = @bitCast(@as(i64, inst.imm));
-
-                    switch (inst.funct3) {
-                        0x0 => { // ADDI
-                            self.emit_mov_u64(1, imm_u);
-                            self.emit_add(0, 0, 1);
-                        },
-                        0x4 => { // XORI
-                            self.emit_mov_u64(1, imm_u);
-                            self.emit_eor(0, 0, 1);
-                        },
-                        0x6 => { // ORI
-                            self.emit_mov_u64(1, imm_u);
-                            self.emit_orr(0, 0, 1);
-                        },
-                        0x7 => { // ANDI
-                            self.emit_mov_u64(1, imm_u);
-                            self.emit_and(0, 0, 1);
-                        },
-                        0x1 => { // SLLI
-                            const shamt: u6 = @truncate(@as(u32, @bitCast(inst.imm)));
-                            self.emit_lsl_i(0, 0, shamt);
-                        },
-                        0x5 => { // SRLI/SRAI
-                            const shamt: u6 = @truncate(@as(u32, @bitCast(inst.imm)));
-                            if ((inst.imm >> 10) == 0) { // SRLI
-                                self.emit_lsr_i(0, 0, shamt);
-                            } else { // SRAI
-                                self.emit_asr_i(0, 0, shamt);
-                            }
-                        },
-                        0x2 => { // SLTI (Set Less Than Immediate, signed)
-                            self.emit_mov_u64(1, imm_u);
-                            self.emit_cmp(0, 1); // Compare rs1 (reg 0) with imm (reg 1)
-                            self.emit_cset(0, 0xB); // Set reg 0 to 1 if LT (signed less than), else 0
-                        },
-                        0x3 => { // SLTIU (Set Less Than Immediate Unsigned)
-                            self.emit_mov_u64(1, imm_u);
-                            self.emit_cmp(0, 1); // Compare rs1 (reg 0) with imm (reg 1)
-                            self.emit_cset(0, 0x3); // Set reg 0 to 1 if LO (unsigned less than), else 0
-                        },
-                        else => {},
-                    }
-                    self.emit_str_to_state(0, inst.rd);
-                },
-                0x37 => { // LUI
-                    const imm_u: u64 = @bitCast(@as(i64, inst.imm));
-                    self.emit_mov_u64(0, imm_u);
-                    self.emit_str_to_state(0, inst.rd);
-                },
-                0x17 => { // AUIPC
-                    const imm_u: u64 = @bitCast(@as(i64, inst.imm));
-                    self.emit_mov_u64(0, current_pc);
-                    self.emit_mov_u64(1, imm_u);
-                    self.emit_add(0, 0, 1);
-                    self.emit_str_to_state(0, inst.rd);
-                },
-                0x03 => { // LB, LH, LW, LBU, LHU, LWU, LD (Load)
-                    self.emit_ldr_from_state(1, inst.rs1); // x1 = base
-                    const imm_u: u64 = @bitCast(@as(i64, inst.imm));
-                    self.emit_mov_u64(2, imm_u); // x2 = offset
-                    self.emit_add(1, 1, 2); // x1 = guest_addr
-
-                    // Translate virtual address to physical offset
-                    // Why: Support both kernel (0x80000000+) and framebuffer (0x90000000+) addresses
-                    self.emit_translate_address(1); // x1 = physical offset
-
-                    const size: u2 = switch (inst.funct3) {
-                        0x0, 0x4 => 0, // Byte
-                        0x1, 0x5 => 1, // Half
-                        0x2, 0x6 => 2, // Word
-                        0x3 => 3, // Double
-                        else => 3,
-                    };
-                    const signed = switch (inst.funct3) {
-                        0x0, 0x1, 0x2 => true,
-                        else => false,
-                    };
-
-                    // Load from memory: x0 = [x27 + x1] where x27 is mem_base
-                    self.emit_ldr_reg(0, 27, 1, size, signed);
-                    self.emit_str_to_state(0, inst.rd);
-                },
-                0x23 => { // SB, SH, SW, SD (Store)
-                    self.emit_ldr_from_state(1, inst.rs1); // x1 = base
-                    const imm_u: u64 = @bitCast(@as(i64, inst.imm));
-                    self.emit_mov_u64(2, imm_u); // x2 = offset
-                    self.emit_add(1, 1, 2); // x1 = guest_addr
-
-                    // Translate virtual address to physical offset
-                    // Why: Support both kernel (0x80000000+) and framebuffer (0x90000000+) addresses
-                    self.emit_translate_address(1); // x1 = physical offset
-
-                    self.emit_ldr_from_state(0, inst.rs2); // x0 = value to store
-
-                    const size: u2 = switch (inst.funct3) {
-                        0x0 => 0, // Byte
-                        0x1 => 1, // Half
-                        0x2 => 2, // Word
-                        0x3 => 3, // Double
-                        else => 3,
-                    };
-
-                    // Store to memory: [x27 + x1] = x0 where x27 is mem_base
-                    self.emit_str_reg(0, 27, 1, size);
-                },
-                0x63 => { // BRANCH (B-Type)
-                    self.emit_ldr_from_state(0, inst.rs1);
-                    self.emit_ldr_from_state(1, inst.rs2);
-                    self.emit_subs(31, 0, 1);
-
-                    const cond: u4 = switch (inst.funct3) {
-                        0 => 0x0, // EQ
-                        1 => 0x1, // NE
-                        4 => 0xB, // LT
-                        5 => 0xA, // GE
-                        6 => 0x3, // LO
-                        7 => 0x2, // HS
-                        else => 0xE, // AL
-                    };
-
-                    const patch_pos = self.cursor;
-                    self.emit_b_cond(cond, 0);
-                    try self.record_fixup(current_pc + @as(u64, @bitCast(@as(i64, inst.imm))), patch_pos);
-                },
-                0x6F => { // JAL (J-Type)
-                    const ret_addr = current_pc + 4;
-                    self.emit_mov_u64(0, ret_addr);
-                    self.emit_str_to_state(0, inst.rd);
-
-                    const target_pc = current_pc + @as(u64, @bitCast(@as(i64, inst.imm)));
-                    // Track chain opportunity for direct jumps.
-                    self.perf_counters.chain_opportunities += 1;
-                    
-                    // Try to chain if target block exists in cache.
-                    if (self.block_cache.get(target_pc)) |target_offset| {
-                        // Target block exists: chain directly to it.
-                        const target_func = @ptrCast(@alignCast(@as(*const anyopaque, @ptrFromInt(@intFromPtr(self.code_buffer.ptr) + @as(usize, target_offset)))));
-                        // Emit call to target function instead of branch.
-                        self.emit_call_target(target_func);
-                        // After chained block returns, return to dispatcher.
-                        self.emit_ret();
-                        self.perf_counters.chains_created += 1;
-                    } else {
-                        // Target not compiled yet: use fixup.
-                        const patch_pos = self.cursor;
-                        self.emit_b(0);
-                        try self.record_fixup(target_pc, patch_pos);
-                    }
-
-                    break;
-                },
-                0x67 => { // JALR (I-Type)
-                    const ret_addr = current_pc + 4;
-                    self.emit_mov_u64(0, ret_addr);
-                    self.emit_str_to_state(0, inst.rd);
-
-                    self.emit_ldr_from_state(1, inst.rs1);
-                    const imm_u: u64 = @bitCast(@as(i64, inst.imm));
-                    self.emit_mov_u64(2, imm_u);
-                    self.emit_add(1, 1, 2);
-
-                    self.emit_ret();
-                    break;
-                },
-                else => {
-                    // Unknown
-                },
-            }
+            const should_break = try self.translate_instruction(inst, current_pc);
+            if (should_break) break;
 
             current_pc += fetch_result.len;
             instructions_in_block += 1;
@@ -1518,6 +1313,266 @@ pub const JitContext = struct {
         // GrainStyle: Cast u32 to usize only for pointer arithmetic
         const code_ptr = @intFromPtr(self.code_buffer.ptr) + @as(usize, start_offset);
         return @ptrCast(@alignCast(@as(*const anyopaque, @ptrFromInt(code_ptr))));
+    }
+
+    /// Translate a single instruction to ARM64 code.
+    /// Returns true if execution should break (JAL/JALR), false otherwise.
+    /// Why: Extract instruction translation from compile_block() to meet Grain Style 70-line limit.
+    fn translate_instruction(self: *JitContext, inst: Instruction, current_pc: u64) !bool {
+        switch (inst.opcode) {
+            0x33 => {
+                try self.translate_r_type(inst);
+                return false;
+            },
+            0x13 => {
+                try self.translate_i_type(inst);
+                return false;
+            },
+            0x37 => {
+                self.translate_lui(inst);
+                return false;
+            },
+            0x17 => {
+                self.translate_auipc(inst, current_pc);
+                return false;
+            },
+            0x03 => {
+                try self.translate_load(inst);
+                return false;
+            },
+            0x23 => {
+                try self.translate_store(inst);
+                return false;
+            },
+            0x63 => {
+                try self.translate_branch(inst, current_pc);
+                return false;
+            },
+            0x6F => {
+                try self.translate_jal(inst, current_pc);
+                return true; // JAL breaks block
+            },
+            0x67 => {
+                self.translate_jalr(inst, current_pc);
+                return true; // JALR breaks block
+            },
+            else => {
+                // Unknown opcode
+                return false;
+            },
+        }
+    }
+
+    /// Translate R-type instruction (ADD, SUB, SLL, etc.).
+    fn translate_r_type(self: *JitContext, inst: Instruction) !void {
+        self.emit_ldr_from_state(0, inst.rs1);
+        self.emit_ldr_from_state(1, inst.rs2);
+
+        switch (inst.funct3) {
+            0x0 => { // ADD/SUB
+                if (inst.funct7 == 0x00) { // ADD
+                    self.emit_add(0, 0, 1);
+                } else if (inst.funct7 == 0x20) { // SUB
+                    self.emit_subs(0, 0, 1);
+                }
+            },
+            0x1 => self.emit_lsl_v(0, 0, 1), // SLL
+            0x4 => self.emit_eor(0, 0, 1), // XOR
+            0x5 => { // SRL/SRA
+                if (inst.funct7 == 0x00) { // SRL
+                    self.emit_lsr_v(0, 0, 1);
+                } else if (inst.funct7 == 0x20) { // SRA
+                    self.emit_asr_v(0, 0, 1);
+                }
+            },
+            0x2 => { // SLT (Set Less Than, signed)
+                self.emit_cmp(0, 1);
+                self.emit_cset(0, 0xB); // Set reg 0 to 1 if LT, else 0
+            },
+            0x3 => { // SLTU (Set Less Than Unsigned)
+                self.emit_cmp(0, 1);
+                self.emit_cset(0, 0x3); // Set reg 0 to 1 if LO, else 0
+            },
+            0x6 => self.emit_orr(0, 0, 1), // OR
+            0x7 => self.emit_and(0, 0, 1), // AND
+            else => {},
+        }
+        self.emit_str_to_state(0, inst.rd);
+    }
+
+    /// Translate I-type instruction (ADDI, SLTI, XORI, etc.).
+    fn translate_i_type(self: *JitContext, inst: Instruction) !void {
+        self.emit_ldr_from_state(0, inst.rs1);
+        const imm_u: u64 = @bitCast(@as(i64, inst.imm));
+
+        switch (inst.funct3) {
+            0x0 => { // ADDI
+                self.emit_mov_u64(1, imm_u);
+                self.emit_add(0, 0, 1);
+            },
+            0x4 => { // XORI
+                self.emit_mov_u64(1, imm_u);
+                self.emit_eor(0, 0, 1);
+            },
+            0x6 => { // ORI
+                self.emit_mov_u64(1, imm_u);
+                self.emit_orr(0, 0, 1);
+            },
+            0x7 => { // ANDI
+                self.emit_mov_u64(1, imm_u);
+                self.emit_and(0, 0, 1);
+            },
+            0x1 => { // SLLI
+                const shamt: u6 = @truncate(@as(u32, @bitCast(inst.imm)));
+                self.emit_lsl_i(0, 0, shamt);
+            },
+            0x5 => { // SRLI/SRAI
+                const shamt: u6 = @truncate(@as(u32, @bitCast(inst.imm)));
+                if ((inst.imm >> 10) == 0) { // SRLI
+                    self.emit_lsr_i(0, 0, shamt);
+                } else { // SRAI
+                    self.emit_asr_i(0, 0, shamt);
+                }
+            },
+            0x2 => { // SLTI (Set Less Than Immediate, signed)
+                self.emit_mov_u64(1, imm_u);
+                self.emit_cmp(0, 1);
+                self.emit_cset(0, 0xB); // Set reg 0 to 1 if LT, else 0
+            },
+            0x3 => { // SLTIU (Set Less Than Immediate Unsigned)
+                self.emit_mov_u64(1, imm_u);
+                self.emit_cmp(0, 1);
+                self.emit_cset(0, 0x3); // Set reg 0 to 1 if LO, else 0
+            },
+            else => {},
+        }
+        self.emit_str_to_state(0, inst.rd);
+    }
+
+    /// Translate LUI instruction.
+    fn translate_lui(self: *JitContext, inst: Instruction) void {
+        const imm_u: u64 = @bitCast(@as(i64, inst.imm));
+        self.emit_mov_u64(0, imm_u);
+        self.emit_str_to_state(0, inst.rd);
+    }
+
+    /// Translate AUIPC instruction.
+    fn translate_auipc(self: *JitContext, inst: Instruction, current_pc: u64) void {
+        const imm_u: u64 = @bitCast(@as(i64, inst.imm));
+        self.emit_mov_u64(0, current_pc);
+        self.emit_mov_u64(1, imm_u);
+        self.emit_add(0, 0, 1);
+        self.emit_str_to_state(0, inst.rd);
+    }
+
+    /// Translate load instruction (LB, LH, LW, etc.).
+    fn translate_load(self: *JitContext, inst: Instruction) !void {
+        self.emit_ldr_from_state(1, inst.rs1); // x1 = base
+        const imm_u: u64 = @bitCast(@as(i64, inst.imm));
+        self.emit_mov_u64(2, imm_u); // x2 = offset
+        self.emit_add(1, 1, 2); // x1 = guest_addr
+
+        // Translate virtual address to physical offset
+        self.emit_translate_address(1); // x1 = physical offset
+
+        const size: u2 = switch (inst.funct3) {
+            0x0, 0x4 => 0, // Byte
+            0x1, 0x5 => 1, // Half
+            0x2, 0x6 => 2, // Word
+            0x3 => 3, // Double
+            else => 3,
+        };
+        const signed = switch (inst.funct3) {
+            0x0, 0x1, 0x2 => true,
+            else => false,
+        };
+
+        // Load from memory: x0 = [x27 + x1] where x27 is mem_base
+        self.emit_ldr_reg(0, 27, 1, size, signed);
+        self.emit_str_to_state(0, inst.rd);
+    }
+
+    /// Translate store instruction (SB, SH, SW, SD).
+    fn translate_store(self: *JitContext, inst: Instruction) !void {
+        self.emit_ldr_from_state(1, inst.rs1); // x1 = base
+        const imm_u: u64 = @bitCast(@as(i64, inst.imm));
+        self.emit_mov_u64(2, imm_u); // x2 = offset
+        self.emit_add(1, 1, 2); // x1 = guest_addr
+
+        // Translate virtual address to physical offset
+        self.emit_translate_address(1); // x1 = physical offset
+
+        self.emit_ldr_from_state(0, inst.rs2); // x0 = value to store
+
+        const size: u2 = switch (inst.funct3) {
+            0x0 => 0, // Byte
+            0x1 => 1, // Half
+            0x2 => 2, // Word
+            0x3 => 3, // Double
+            else => 3,
+        };
+
+        // Store to memory: [x27 + x1] = x0 where x27 is mem_base
+        self.emit_str_reg(0, 27, 1, size);
+    }
+
+    /// Translate branch instruction (BEQ, BNE, etc.).
+    fn translate_branch(self: *JitContext, inst: Instruction, current_pc: u64) !void {
+        self.emit_ldr_from_state(0, inst.rs1);
+        self.emit_ldr_from_state(1, inst.rs2);
+        self.emit_subs(31, 0, 1);
+
+        const cond: u4 = switch (inst.funct3) {
+            0 => 0x0, // EQ
+            1 => 0x1, // NE
+            4 => 0xB, // LT
+            5 => 0xA, // GE
+            6 => 0x3, // LO
+            7 => 0x2, // HS
+            else => 0xE, // AL
+        };
+
+        const patch_pos = self.cursor;
+        self.emit_b_cond(cond, 0);
+        try self.record_fixup(current_pc + @as(u64, @bitCast(@as(i64, inst.imm))), patch_pos);
+    }
+
+    /// Translate JAL instruction.
+    fn translate_jal(self: *JitContext, inst: Instruction, current_pc: u64) !void {
+        const ret_addr = current_pc + 4;
+        self.emit_mov_u64(0, ret_addr);
+        self.emit_str_to_state(0, inst.rd);
+
+        const target_pc = current_pc + @as(u64, @bitCast(@as(i64, inst.imm)));
+        self.perf_counters.chain_opportunities += 1;
+        
+        // Try to chain if target block exists in cache.
+        if (self.block_cache.get(target_pc)) |target_offset| {
+            // Target block exists: chain directly to it.
+            const target_func = @ptrCast(@alignCast(@as(*const anyopaque, @ptrFromInt(@intFromPtr(self.code_buffer.ptr) + @as(usize, target_offset)))));
+            self.emit_call_target(target_func);
+            self.emit_ret();
+            self.perf_counters.chains_created += 1;
+        } else {
+            // Target not compiled yet: use fixup.
+            const patch_pos = self.cursor;
+            self.emit_b(0);
+            try self.record_fixup(target_pc, patch_pos);
+        }
+    }
+
+    /// Translate JALR instruction.
+    fn translate_jalr(self: *JitContext, inst: Instruction, current_pc: u64) void {
+        const ret_addr = current_pc + 4;
+        self.emit_mov_u64(0, ret_addr);
+        self.emit_str_to_state(0, inst.rd);
+
+        self.emit_ldr_from_state(1, inst.rs1);
+        const imm_u: u64 = @bitCast(@as(i64, inst.imm));
+        self.emit_mov_u64(2, imm_u);
+        self.emit_add(1, 1, 2);
+
+        self.emit_ret();
     }
 
     /// GrainStyle: Use explicit u32 instead of usize for code buffer offsets

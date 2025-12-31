@@ -10,15 +10,15 @@
 
 **Phase 2 Goal**: Ensure all VM code follows Grain Style strictly (`grain validate-70`, `grainwrap-100`), monitor test failures, and maintain VM stability.
 
-**Current Status**: ⏳ **IN PROGRESS** — Initial analysis complete, major issues identified
+**Current Status**: ✅ **MAJOR PROGRESS** — Critical function length violations resolved
 
 **Key Findings**:
-- ⚠️ **CRITICAL**: `vm.zig::step()` function is ~652 lines (exceeds 70-line limit by ~9x)
-- ⚠️ **CRITICAL**: `jit.zig::compile_block()` function is ~260 lines (exceeds 70-line limit by ~3.7x)
-- ⏳ Line length analysis pending
-- ⏳ Other function length analysis pending
+- ✅ **RESOLVED**: `vm.zig::step()` function refactored from ~652 lines → 63 lines
+- ✅ **RESOLVED**: `jit.zig::compile_block()` function refactored from ~268 lines → 62 lines
+- ✅ All helper functions are under 70 lines
+- ⏳ Line length analysis pending (100-character limit)
 
-**Priority**: HIGH — These are critical Grain Style violations that must be addressed.
+**Priority**: MEDIUM — Function length violations resolved, line length analysis next.
 
 ---
 
@@ -66,62 +66,58 @@
 
 ---
 
-## Refactoring Plan
+## Refactoring Results
 
-### Priority 1: `vm.zig::step()` Function
+### ✅ Priority 1: `vm.zig::step()` Function - COMPLETE
 
-**Current Structure**:
-```zig
-pub fn step(self: *Self) VMError!void {
-    // State checks
-    // Instruction fetch
-    // Instruction decode
-    // Large switch statement (all opcodes)
-    // Statistics tracking
-}
-```
+**Before**: 652 lines  
+**After**: 63 lines
 
-**Proposed Refactoring**:
-1. **Extract instruction fetch/decode**: `fetch_and_decode_instruction()`
-2. **Extract opcode execution**: `execute_opcode(self, opcode, inst)`
-3. **Extract opcode cases**: 
-   - `execute_lui_auipc()`
-   - `execute_i_type()`
-   - `execute_r_type()`
-   - `execute_load()`
-   - `execute_store()`
-   - `execute_branch()`
-   - `execute_jal_jalr()`
-   - `execute_system()`
-4. **Keep `step()` as orchestrator**: ~20-30 lines
+**Refactoring Applied**:
+1. ✅ Extracted opcode execution: `execute_opcode(self, opcode, inst)` (49 lines)
+2. ✅ Extracted instruction type handlers:
+   - `execute_i_type()` (14 lines)
+   - `execute_r_type()` (19 lines) → further split into:
+     - `execute_r_type_add_sub()` (12 lines)
+     - `execute_r_type_sll()` (8 lines)
+     - `execute_r_type_slt()` (10 lines)
+     - `execute_r_type_xor()` (10 lines)
+     - `execute_r_type_srl_sra()` (12 lines)
+     - `execute_r_type_or()` (10 lines)
+     - `execute_r_type_and()` (10 lines)
+   - `execute_load()` (19 lines)
+   - `execute_store()` (15 lines)
+   - `execute_branch()` (18 lines)
+   - `execute_system()` (12 lines)
+   - `execute_jalr_with_validation()` (10 lines)
+3. ✅ Extracted Zig compatibility handlers:
+   - `execute_zig_compat_i_type()` (22 lines)
+   - `execute_zig_compat_r_type()` (14 lines)
+   - `execute_zig_compat_fallback()` (25 lines)
+4. ✅ `step()` now orchestrates: 63 lines
 
-**Estimated Effort**: 2-3 hours
+**Result**: All functions under 70-line limit ✅
 
-### Priority 2: `jit.zig::compile_block()` Function
+### ✅ Priority 2: `jit.zig::compile_block()` Function - COMPLETE
 
-**Current Structure**:
-```zig
-pub fn compile_block(self: *JitContext, guest_pc: u64) !*const fn (*GuestState, []u8) void {
-    // Cache check
-    // Threshold check
-    // Large while loop with switch statement (all instruction types)
-    // Block caching
-    // Fixup application
-}
-```
+**Before**: 268 lines  
+**After**: 62 lines
 
-**Proposed Refactoring**:
-1. **Extract instruction translation**: `translate_instruction(self, inst, current_pc)`
-2. **Extract instruction type handlers**:
-   - `translate_r_type()`
-   - `translate_i_type()`
-   - `translate_load()`
-   - `translate_store()`
-   - `translate_branch()`
-   - `translate_jal_jalr()`
-3. **Keep `compile_block()` as orchestrator**: ~30-40 lines
+**Refactoring Applied**:
+1. ✅ Extracted instruction translation: `translate_instruction(self, inst, current_pc)` (44 lines)
+2. ✅ Extracted instruction type handlers:
+   - `translate_r_type()` (35 lines)
+   - `translate_i_type()` (47 lines)
+   - `translate_lui()` (5 lines)
+   - `translate_auipc()` (7 lines)
+   - `translate_load()` (25 lines)
+   - `translate_store()` (22 lines)
+   - `translate_branch()` (19 lines)
+   - `translate_jal()` (22 lines)
+   - `translate_jalr()` (12 lines)
+3. ✅ `compile_block()` now orchestrates: 62 lines
 
-**Estimated Effort**: 2-3 hours
+**Result**: All functions under 70-line limit ✅
 
 ### Priority 3: Line Length Compliance
 
@@ -162,14 +158,20 @@ pub fn compile_block(self: *JitContext, guest_pc: u64) !*const fn (*GuestState, 
 - ✅ Phase 2 approved by Vantage 3 Subcore
 - ✅ Initial analysis started
 - ✅ Critical violations identified (`step()`, `compile_block()`)
+- ✅ Refactored `vm.zig::step()` function (652 → 63 lines)
+  - Extracted `execute_opcode()` (49 lines)
+  - Extracted `execute_i_type()`, `execute_r_type()`, `execute_load()`, `execute_store()`, `execute_branch()`, `execute_system()` (all <70 lines)
+  - Extracted R-type helpers: `execute_r_type_add_sub()`, `execute_r_type_sll()`, etc. (all <20 lines)
+  - Extracted Zig compatibility helpers (all <30 lines)
+- ✅ Refactored `jit.zig::compile_block()` function (268 → 62 lines)
+  - Extracted `translate_instruction()` (44 lines)
+  - Extracted `translate_r_type()`, `translate_i_type()`, `translate_load()`, `translate_store()`, `translate_branch()`, `translate_jal()`, `translate_jalr()` (all <50 lines)
+  - Extracted `translate_lui()`, `translate_auipc()` (all <10 lines)
 
 ### In Progress
-- ⏳ Function length analysis (identifying all violations)
-- ⏳ Line length analysis (pending)
+- ⏳ Line length analysis (100-character limit)
 
 ### Pending
-- ⏳ Refactor `vm.zig::step()` function
-- ⏳ Refactor `jit.zig::compile_block()` function
 - ⏳ Fix line length violations
 - ⏳ Run test suite after refactoring
 - ⏳ Update coordination document
@@ -178,15 +180,17 @@ pub fn compile_block(self: *JitContext, guest_pc: u64) !*const fn (*GuestState, 
 
 ## Next Steps
 
-1. **Complete function length analysis** (identify all functions > 70 lines)
-2. **Complete line length analysis** (identify all lines > 100 characters)
-3. **Create detailed refactoring plan** for each violation
-4. **Begin refactoring** with highest priority (`vm.zig::step()`)
-5. **Test after each refactoring** to ensure correctness
-6. **Update coordination document** with progress
+1. ✅ **Complete function length analysis** (identify all functions > 70 lines) - DONE
+2. ⏳ **Complete line length analysis** (identify all lines > 100 characters) - IN PROGRESS
+3. ✅ **Create detailed refactoring plan** for each violation - DONE
+4. ✅ **Begin refactoring** with highest priority (`vm.zig::step()`) - DONE
+5. ✅ **Refactor `jit.zig::compile_block()`** - DONE
+6. ⏳ **Test after refactoring** to ensure correctness - PENDING
+7. ⏳ **Fix line length violations** - PENDING
+8. ⏳ **Update coordination document** with progress - IN PROGRESS
 
 ---
 
-**Date**: 2025-12-30-223543-pst  
+**Date**: 2025-12-30-223543-pst (updated)  
 **Agent**: Grain VM Runtime Agent (3b)  
-**Status**: Phase 2 In Progress — Critical Violations Identified
+**Status**: Phase 2 In Progress — Critical Function Length Violations Resolved ✅

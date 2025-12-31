@@ -1,6 +1,6 @@
 # Core Coordination: Grain Basin Kernel Agent
 
-**Last Updated**: 2025-12-30-235900-pst  
+**Last Updated**: 2025-12-31-000500-pst  
 **Agent**: Grain Basin Kernel Agent (3a)  
 **Parent Agent**: Grain Vantage 3 Subcore Agent (3rd Agent, L1 Subcore)  
 **Status**: ⏳ **PERFORMANCE DATA COLLECTION** — Profiler infrastructure complete, code review complete, ready for data collection
@@ -300,7 +300,7 @@
   - `get_profiler_top_syscalls_by_count()` - Top N hot paths (NEW)
   - `get_profiler_top_syscalls_by_time()` - Top N slow paths (NEW)
 - ✅ **Code review completed** - Hot path and slow path candidates reviewed, optimization opportunities identified and documented
-  - Reviewed: `yield`, `read`/`write`, `clock_gettime`, `sysinfo`, `spawn`, `map`/`unmap`, network syscalls, **file syscalls**, **audio syscalls** (NEW)
+  - Reviewed: `yield`, `read`/`write`, `clock_gettime`, `sysinfo`, `spawn`, `map`/`unmap`, network syscalls, **file syscalls**, **audio syscalls**, **channel syscalls** (NEW)
   - File syscalls: `open`, `read`, `write`, `close`, `unlink`, `rename`, `opendir`/`readdir`/`closedir` all use linear search for handle lookup
   - Audio syscalls: Device operations use linear search through MAX_AUDIO_DEVICES=16 (small array, low priority)
 - ✅ **Enhanced profiler** - Added top N analysis functions for comprehensive performance analysis

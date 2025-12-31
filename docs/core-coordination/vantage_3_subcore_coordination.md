@@ -409,10 +409,10 @@
 
 **Status**: ✅ **All L2 Sub-Agents Initialized** (2025-12-29-140000-pst)
 
-**Sub-Agent Status**:
-- ✅ **Basin Kernel Agent (3a)**: Coordination, plan, tasks files created ✅ — Performance data collection in progress
-- ✅ **VM Runtime Agent (3b)**: Coordination, plan, tasks files created ✅ — Phase 1 ~85-90% complete, ready for check-in
-- ✅ **System Integration Agent (3c)**: Coordination, plan, tasks files created ✅ — AArch64 code removed, RISC-V compliance validation in progress
+**Sub-Agent Status** (Working in Parallel):
+- ✅ **Basin Kernel Agent (3a)**: Code review complete ✅, optimization roadmap created ✅, ready for profiler data collection
+- ✅ **VM Runtime Agent (3b)**: Phase 1 complete ✅, Phase 2 started ✅, critical Grain Style violations identified (vm.zig::step() 652 lines, jit.zig::compile_block() 260 lines)
+- ✅ **System Integration Agent (3c)**: AArch64 removed ✅, RISC-V compliance validation ready ✅, cross-sub-agent coordination with 3a complete ✅
 
 **Coordination Responsibilities**:
 - ⏳ **Coordinate weekly/bi-weekly** — Review sub-agent coordination docs, make architecture decisions

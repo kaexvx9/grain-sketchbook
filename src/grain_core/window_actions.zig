@@ -10,6 +10,13 @@ const compositor = @import("compositor.zig");
 // Window action: function that modifies window position/size.
 pub const WindowAction = *const fn (*compositor.Compositor, u32) bool;
 
+// Calculate content height (screen height minus borders and title bar).
+fn calc_content_height(comp: *const compositor.Compositor) u32 {
+    return comp.output.height -
+        (compositor.BORDER_WIDTH * 2) -
+        compositor.TITLE_BAR_HEIGHT;
+}
+
 // Move window to left half of screen.
 pub fn action_left_half(comp: *compositor.Compositor, window_id: u32) bool {
     std.debug.assert(window_id > 0);
@@ -17,7 +24,7 @@ pub fn action_left_half(comp: *compositor.Compositor, window_id: u32) bool {
         win.x = @as(i32, @intCast(compositor.BORDER_WIDTH));
         win.y = @as(i32, @intCast(compositor.BORDER_WIDTH + compositor.TITLE_BAR_HEIGHT));
         win.width = comp.output.width / 2;
-        win.height = comp.output.height - (compositor.BORDER_WIDTH * 2) - compositor.TITLE_BAR_HEIGHT;
+        win.height = calc_content_height(comp);
         comp.recalculate_layout();
         return true;
     }
@@ -31,7 +38,7 @@ pub fn action_right_half(comp: *compositor.Compositor, window_id: u32) bool {
         win.x = @as(i32, @intCast(comp.output.width / 2));
         win.y = @as(i32, @intCast(compositor.BORDER_WIDTH + compositor.TITLE_BAR_HEIGHT));
         win.width = comp.output.width / 2;
-        win.height = comp.output.height - (compositor.BORDER_WIDTH * 2) - compositor.TITLE_BAR_HEIGHT;
+        win.height = calc_content_height(comp);
         comp.recalculate_layout();
         return true;
     }
@@ -45,7 +52,7 @@ pub fn action_top_half(comp: *compositor.Compositor, window_id: u32) bool {
         win.x = @as(i32, @intCast(compositor.BORDER_WIDTH));
         win.y = @as(i32, @intCast(compositor.BORDER_WIDTH + compositor.TITLE_BAR_HEIGHT));
         win.width = comp.output.width - (compositor.BORDER_WIDTH * 2);
-        win.height = (comp.output.height - (compositor.BORDER_WIDTH * 2) - compositor.TITLE_BAR_HEIGHT) / 2;
+        win.height = calc_content_height(comp) / 2;
         comp.recalculate_layout();
         return true;
     }
@@ -56,10 +63,12 @@ pub fn action_top_half(comp: *compositor.Compositor, window_id: u32) bool {
 pub fn action_bottom_half(comp: *compositor.Compositor, window_id: u32) bool {
     std.debug.assert(window_id > 0);
     if (comp.get_window(window_id)) |win| {
-        const content_height = comp.output.height - (compositor.BORDER_WIDTH * 2) - compositor.TITLE_BAR_HEIGHT;
+        const content_height = calc_content_height(comp);
         const half_height = content_height / 2;
         win.x = @as(i32, @intCast(compositor.BORDER_WIDTH));
-        win.y = @as(i32, @intCast(compositor.BORDER_WIDTH + compositor.TITLE_BAR_HEIGHT + half_height));
+        const title_bar_offset = compositor.BORDER_WIDTH +
+            compositor.TITLE_BAR_HEIGHT;
+        win.y = @as(i32, @intCast(title_bar_offset + half_height));
         win.width = comp.output.width - (compositor.BORDER_WIDTH * 2);
         win.height = half_height;
         comp.recalculate_layout();
@@ -72,7 +81,7 @@ pub fn action_bottom_half(comp: *compositor.Compositor, window_id: u32) bool {
 pub fn action_top_left(comp: *compositor.Compositor, window_id: u32) bool {
     std.debug.assert(window_id > 0);
     if (comp.get_window(window_id)) |win| {
-        const content_height = comp.output.height - (compositor.BORDER_WIDTH * 2) - compositor.TITLE_BAR_HEIGHT;
+        const content_height = calc_content_height(comp);
         win.x = @as(i32, @intCast(compositor.BORDER_WIDTH));
         win.y = @as(i32, @intCast(compositor.BORDER_WIDTH + compositor.TITLE_BAR_HEIGHT));
         win.width = comp.output.width / 2;
@@ -87,7 +96,7 @@ pub fn action_top_left(comp: *compositor.Compositor, window_id: u32) bool {
 pub fn action_top_right(comp: *compositor.Compositor, window_id: u32) bool {
     std.debug.assert(window_id > 0);
     if (comp.get_window(window_id)) |win| {
-        const content_height = comp.output.height - (compositor.BORDER_WIDTH * 2) - compositor.TITLE_BAR_HEIGHT;
+        const content_height = calc_content_height(comp);
         win.x = @as(i32, @intCast(comp.output.width / 2));
         win.y = @as(i32, @intCast(compositor.BORDER_WIDTH + compositor.TITLE_BAR_HEIGHT));
         win.width = comp.output.width / 2;
@@ -102,10 +111,12 @@ pub fn action_top_right(comp: *compositor.Compositor, window_id: u32) bool {
 pub fn action_bottom_left(comp: *compositor.Compositor, window_id: u32) bool {
     std.debug.assert(window_id > 0);
     if (comp.get_window(window_id)) |win| {
-        const content_height = comp.output.height - (compositor.BORDER_WIDTH * 2) - compositor.TITLE_BAR_HEIGHT;
+        const content_height = calc_content_height(comp);
         const half_height = content_height / 2;
         win.x = @as(i32, @intCast(compositor.BORDER_WIDTH));
-        win.y = @as(i32, @intCast(compositor.BORDER_WIDTH + compositor.TITLE_BAR_HEIGHT + half_height));
+        const title_bar_offset = compositor.BORDER_WIDTH +
+            compositor.TITLE_BAR_HEIGHT;
+        win.y = @as(i32, @intCast(title_bar_offset + half_height));
         win.width = comp.output.width / 2;
         win.height = half_height;
         comp.recalculate_layout();
@@ -118,10 +129,12 @@ pub fn action_bottom_left(comp: *compositor.Compositor, window_id: u32) bool {
 pub fn action_bottom_right(comp: *compositor.Compositor, window_id: u32) bool {
     std.debug.assert(window_id > 0);
     if (comp.get_window(window_id)) |win| {
-        const content_height = comp.output.height - (compositor.BORDER_WIDTH * 2) - compositor.TITLE_BAR_HEIGHT;
+        const content_height = calc_content_height(comp);
         const half_height = content_height / 2;
         win.x = @as(i32, @intCast(comp.output.width / 2));
-        win.y = @as(i32, @intCast(compositor.BORDER_WIDTH + compositor.TITLE_BAR_HEIGHT + half_height));
+        const title_bar_offset = compositor.BORDER_WIDTH +
+            compositor.TITLE_BAR_HEIGHT;
+        win.y = @as(i32, @intCast(title_bar_offset + half_height));
         win.width = comp.output.width / 2;
         win.height = half_height;
         comp.recalculate_layout();
@@ -134,7 +147,7 @@ pub fn action_bottom_right(comp: *compositor.Compositor, window_id: u32) bool {
 pub fn action_first_third(comp: *compositor.Compositor, window_id: u32) bool {
     std.debug.assert(window_id > 0);
     if (comp.get_window(window_id)) |win| {
-        const content_height = comp.output.height - (compositor.BORDER_WIDTH * 2) - compositor.TITLE_BAR_HEIGHT;
+        const content_height = calc_content_height(comp);
         win.x = @as(i32, @intCast(compositor.BORDER_WIDTH));
         win.y = @as(i32, @intCast(compositor.BORDER_WIDTH + compositor.TITLE_BAR_HEIGHT));
         win.width = comp.output.width / 3;
@@ -149,7 +162,7 @@ pub fn action_first_third(comp: *compositor.Compositor, window_id: u32) bool {
 pub fn action_center_third(comp: *compositor.Compositor, window_id: u32) bool {
     std.debug.assert(window_id > 0);
     if (comp.get_window(window_id)) |win| {
-        const content_height = comp.output.height - (compositor.BORDER_WIDTH * 2) - compositor.TITLE_BAR_HEIGHT;
+        const content_height = calc_content_height(comp);
         const third_width = comp.output.width / 3;
         win.x = @as(i32, @intCast(third_width));
         win.y = @as(i32, @intCast(compositor.BORDER_WIDTH + compositor.TITLE_BAR_HEIGHT));
@@ -165,7 +178,7 @@ pub fn action_center_third(comp: *compositor.Compositor, window_id: u32) bool {
 pub fn action_last_third(comp: *compositor.Compositor, window_id: u32) bool {
     std.debug.assert(window_id > 0);
     if (comp.get_window(window_id)) |win| {
-        const content_height = comp.output.height - (compositor.BORDER_WIDTH * 2) - compositor.TITLE_BAR_HEIGHT;
+        const content_height = calc_content_height(comp);
         const two_thirds = (comp.output.width * 2) / 3;
         win.x = @as(i32, @intCast(two_thirds));
         win.y = @as(i32, @intCast(compositor.BORDER_WIDTH + compositor.TITLE_BAR_HEIGHT));
@@ -181,7 +194,7 @@ pub fn action_last_third(comp: *compositor.Compositor, window_id: u32) bool {
 pub fn action_first_two_thirds(comp: *compositor.Compositor, window_id: u32) bool {
     std.debug.assert(window_id > 0);
     if (comp.get_window(window_id)) |win| {
-        const content_height = comp.output.height - (compositor.BORDER_WIDTH * 2) - compositor.TITLE_BAR_HEIGHT;
+        const content_height = calc_content_height(comp);
         win.x = @as(i32, @intCast(compositor.BORDER_WIDTH));
         win.y = @as(i32, @intCast(compositor.BORDER_WIDTH + compositor.TITLE_BAR_HEIGHT));
         win.width = (comp.output.width * 2) / 3;
@@ -196,7 +209,7 @@ pub fn action_first_two_thirds(comp: *compositor.Compositor, window_id: u32) boo
 pub fn action_last_two_thirds(comp: *compositor.Compositor, window_id: u32) bool {
     std.debug.assert(window_id > 0);
     if (comp.get_window(window_id)) |win| {
-        const content_height = comp.output.height - (compositor.BORDER_WIDTH * 2) - compositor.TITLE_BAR_HEIGHT;
+        const content_height = calc_content_height(comp);
         const third_width = comp.output.width / 3;
         win.x = @as(i32, @intCast(third_width));
         win.y = @as(i32, @intCast(compositor.BORDER_WIDTH + compositor.TITLE_BAR_HEIGHT));
@@ -213,11 +226,13 @@ pub fn action_center(comp: *compositor.Compositor, window_id: u32) bool {
     std.debug.assert(window_id > 0);
     if (comp.get_window(window_id)) |win| {
         const content_width = comp.output.width - (compositor.BORDER_WIDTH * 2);
-        const content_height = comp.output.height - (compositor.BORDER_WIDTH * 2) - compositor.TITLE_BAR_HEIGHT;
+        const content_height = calc_content_height(comp);
         const center_x = (content_width - win.width) / 2;
         const center_y = (content_height - win.height) / 2;
         win.x = @as(i32, @intCast(compositor.BORDER_WIDTH + center_x));
-        win.y = @as(i32, @intCast(compositor.BORDER_WIDTH + compositor.TITLE_BAR_HEIGHT + center_y));
+        const title_bar_offset = compositor.BORDER_WIDTH +
+            compositor.TITLE_BAR_HEIGHT;
+        win.y = @as(i32, @intCast(title_bar_offset + center_y));
         comp.recalculate_layout();
         return true;
     }
@@ -231,7 +246,7 @@ pub fn action_larger(comp: *compositor.Compositor, window_id: u32) bool {
         const new_width = win.width + (win.width / 10);
         const new_height = win.height + (win.height / 10);
         const max_width = comp.output.width - (compositor.BORDER_WIDTH * 2);
-        const max_height = comp.output.height - (compositor.BORDER_WIDTH * 2) - compositor.TITLE_BAR_HEIGHT;
+        const max_height = calc_content_height(comp);
         win.width = if (new_width > max_width) max_width else new_width;
         win.height = if (new_height > max_height) max_height else new_height;
         comp.recalculate_layout();
@@ -245,8 +260,16 @@ pub fn action_smaller(comp: *compositor.Compositor, window_id: u32) bool {
     std.debug.assert(window_id > 0);
     if (comp.get_window(window_id)) |win| {
         const min_size: u32 = 100;
-        const new_width = if (win.width > win.width / 10) win.width - (win.width / 10) else min_size;
-        const new_height = if (win.height > win.height / 10) win.height - (win.height / 10) else min_size;
+        const width_decrease = win.width / 10;
+        const new_width = if (win.width > width_decrease)
+            win.width - width_decrease
+        else
+            min_size;
+        const height_decrease = win.height / 10;
+        const new_height = if (win.height > height_decrease)
+            win.height - height_decrease
+        else
+            min_size;
         win.width = if (new_width < min_size) min_size else new_width;
         win.height = if (new_height < min_size) min_size else new_height;
         comp.recalculate_layout();
@@ -260,7 +283,7 @@ pub fn action_maximize_height(comp: *compositor.Compositor, window_id: u32) bool
     std.debug.assert(window_id > 0);
     if (comp.get_window(window_id)) |win| {
         win.y = @as(i32, @intCast(compositor.BORDER_WIDTH + compositor.TITLE_BAR_HEIGHT));
-        win.height = comp.output.height - (compositor.BORDER_WIDTH * 2) - compositor.TITLE_BAR_HEIGHT;
+        win.height = calc_content_height(comp);
         comp.recalculate_layout();
         return true;
     }

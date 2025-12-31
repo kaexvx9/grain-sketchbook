@@ -63,7 +63,7 @@ pub const HttpHeader = struct {
     value_len: u32,
 
     pub fn init() HttpHeader {
-        var header = HttpHeader{
+        const header = HttpHeader{
             .name = undefined,
             .name_len = 0,
             .value = undefined,
@@ -88,7 +88,7 @@ pub const HttpRequest = struct {
     body_len: u32,
 
     pub fn init() HttpRequest {
-        var req = HttpRequest{
+        const req = HttpRequest{
             .method = HttpMethod.get,
             .path = undefined,
             .path_len = 0,
@@ -179,7 +179,7 @@ pub const HttpResponse = struct {
     body_len: u32,
 
     pub fn init() HttpResponse {
-        var resp = HttpResponse{
+        const resp = HttpResponse{
             .status = HttpStatus.ok,
             .headers = undefined,
             .headers_len = 0,
@@ -250,7 +250,7 @@ pub const Route = struct {
     active: bool,
 
     pub fn init() Route {
-        var route = Route{
+        const route = Route{
             .method = HttpMethod.get,
             .path_pattern = undefined,
             .path_pattern_len = 0,
@@ -276,7 +276,7 @@ pub const ApiServer = struct {
 
     pub fn init(port: u16) ApiServer {
         std.debug.assert(port > 0);
-        var server = ApiServer{
+        const server = ApiServer{
             .routes = undefined,
             .routes_len = 0,
             .port = port,
@@ -368,11 +368,12 @@ pub const ApiServer = struct {
 
     // Execute middleware chain for route.
     pub fn execute_middleware_chain(
-        self: *const ApiServer,
+        _self: *const ApiServer,
         route: *const Route,
         request: *HttpRequest,
         response: *HttpResponse,
     ) bool {
+        _ = _self;
         std.debug.assert(route.active);
         std.debug.assert(route.middleware_len <= 8);
         var i: u32 = 0;
@@ -525,6 +526,7 @@ pub const ApiServer = struct {
     pub fn is_running(self: *const ApiServer) bool {
         std.debug.assert(self.routes_len <= MAX_ROUTES);
         const running = self.running;
+        std.debug.assert(self.routes_len <= MAX_ROUTES);
         return running;
     }
 
@@ -598,13 +600,16 @@ pub const ApiServer = struct {
     // Find body start position.
     fn find_body_start(raw_request: []const u8) ?u32 {
         std.debug.assert(raw_request.len > 0);
+        std.debug.assert(raw_request.len <= MAX_REQUEST_SIZE);
         var i: u32 = 0;
         var header_end_count: u32 = 0;
         while (i < raw_request.len) : (i += 1) {
             if (raw_request[i] == '\r' and i + 1 < raw_request.len and raw_request[i + 1] == '\n') {
                 header_end_count += 1;
                 if (header_end_count >= 2) {
-                    return i + 2;
+                    const body_start = i + 2;
+                    std.debug.assert(body_start <= raw_request.len);
+                    return body_start;
                 }
                 i += 1;
             }
@@ -679,6 +684,7 @@ pub const ApiServer = struct {
 
     // Get HTTP status line string.
     fn get_status_line(status: HttpStatus) []const u8 {
+        std.debug.assert(@intFromEnum(status) >= 200);
         const status_line = switch (status) {
             HttpStatus.ok => "HTTP/1.1 200 OK\r\n",
             HttpStatus.created => "HTTP/1.1 201 Created\r\n",
@@ -721,6 +727,7 @@ pub const ApiServer = struct {
         pos: *u32,
     ) bool {
         std.debug.assert(output.len > 0);
+        std.debug.assert(response.headers_len <= MAX_HEADERS);
         var i: u32 = 0;
         while (i < response.headers_len) : (i += 1) {
             const name_len = response.headers[i].name_len;
@@ -748,6 +755,7 @@ pub const ApiServer = struct {
             output[pos.*] = '\n';
             pos.* += 1;
         }
+        std.debug.assert(pos.* <= output.len);
         return true;
     }
 
@@ -758,6 +766,7 @@ pub const ApiServer = struct {
         pos: *u32,
     ) bool {
         std.debug.assert(output.len > 0);
+        std.debug.assert(response.body_len <= MAX_RESPONSE_SIZE);
         if (response.body_len > 0) {
             if (pos.* + response.body_len > output.len) {
                 return false;
@@ -768,6 +777,7 @@ pub const ApiServer = struct {
                 pos.* += 1;
             }
         }
+        std.debug.assert(pos.* <= output.len);
         return true;
     }
 
@@ -777,8 +787,8 @@ pub const ApiServer = struct {
         response: *const HttpResponse,
         output: []u8,
     ) ?u32 {
-        _ = self;
         std.debug.assert(output.len > 0);
+        std.debug.assert(response.body_len <= MAX_RESPONSE_SIZE);
         var pos: u32 = 0;
         const status_line = self.get_status_line(response.status);
         if (!self.write_status_line(status_line, output, &pos)) {
@@ -797,6 +807,7 @@ pub const ApiServer = struct {
         if (!self.write_body(response, output, &pos)) {
             return null;
         }
+        std.debug.assert(pos <= output.len);
         return pos;
     }
 
@@ -873,6 +884,7 @@ pub const ApiServer = struct {
     ) ?i64 {
         _ = self;
         std.debug.assert(key.len > 0);
+        std.debug.assert(request.body_len <= MAX_REQUEST_SIZE);
         if (request.body_len == 0) {
             return null;
         }
@@ -880,7 +892,9 @@ pub const ApiServer = struct {
         const json_helpers = @import("json_helpers.zig");
         if (json_helpers.find_json_key(body, key)) |result| {
             var result_mut = result;
-            return json_helpers.extract_json_number_value(body, &result_mut);
+            const number = json_helpers.extract_json_number_value(body, &result_mut);
+            std.debug.assert(number != null);
+            return number;
         }
         return null;
     }
@@ -893,6 +907,7 @@ pub const ApiServer = struct {
     ) ?bool {
         _ = self;
         std.debug.assert(key.len > 0);
+        std.debug.assert(request.body_len <= MAX_REQUEST_SIZE);
         if (request.body_len == 0) {
             return null;
         }
@@ -900,7 +915,9 @@ pub const ApiServer = struct {
         const json_helpers = @import("json_helpers.zig");
         if (json_helpers.find_json_key(body, key)) |result| {
             var result_mut = result;
-            return json_helpers.extract_json_bool_value(body, &result_mut);
+            const bool_val = json_helpers.extract_json_bool_value(body, &result_mut);
+            std.debug.assert(bool_val != null);
+            return bool_val;
         }
         return null;
     }
@@ -948,6 +965,7 @@ pub const ApiServer = struct {
     ) bool {
         _ = self;
         std.debug.assert(key.len > 0);
+        std.debug.assert(response.body_len <= MAX_RESPONSE_SIZE);
         if (response.body_len + key.len + 32 > MAX_RESPONSE_SIZE) {
             return false;
         }
@@ -969,6 +987,7 @@ pub const ApiServer = struct {
             return false;
         }
         response.body_len = pos;
+        std.debug.assert(response.body_len <= MAX_RESPONSE_SIZE);
         return true;
     }
 
@@ -981,6 +1000,7 @@ pub const ApiServer = struct {
     ) bool {
         _ = self;
         std.debug.assert(key.len > 0);
+        std.debug.assert(response.body_len <= MAX_RESPONSE_SIZE);
         if (response.body_len + key.len + 8 > MAX_RESPONSE_SIZE) {
             return false;
         }
@@ -1002,6 +1022,7 @@ pub const ApiServer = struct {
             return false;
         }
         response.body_len = pos;
+        std.debug.assert(response.body_len <= MAX_RESPONSE_SIZE);
         return true;
     }
 
@@ -1011,11 +1032,13 @@ pub const ApiServer = struct {
         response: *HttpResponse,
     ) bool {
         _ = self;
+        std.debug.assert(response.body_len <= MAX_RESPONSE_SIZE);
         if (response.body_len >= MAX_RESPONSE_SIZE) {
             return false;
         }
         response.body[response.body_len] = '}';
         response.body_len += 1;
+        std.debug.assert(response.body_len <= MAX_RESPONSE_SIZE);
         return true;
     }
 };

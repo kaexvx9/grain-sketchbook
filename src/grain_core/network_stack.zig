@@ -148,7 +148,7 @@ pub const NetworkStack = struct {
         }
         const socket_id = self.next_socket_id;
         self.next_socket_id += 1;
-        var socket = Socket.init(socket_id, SocketType.tcp);
+        const socket = Socket.init(socket_id, SocketType.tcp);
         var i: u32 = 0;
         while (i < MAX_SOCKETS) : (i += 1) {
             if (self.sockets[i] == null) {
@@ -169,7 +169,7 @@ pub const NetworkStack = struct {
         }
         const socket_id = self.next_socket_id;
         self.next_socket_id += 1;
-        var socket = Socket.init(socket_id, SocketType.udp);
+        const socket = Socket.init(socket_id, SocketType.udp);
         var i: u32 = 0;
         while (i < MAX_SOCKETS) : (i += 1) {
             if (self.sockets[i] == null) {

@@ -153,6 +153,73 @@ test "identify slow paths" {
     try testing.expect(summary.total_execution_time_ns > 0);
 }
 
+// Test: Get top N hot paths using new helper function.
+test "get top hot paths" {
+    var kernel = BasinKernel.init();
+    kernel.syscall_profiler.enable();
+    
+    // Run different syscalls with varying frequencies.
+    const yield_iterations: u32 = 150;
+    const sysinfo_iterations: u32 = 75;
+    const health_check_iterations: u32 = 25;
+    
+    var i: u32 = 0;
+    while (i < yield_iterations) : (i += 1) {
+        _ = kernel.handle_syscall(@intFromEnum(Syscall.yield), 0, 0, 0, 0) catch {};
+    }
+    
+    i = 0;
+    while (i < sysinfo_iterations) : (i += 1) {
+        _ = kernel.handle_syscall(@intFromEnum(Syscall.sysinfo), 0x1000, 0, 0, 0) catch {};
+    }
+    
+    i = 0;
+    while (i < health_check_iterations) : (i += 1) {
+        _ = kernel.handle_syscall(@intFromEnum(Syscall.health_check), 0, 0, 0, 0) catch {};
+    }
+    
+    // Get top 3 hot paths.
+    const top_hot = kernel.get_profiler_top_syscalls_by_count(3);
+    
+    // Assert: Should have at least some entries.
+    try testing.expect(top_hot.count > 0);
+    
+    // Assert: First entry should be yield (most frequently called).
+    if (top_hot.count > 0) {
+        try testing.expect(top_hot.entries[0].call_count >= yield_iterations);
+    }
+    
+    // Assert: Entries should be sorted by call count (descending).
+    var j: u32 = 1;
+    while (j < top_hot.count) : (j += 1) {
+        try testing.expect(top_hot.entries[j - 1].call_count >= top_hot.entries[j].call_count);
+    }
+}
+
+// Test: Get top N slow paths using new helper function.
+test "get top slow paths" {
+    var kernel = BasinKernel.init();
+    kernel.syscall_profiler.enable();
+    
+    // Run various syscalls to collect timing data.
+    _ = kernel.handle_syscall(@intFromEnum(Syscall.yield), 0, 0, 0, 0) catch {};
+    _ = kernel.handle_syscall(@intFromEnum(Syscall.sysinfo), 0x1000, 0, 0, 0) catch {};
+    _ = kernel.handle_syscall(@intFromEnum(Syscall.health_check), 0, 0, 0, 0) catch {};
+    
+    // Get top 3 slow paths.
+    const top_slow = kernel.get_profiler_top_syscalls_by_time(3);
+    
+    // Assert: Should have at least some entries if syscalls succeeded.
+    // Note: May be empty if all syscalls failed.
+    if (top_slow.count > 0) {
+        // Assert: Entries should be sorted by average time (descending).
+        var j: u32 = 1;
+        while (j < top_slow.count) : (j += 1) {
+            try testing.expect(top_slow.entries[j - 1].avg_time_ns >= top_slow.entries[j].avg_time_ns);
+        }
+    }
+}
+
 // Test: Profiler reset and new measurement period.
 test "profiler reset new measurement" {
     var kernel = BasinKernel.init();

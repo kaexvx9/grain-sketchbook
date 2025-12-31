@@ -179,7 +179,20 @@ These syscalls may have high execution times due to complexity:
    - **Priority**: Low (small arrays, unlikely to be hot paths)
    - **Note**: MAX_AUDIO_DEVICES=16 is small, so linear search is effectively constant time
 
-5. **Network Syscalls** (Syscalls 90-116):
+5. **Channel Syscalls** (Syscalls 20-22):
+   - IPC channel operations (create, send, recv)
+   - **Current Implementation**:
+     - `syscall_channel_create`: Creates channel, finds channel by ID (channels.find - linear search through MAX_CHANNELS=64)
+     - `syscall_channel_send`: Finds channel by ID (linear search), calls timer for timeout, reads from VM memory, sends message
+     - `syscall_channel_recv`: Finds channel by ID (linear search), calls timer for timeout, receives message, writes to VM memory
+   - **Optimization Opportunities**:
+     - **Channel lookup**: `channels.find()` uses linear search O(n) through MAX_CHANNELS=64 - **MEDIUM PRIORITY** (if IPC is hot path)
+     - **Timer calls**: `get_monotonic_ns()` for timeout checking (same pattern as read/write) - **MEDIUM PRIORITY**
+     - **VM memory operations**: Reading/writing from VM memory (necessary overhead) - **LOW PRIORITY**
+   - **Priority**: Medium (if IPC operations are hot paths)
+   - **Note**: Channel operations involve VM memory I/O which may be the dominant cost
+
+6. **Network Syscalls** (Syscalls 90-116):
    - TCP/UDP operations, network stack processing
    - **Current Implementation**:
      - Validates arguments (socket ID, data pointers, lengths)

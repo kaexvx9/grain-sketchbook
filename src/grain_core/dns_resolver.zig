@@ -200,7 +200,6 @@ pub const DnsResolver = struct {
             }
             return true;
         }
-        _ = current_time;
         return false;
     }
 };

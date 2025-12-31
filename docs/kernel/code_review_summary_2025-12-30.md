@@ -131,7 +131,20 @@ Following Vantage 3 Subcore guidance (2025-12-30-223543-pst), conducted comprehe
 - **Priority**: Low (small arrays, unlikely to be hot paths)
 - **Note**: MAX_AUDIO_DEVICES=16 is small, so linear search is effectively constant time
 
-### 5. Network Syscalls (Syscalls 90-116)
+### 5. Channel Syscalls (Syscalls 20-22)
+- **Status**: ✅ **Reviewed**
+- **Implementation**:
+  - `syscall_channel_create`: Creates channel, finds channel by ID (channels.find - likely linear search)
+  - `syscall_channel_send`: Finds channel by ID, calls timer for timeout, reads from VM memory, sends message
+  - `syscall_channel_recv`: Finds channel by ID, calls timer for timeout, receives message, writes to VM memory
+- **Optimization Opportunities**:
+  - **Channel lookup**: `channels.find()` likely uses linear search through channel table - **MEDIUM PRIORITY** (if IPC is hot path)
+  - **Timer calls**: `get_monotonic_ns()` for timeout checking (same pattern as read/write) - **MEDIUM PRIORITY**
+  - **VM memory operations**: Reading/writing from VM memory (necessary overhead) - **LOW PRIORITY**
+- **Priority**: Medium (if IPC operations are hot paths)
+- **Note**: Channel operations involve VM memory I/O which may be the dominant cost
+
+### 6. Network Syscalls (Syscalls 90-116)
 - **Status**: ✅ **Reviewed**
 - **Implementation**:
   - Validates arguments (socket ID, data pointers, lengths)

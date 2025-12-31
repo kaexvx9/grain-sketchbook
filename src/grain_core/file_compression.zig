@@ -78,7 +78,8 @@ pub fn decompress_gzip(
         compressed_data,
     );
     defer gzip_reader.deinit();
-    try gzip_reader.reader().readAllArrayList(&decompressed, std.math.maxInt(u32));
+    const max_size: u32 = std.math.maxInt(u32);
+    try gzip_reader.reader().readAllArrayList(&decompressed, max_size);
     return decompressed.toOwnedSlice();
 }
 
@@ -114,7 +115,8 @@ pub fn decompress_zstd(
         compressed_data,
     );
     defer zstd_reader.deinit();
-    try zstd_reader.reader().readAllArrayList(&decompressed, std.math.maxInt(u32));
+    const max_size: u32 = std.math.maxInt(u32);
+    try zstd_reader.reader().readAllArrayList(&decompressed, max_size);
     return decompressed.toOwnedSlice();
 }
 

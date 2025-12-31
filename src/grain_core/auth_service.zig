@@ -18,6 +18,23 @@ pub const MAX_PASSWORD_LEN: u32 = 128;
 pub const SALT_LEN: u32 = 32;
 pub const HASH_LEN: u32 = 32; // SHA-256
 pub const HASH_OUTPUT_LEN: u32 = SALT_LEN + HASH_LEN;
+
+// Argon2 constants (for Phase 2)
+pub const ARGON2_SALT_LEN: u32 = 16; // Argon2 salt length (RFC 9106)
+pub const ARGON2_HASH_LEN: u32 = 32; // Argon2 hash output length
+pub const ARGON2_MEMORY_DEFAULT: u32 = 65536; // 64 MB (in KB)
+pub const ARGON2_TIME_DEFAULT: u32 = 2; // 2 iterations
+pub const ARGON2_PARALLELISM_DEFAULT: u32 = 1; // Single-threaded
+pub const ARGON2_MAX_MEMORY: u32 = 1048576; // 1 GB (in KB)
+pub const ARGON2_MAX_TIME: u32 = 10;
+pub const ARGON2_MAX_PARALLELISM: u32 = 4;
+pub const ARGON2_MAX_HASH_STRING_LEN: u32 = 256; // Argon2 hash string format
+
+// Hash format types
+pub const HashFormat = enum(u8) {
+    sha256,
+    argon2id,
+};
 pub const ACCESS_TOKEN_EXPIRY: u64 = 3600; // 1 hour
 pub const REFRESH_TOKEN_EXPIRY: u64 = 604800; // 7 days
 pub const SERVICE_ACCOUNT_TOKEN_EXPIRY: u64 = 86400; // 24 hours
@@ -254,6 +271,27 @@ pub const AuthService = struct {
         return false;
     }
 
+    // Detect hash format (SHA-256 vs Argon2id) - for migration support
+    pub fn detect_hash_format(stored_hash: []const u8) HashFormat {
+        std.debug.assert(stored_hash.len > 0);
+        if (stored_hash.len == HASH_OUTPUT_LEN) {
+            return HashFormat.sha256;
+        }
+        if (stored_hash.len > 20 and stored_hash[0] == '$') {
+            const argon2id_prefix = "$argon2id$";
+            if (stored_hash.len >= argon2id_prefix.len) {
+                var i: u32 = 0;
+                while (i < argon2id_prefix.len) : (i += 1) {
+                    if (stored_hash[i] != argon2id_prefix[i]) {
+                        return HashFormat.sha256;
+                    }
+                }
+                return HashFormat.argon2id;
+            }
+        }
+        return HashFormat.sha256;
+    }
+
     // Hash password (SHA-256 with salt) - static function
     pub fn hash_password_static(
         password: []const u8,
@@ -274,14 +312,21 @@ pub const AuthService = struct {
         std.debug.assert(hash_out.len >= HASH_OUTPUT_LEN);
     }
 
-    // Verify password - static function
+    // Verify password - static function (supports SHA-256 and Argon2id)
     pub fn verify_password_static(
         password: []const u8,
         stored_hash: []const u8,
     ) bool {
         std.debug.assert(password.len > 0);
         std.debug.assert(password.len <= MAX_PASSWORD_LEN);
-        std.debug.assert(stored_hash.len >= HASH_OUTPUT_LEN);
+        std.debug.assert(stored_hash.len > 0);
+        const format = detect_hash_format(stored_hash);
+        if (format == HashFormat.argon2id) {
+            return verify_argon2id_static(password, stored_hash);
+        }
+        if (stored_hash.len < HASH_OUTPUT_LEN) {
+            return false;
+        }
         const salt = stored_hash[0..SALT_LEN];
         const stored_hash_only = stored_hash[SALT_LEN..SALT_LEN + HASH_LEN];
         var combined: [MAX_PASSWORD_LEN + SALT_LEN]u8 = undefined;
@@ -1131,4 +1176,134 @@ fn hmac_sha256(key: []const u8, message: []const u8, output: []u8) void {
     );
     std.debug.assert(output.len >= 32);
 }
+
+// ============================================================================
+// Argon2 Password Hashing (Phase 2 - Implementation in Progress)
+// ============================================================================
+
+// Argon2 parameters structure
+pub const Argon2Params = struct {
+    memory_kb: u32, // Memory cost (in KB)
+    time: u32, // Number of iterations
+    parallelism: u32, // Number of threads/lanes
+};
+
+// Get default Argon2 parameters
+pub fn get_default_argon2_params() Argon2Params {
+    return Argon2Params{
+        .memory_kb = ARGON2_MEMORY_DEFAULT,
+        .time = ARGON2_TIME_DEFAULT,
+        .parallelism = ARGON2_PARALLELISM_DEFAULT,
+    };
+}
+
+// Validate Argon2 parameters
+fn validate_argon2_params(params: *const Argon2Params) bool {
+    std.debug.assert(params != null);
+    if (params.memory_kb < 8 or params.memory_kb > ARGON2_MAX_MEMORY) {
+        return false;
+    }
+    if (params.time < 1 or params.time > ARGON2_MAX_TIME) {
+        return false;
+    }
+    if (params.parallelism < 1 or params.parallelism > ARGON2_MAX_PARALLELISM) {
+        return false;
+    }
+    std.debug.assert(params.memory_kb >= 8);
+    std.debug.assert(params.time >= 1);
+    std.debug.assert(params.parallelism >= 1);
+    return true;
+}
+
+// Blake2b hash for Argon2 (wrapper for std.crypto.hash.blake2.Blake2b)
+fn blake2b_hash_for_argon2(
+    output_len: u32,
+    input: []const u8,
+    key: ?[]const u8,
+    output: []u8,
+) void {
+    std.debug.assert(output_len > 0);
+    std.debug.assert(output_len <= 64);
+    std.debug.assert(input.len > 0);
+    std.debug.assert(output.len >= output_len);
+    var hasher = std.crypto.hash.blake2.Blake2b(output_len);
+    if (key) |k| {
+        hasher.update(k);
+    }
+    hasher.update(input);
+    hasher.final(output[0..output_len]);
+    std.debug.assert(output.len >= output_len);
+}
+
+// Helper: Parse Argon2 hash string format (Phase 2.2 - placeholder)
+fn parse_argon2_hash_string(
+    hash_string: []const u8,
+    params_out: *Argon2Params,
+    salt_out: []u8,
+    hash_out: []u8,
+) bool {
+    std.debug.assert(hash_string.len > 0);
+    std.debug.assert(hash_string.len <= ARGON2_MAX_HASH_STRING_LEN);
+    std.debug.assert(params_out != null);
+    std.debug.assert(salt_out.len >= ARGON2_SALT_LEN);
+    std.debug.assert(hash_out.len >= ARGON2_HASH_LEN);
+    // TODO: Phase 2.2 - Parse hash string format:
+    // $argon2id$v=19$m=65536,t=2,p=1$salt$hash
+    // Format: $variant$v=version$m=memory,t=time,p=parallelism$salt$hash
+    _ = hash_string;
+    _ = params_out;
+    _ = salt_out;
+    _ = hash_out;
+    return false;
+}
+
+// Hash password with Argon2id (Phase 2.1 - placeholder, full implementation pending)
+fn hash_argon2id_static(
+    password: []const u8,
+    params: *const Argon2Params,
+    hash_string_out: []u8,
+) u32 {
+    std.debug.assert(password.len > 0);
+    std.debug.assert(password.len <= MAX_PASSWORD_LEN);
+    std.debug.assert(hash_string_out.len >= ARGON2_MAX_HASH_STRING_LEN);
+    std.debug.assert(validate_argon2_params(params));
+    // TODO: Phase 2.1 - Implement full Argon2id algorithm
+    // This is a placeholder. Full implementation will:
+    // 1. Generate random salt (ARGON2_SALT_LEN bytes)
+    // 2. Run Argon2id core algorithm with params
+    // 3. Encode hash string: $argon2id$v=19$m=65536,t=2,p=1$salt$hash
+    // For now, return 0 to indicate not implemented
+    _ = password;
+    _ = params;
+    _ = hash_string_out;
+    return 0;
+}
+
+// Verify password against Argon2id hash (Phase 2.1 - placeholder)
+fn verify_argon2id_static(
+    password: []const u8,
+    stored_hash: []const u8,
+) bool {
+    std.debug.assert(password.len > 0);
+    std.debug.assert(password.len <= MAX_PASSWORD_LEN);
+    std.debug.assert(stored_hash.len > 0);
+    // TODO: Phase 2.1 - Implement Argon2id verification
+    // This is a placeholder. Full implementation will:
+    // 1. Parse Argon2 hash string format
+    // 2. Extract salt, parameters, and hash
+    // 3. Hash password with extracted salt and parameters
+    // 4. Compare computed hash with stored hash
+    // For now, return false (not implemented)
+    _ = password;
+    _ = stored_hash;
+    return false;
+}
+
+// Note: Full Argon2id implementation will be added in Phase 2.1
+// The complete Argon2 algorithm is complex and will require:
+// - Memory-hard function implementation (RFC 9106 Section 3.2)
+// - Block compression algorithm (Blake2b-based)
+// - Hash string encoding/decoding (RFC 9106 Section 3.1)
+// - Comprehensive testing against RFC 9106 test vectors
+// - Performance optimization for RISC-V
 

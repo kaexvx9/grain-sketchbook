@@ -95,6 +95,8 @@ pub const WebSocketConnection = struct {
         while (i < 64) : (i += 1) {
             conn.subprotocol[i] = 0;
         }
+        std.debug.assert(conn.connection_id == connection_id);
+        std.debug.assert(!conn.active);
         return conn;
     }
 
@@ -175,6 +177,8 @@ pub const WebSocketFrame = struct {
         while (i < MAX_FRAME_SIZE) : (i += 1) {
             frame.payload[i] = 0;
         }
+        std.debug.assert(frame.payload_len == 0);
+        std.debug.assert(frame.flags.payload_len == 0);
         return frame;
     }
 };
@@ -259,9 +263,11 @@ pub const WebSocketManager = struct {
         connection_id: u32,
     ) ?*WebSocketConnection {
         std.debug.assert(connection_id > 0);
+        std.debug.assert(self.connections_len <= MAX_WEBSOCKET_CONNECTIONS);
         var i: u32 = 0;
         while (i < self.connections_len) : (i += 1) {
             if (self.connections[i].connection_id == connection_id) {
+                std.debug.assert(self.connections[i].connection_id == connection_id);
                 return &self.connections[i];
             }
         }
