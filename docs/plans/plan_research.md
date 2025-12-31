@@ -443,6 +443,7 @@ docs/
 - ✅ Flow Agent Coordination Complete
 - ✅ Failure Pattern Analysis Research Phase 1 Preparation Complete
 - ✅ JG Project Responsibilities Assigned (Months 6-12)
+- ✅ **Grain Dispatch Phase 1 Research Complete** (2025-12-31) — Technical requirements, coordination overhead, architecture evaluation
 
 **Blocked Work** ⏳:
 - ⏳ Validation Testing (Priority 1, HIGH) — Blocked by codebase compilation errors
@@ -454,6 +455,8 @@ docs/
 - Test scenario preparation
 - Codebase monitoring
 - JG project planning
+- **Grain Dispatch Phase 2 Research** (Weeks 3-4) — Performance analysis
+- **Grain Dispatch Phase 3 Research** (Weeks 5-6) — Evaluation and recommendations
 
 ## Next Steps
 
@@ -464,6 +467,8 @@ docs/
 **Short-term (Priority 2-3, MEDIUM)**:
 3. **Begin Phase 1 Failure Pattern Analysis** — When Flow Agent provides extended failure metrics export data (1-2 weeks estimated)
 4. **JG Project Planning** — Review JG project design document, plan analysis framework, coordinate with Core Agent on data access (Months 6-12 implementation)
+5. **Grain Dispatch Phase 2 Research** (Weeks 3-4) — Performance analysis (detailed real-time dispatch latency requirements, kernel/VM performance analysis)
+6. **Grain Dispatch Phase 3 Research** (Weeks 5-6) — Evaluation and recommendations (monitor coordination overhead, provide final recommendation to Grain Core Agent)
 
 **Future Work (Months 6-12)**:
 5. **JG Project Phase 1: Economic Analysis** (Months 6-8) — Unemployment reduction tracking, wage growth analysis, poverty reduction analysis, local economic multiplier analysis
@@ -533,6 +538,131 @@ docs/
 - Silo Agent: Storage schemas for JG project data (Months 1-3)
 - Workspace Agent: Desktop dashboards for data visualization (Months 3-8)
 - Flow Agent: Workflow orchestration for data collection (Months 4-10)
+
+---
+
+## Grain Dispatch Research: First-Responder Systems
+
+**Status**: ✅ **PHASE 1 COMPLETE** (2025-12-31) — Technical requirements, coordination overhead, architecture evaluation complete
+
+**Timeline**: Weeks 1-6 (Current Work)
+
+**Research Document**: `docs/research/grain_dispatch_research_analysis_2025-12-30.md`
+
+**Context**: Petaluma Police Department volunteer opportunity, NixOS touch-screen tablets, 911/dispatch/coordination tools
+
+### Research Agent Responsibilities
+
+**Priority**: Grain Dispatch Research & Analysis (Weeks 1-6)
+
+**Phase 1: Initial Research** (Weeks 1-2) — ✅ **COMPLETE** (2025-12-31):
+- ✅ Technical requirements research (NixOS support, Vantage VM porting, performance requirements, vehicle integration)
+- ✅ Coordination overhead analysis (coordination points, overhead assessment, velocity analysis)
+- ✅ Architecture evaluation (scope analysis, future expansion, similar patterns, architecture recommendation)
+
+**Phase 2: Performance Analysis** (Weeks 3-4) — ⏳ **NEXT**:
+- Research real-time dispatch system latency requirements (detailed analysis)
+- Analyze kernel performance for real-time workloads
+- Evaluate VM performance for dispatch modules
+- Research performance optimization techniques
+- Analyze integration requirements for dispatch modules
+- Evaluate integration complexity across subcores
+
+**Phase 3: Evaluation and Recommendations** (Weeks 5-6) — ⏳ **PLANNED**:
+- Monitor coordination overhead during initial dispatch work
+- Evaluate development velocity
+- Assess integration complexity
+- Compare coordination overhead with/without Dispatch Subcore
+- Provide final recommendation to Grain Core Agent
+
+### Phase 1 Research Deliverables
+
+**Research Documents Created**:
+1. **Technical Findings**: `docs/research/grain_dispatch_phase1_technical_findings_2025-12-31.md`
+   - NixOS touch input & Wayland compositor support (production-ready)
+   - Vantage VM NixOS porting requirements (10-15 weeks estimated)
+   - Real-time dispatch performance requirements (< 100ms for 911 calls)
+   - Vehicle integration requirements
+
+2. **Coordination Overhead Analysis**: `docs/research/grain_dispatch_phase1_coordination_overhead_2025-12-31.md`
+   - Coordination points analysis (7 primary, 3 secondary)
+   - Coordination complexity evaluation (medium-high, manageable)
+   - Overhead vs. velocity analysis (9-17 hours/week, 15-25% of development time)
+   - Coordination patterns research (within normal range)
+
+3. **Architecture Evaluation**: `docs/research/grain_dispatch_phase1_architecture_evaluation_2025-12-31.md`
+   - Scope and complexity analysis (4 modules, 26-40 weeks)
+   - Future expansion assessment (52-79 additional weeks potential)
+   - Similar subcore pattern research (Vantage 3 Subcore, Core 1 Subcore patterns analyzed)
+   - Architecture recommendation (phased evaluation approach)
+
+4. **Coordination Summary**: `docs/research/grain_dispatch_coordination_summary_2025-12-31.md`
+   - Complete research findings summary
+   - Copy-paste messages for Core 1 Subcore and Vantage 3 Subcore
+   - Research deliverables and recommendations
+
+### Key Research Findings
+
+**Technical Requirements**:
+- ✅ NixOS touch input & Wayland compositor support is production-ready
+- ⚠️ Vantage VM NixOS porting requires 10-15 weeks (technically feasible)
+- ✅ Real-time dispatch performance requirements identified (< 100ms for 911 calls)
+- ✅ Vehicle integration requirements documented
+
+**Coordination Overhead**:
+- Total coordination overhead: 9-17 hours/week (15-25% of development time)
+- Core 1 Subcore coordination: 5-10 hours/week (manageable)
+- Vantage 3 Subcore coordination: 4-8 hours/week (manageable)
+- **Assessment**: Manageable with existing coordination patterns, but needs monitoring
+
+**Architecture Recommendation**:
+- **Phased Evaluation Approach** recommended
+  1. Start with distribution across existing agents (Vantage 3 Subcore + Core 1 Subcore)
+  2. Monitor coordination overhead during initial dispatch work (2-3 months)
+  3. Evaluate Dispatch Subcore creation if overhead becomes significant (>25% of development time)
+
+### Coordination with Core 1 Subcore
+
+**Status**: ✅ **COORDINATION READY** — Phase 1 research complete, coordination summary with copy-paste messages created
+
+**Next Steps for Core 1 Subcore** (from research):
+1. Review Phase 1 research findings
+2. Coordinate with L2 sub-agents (1a, 1b, 1c, 1d) on dispatch requirements
+3. Plan system services integration (network, auth, storage, compositor)
+4. Enable parallel work across Core 1 sub-agents
+5. Monitor coordination overhead during initial dispatch work (2-3 months)
+
+**Coordination Message**: See `docs/research/grain_dispatch_coordination_summary_2025-12-31.md` for complete copy-paste message with research findings, technical requirements, coordination overhead assessment, architecture recommendation, and next steps.
+
+**Detailed Next Steps**: See `docs/core-coordination/core-coordination_research.md` "Next Steps for Core 1 Subcore" section for comprehensive next steps with explanations.
+
+### Current Status
+
+**Phase 1**: ✅ **COMPLETE** (2025-12-31)
+- Technical requirements research complete ✅
+- Coordination overhead analysis complete ✅
+- Architecture evaluation complete ✅
+- Coordination summary with copy-paste messages created ✅
+
+**Phase 2**: ⏳ **NEXT** (Weeks 3-4)
+- Performance analysis (detailed real-time dispatch latency requirements, kernel/VM performance analysis)
+
+**Phase 3**: ⏳ **PLANNED** (Weeks 5-6)
+- Evaluation and recommendations (monitor coordination overhead, provide final recommendation to Grain Core Agent)
+
+### Dependencies
+
+**Coordination**:
+- **Core 1 Subcore**: Share research findings, coordinate on dispatch work distribution
+- **Vantage 3 Subcore**: Share research findings, coordinate on NixOS adaptation and kernel performance
+- **Grain Core Agent**: Provide final recommendation after Phase 3 evaluation
+
+**Research Agent Provides**:
+- Technical requirements analysis
+- Coordination overhead assessment
+- Architecture evaluation and recommendations
+- Performance analysis (Phase 2)
+- Final recommendation (Phase 3)
 
 ---
 
