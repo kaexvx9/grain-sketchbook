@@ -420,22 +420,28 @@
 - ⏳ **Coordinate integration testing** — Ensure kernel/VM integration works correctly
 - ⏳ **Ensure RISC-V-only compliance** — Validate all sub-agents maintain RISC-V-only codebase
 
+**Coordination Pattern**: **Hybrid Model** — Parallel work with asynchronous coordination (see `docs/core-coordination/vantage_3_subcore_coordination_pattern.md`)
+- **Default**: Sub-agents work independently in parallel, Vantage 3 Subcore coordinates asynchronously
+- **Alternate**: Sequential coordination for major milestones, architecture decisions, blockers
+- **Benefits**: Faster progress, no idle time, clear communication, flexible timing
+
 **Next Coordination Check-In**: Weekly/bi-weekly as needed, or when sub-agents report blockers or need architecture decisions
 
 ---
 
 ## What Vantage 3 Subcore Is Doing
 
-**Current Work**:
+**Current Work** (Parallel with L2 Sub-Agents):
 - ✅ Kernel refactoring complete — **COMPLETE**
 - ✅ All kernel features ready — **COMPLETE**
 - ✅ Architecture evolution complete — **COMPLETE** (L2 sub-agents created)
 - ✅ L2 sub-agent coordination files created — **COMPLETE**
 - ✅ Renamed to Vantage 3 Subcore (Subcore Coordination / Systems Integration) — **COMPLETE**
-- 🆕 Monitor JG project implementation for kernel support needs — **NEW**
-- ✅ Coordinate with Core Agent on any new syscall requirements — **READY**
-- ✅ Optimize kernel performance for JG project workloads if needed — **READY**
-- ⏳ Coordinate with L2 sub-agents weekly/bi-weekly — **ONGOING**
+- ✅ Coordination pattern defined — **COMPLETE** (hybrid model: parallel work with asynchronous coordination)
+- 🆕 Monitor JG project implementation for kernel support needs — **ONGOING** (parallel work)
+- ✅ Coordinate with Core Agent on any new syscall requirements — **READY** (parallel work)
+- ✅ Optimize kernel performance for JG project workloads if needed — **READY** (parallel work)
+- ⏳ Coordinate with L2 sub-agents weekly/bi-weekly — **ONGOING** (asynchronous coordination)
 
 **Blockers**: **NONE** — Kernel timeout mechanism complete, Core Agent HTTP/WebSocket timeout and error handling complete. All agents can proceed with integration.
 

@@ -1122,600 +1122,15 @@ pub const VM = struct {
 
         // Execute based on opcode.
         // Why: RISC-V uses opcode-based instruction decoding.
-        switch (opcode) {
-            // Opcode 0x01: Zig compiler compatibility - decode as I-type instruction.
-            0b0000001 => {
-                // Some Zig-compiled code generates instructions with opcode 0x01 that should be I-type.
-                const funct3 = @as(u3, @truncate(inst >> 12));
-                std.debug.print("DEBUG vm.zig: Opcode 0x01 detected: inst=0x{x}, funct3=0b{b:0>3}\n", .{ inst, funct3 });
-
-                // Try to decode as I-type instruction variants based on funct3.
-                if (funct3 == 0b000) {
-                    // ADDI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x01 with funct3=0b000 as ADDI\n", .{});
-                    try self.execute_addi(inst);
-                } else if (funct3 == 0b100) {
-                    // XORI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x01 with funct3=0b100 as XORI\n", .{});
-                    try self.execute_xori(inst);
-                } else if (funct3 == 0b110) {
-                    // ORI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x01 with funct3=0b110 as ORI\n", .{});
-                    try self.execute_ori(inst);
-                } else if (funct3 == 0b111) {
-                    // ANDI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x01 with funct3=0b111 as ANDI\n", .{});
-                    try self.execute_andi(inst);
-                } else {
-                    // Unknown opcode 0x01 variant - treat as NOP for now.
-                    std.debug.print("DEBUG vm.zig: Unknown opcode 0x01 variant (funct3=0b{b:0>3}), treating as NOP\n", .{funct3});
-                    // NOP: Do nothing, PC will advance normally.
-                }
-            },
-            // LUI (Load Upper Immediate): U-type instruction.
-            0b0110111 => {
-                try self.execute_lui(inst);
-            },
-            // AUIPC (Add Upper Immediate to PC): U-type instruction.
-            0b0010111 => {
-                try self.execute_auipc(inst);
-            },
-            // ADDI (Add Immediate): I-type instruction.
-            0b0010011 => {
-                // ADDI has multiple variants (funct3 field).
-                const funct3 = @as(u3, @truncate(inst >> 12));
-                if (funct3 == 0b000) {
-                    try self.execute_addi(inst);
-                } else {
-                    // Unsupported I-type instruction variant.
-                    std.debug.print("DEBUG vm.zig: Unsupported I-type variant: funct3=0b{b:0>3}\n", .{funct3});
-                    self.state = .errored;
-                    self.last_error = VMError.invalid_instruction;
-                    // Record exception (illegal instruction, code 2).
-                    self.exception_stats.record_exception(2);
-                    return VMError.invalid_instruction;
-                }
-            },
-            0b0010100 => {
-                // Opcode 0x14: Zig compiler compatibility - decode as I-type instruction.
-                // Some Zig-compiled code generates instructions with opcode 0x14 that should be I-type.
-                const funct3 = @as(u3, @truncate(inst >> 12));
-                std.debug.print("DEBUG vm.zig: Opcode 0x14 detected: inst=0x{x}, funct3=0b{b:0>3}\n", .{ inst, funct3 });
-
-                // If funct3=0b110 (6), this is ORI (OR Immediate).
-                // Execute as ORI for Zig compiler compatibility.
-                if (funct3 == 0b110) {
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x14 with funct3=0b110 as ORI\n", .{});
-                    try self.execute_ori(inst);
-                } else {
-                    // Unknown opcode 0x14 variant - treat as NOP for now.
-                    std.debug.print("DEBUG vm.zig: Unknown opcode 0x14 variant (funct3=0b{b:0>3}), treating as NOP\n", .{funct3});
-                    // NOP: Do nothing, PC will advance normally.
-                }
-            },
-            0b0100100 => {
-                // Opcode 0x24: Zig compiler compatibility - decode as I-type instruction.
-                // Some Zig-compiled code generates instructions with opcode 0x24 that should be I-type.
-                const funct3 = @as(u3, @truncate(inst >> 12));
-                std.debug.print("DEBUG vm.zig: Opcode 0x24 detected: inst=0x{x}, funct3=0b{b:0>3}\n", .{ inst, funct3 });
-
-                // If funct3=0b110 (6), this might be another ORI variant.
-                // Try to decode as I-type instruction for Zig compiler compatibility.
-                if (funct3 == 0b110) {
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x24 with funct3=0b110 as ORI\n", .{});
-                    try self.execute_ori(inst);
-                } else {
-                    // Unknown opcode 0x24 variant - treat as NOP for now.
-                    std.debug.print("DEBUG vm.zig: Unknown opcode 0x24 variant (funct3=0b{b:0>3}), treating as NOP\n", .{funct3});
-                    // NOP: Do nothing, PC will advance normally.
-                }
-            },
-            0b0110100 => {
-                // Opcode 0x34: Zig compiler compatibility - decode as I-type instruction.
-                // Some Zig-compiled code generates instructions with opcode 0x34 that should be I-type.
-                const funct3 = @as(u3, @truncate(inst >> 12));
-                std.debug.print("DEBUG vm.zig: Opcode 0x34 detected: inst=0x{x}, funct3=0b{b:0>3}\n", .{ inst, funct3 });
-
-                // If funct3=0b110 (6), this might be another ORI variant.
-                // Try to decode as I-type instruction for Zig compiler compatibility.
-                if (funct3 == 0b110) {
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x34 with funct3=0b110 as ORI\n", .{});
-                    try self.execute_ori(inst);
-                } else {
-                    // Unknown opcode 0x34 variant - treat as NOP for now.
-                    std.debug.print("DEBUG vm.zig: Unknown opcode 0x34 variant (funct3=0b{b:0>3}), treating as NOP\n", .{funct3});
-                    // NOP: Do nothing, PC will advance normally.
-                }
-            },
-            // R-type instructions (ADD, SUB, SLT): OP opcode.
-            0b0110011 => {
-                // R-type instructions use funct3 and funct7 to distinguish operations.
-                const funct3 = @as(u3, @truncate(inst >> 12));
-                const funct7 = @as(u7, @truncate(inst >> 25));
-
-                // Dispatch based on funct3 and funct7.
-                if (funct3 == 0b000) {
-                    // ADD or SUB (funct3 = 0b000).
-                    if (funct7 == 0b0000000) {
-                        // ADD: rd = rs1 + rs2.
-                        try self.execute_add(inst);
-                    } else if (funct7 == 0b0100000) {
-                        // SUB: rd = rs1 - rs2.
-                        try self.execute_sub(inst);
-                    } else {
-                        // Unsupported R-type instruction variant.
-                        self.state = .errored;
-                        self.last_error = VMError.invalid_instruction;
-                        // Record exception (illegal instruction, code 2).
-                        self.exception_stats.record_exception(2);
-                        return VMError.invalid_instruction;
-                    }
-                } else if (funct3 == 0b010) {
-                    // SLT (Set Less Than): rd = (rs1 < rs2) ? 1 : 0.
-                    if (funct7 == 0b0000000) {
-                        try self.execute_slt(inst);
-                    } else {
-                        // Unsupported R-type instruction variant.
-                        self.state = .errored;
-                        self.last_error = VMError.invalid_instruction;
-                        // Record exception (illegal instruction, code 2).
-                        self.exception_stats.record_exception(2);
-                        return VMError.invalid_instruction;
-                    }
-                } else if (funct3 == 0b100) {
-                    // XOR (Exclusive OR): rd = rs1 ^ rs2.
-                    if (funct7 == 0b0000000) {
-                        try self.execute_xor(inst);
-                    } else {
-                        // Unsupported R-type instruction variant.
-                        self.state = .errored;
-                        self.last_error = VMError.invalid_instruction;
-                        // Record exception (illegal instruction, code 2).
-                        self.exception_stats.record_exception(2);
-                        return VMError.invalid_instruction;
-                    }
-                } else if (funct3 == 0b110) {
-                    // OR (Bitwise OR): rd = rs1 | rs2.
-                    if (funct7 == 0b0000000) {
-                        try self.execute_or(inst);
-                    } else {
-                        // Unsupported R-type instruction variant.
-                        self.state = .errored;
-                        self.last_error = VMError.invalid_instruction;
-                        // Record exception (illegal instruction, code 2).
-                        self.exception_stats.record_exception(2);
-                        return VMError.invalid_instruction;
-                    }
-                } else if (funct3 == 0b111) {
-                    // AND (Bitwise AND): rd = rs1 & rs2.
-                    if (funct7 == 0b0000000) {
-                        try self.execute_and(inst);
-                    } else {
-                        // Unsupported R-type instruction variant.
-                        self.state = .errored;
-                        self.last_error = VMError.invalid_instruction;
-                        // Record exception (illegal instruction, code 2).
-                        self.exception_stats.record_exception(2);
-                        return VMError.invalid_instruction;
-                    }
-                } else if (funct3 == 0b001) {
-                    // SLL (Shift Left Logical): rd = rs1 << (rs2 & 0x3F).
-                    // Note: Zig compiler may generate SLL with non-zero funct7 values.
-                    // For compatibility, we execute as SLL regardless of funct7 (shift amount is in rs2).
-                    if (funct7 == 0b0000000) {
-                        try self.execute_sll(inst);
-                    } else {
-                        // Non-standard funct7, but funct3=1 indicates SLL.
-                        // Execute as SLL for Zig compiler compatibility.
-                        // Contract: Shift amount comes from rs2, funct7 is typically ignored for SLL.
-                        std.debug.print("DEBUG vm.zig: SLL with non-zero funct7=0x{x}, executing as SLL\n", .{funct7});
-                        try self.execute_sll(inst);
-                    }
-                } else if (funct3 == 0b101) {
-                    // SRL or SRA (Shift Right Logical/Arithmetic).
-                    if (funct7 == 0b0000000) {
-                        // SRL (Shift Right Logical): rd = rs1 >> (rs2 & 0x3F).
-                        try self.execute_srl(inst);
-                    } else if (funct7 == 0b0100000) {
-                        // SRA (Shift Right Arithmetic): rd = rs1 >> (rs2 & 0x3F) (sign-extended).
-                        try self.execute_sra(inst);
-                    } else {
-                        // Unsupported R-type instruction variant.
-                        self.state = .errored;
-                        self.last_error = VMError.invalid_instruction;
-                        // Record exception (illegal instruction, code 2).
-                        self.exception_stats.record_exception(2);
-                        return VMError.invalid_instruction;
-                    }
-                } else {
-                    // Unsupported R-type instruction variant.
-                    self.state = .errored;
-                    self.last_error = VMError.invalid_instruction;
-                    return VMError.invalid_instruction;
-                }
-            },
-            // Load instructions: I-type instruction.
-            0b0000011 => {
-                const funct3 = @as(u3, @truncate(inst >> 12));
-                switch (funct3) {
-                    0b000 => try self.execute_lb(inst), // LB (Load Byte)
-                    0b001 => try self.execute_lh(inst), // LH (Load Halfword)
-                    0b010 => try self.execute_lw(inst), // LW (Load Word)
-                    0b011 => try self.execute_ld(inst), // LD (Load Doubleword)
-                    0b100 => try self.execute_lbu(inst), // LBU (Load Byte Unsigned)
-                    0b101 => try self.execute_lhu(inst), // LHU (Load Halfword Unsigned)
-                    0b110 => try self.execute_lwu(inst), // LWU (Load Word Unsigned)
-                    else => {
-                        // Unsupported load instruction variant.
-                        self.state = .errored;
-                        self.last_error = VMError.invalid_instruction;
-                        return VMError.invalid_instruction;
-                    },
-                }
-            },
-            // Store instructions: S-type instruction.
-            0b0100011 => {
-                const funct3 = @as(u3, @truncate(inst >> 12));
-                switch (funct3) {
-                    0b000 => try self.execute_sb(inst), // SB (Store Byte)
-                    0b001 => try self.execute_sh(inst), // SH (Store Halfword)
-                    0b010 => try self.execute_sw(inst), // SW (Store Word)
-                    0b011 => try self.execute_sd(inst), // SD (Store Doubleword)
-                    else => {
-                        // Unsupported store instruction variant.
-                        self.state = .errored;
-                        self.last_error = VMError.invalid_instruction;
-                        return VMError.invalid_instruction;
-                    },
-                }
-            },
-            // Branch instructions: B-type instruction.
-            0b1100011 => {
-                const funct3 = @as(u3, @truncate(inst >> 12));
-                switch (funct3) {
-                    0b000 => try self.execute_beq(inst), // BEQ (Branch if Equal)
-                    0b001 => try self.execute_bne(inst), // BNE (Branch if Not Equal)
-                    0b100 => try self.execute_blt(inst), // BLT (Branch if Less Than)
-                    0b101 => try self.execute_bge(inst), // BGE (Branch if Greater or Equal)
-                    0b110 => try self.execute_bltu(inst), // BLTU (Branch if Less Than Unsigned)
-                    0b111 => try self.execute_bgeu(inst), // BGEU (Branch if Greater or Equal Unsigned)
-                    else => {
-                        // Unsupported branch instruction variant.
-                        self.state = .errored;
-                        self.last_error = VMError.invalid_instruction;
-                        return VMError.invalid_instruction;
-                    },
-                }
-            },
-            // Jump instructions: J-type and I-type instructions.
-            0b1101111 => {
-                // JAL (Jump and Link): J-type instruction.
-                try self.execute_jal(inst);
-            },
-            0b1100111 => {
-                // JALR (Jump and Link Register): I-type instruction.
-                const funct3 = @as(u3, @truncate(inst >> 12));
-                if (funct3 == 0b000) {
-                    try self.execute_jalr(inst);
-                } else {
-                    // Unsupported JALR variant.
-                    self.state = .errored;
-                    self.last_error = VMError.invalid_instruction;
-                    return VMError.invalid_instruction;
-                }
-            },
-            // ECALL (Environment Call): I-type instruction (funct3 = 0, funct7 = 0).
-            0b1110011 => {
-                const funct3 = @as(u3, @truncate(inst >> 12));
-                if (funct3 == 0b000) {
-                    try self.execute_ecall();
-                } else {
-                    // Unsupported system instruction.
-                    self.state = .errored;
-                    self.last_error = VMError.invalid_instruction;
-                    return VMError.invalid_instruction;
-                }
-            },
-            0b0000000 => {
-                // Opcode 0x00: Zig compiler compatibility - decode as R-type instruction.
-                // Some Zig-compiled code generates instructions with opcode 0x00 that should be R-type.
-                // Check funct3 and funct7 to determine actual instruction.
-                const funct3 = @as(u3, @truncate(inst >> 12));
-                const funct7 = @as(u7, @truncate(inst >> 25));
-                std.debug.print("DEBUG vm.zig: Opcode 0x00 detected: inst=0x{x}, funct3=0b{b:0>3}, funct7=0b{b:0>7} (0x{x})\n", .{ inst, funct3, funct7, funct7 });
-
-                // If funct3=1, this is likely SLL (Shift Left Logical) regardless of funct7.
-                // Zig compiler may generate non-standard funct7 values for compatibility.
-                if (funct3 == 0b001) {
-                    // Execute as SLL (shift amount comes from rs2, funct7 typically ignored).
-                    std.debug.print("DEBUG vm.zig: Treating opcode 0x00 with funct3=1 as SLL\n", .{});
-                    try self.execute_sll(inst);
-                } else {
-                    // Unknown opcode 0x00 variant - treat as NOP for now.
-                    std.debug.print("DEBUG vm.zig: Unknown opcode 0x00 variant (funct3=0b{b:0>3}), treating as NOP\n", .{funct3});
-                    // NOP: Do nothing, PC will advance normally.
-                }
-            },
-            0b0100000 => {
-                // Opcode 0x20: Zig compiler compatibility - decode as I-type instruction.
-                // Some Zig-compiled code generates instructions with opcode 0x20 that should be I-type.
-                const funct3 = @as(u3, @truncate(inst >> 12));
-                std.debug.print("DEBUG vm.zig: Opcode 0x20 detected: inst=0x{x}, funct3=0b{b:0>3}\n", .{ inst, funct3 });
-
-                // Try to decode as I-type instruction variants based on funct3.
-                if (funct3 == 0b000) {
-                    // ADDI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x20 with funct3=0b000 as ADDI\n", .{});
-                    try self.execute_addi(inst);
-                } else if (funct3 == 0b100) {
-                    // XORI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x20 with funct3=0b100 as XORI\n", .{});
-                    try self.execute_xori(inst);
-                } else if (funct3 == 0b110) {
-                    // ORI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x20 with funct3=0b110 as ORI\n", .{});
-                    try self.execute_ori(inst);
-                } else if (funct3 == 0b111) {
-                    // ANDI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x20 with funct3=0b111 as ANDI\n", .{});
-                    try self.execute_andi(inst);
-                } else {
-                    // Unknown opcode 0x20 variant - treat as NOP for now.
-                    std.debug.print("DEBUG vm.zig: Unknown opcode 0x20 variant (funct3=0b{b:0>3}), treating as NOP\n", .{funct3});
-                    // NOP: Do nothing, PC will advance normally.
-                }
-            },
-            0b0000101 => {
-                // Opcode 0x5: Zig compiler compatibility - decode as I-type instruction.
-                // Some Zig-compiled code generates instructions with opcode 0x5 that should be I-type.
-                const funct3 = @as(u3, @truncate(inst >> 12));
-                std.debug.print("DEBUG vm.zig: Opcode 0x5 detected: inst=0x{x}, funct3=0b{b:0>3}\n", .{ inst, funct3 });
-
-                // Try to decode as I-type instruction variants based on funct3.
-                if (funct3 == 0b000) {
-                    // ADDI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x5 with funct3=0b000 as ADDI\n", .{});
-                    try self.execute_addi(inst);
-                } else if (funct3 == 0b100) {
-                    // XORI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x5 with funct3=0b100 as XORI\n", .{});
-                    try self.execute_xori(inst);
-                } else if (funct3 == 0b110) {
-                    // ORI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x5 with funct3=0b110 as ORI\n", .{});
-                    try self.execute_ori(inst);
-                } else if (funct3 == 0b111) {
-                    // ANDI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x5 with funct3=0b111 as ANDI\n", .{});
-                    try self.execute_andi(inst);
-                } else {
-                    // Unknown opcode 0x5 variant - treat as NOP for now.
-                    std.debug.print("DEBUG vm.zig: Unknown opcode 0x5 variant (funct3=0b{b:0>3}), treating as NOP\n", .{funct3});
-                    // NOP: Do nothing, PC will advance normally.
-                }
-            },
-            0b0000110 => {
-                // Opcode 0x06: Zig compiler compatibility - decode as I-type instruction.
-                // Some Zig-compiled code generates instructions with opcode 0x06 that should be I-type.
-                const funct3 = @as(u3, @truncate(inst >> 12));
-                std.debug.print("DEBUG vm.zig: Opcode 0x06 detected: inst=0x{x}, funct3=0b{b:0>3}\n", .{ inst, funct3 });
-
-                // Try to decode as I-type instruction variants based on funct3.
-                if (funct3 == 0b000) {
-                    // ADDI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x06 with funct3=0b000 as ADDI\n", .{});
-                    try self.execute_addi(inst);
-                } else if (funct3 == 0b100) {
-                    // XORI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x06 with funct3=0b100 as XORI\n", .{});
-                    try self.execute_xori(inst);
-                } else if (funct3 == 0b110) {
-                    // ORI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x06 with funct3=0b110 as ORI\n", .{});
-                    try self.execute_ori(inst);
-                } else if (funct3 == 0b111) {
-                    // ANDI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x06 with funct3=0b111 as ANDI\n", .{});
-                    try self.execute_andi(inst);
-                } else {
-                    // Unknown opcode 0x06 variant - treat as NOP for now.
-                    std.debug.print("DEBUG vm.zig: Unknown opcode 0x06 variant (funct3=0b{b:0>3}), treating as NOP\n", .{funct3});
-                    // NOP: Do nothing, PC will advance normally.
-                }
-            },
-            0b1000101 => {
-                // Opcode 0x45: Zig compiler compatibility - decode as I-type instruction.
-                // Some Zig-compiled code generates instructions with opcode 0x45 that should be I-type.
-                const funct3 = @as(u3, @truncate(inst >> 12));
-                std.debug.print("DEBUG vm.zig: Opcode 0x45 detected: inst=0x{x}, funct3=0b{b:0>3}\n", .{ inst, funct3 });
-
-                // Try to decode as I-type instruction variants based on funct3.
-                if (funct3 == 0b000) {
-                    // ADDI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x45 with funct3=0b000 as ADDI\n", .{});
-                    try self.execute_addi(inst);
-                } else if (funct3 == 0b100) {
-                    // XORI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x45 with funct3=0b100 as XORI\n", .{});
-                    try self.execute_xori(inst);
-                } else if (funct3 == 0b110) {
-                    // ORI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x45 with funct3=0b110 as ORI\n", .{});
-                    try self.execute_ori(inst);
-                } else if (funct3 == 0b111) {
-                    // ANDI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x45 with funct3=0b111 as ANDI\n", .{});
-                    try self.execute_andi(inst);
-                } else {
-                    // Unknown opcode 0x45 variant - treat as NOP for now.
-                    std.debug.print("DEBUG vm.zig: Unknown opcode 0x45 variant (funct3=0b{b:0>3}), treating as NOP\n", .{funct3});
-                    // NOP: Do nothing, PC will advance normally.
-                }
-            },
-            0b0100101 => {
-                // Opcode 0x25: Zig compiler compatibility - decode as I-type instruction.
-                // Some Zig-compiled code generates instructions with opcode 0x25 that should be I-type.
-                const funct3 = @as(u3, @truncate(inst >> 12));
-                std.debug.print("DEBUG vm.zig: Opcode 0x25 detected: inst=0x{x}, funct3=0b{b:0>3}\n", .{ inst, funct3 });
-
-                // Try to decode as I-type instruction variants based on funct3.
-                if (funct3 == 0b000) {
-                    // ADDI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x25 with funct3=0b000 as ADDI\n", .{});
-                    try self.execute_addi(inst);
-                } else if (funct3 == 0b100) {
-                    // XORI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x25 with funct3=0b100 as XORI\n", .{});
-                    try self.execute_xori(inst);
-                } else if (funct3 == 0b110) {
-                    // ORI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x25 with funct3=0b110 as ORI\n", .{});
-                    try self.execute_ori(inst);
-                } else if (funct3 == 0b111) {
-                    // ANDI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x25 with funct3=0b111 as ANDI\n", .{});
-                    try self.execute_andi(inst);
-                } else {
-                    // Unknown opcode 0x25 variant - treat as NOP for now.
-                    std.debug.print("DEBUG vm.zig: Unknown opcode 0x25 variant (funct3=0b{b:0>3}), treating as NOP\n", .{funct3});
-                    // NOP: Do nothing, PC will advance normally.
-                }
-            },
-            0b0111101 => {
-                // Opcode 0x3D: Zig compiler compatibility - decode as I-type instruction.
-                // Some Zig-compiled code generates instructions with opcode 0x3D that should be I-type.
-                const funct3 = @as(u3, @truncate(inst >> 12));
-                std.debug.print("DEBUG vm.zig: Opcode 0x3D detected: inst=0x{x}, funct3=0b{b:0>3}\n", .{ inst, funct3 });
-
-                // Try to decode as I-type instruction variants based on funct3.
-                if (funct3 == 0b000) {
-                    // ADDI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x3D with funct3=0b000 as ADDI\n", .{});
-                    try self.execute_addi(inst);
-                } else if (funct3 == 0b100) {
-                    // XORI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x3D with funct3=0b100 as XORI\n", .{});
-                    try self.execute_xori(inst);
-                } else if (funct3 == 0b110) {
-                    // ORI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x3D with funct3=0b110 as ORI\n", .{});
-                    try self.execute_ori(inst);
-                } else if (funct3 == 0b111) {
-                    // ANDI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x3D with funct3=0b111 as ANDI\n", .{});
-                    try self.execute_andi(inst);
-                } else {
-                    // Unknown opcode 0x3D variant - treat as NOP for now.
-                    std.debug.print("DEBUG vm.zig: Unknown opcode 0x3D variant (funct3=0b{b:0>3}), treating as NOP\n", .{funct3});
-                    // NOP: Do nothing, PC will advance normally.
-                }
-            },
-            0b1100000 => {
-                // Opcode 0x60: Zig compiler compatibility - decode as I-type instruction.
-                // Some Zig-compiled code generates instructions with opcode 0x60 that should be I-type.
-                const funct3 = @as(u3, @truncate(inst >> 12));
-                std.debug.print("DEBUG vm.zig: Opcode 0x60 detected: inst=0x{x}, funct3=0b{b:0>3}\n", .{ inst, funct3 });
-
-                // Try to decode as I-type instruction variants based on funct3.
-                if (funct3 == 0b000) {
-                    // ADDI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x60 with funct3=0b000 as ADDI\n", .{});
-                    try self.execute_addi(inst);
-                } else if (funct3 == 0b100) {
-                    // XORI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x60 with funct3=0b100 as XORI\n", .{});
-                    try self.execute_xori(inst);
-                } else if (funct3 == 0b110) {
-                    // ORI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x60 with funct3=0b110 as ORI\n", .{});
-                    try self.execute_ori(inst);
-                } else if (funct3 == 0b111) {
-                    // ANDI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x60 with funct3=0b111 as ANDI\n", .{});
-                    try self.execute_andi(inst);
-                } else {
-                    // Unknown opcode 0x60 variant - treat as NOP for now.
-                    std.debug.print("DEBUG vm.zig: Unknown opcode 0x60 variant (funct3=0b{b:0>3}), treating as NOP\n", .{funct3});
-                    // NOP: Do nothing, PC will advance normally.
-                }
-            },
-            0b0101110 => {
-                // Opcode 0x2e: Zig compiler compatibility - decode as I-type instruction.
-                // Some Zig-compiled code generates instructions with opcode 0x2e that should be I-type.
-                const funct3 = @as(u3, @truncate(inst >> 12));
-                std.debug.print("DEBUG vm.zig: Opcode 0x2e detected: inst=0x{x}, funct3=0b{b:0>3}\n", .{ inst, funct3 });
-
-                // Try to decode as I-type instruction variants based on funct3.
-                if (funct3 == 0b001) {
-                    // SLLI variant (Shift Left Logical Immediate)
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x2e with funct3=0b001 as SLLI\n", .{});
-                    try self.execute_slli(inst);
-                } else if (funct3 == 0b000) {
-                    // ADDI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x2e with funct3=0b000 as ADDI\n", .{});
-                    try self.execute_addi(inst);
-                } else if (funct3 == 0b100) {
-                    // XORI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x2e with funct3=0b100 as XORI\n", .{});
-                    try self.execute_xori(inst);
-                } else if (funct3 == 0b110) {
-                    // ORI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x2e with funct3=0b110 as ORI\n", .{});
-                    try self.execute_ori(inst);
-                } else if (funct3 == 0b111) {
-                    // ANDI variant
-                    std.debug.print("DEBUG vm.zig: Executing opcode 0x2e with funct3=0b111 as ANDI\n", .{});
-                    try self.execute_andi(inst);
-                } else {
-                    // Unknown opcode 0x2e variant - treat as NOP for now.
-                    std.debug.print("DEBUG vm.zig: Unknown opcode 0x2e variant (funct3=0b{b:0>3}), treating as NOP\n", .{funct3});
-                    // NOP: Do nothing, PC will advance normally.
-                }
-            },
-            else => {
-                // Check if this is a Zig-specific non-standard opcode that should be decoded as I-type.
-                // Pattern: Many Zig-compiled instructions use non-standard opcodes with various funct3 values.
-                const funct3 = @as(u3, @truncate(inst >> 12));
-                if (funct3 == 0b000) {
-                    // ADDI variant
-                    std.debug.print("DEBUG vm.zig: Non-standard opcode 0b{b:0>7} (0x{x}) with funct3=0b000, treating as ADDI\n", .{ opcode, opcode });
-                    try self.execute_addi(inst);
-                } else if (funct3 == 0b001) {
-                    // SLLI variant (Shift Left Logical Immediate)
-                    std.debug.print("DEBUG vm.zig: Non-standard opcode 0b{b:0>7} (0x{x}) with funct3=0b001, treating as SLLI\n", .{ opcode, opcode });
-                    try self.execute_slli(inst);
-                } else if (funct3 == 0b011) {
-                    // SLTIU variant (Set Less Than Immediate Unsigned) - treat as NOP for now
-                    std.debug.print("DEBUG vm.zig: Non-standard opcode 0b{b:0>7} (0x{x}) with funct3=0b011, treating as NOP\n", .{ opcode, opcode });
-                    // NOP: Do nothing, PC will advance normally.
-                } else if (funct3 == 0b100) {
-                    // XORI variant
-                    std.debug.print("DEBUG vm.zig: Non-standard opcode 0b{b:0>7} (0x{x}) with funct3=0b100, treating as XORI\n", .{ opcode, opcode });
-                    try self.execute_xori(inst);
-                } else if (funct3 == 0b110) {
-                    // ORI variant
-                    std.debug.print("DEBUG vm.zig: Non-standard opcode 0b{b:0>7} (0x{x}) with funct3=0b110, treating as ORI\n", .{ opcode, opcode });
-                    try self.execute_ori(inst);
-                } else if (funct3 == 0b111) {
-                    // ANDI variant
-                    std.debug.print("DEBUG vm.zig: Non-standard opcode 0b{b:0>7} (0x{x}) with funct3=0b111, treating as ANDI\n", .{ opcode, opcode });
-                    try self.execute_andi(inst);
-                } else {
-                    // Unsupported opcode - treat as NOP for now to allow execution to continue
-                    std.debug.print("DEBUG vm.zig: Unknown non-standard opcode 0b{b:0>7} (0x{x}) with funct3=0b{b:0>3}, treating as NOP\n", .{ opcode, opcode, funct3 });
-                    // NOP: Do nothing, PC will advance normally.
-                }
-            },
-        }
+        try self.execute_opcode(opcode, inst);
 
         // Advance PC to next instruction (4 bytes).
-        // Note: BEQ may have already updated PC for branch, so check if PC was modified.
-        // Branch instructions modify PC directly, so we don't increment again.
+        // Note: Branch instructions modify PC directly, so check if PC was modified.
         if (self.regs.pc == pc_before) {
             // Normal case: PC unchanged by instruction, advance by 4 bytes.
             self.regs.pc += 4;
         }
-        // Else: PC was modified by branch instruction (BEQ), don't increment again.
+        // Else: PC was modified by branch instruction, don't increment again.
 
         // Assert: PC must be 4-byte aligned after instruction execution.
         std.debug.assert(self.regs.pc % 4 == 0);
@@ -1723,6 +1138,327 @@ pub const VM = struct {
         // Assert: PC must be within memory bounds after execution.
         // Note: PC can be equal to memory_size (one past end) if instruction was at end.
         std.debug.assert(self.regs.pc <= self.memory_size);
+    }
+
+    /// Execute instruction based on opcode.
+    /// Why: Extract opcode execution from step() to meet Grain Style 70-line limit.
+    /// Grain Style: Function length < 70 lines, explicit types, comprehensive assertions.
+    fn execute_opcode(self: *Self, opcode: u7, inst: u32) VMError!void {
+        switch (opcode) {
+            // U-type instructions (LUI, AUIPC)
+            0b0110111 => try self.execute_lui(inst), // LUI
+            0b0010111 => try self.execute_auipc(inst), // AUIPC
+            
+            // I-type instructions (ADDI, etc.)
+            0b0010011 => try self.execute_i_type(inst), // ADDI and variants
+            
+            // R-type instructions (ADD, SUB, etc.)
+            0b0110011 => try self.execute_r_type(inst), // R-type
+            
+            // Load instructions
+            0b0000011 => try self.execute_load(inst), // Load
+            
+            // Store instructions
+            0b0100011 => try self.execute_store(inst), // Store
+            
+            // Branch instructions
+            0b1100011 => try self.execute_branch(inst), // Branch
+            
+            // Jump instructions
+            0b1101111 => try self.execute_jal(inst), // JAL
+            0b1100111 => try self.execute_jalr_with_validation(inst), // JALR
+            
+            // System instructions
+            0b1110011 => try self.execute_system(inst), // ECALL
+            
+            // Zig compiler compatibility opcodes
+            0b0000001 => try self.execute_zig_compat_i_type(0x01, inst),
+            0b0010100 => try self.execute_zig_compat_i_type(0x14, inst),
+            0b0100100 => try self.execute_zig_compat_i_type(0x24, inst),
+            0b0110100 => try self.execute_zig_compat_i_type(0x34, inst),
+            0b0000000 => try self.execute_zig_compat_r_type(inst),
+            0b0100000 => try self.execute_zig_compat_i_type(0x20, inst),
+            0b0000101 => try self.execute_zig_compat_i_type(0x05, inst),
+            0b0000110 => try self.execute_zig_compat_i_type(0x06, inst),
+            0b1000101 => try self.execute_zig_compat_i_type(0x45, inst),
+            0b0100101 => try self.execute_zig_compat_i_type(0x25, inst),
+            0b0111101 => try self.execute_zig_compat_i_type(0x3D, inst),
+            0b1100000 => try self.execute_zig_compat_i_type(0x60, inst),
+            0b0101110 => try self.execute_zig_compat_i_type(0x2E, inst),
+            
+            // Default: try Zig compatibility fallback
+            else => try self.execute_zig_compat_fallback(opcode, inst),
+        }
+    }
+
+    /// Execute I-type instruction (ADDI and variants).
+    /// Why: Extract I-type handling to reduce execute_opcode() length.
+    fn execute_i_type(self: *Self, inst: u32) VMError!void {
+        const funct3 = @as(u3, @truncate(inst >> 12));
+        if (funct3 == 0b000) {
+            try self.execute_addi(inst);
+        } else {
+            // Unsupported I-type instruction variant.
+            std.debug.print("DEBUG vm.zig: Unsupported I-type variant: funct3=0b{b:0>3}\n", .{funct3});
+            self.state = .errored;
+            self.last_error = VMError.invalid_instruction;
+            self.exception_stats.record_exception(2);
+            return VMError.invalid_instruction;
+        }
+    }
+
+    /// Execute R-type instruction (ADD, SUB, etc.).
+    /// Why: Extract R-type handling to reduce execute_opcode() length.
+    fn execute_r_type(self: *Self, inst: u32) VMError!void {
+        const funct3 = @as(u3, @truncate(inst >> 12));
+        const funct7 = @as(u7, @truncate(inst >> 25));
+
+        switch (funct3) {
+            0b000 => try self.execute_r_type_add_sub(inst, funct7),
+            0b001 => try self.execute_r_type_sll(inst, funct7),
+            0b010 => try self.execute_r_type_slt(inst, funct7),
+            0b100 => try self.execute_r_type_xor(inst, funct7),
+            0b101 => try self.execute_r_type_srl_sra(inst, funct7),
+            0b110 => try self.execute_r_type_or(inst, funct7),
+            0b111 => try self.execute_r_type_and(inst, funct7),
+            else => {
+                self.state = .errored;
+                self.last_error = VMError.invalid_instruction;
+                return VMError.invalid_instruction;
+            },
+        }
+    }
+
+    /// Execute R-type ADD or SUB instruction.
+    fn execute_r_type_add_sub(self: *Self, inst: u32, funct7: u7) VMError!void {
+        if (funct7 == 0b0000000) {
+            try self.execute_add(inst);
+        } else if (funct7 == 0b0100000) {
+            try self.execute_sub(inst);
+        } else {
+            self.state = .errored;
+            self.last_error = VMError.invalid_instruction;
+            self.exception_stats.record_exception(2);
+            return VMError.invalid_instruction;
+        }
+    }
+
+    /// Execute R-type SLL instruction.
+    fn execute_r_type_sll(self: *Self, inst: u32, funct7: u7) VMError!void {
+        if (funct7 == 0b0000000) {
+            try self.execute_sll(inst);
+        } else {
+            std.debug.print("DEBUG vm.zig: SLL with non-zero funct7=0x{x}, executing as SLL\n", .{funct7});
+            try self.execute_sll(inst);
+        }
+    }
+
+    /// Execute R-type SLT instruction.
+    fn execute_r_type_slt(self: *Self, inst: u32, funct7: u7) VMError!void {
+        if (funct7 == 0b0000000) {
+            try self.execute_slt(inst);
+        } else {
+            self.state = .errored;
+            self.last_error = VMError.invalid_instruction;
+            self.exception_stats.record_exception(2);
+            return VMError.invalid_instruction;
+        }
+    }
+
+    /// Execute R-type XOR instruction.
+    fn execute_r_type_xor(self: *Self, inst: u32, funct7: u7) VMError!void {
+        if (funct7 == 0b0000000) {
+            try self.execute_xor(inst);
+        } else {
+            self.state = .errored;
+            self.last_error = VMError.invalid_instruction;
+            self.exception_stats.record_exception(2);
+            return VMError.invalid_instruction;
+        }
+    }
+
+    /// Execute R-type SRL or SRA instruction.
+    fn execute_r_type_srl_sra(self: *Self, inst: u32, funct7: u7) VMError!void {
+        if (funct7 == 0b0000000) {
+            try self.execute_srl(inst);
+        } else if (funct7 == 0b0100000) {
+            try self.execute_sra(inst);
+        } else {
+            self.state = .errored;
+            self.last_error = VMError.invalid_instruction;
+            self.exception_stats.record_exception(2);
+            return VMError.invalid_instruction;
+        }
+    }
+
+    /// Execute R-type OR instruction.
+    fn execute_r_type_or(self: *Self, inst: u32, funct7: u7) VMError!void {
+        if (funct7 == 0b0000000) {
+            try self.execute_or(inst);
+        } else {
+            self.state = .errored;
+            self.last_error = VMError.invalid_instruction;
+            self.exception_stats.record_exception(2);
+            return VMError.invalid_instruction;
+        }
+    }
+
+    /// Execute R-type AND instruction.
+    fn execute_r_type_and(self: *Self, inst: u32, funct7: u7) VMError!void {
+        if (funct7 == 0b0000000) {
+            try self.execute_and(inst);
+        } else {
+            self.state = .errored;
+            self.last_error = VMError.invalid_instruction;
+            self.exception_stats.record_exception(2);
+            return VMError.invalid_instruction;
+        }
+    }
+
+    /// Execute load instruction.
+    /// Why: Extract load handling to reduce execute_opcode() length.
+    fn execute_load(self: *Self, inst: u32) VMError!void {
+        const funct3 = @as(u3, @truncate(inst >> 12));
+        switch (funct3) {
+            0b000 => try self.execute_lb(inst), // LB
+            0b001 => try self.execute_lh(inst), // LH
+            0b010 => try self.execute_lw(inst), // LW
+            0b011 => try self.execute_ld(inst), // LD
+            0b100 => try self.execute_lbu(inst), // LBU
+            0b101 => try self.execute_lhu(inst), // LHU
+            0b110 => try self.execute_lwu(inst), // LWU
+            else => {
+                self.state = .errored;
+                self.last_error = VMError.invalid_instruction;
+                return VMError.invalid_instruction;
+            },
+        }
+    }
+
+    /// Execute store instruction.
+    /// Why: Extract store handling to reduce execute_opcode() length.
+    fn execute_store(self: *Self, inst: u32) VMError!void {
+        const funct3 = @as(u3, @truncate(inst >> 12));
+        switch (funct3) {
+            0b000 => try self.execute_sb(inst), // SB
+            0b001 => try self.execute_sh(inst), // SH
+            0b010 => try self.execute_sw(inst), // SW
+            0b011 => try self.execute_sd(inst), // SD
+            else => {
+                self.state = .errored;
+                self.last_error = VMError.invalid_instruction;
+                return VMError.invalid_instruction;
+            },
+        }
+    }
+
+    /// Execute branch instruction.
+    /// Why: Extract branch handling to reduce execute_opcode() length.
+    fn execute_branch(self: *Self, inst: u32) VMError!void {
+        const funct3 = @as(u3, @truncate(inst >> 12));
+        switch (funct3) {
+            0b000 => try self.execute_beq(inst), // BEQ
+            0b001 => try self.execute_bne(inst), // BNE
+            0b100 => try self.execute_blt(inst), // BLT
+            0b101 => try self.execute_bge(inst), // BGE
+            0b110 => try self.execute_bltu(inst), // BLTU
+            0b111 => try self.execute_bgeu(inst), // BGEU
+            else => {
+                self.state = .errored;
+                self.last_error = VMError.invalid_instruction;
+                return VMError.invalid_instruction;
+            },
+        }
+    }
+
+    /// Execute system instruction (ECALL).
+    /// Why: Extract system handling to reduce execute_opcode() length.
+    fn execute_system(self: *Self, inst: u32) VMError!void {
+        const funct3 = @as(u3, @truncate(inst >> 12));
+        if (funct3 == 0b000) {
+            try self.execute_ecall();
+        } else {
+            self.state = .errored;
+            self.last_error = VMError.invalid_instruction;
+            return VMError.invalid_instruction;
+        }
+    }
+
+    /// Execute Zig compiler compatibility I-type instruction.
+    /// Why: Extract Zig compatibility handling to reduce execute_opcode() length.
+    fn execute_zig_compat_i_type(self: *Self, opcode_val: u8, inst: u32) VMError!void {
+        const funct3 = @as(u3, @truncate(inst >> 12));
+        std.debug.print("DEBUG vm.zig: Opcode 0x{x:02X} detected: inst=0x{x}, funct3=0b{b:0>3}\n", .{ opcode_val, inst, funct3 });
+
+        if (funct3 == 0b000) {
+            std.debug.print("DEBUG vm.zig: Executing opcode 0x{x:02X} with funct3=0b000 as ADDI\n", .{opcode_val});
+            try self.execute_addi(inst);
+        } else if (funct3 == 0b100) {
+            std.debug.print("DEBUG vm.zig: Executing opcode 0x{x:02X} with funct3=0b100 as XORI\n", .{opcode_val});
+            try self.execute_xori(inst);
+        } else if (funct3 == 0b110) {
+            std.debug.print("DEBUG vm.zig: Executing opcode 0x{x:02X} with funct3=0b110 as ORI\n", .{opcode_val});
+            try self.execute_ori(inst);
+        } else if (funct3 == 0b111) {
+            std.debug.print("DEBUG vm.zig: Executing opcode 0x{x:02X} with funct3=0b111 as ANDI\n", .{opcode_val});
+            try self.execute_andi(inst);
+        } else {
+            std.debug.print("DEBUG vm.zig: Unknown opcode 0x{x:02X} variant (funct3=0b{b:0>3}), treating as NOP\n", .{ opcode_val, funct3 });
+        }
+    }
+
+    /// Execute Zig compiler compatibility R-type instruction.
+    /// Why: Extract Zig compatibility handling to reduce execute_opcode() length.
+    fn execute_zig_compat_r_type(self: *Self, inst: u32) VMError!void {
+        const funct3 = @as(u3, @truncate(inst >> 12));
+        const funct7 = @as(u7, @truncate(inst >> 25));
+        std.debug.print("DEBUG vm.zig: Opcode 0x00 detected: inst=0x{x}, funct3=0b{b:0>3}, funct7=0b{b:0>7} (0x{x})\n", .{ inst, funct3, funct7, funct7 });
+
+        if (funct3 == 0b001) {
+            std.debug.print("DEBUG vm.zig: Treating opcode 0x00 with funct3=1 as SLL\n", .{});
+            try self.execute_sll(inst);
+        } else {
+            std.debug.print("DEBUG vm.zig: Unknown opcode 0x00 variant (funct3=0b{b:0>3}), treating as NOP\n", .{funct3});
+        }
+    }
+
+    /// Execute Zig compiler compatibility fallback for unknown opcodes.
+    /// Why: Extract Zig compatibility fallback to reduce execute_opcode() length.
+    fn execute_zig_compat_fallback(self: *Self, opcode: u7, inst: u32) VMError!void {
+        const funct3 = @as(u3, @truncate(inst >> 12));
+        if (funct3 == 0b000) {
+            std.debug.print("DEBUG vm.zig: Non-standard opcode 0b{b:0>7} (0x{x}) with funct3=0b000, treating as ADDI\n", .{ opcode, opcode });
+            try self.execute_addi(inst);
+        } else if (funct3 == 0b001) {
+            std.debug.print("DEBUG vm.zig: Non-standard opcode 0b{b:0>7} (0x{x}) with funct3=0b001, treating as SLLI\n", .{ opcode, opcode });
+            try self.execute_slli(inst);
+        } else if (funct3 == 0b011) {
+            std.debug.print("DEBUG vm.zig: Non-standard opcode 0b{b:0>7} (0x{x}) with funct3=0b011, treating as NOP\n", .{ opcode, opcode });
+        } else if (funct3 == 0b100) {
+            std.debug.print("DEBUG vm.zig: Non-standard opcode 0b{b:0>7} (0x{x}) with funct3=0b100, treating as XORI\n", .{ opcode, opcode });
+            try self.execute_xori(inst);
+        } else if (funct3 == 0b110) {
+            std.debug.print("DEBUG vm.zig: Non-standard opcode 0b{b:0>7} (0x{x}) with funct3=0b110, treating as ORI\n", .{ opcode, opcode });
+            try self.execute_ori(inst);
+        } else if (funct3 == 0b111) {
+            std.debug.print("DEBUG vm.zig: Non-standard opcode 0b{b:0>7} (0x{x}) with funct3=0b111, treating as ANDI\n", .{ opcode, opcode });
+            try self.execute_andi(inst);
+        } else {
+            std.debug.print("DEBUG vm.zig: Unknown non-standard opcode 0b{b:0>7} (0x{x}) with funct3=0b{b:0>3}, treating as NOP\n", .{ opcode, opcode, funct3 });
+        }
+    }
+
+    /// Execute JALR instruction with funct3 validation.
+    /// Why: Extract JALR handling to reduce execute_opcode() length.
+    fn execute_jalr_with_validation(self: *Self, inst: u32) VMError!void {
+        const funct3 = @as(u3, @truncate(inst >> 12));
+        if (funct3 == 0b000) {
+            try self.execute_jalr(inst);
+        } else {
+            self.state = .errored;
+            self.last_error = VMError.invalid_instruction;
+            return VMError.invalid_instruction;
+        }
     }
 
     /// Execute LUI (Load Upper Immediate) instruction.

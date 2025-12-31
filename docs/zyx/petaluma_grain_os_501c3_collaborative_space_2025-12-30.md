@@ -12,18 +12,21 @@
 **Petaluma, California** is an ideal location for the Grain OS 501(c)(3) collaborative rental space. Located in Sonoma County with Rep. Jared Huffman's District 2 regional office in Petaluma, the city offers:
 
 1. **Strategic Location**: Rep. Huffman's regional office location, Sonoma County base
-2. **Existing Collaborative Spaces**: Multiple co-working spaces (Keller Street CoWork, WORK Petaluma, Regus)
-3. **Tech Community**: Active tech ecosystem (Sonoma Hacks, AI NorthBay, Sonoma Technology)
-4. **City Support**: Economic Development Division supports tech startups and businesses
-5. **Accessibility**: Close to Bay Area (1 hour), Sacramento (1.5 hours), Oregon connections
-6. **Affordable Options**: Existing co-working spaces with flexible terms, nonprofit-friendly options
+2. **Mayoral Alignment**: Mayor Kevin McDonnell's priorities align with Grain OS (economic development, workforce development, technology)
+3. **Existing Collaborative Spaces**: Multiple co-working spaces (Keller Street CoWork, WORK Petaluma, Regus)
+4. **Tech Community**: Active tech ecosystem (Sonoma Hacks, AI NorthBay, Sonoma Technology)
+5. **City Support**: Economic Development Division, Business Navigator Program support tech startups and businesses
+6. **Accessibility**: Close to Bay Area (1 hour), Sacramento (1.5 hours), Oregon connections
+7. **Affordable Options**: Existing co-working spaces with flexible terms, nonprofit-friendly options
 
 **Key Advantages**:
 - ✅ Direct connection to Rep. Huffman's office (congressional support)
+- ✅ **Mayoral engagement (Mayor McDonnell's priorities: economic development, workforce development, technology)**
 - ✅ Existing tech community and networking opportunities
 - ✅ Multiple collaborative space options
-- ✅ City economic development support
+- ✅ City economic development support (Business Navigator Program, Economic Development Division)
 - ✅ Strategic location for Oregon-California collaboration
+- ✅ **Strong alignment with city initiatives (Business Navigator, LumaGo, SMART Station development)**
 
 ---
 
@@ -539,6 +542,412 @@
 
 ---
 
+## Mayoral Engagement: Working with Mayor Kevin McDonnell
+
+### Mayor Kevin McDonnell: Background & Priorities
+
+**Background**:
+- **Professional**: Civil engineer, project manager for North Bay cities
+- **Community Involvement**: 
+  - Chair of Petaluma Recreation, Music, and Park Commission
+  - Co-founder of "Know Before You Grow" (citizens' group on responsible growth)
+  - Petaluma SafeStreets coalition involvement
+  - Chair of Measure U campaign (public safety and roadway improvements)
+
+**Mayoral Priorities**:
+- ✅ **Affordable Housing**: Addressing housing affordability and homelessness
+- ✅ **Infrastructure**: City infrastructure improvements and technology upgrades
+- ✅ **Economic Development**: Supporting local businesses and tech startups
+- ✅ **Responsible Growth**: Balanced development and growth management
+- ✅ **Public Safety**: Public safety and roadway improvements
+- ✅ **Technology**: Infrastructure technology upgrades and software improvements
+
+---
+
+### Alignment with Grain OS Projects
+
+#### 1. Economic Development Strategy ⭐⭐⭐⭐⭐
+
+**Mayor's Initiative**: Comprehensive economic development strategy
+- Supporting local business incubation
+- Promoting home-based work
+- Encouraging economic diversity
+- Business Navigator Program (2025 launch)
+
+**Grain OS Alignment**:
+- ✅ **Business Incubation**: Grain OS 501(c)(3) as tech startup incubator
+- ✅ **Economic Diversity**: Technology sector diversification
+- ✅ **Business Navigator**: Can utilize program for space setup and permits
+- ✅ **Home-Based Work**: Supports remote work and flexible employment
+
+**Collaboration Opportunities**:
+- Partner with Business Navigator Program
+- Participate in economic development strategy
+- Support local business incubation
+- Contribute to economic diversity
+
+**Plain English Pitch**:
+> "Grain OS creates technology jobs and supports Petaluma's economic development strategy. By providing vocational training and business incubation, we're contributing to economic diversity while building a technology workforce."
+
+---
+
+#### 2. Technology Infrastructure ⭐⭐⭐⭐⭐
+
+**Mayor's Initiative**: Infrastructure technology upgrades
+- Finance Department software upgrades (2024)
+- Technology infrastructure investments
+- Support for tech startups (Enphase Energy, remote.it)
+
+**Grain OS Alignment**:
+- ✅ **Technology Innovation**: Open-source operating system development
+- ✅ **Infrastructure**: Technology infrastructure for city applications
+- ✅ **Tech Startups**: Support for technology startup ecosystem
+- ✅ **Software Development**: Technology workforce development
+
+**Collaboration Opportunities**:
+- Partner on city technology infrastructure projects
+- Provide technology workforce for city projects
+- Support tech startup ecosystem
+- Contribute to technology innovation
+
+**Plain English Pitch**:
+> "Grain OS supports Petaluma's technology infrastructure through open-source innovation and workforce development. By training people in software development, we're building the technology workforce that supports city infrastructure and tech startups."
+
+---
+
+#### 3. Workforce Development ⭐⭐⭐⭐⭐
+
+**Mayor's Initiative**: Economic development and job creation
+- Supporting local businesses and employment
+- Technology sector growth
+- Business incubation and startup support
+
+**Grain OS Alignment**:
+- ✅ **Vocational Training**: Technology training programs for working-class people
+- ✅ **Job Creation**: Entry-level tech jobs and career pathways
+- ✅ **Workforce Development**: Building technology workforce
+- ✅ **Economic Opportunity**: Working-class economic opportunity
+
+**Collaboration Opportunities**:
+- Partner on workforce development programs
+- Provide vocational training for city residents
+- Create technology jobs in Petaluma
+- Support economic opportunity initiatives
+
+**Plain English Pitch**:
+> "Grain OS creates technology jobs and vocational training programs in Petaluma. By training working-class people in software development, we're building the technology workforce while providing economic opportunity."
+
+---
+
+#### 4. Affordable Housing & Homelessness ⭐⭐⭐⭐
+
+**Mayor's Priority**: Addressing affordable housing and homelessness
+- Affordable housing initiatives
+- Homelessness solutions
+- Housing affordability programs
+
+**Grain OS Alignment**:
+- ✅ **Economic Opportunity**: Technology jobs support housing affordability
+- ✅ **Workforce Development**: Training programs create pathways to better-paying jobs
+- ✅ **Working-Class Focus**: Programs target working-class people who need housing support
+
+**Collaboration Opportunities**:
+- Partner on workforce development for affordable housing residents
+- Provide technology training for people facing housing challenges
+- Create job pathways that support housing affordability
+- Support economic opportunity initiatives
+
+**Plain English Pitch**:
+> "Grain OS creates technology jobs that support housing affordability. By training working-class people in software development, we're creating pathways to better-paying jobs that help people afford housing."
+
+---
+
+#### 5. Infrastructure & Public Safety ⭐⭐⭐⭐
+
+**Mayor's Initiative**: Infrastructure improvements and public safety
+- Measure U campaign (public safety and roadway improvements)
+- Infrastructure investments
+- Technology upgrades
+
+**Grain OS Alignment**:
+- ✅ **Technology Infrastructure**: Technology solutions for city infrastructure
+- ✅ **Public Safety Technology**: Technology tools for public safety
+- ✅ **Workforce Development**: Technology workforce for infrastructure projects
+
+**Collaboration Opportunities**:
+- Partner on technology infrastructure projects
+- Provide technology workforce for infrastructure improvements
+- Support public safety technology initiatives
+- Contribute to infrastructure technology solutions
+
+**Plain English Pitch**:
+> "Grain OS supports Petaluma's infrastructure and public safety through technology solutions and workforce development. By training people in software development, we're building the technology workforce that supports city infrastructure projects."
+
+---
+
+### Mayor's Current Initiatives (2025)
+
+#### 1. Business Navigator Program (2025 Launch)
+
+**What It Is**: Personalized support for businesses
+- Site selection assistance
+- Permitting help
+- Comprehensive toolkit for new business inquiries
+
+**Grain OS Opportunity**:
+- ✅ Utilize program for collaborative space setup
+- ✅ Get assistance with permits and regulations
+- ✅ Access business development resources
+- ✅ Connect with city economic development team
+
+**Action**: Contact Business Navigator Program when setting up Grain OS 501(c)(3) space
+
+---
+
+#### 2. LumaGo Rideshare Program
+
+**What It Is**: Free, on-demand rideshare service (launched September 2024)
+- Over 23,500 rides in first year
+- 4.9/5 average rider satisfaction
+- Reduces traffic and emissions
+
+**Grain OS Opportunity**:
+- ✅ Support program participants with technology training
+- ✅ Provide technology jobs for program users
+- ✅ Partner on technology solutions for rideshare program
+- ✅ Ecological sustainability alignment (reduces emissions)
+
+**Action**: Explore partnership opportunities with LumaGo program
+
+---
+
+#### 3. Petaluma North SMART Specific Plan
+
+**What It Is**: Community engagement for Petaluma North SMART Station area
+- Creating vibrant, inclusive, economically dynamic neighborhoods
+- Focus on transit-oriented development
+- Urban growth boundary considerations
+
+**Grain OS Opportunity**:
+- ✅ Locate collaborative space near SMART station (transit-oriented)
+- ✅ Support transit-oriented development
+- ✅ Provide technology jobs in new development area
+- ✅ Contribute to vibrant, inclusive neighborhoods
+
+**Action**: Consider SMART station area for future expansion or satellite location
+
+---
+
+#### 4. General Plan Update
+
+**What It Is**: Long-term city vision update
+- Addresses housing, zoning, economic development
+- Finalization expected in 2025
+
+**Grain OS Opportunity**:
+- ✅ Participate in General Plan update process
+- ✅ Contribute technology and economic development input
+- ✅ Align Grain OS projects with city long-term vision
+- ✅ Support economic development goals
+
+**Action**: Engage with General Plan update process, provide input on technology and economic development
+
+---
+
+### Outreach Strategy: Engaging Mayor McDonnell
+
+#### Phase 1: Initial Contact (Weeks 1-2)
+
+1. **Research & Preparation**:
+   - Review Mayor McDonnell's priorities and initiatives
+   - Prepare Grain OS project overview (plain English)
+   - Identify alignment points (economic development, workforce development, technology)
+   - Prepare one-pager for mayor's office
+
+2. **Initial Outreach**:
+   - Contact mayor's office to request meeting
+   - Provide project overview and alignment with city priorities
+   - Request meeting to discuss Grain OS 501(c)(3) collaborative space
+   - Emphasize economic development and workforce development benefits
+
+3. **Meeting Preparation**:
+   - Prepare presentation on Grain OS projects
+   - Highlight alignment with city priorities
+   - Discuss collaboration opportunities
+   - Request city support and partnership
+
+---
+
+#### Phase 2: Relationship Building (Weeks 3-8)
+
+1. **Regular Engagement**:
+   - Attend city council meetings
+   - Participate in economic development events
+   - Engage with Business Navigator Program
+   - Connect with city economic development team
+
+2. **Project Updates**:
+   - Provide regular updates on Grain OS projects
+   - Share success stories and impact
+   - Request city support for grant applications
+   - Invite mayor to Grain OS events
+
+3. **Collaboration Opportunities**:
+   - Partner on workforce development programs
+   - Support city technology infrastructure projects
+   - Contribute to economic development initiatives
+   - Participate in General Plan update process
+
+---
+
+#### Phase 3: Ongoing Partnership (Ongoing)
+
+1. **Regular Communication**:
+   - Monthly updates to mayor's office
+   - Quarterly meetings with mayor or staff
+   - Annual presentation to city council
+   - Participation in city economic development initiatives
+
+2. **Mutual Support**:
+   - City support for Grain OS grant applications
+   - Grain OS support for city technology projects
+   - Joint workforce development programs
+   - Collaborative economic development initiatives
+
+3. **Community Impact**:
+   - Share impact metrics (jobs created, people trained)
+   - Highlight economic development contributions
+   - Showcase technology innovation
+   - Demonstrate community value
+
+---
+
+### Key Messages for Mayor McDonnell
+
+#### 1. Economic Development Message
+
+**Plain English**:
+> "Grain OS creates technology jobs and supports Petaluma's economic development strategy. By providing vocational training and business incubation, we're contributing to economic diversity while building a technology workforce that supports local businesses and tech startups."
+
+**Key Points**:
+- Technology jobs and economic development
+- Vocational training programs
+- Business incubation and startup support
+- Economic diversity and workforce development
+
+---
+
+#### 2. Workforce Development Message
+
+**Plain English**:
+> "Grain OS creates technology jobs and vocational training programs in Petaluma. By training working-class people in software development, we're building the technology workforce while providing economic opportunity that supports housing affordability and community well-being."
+
+**Key Points**:
+- Technology jobs for working-class people
+- Vocational training programs
+- Economic opportunity and housing affordability
+- Workforce development and community impact
+
+---
+
+#### 3. Technology Innovation Message
+
+**Plain English**:
+> "Grain OS supports Petaluma's technology infrastructure through open-source innovation and workforce development. By training people in software development, we're building the technology workforce that supports city infrastructure, tech startups, and technology innovation."
+
+**Key Points**:
+- Technology infrastructure support
+- Open-source innovation
+- Technology workforce development
+- Tech startup ecosystem support
+
+---
+
+#### 4. Cross-State Collaboration Message
+
+**Plain English**:
+> "Grain OS creates a cross-state collaboration model connecting Petaluma with Oregon cities. By training people in both states, we're building a regional technology workforce while supporting economic development in Petaluma and strengthening grant applications through cross-state partnerships."
+
+**Key Points**:
+- Cross-state collaboration (Oregon-California)
+- Regional technology workforce
+- Economic development in Petaluma
+- Stronger grant applications
+
+---
+
+### Requesting City Support
+
+#### 1. Letters of Support for Grants
+
+**Request**: Letters of support from Mayor McDonnell for federal grant applications
+
+**Alignment Points**:
+- Economic development and job creation
+- Workforce development and vocational training
+- Technology innovation and infrastructure
+- Cross-state collaboration
+
+**Plain English Request**:
+> "We're requesting a letter of support from Mayor McDonnell for our federal grant application. Grain OS creates technology jobs and vocational training programs in Petaluma, supporting the city's economic development strategy and workforce development goals."
+
+---
+
+#### 2. City Partnership on Programs
+
+**Request**: City partnership on workforce development and economic development programs
+
+**Alignment Points**:
+- Business Navigator Program partnership
+- Workforce development collaboration
+- Economic development initiatives
+- Technology infrastructure projects
+
+**Plain English Request**:
+> "We're requesting city partnership on workforce development programs. Grain OS can provide technology training that complements city economic development initiatives, creating jobs and supporting local businesses."
+
+---
+
+#### 3. Permitting and Regulatory Support
+
+**Request**: Assistance with permits and regulations for 501(c)(3) collaborative space
+
+**Alignment Points**:
+- Business Navigator Program assistance
+- Economic development support
+- Technology startup support
+- Collaborative space setup
+
+**Plain English Request**:
+> "We're requesting city assistance with permits and regulations for our Grain OS 501(c)(3) collaborative space. We can utilize the Business Navigator Program to navigate the permitting process and set up our space efficiently."
+
+---
+
+### Success Metrics to Share
+
+#### Economic Development Impact
+
+- **Jobs Created**: Number of technology jobs created in Petaluma
+- **People Trained**: Number of people trained in technology skills
+- **Businesses Supported**: Number of tech startups and businesses supported
+- **Economic Contribution**: Economic impact on Petaluma
+
+#### Workforce Development Impact
+
+- **Training Programs**: Number of vocational training programs offered
+- **Graduates**: Number of people completing training programs
+- **Job Placements**: Number of people placed in technology jobs
+- **Career Pathways**: Number of career pathways created
+
+#### Technology Innovation Impact
+
+- **Open-Source Projects**: Number of open-source projects developed
+- **Technology Infrastructure**: Technology infrastructure contributions
+- **Innovation**: Technology innovation and solutions
+- **Ecosystem**: Contribution to tech startup ecosystem
+
+---
+
 ## Conclusion
 
 **Petaluma, California** is an ideal location for the Grain OS 501(c)(3) collaborative rental space. With Rep. Jared Huffman's District 2 regional office in Petaluma, existing collaborative spaces, active tech community, and city economic development support, Petaluma offers:
@@ -552,16 +961,20 @@
 **Recommended Next Steps**:
 1. Contact Keller Street CoWork (top choice) to inquire about nonprofit space
 2. Schedule site visit and tour
-3. Connect with Rep. Jared Huffman's Petaluma office
-4. Join local tech groups (AI NorthBay, Sonoma Google Developers Group)
-5. Connect with Petaluma Economic Development Division
+3. **Contact Mayor Kevin McDonnell's office** to request meeting and discuss Grain OS projects
+4. Connect with Rep. Jared Huffman's Petaluma office
+5. Join local tech groups (AI NorthBay, Sonoma Google Developers Group)
+6. Connect with Petaluma Economic Development Division and Business Navigator Program
+7. Participate in General Plan update process (provide technology and economic development input)
 
 **Key Advantages**:
 - ✅ Direct congressional connection (Rep. Huffman's office)
+- ✅ **Mayoral engagement (Mayor McDonnell's priorities align with Grain OS)**
 - ✅ Existing collaborative spaces with flexible terms
 - ✅ Active tech community for networking and partnerships
-- ✅ City economic development support
+- ✅ City economic development support (Business Navigator Program, Economic Development Division)
 - ✅ Strategic location for Oregon-California collaboration
+- ✅ **Strong alignment with city priorities (economic development, workforce development, technology)**
 
 ---
 
@@ -569,9 +982,11 @@
 
 - **Collaborative Spaces**: kellerstreetcowork.com, workpetaluma.com, regus.com
 - **Tech Community**: sonomahacks.com, meetup.com/north-bay-tech-entrepreneurs, sonomatech.com
-- **City Support**: cityofpetaluma.org/departments/economic-development
+- **City Support**: cityofpetaluma.org/departments/economic-development, cityofpetaluma.org (Business Navigator Program)
+- **Mayor's Office**: cityofpetaluma.org (Mayor Kevin McDonnell)
 - **Congressional Office**: huffman.house.gov (District 2, Petaluma office)
 - **Cost of Living**: salary.com, apartments.com, cityofpetaluma.org
+- **City Initiatives**: cityofpetaluma.org (LumaGo, SMART Station, General Plan Update)
 
 ---
 

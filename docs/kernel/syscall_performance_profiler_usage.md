@@ -87,6 +87,28 @@ if (slow_path) |sp| {
 }
 ```
 
+### Get Top N Hot Paths (Most Frequently Called Syscalls)
+
+```zig
+const top_hot = kernel.get_profiler_top_syscalls_by_count(10); // Top 10
+var i: u32 = 0;
+while (i < top_hot.count) : (i += 1) {
+    const entry = top_hot.entries[i];
+    std.debug.print("Hot path {}: syscall {}, called {} times\n", .{i, entry.syscall_num, entry.call_count});
+}
+```
+
+### Get Top N Slow Paths (Slowest Syscalls)
+
+```zig
+const top_slow = kernel.get_profiler_top_syscalls_by_time(10); // Top 10
+var i: u32 = 0;
+while (i < top_slow.count) : (i += 1) {
+    const entry = top_slow.entries[i];
+    std.debug.print("Slow path {}: syscall {}, avg time {} ns\n", .{i, entry.syscall_num, entry.avg_time_ns});
+}
+```
+
 ### Reset Metrics
 
 ```zig

@@ -232,7 +232,14 @@ pub const AnimationManager = struct {
             if (done) {
                 _ = self.remove_animation(window_id);
             }
-            return .{ .x = x, .y = y, .width = width, .height = height, .opacity = opacity, .done = done };
+            return .{
+                .x = x,
+                .y = y,
+                .width = width,
+                .height = height,
+                .opacity = opacity,
+                .done = done,
+            };
         }
         return null;
     }

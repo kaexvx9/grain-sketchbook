@@ -252,7 +252,9 @@ pub const TilingTree = struct {
                 const parent_height = node.height;
                 if (node.split_dir == .vertical) {
                     // Vertical split: left and right.
-                    const left_width = @as(u32, @intFromFloat(@as(f64, @floatFromInt(parent_width)) * node.split_ratio));
+                    const left_width = @as(u32, @intFromFloat(
+                        @as(f64, @floatFromInt(parent_width)) * node.split_ratio,
+                    ));
                     const right_width = parent_width - left_width;
                     std.debug.assert(left_width > 0);
                     std.debug.assert(right_width > 0);
@@ -270,7 +272,9 @@ pub const TilingTree = struct {
                     );
                 } else {
                     // Horizontal split: top and bottom.
-                    const top_height = @as(u32, @intFromFloat(@as(f64, @floatFromInt(parent_height)) * node.split_ratio));
+                    const top_height = @as(u32, @intFromFloat(
+                        @as(f64, @floatFromInt(parent_height)) * node.split_ratio,
+                    ));
                     const bottom_height = parent_height - top_height;
                     std.debug.assert(top_height > 0);
                     std.debug.assert(bottom_height > 0);

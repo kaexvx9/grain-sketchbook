@@ -140,11 +140,13 @@ pub const DesktopShell = struct {
             self.launcher_items_len = 0;
             const visible_apps = registry.get_visible_applications();
             var i: u32 = 0;
-            while (i < visible_apps.len and self.launcher_items_len < MAX_LAUNCHER_ITEMS) : (i += 1) {
+            while (i < visible_apps.len and
+                self.launcher_items_len < MAX_LAUNCHER_ITEMS) : (i += 1) {
                 const app = visible_apps.apps[i];
                 const name_slice = app.name[0..app.name_len];
                 const cmd_slice = app.command[0..app.command_len];
-                self.launcher_items[self.launcher_items_len] = LauncherItem.init(name_slice, cmd_slice);
+                self.launcher_items[self.launcher_items_len] =
+                    LauncherItem.init(name_slice, cmd_slice);
                 self.launcher_items_len += 1;
             }
             std.debug.assert(self.launcher_items_len <= MAX_LAUNCHER_ITEMS);
@@ -317,7 +319,8 @@ pub const DesktopShell = struct {
         const item_padding: u32 = 8;
         var y_offset: u32 = item_padding + 2; // Start below border
         var i: u32 = 0;
-        while (i < self.launcher_items_len and y_offset + item_height < LAUNCHER_HEIGHT) : (i += 1) {
+        while (i < self.launcher_items_len and
+            y_offset + item_height < LAUNCHER_HEIGHT) : (i += 1) {
             const item = self.launcher_items[i];
             if (item.name_len == 0) continue;
             // Draw item background (highlight on hover would go here).

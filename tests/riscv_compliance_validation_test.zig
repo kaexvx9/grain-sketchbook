@@ -297,14 +297,8 @@ test "riscv compliance: kernel targets RISC-V only" {
     // Objective: Verify kernel codebase targets RISC-V only (no ARM64-specific code).
     // Why: Coordination plan requires RISC-V-only kernel, no ARM64-specific code.
     
-    // Note: This test documents the finding that AArch64 code exists.
-    // Coordination needed with Vantage Core on whether AArch64 code should be removed.
-    
-    // Finding: AArch64 code exists in kernel:
-    // - src/kernel/platform_aarch64.zig
-    // - src/kernel/main_aarch64.zig
-    // - src/kernel/entry_aarch64.S
-    // - build.zig has kernel-aarch64 build target
+    // Status: AArch64 code removed (2025-12-29-225000-pst) per Vantage 3 Subcore guidance.
+    // All AArch64 implementation files and build targets removed.
     
     // Assert: Kernel main file (main.zig) should use RISC-V platform.
     // Why: Kernel should target RISC-V only per coordination plan.
@@ -318,8 +312,15 @@ test "riscv compliance: kernel targets RISC-V only" {
     // Why: Coordination plan requires RISC-V-only kernel.
     try testing.expect(has_riscv or has_riscv64);
     
-    // Note: AArch64 code exists but may be legacy/unused.
-    // Coordination needed: Should AArch64 code be removed or is requirement changed?
+    // Assert: Kernel main should NOT use AArch64 platform.
+    // Why: AArch64 code has been removed, kernel should only use RISC-V.
+    const has_aarch64 = std.mem.indexOf(u8, kernel_main, "platform_aarch64") != null;
+    const has_main_aarch64 = std.mem.indexOf(u8, kernel_main, "main_aarch64") != null;
+    try testing.expect(!has_aarch64);
+    try testing.expect(!has_main_aarch64);
+    
+    // Note: AArch64 code removal verified (2025-12-29-225000-pst).
+    // Remaining AArch64 references are type definitions only (unified platform interface, acceptable).
 }
 
 // Test: Validate VM emulates RISC-V correctly.

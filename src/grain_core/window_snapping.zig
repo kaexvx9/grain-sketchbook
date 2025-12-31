@@ -51,7 +51,13 @@ fn should_snap_top(win_y: i32, threshold: u32, title_bar_height: u32) bool {
 }
 
 // Check if window should snap to bottom edge.
-fn should_snap_bottom(win_y: i32, win_height: u32, screen_height: u32, threshold: u32, status_bar_height: u32) bool {
+fn should_snap_bottom(
+    win_y: i32,
+    win_height: u32,
+    screen_height: u32,
+    threshold: u32,
+    status_bar_height: u32,
+) bool {
     const bottom_edge = win_y + @as(i32, @intCast(win_height));
     const screen_bottom = @as(i32, @intCast(screen_height - status_bar_height));
     return bottom_edge >= screen_bottom - @as(i32, @intCast(threshold)) and
@@ -77,7 +83,13 @@ pub fn detect_snap_zone(
     const snap_left = should_snap_left(win_x, threshold);
     const snap_right = should_snap_right(win_x, win_width, screen_width, threshold);
     const snap_top = should_snap_top(win_y, threshold, title_bar_height);
-    const snap_bottom = should_snap_bottom(win_y, win_height, screen_height, threshold, status_bar_height);
+    const snap_bottom = should_snap_bottom(
+        win_y,
+        win_height,
+        screen_height,
+        threshold,
+        status_bar_height,
+    );
     // Check corners first.
     if (snap_left and snap_top) {
         return SnapZone.top_left;
@@ -108,7 +120,10 @@ pub fn detect_snap_zone(
 }
 
 // Calculate snapped position for left edge.
-fn calc_snap_left(screen_width: u32, content_height: u32) struct { x: i32, y: i32, width: u32, height: u32 } {
+fn calc_snap_left(
+    screen_width: u32,
+    content_height: u32,
+) struct { x: i32, y: i32, width: u32, height: u32 } {
     const border_width = compositor.BORDER_WIDTH;
     const title_bar_height = compositor.TITLE_BAR_HEIGHT;
     return .{
@@ -120,7 +135,10 @@ fn calc_snap_left(screen_width: u32, content_height: u32) struct { x: i32, y: i3
 }
 
 // Calculate snapped position for right edge.
-fn calc_snap_right(screen_width: u32, content_height: u32) struct { x: i32, y: i32, width: u32, height: u32 } {
+fn calc_snap_right(
+    screen_width: u32,
+    content_height: u32,
+) struct { x: i32, y: i32, width: u32, height: u32 } {
     const border_width = compositor.BORDER_WIDTH;
     const title_bar_height = compositor.TITLE_BAR_HEIGHT;
     return .{
@@ -132,7 +150,10 @@ fn calc_snap_right(screen_width: u32, content_height: u32) struct { x: i32, y: i
 }
 
 // Calculate snapped position for top edge.
-fn calc_snap_top(screen_width: u32, content_height: u32) struct { x: i32, y: i32, width: u32, height: u32 } {
+fn calc_snap_top(
+    screen_width: u32,
+    content_height: u32,
+) struct { x: i32, y: i32, width: u32, height: u32 } {
     const border_width = compositor.BORDER_WIDTH;
     const title_bar_height = compositor.TITLE_BAR_HEIGHT;
     return .{
@@ -144,7 +165,10 @@ fn calc_snap_top(screen_width: u32, content_height: u32) struct { x: i32, y: i32
 }
 
 // Calculate snapped position for bottom edge.
-fn calc_snap_bottom(screen_width: u32, content_height: u32) struct { x: i32, y: i32, width: u32, height: u32 } {
+fn calc_snap_bottom(
+    screen_width: u32,
+    content_height: u32,
+) struct { x: i32, y: i32, width: u32, height: u32 } {
     const border_width = compositor.BORDER_WIDTH;
     const title_bar_height = compositor.TITLE_BAR_HEIGHT;
     return .{
@@ -156,7 +180,11 @@ fn calc_snap_bottom(screen_width: u32, content_height: u32) struct { x: i32, y: 
 }
 
 // Calculate snapped position for corner zones.
-fn calc_snap_corner(zone: SnapZone, screen_width: u32, content_height: u32) struct { x: i32, y: i32, width: u32, height: u32 } {
+fn calc_snap_corner(
+    zone: SnapZone,
+    screen_width: u32,
+    content_height: u32,
+) struct { x: i32, y: i32, width: u32, height: u32 } {
     const border_width = compositor.BORDER_WIDTH;
     const title_bar_height = compositor.TITLE_BAR_HEIGHT;
     const half_width = screen_width / 2;
@@ -213,7 +241,10 @@ pub fn calculate_snap_position(
     const border_width = compositor.BORDER_WIDTH;
     const title_bar_height = compositor.TITLE_BAR_HEIGHT;
     const status_bar_height: u32 = 24;
-    const content_height = screen_height - (border_width * 2) - title_bar_height - status_bar_height;
+    const content_height = screen_height -
+        (border_width * 2) -
+        title_bar_height -
+        status_bar_height;
     switch (zone) {
         .left => return calc_snap_left(screen_width, content_height),
         .right => return calc_snap_right(screen_width, content_height),
@@ -245,9 +276,23 @@ pub fn apply_snap(
 ) SnapState {
     std.debug.assert(win_width.* > 0);
     std.debug.assert(win_height.* > 0);
-    const zone = detect_snap_zone(win_x.*, win_y.*, win_width.*, win_height.*, screen_width, screen_height, threshold);
+    const zone = detect_snap_zone(
+        win_x.*,
+        win_y.*,
+        win_width.*,
+        win_height.*,
+        screen_width,
+        screen_height,
+        threshold,
+    );
     if (zone != .none) {
-        const snapped = calculate_snap_position(zone, win_width.*, win_height.*, screen_width, screen_height);
+        const snapped = calculate_snap_position(
+            zone,
+            win_width.*,
+            win_height.*,
+            screen_width,
+            screen_height,
+        );
         win_x.* = snapped.x;
         win_y.* = snapped.y;
         win_width.* = snapped.width;

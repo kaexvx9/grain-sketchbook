@@ -59,6 +59,8 @@ pub const DnsCacheEntry = struct {
         while (i < MAX_IP_ADDRESS_LEN) : (i += 1) {
             entry.ip_address[i] = 0;
         }
+        std.debug.assert(entry.hostname_len == 0);
+        std.debug.assert(!entry.active);
         return entry;
     }
 };
@@ -80,6 +82,8 @@ pub const DnsResolver = struct {
         while (i < MAX_DNS_CACHE_ENTRIES) : (i += 1) {
             resolver.cache[i] = DnsCacheEntry.init();
         }
+        std.debug.assert(resolver.cache_len == 0);
+        std.debug.assert(resolver.cache_ttl == cache_ttl);
         return resolver;
     }
 
@@ -161,6 +165,7 @@ pub const DnsResolver = struct {
 
     // Clear expired cache entries.
     pub fn clear_expired_cache(self: *DnsResolver, current_time: u64) u32 {
+        std.debug.assert(self.cache_len <= MAX_DNS_CACHE_ENTRIES);
         var cleared_count: u32 = 0;
         var i: u32 = 0;
         while (i < self.cache_len) : (i += 1) {
@@ -172,6 +177,7 @@ pub const DnsResolver = struct {
                 cleared_count += 1;
             }
         }
+        std.debug.assert(cleared_count <= self.cache_len);
         return cleared_count;
     }
 

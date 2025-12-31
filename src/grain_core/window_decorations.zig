@@ -38,7 +38,9 @@ pub fn get_close_button_bounds(
 ) struct { x: i32, y: i32, width: u32, height: u32 } {
     const title_bar_x = win_x + @as(i32, @intCast(compositor.BORDER_WIDTH));
     const title_bar_y = win_y + @as(i32, @intCast(compositor.BORDER_WIDTH));
-    const button_x = title_bar_x + @as(i32, @intCast(win_width - compositor.BORDER_WIDTH * 2 - BUTTON_MARGIN - BUTTON_SIZE));
+    const button_x = title_bar_x +
+        @as(i32, @intCast(win_width - compositor.BORDER_WIDTH * 2 -
+            BUTTON_MARGIN - BUTTON_SIZE));
     const button_y = title_bar_y;
     return .{
         .x = button_x,

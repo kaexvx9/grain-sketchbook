@@ -262,6 +262,14 @@ pub const Compositor = struct {
     border_width: u32, // Configurable border width
     title_bar_height: u32, // Configurable title bar height
 
+    // Initialize window array with empty windows.
+    fn init_windows(windows: *[MAX_WINDOWS]Window) void {
+        var i: u32 = 0;
+        while (i < MAX_WINDOWS) : (i += 1) {
+            windows[i] = Window.init(0, 0, 0, 0, 0, 0);
+        }
+    }
+
     pub fn init(allocator: std.mem.Allocator) Compositor {
         std.debug.assert(@intFromPtr(allocator.ptr) != 0);
         var comp = Compositor{
@@ -326,18 +334,20 @@ pub const Compositor = struct {
             .border_width = BORDER_WIDTH, // Default border width
             .title_bar_height = TITLE_BAR_HEIGHT, // Default title bar height
         };
-        var i: u32 = 0;
-        while (i < MAX_WINDOWS) : (i += 1) {
-            comp.windows[i] = Window.init(0, 0, 0, 0, 0, 0);
-        }
+        init_windows(&comp.windows);
+        finish_compositor_init(&comp);
+        std.debug.assert(comp.windows_len == 0);
+        std.debug.assert(comp.next_window_id > 0);
+        return comp;
+    }
+
+    // Finish compositor initialization (post-struct setup).
+    fn finish_compositor_init(comp: *Compositor) void {
         comp.next_object_id = 4;
         comp.app_launcher = application.ApplicationLauncher.init(
             &comp.app_registry,
         );
         comp.shell.set_app_registry(&comp.app_registry);
-        std.debug.assert(comp.windows_len == 0);
-        std.debug.assert(comp.next_window_id > 0);
-        return comp;
     }
 
     pub fn create_window(
@@ -621,9 +631,12 @@ pub const Compositor = struct {
             border_color,
         );
         // Bottom border.
+        const bottom_y = @as(i32, @intCast(win.y)) +
+            @as(i32, @intCast(win.height)) -
+            @as(i32, @intCast(BORDER_WIDTH));
         self.renderer.draw_rect(
             win.x,
-            @as(i32, @intCast(win.y)) + @as(i32, @intCast(win.height)) - @as(i32, @intCast(BORDER_WIDTH)),
+            bottom_y,
             win.width,
             BORDER_WIDTH,
             border_color,
@@ -637,8 +650,11 @@ pub const Compositor = struct {
             border_color,
         );
         // Right border.
+        const right_x = @as(i32, @intCast(win.x)) +
+            @as(i32, @intCast(win.width)) -
+            @as(i32, @intCast(BORDER_WIDTH));
         self.renderer.draw_rect(
-            @as(i32, @intCast(win.x)) + @as(i32, @intCast(win.width)) - @as(i32, @intCast(BORDER_WIDTH)),
+            right_x,
             win.y,
             BORDER_WIDTH,
             win.height,
@@ -663,7 +679,8 @@ pub const Compositor = struct {
         // Draw title bar buttons.
         self.render_title_bar_buttons(win);
         // Draw window content area (background, apply opacity).
-        const content_y = @as(i32, @intCast(win.y)) + @as(i32, @intCast(self.border_width + self.title_bar_height));
+        const content_y = @as(i32, @intCast(win.y)) +
+            @as(i32, @intCast(self.border_width + self.title_bar_height));
         const content_height = win.height - (self.border_width * 2) - self.title_bar_height;
         const content_color = window_opacity.apply_opacity_to_color(
             framebuffer_renderer.COLOR_WHITE,
@@ -808,99 +825,128 @@ pub const Compositor = struct {
     }
 
     // Process input events and route to windows.
+    // Handle mouse down event.
+    fn handle_mouse_down(
+        self: *Compositor,
+        x: u32,
+        y: u32,
+    ) void {
+        // Check for launcher item click first.
+        if (self.shell.launcher_visible) {
+            if (self.shell.get_launcher_item_at(x, y)) |item_index| {
+                if (item_index < self.shell.launcher_items_len) {
+                    const item = &self.shell.launcher_items[item_index];
+                    const cmd_slice = item.command[0..item.command_len];
+                    _ = self.launch_application(cmd_slice);
+                }
+                return;
+            }
+        }
+        // Check for window resize handle.
+        const window_id_opt = self.find_window_at(x, y);
+        if (window_id_opt) |window_id| {
+            if (self.get_resize_handle(window_id, x, y)) |handle| {
+                if (handle != ResizeHandle.none) {
+                    self.start_resize(window_id, handle, x, y);
+                } else if (self.get_window(window_id)) |win| {
+                    self.handle_window_button_click(win, window_id, x, y);
+                }
+            } else {
+                self.unfocus_all();
+            }
+        } else {
+            self.unfocus_all();
+        }
+    }
+
+    // Handle window button click (close, minimize, maximize).
+    fn handle_window_button_click(
+        self: *Compositor,
+        win: *Window,
+        window_id: u32,
+        x: u32,
+        y: u32,
+    ) void {
+        const button_type = window_decorations.get_button_at(
+            win.x,
+            win.y,
+            win.width,
+            x,
+            y,
+        );
+        if (button_type == window_decorations.ButtonType.close) {
+            _ = self.remove_window(window_id);
+        } else if (button_type == window_decorations.ButtonType.minimize) {
+            _ = self.minimize_window(window_id);
+        } else if (button_type == window_decorations.ButtonType.maximize) {
+            if (win.maximized) {
+                _ = self.unmaximize_window(window_id);
+            } else {
+                _ = self.maximize_window(window_id);
+            }
+        } else if (self.is_in_title_bar(window_id, x, y)) {
+            self.start_drag(window_id, x, y);
+        } else {
+            _ = self.focus_window(window_id);
+        }
+    }
+
+    // Handle mouse move event.
+    fn handle_mouse_move_event(
+        self: *Compositor,
+        x: u32,
+        y: u32,
+    ) void {
+        // Handle mouse move (dragging/resizing, focus-follows-mouse).
+        self.handle_mouse_move(x, y);
+        // Focus-follows-mouse: focus window under cursor.
+        if (self.focus_manager.should_focus_on_mouse_move()) {
+            if (self.find_window_at(x, y)) |window_id| {
+                if (window_id != self.focused_window_id) {
+                    _ = self.focus_window(window_id);
+                }
+            } else if (self.focus_manager.should_unfocus_on_mouse_leave()) {
+                self.unfocus_all();
+            }
+        }
+    }
+
+    // Handle keyboard event.
+    fn handle_keyboard_event(
+        self: *Compositor,
+        event: input_handler.InputEvent,
+    ) void {
+        if (event.keyboard.kind == .down) {
+            const action_opt = self.shortcut_registry.find_shortcut(
+                event.keyboard.modifiers,
+                event.keyboard.key_code,
+            );
+            if (action_opt) |action| {
+                if (self.focused_window_id > 0) {
+                    _ = action(self, self.focused_window_id);
+                }
+            } else if (self.focused_window_id > 0) {
+                // Route keyboard event to focused window if no shortcut matched.
+                _ = event.keyboard;
+            }
+        }
+    }
+
     pub fn process_input(self: *Compositor) !void {
         const event_opt = try self.input.read_event();
         if (event_opt) |event| {
             if (event.event_type == .mouse) {
-                // Handle mouse events.
                 if (event.mouse.kind == .down) {
-                    // Check for launcher item click first.
-                    if (self.shell.launcher_visible) {
-                        if (self.shell.get_launcher_item_at(
-                            event.mouse.x,
-                            event.mouse.y,
-                        )) |item_index| {
-                            if (item_index < self.shell.launcher_items_len) {
-                                const item = &self.shell.launcher_items[item_index];
-                                const cmd_slice = item.command[0..item.command_len];
-                                _ = self.launch_application(cmd_slice);
-                            }
-                            return;
-                        }
-                    }
-                    // Check for window resize handle.
-                    const window_id_opt = self.find_window_at(
-                        event.mouse.x,
-                        event.mouse.y,
-                    );
-                    if (window_id_opt) |window_id| {
-                        if (self.get_resize_handle(window_id, event.mouse.x, event.mouse.y)) |handle| {
-                            if (handle != ResizeHandle.none) {
-                                self.start_resize(window_id, handle, event.mouse.x, event.mouse.y);
-                            } else if (self.get_window(window_id)) |win| {
-                                const button_type = window_decorations.get_button_at(
-                                    win.x,
-                                    win.y,
-                                    win.width,
-                                    event.mouse.x,
-                                    event.mouse.y,
-                                );
-                                if (button_type == window_decorations.ButtonType.close) {
-                                    _ = self.remove_window(window_id);
-                                } else if (button_type == window_decorations.ButtonType.minimize) {
-                                    _ = self.minimize_window(window_id);
-                                } else if (button_type == window_decorations.ButtonType.maximize) {
-                                    if (win.maximized) {
-                                        _ = self.unmaximize_window(window_id);
-                                    } else {
-                                        _ = self.maximize_window(window_id);
-                                    }
-                                } else if (self.is_in_title_bar(window_id, event.mouse.x, event.mouse.y)) {
-                                    self.start_drag(window_id, event.mouse.x, event.mouse.y);
-                                } else {
-                                    _ = self.focus_window(window_id);
-                                }
-                            }
-                        } else {
-                            self.unfocus_all();
-                        }
-                    } else {
-                        self.unfocus_all();
-                    }
+                    self.handle_mouse_down(event.mouse.x, event.mouse.y);
                 } else if (event.mouse.kind == .move) {
-                    // Handle mouse move (dragging/resizing, focus-follows-mouse).
-                    self.handle_mouse_move(event.mouse.x, event.mouse.y);
-                    // Focus-follows-mouse: focus window under cursor.
-                    if (self.focus_manager.should_focus_on_mouse_move()) {
-                        if (self.find_window_at(event.mouse.x, event.mouse.y)) |window_id| {
-                            if (window_id != self.focused_window_id) {
-                                _ = self.focus_window(window_id);
-                            }
-                        } else if (self.focus_manager.should_unfocus_on_mouse_leave()) {
-                            self.unfocus_all();
-                        }
-                    }
+                    self.handle_mouse_move_event(event.mouse.x, event.mouse.y);
                 } else if (event.mouse.kind == .up) {
                     // Handle mouse release (end drag/resize).
                     self.end_drag();
                     self.end_resize();
                 }
             } else if (event.event_type == .keyboard) {
-                // Handle keyboard shortcuts for window management.
-                if (event.keyboard.kind == .down) {
-                    const action_opt = self.shortcut_registry.find_shortcut(
-                        event.keyboard.modifiers,
-                        event.keyboard.key_code,
-                    );
-                    if (action_opt) |action| {
-                        if (self.focused_window_id > 0) {
-                            _ = action(self, self.focused_window_id);
-                        }
-                    } else if (self.focused_window_id > 0) {
-                        // Route keyboard event to focused window if no shortcut matched.
-                        _ = event.keyboard;
-                    }
-                }
+                self.handle_keyboard_event(event);
             }
         }
     }
@@ -1275,8 +1321,12 @@ pub const Compositor = struct {
             const title_bar_width = win.width - (self.border_width * 2);
             const x_i32 = @as(i32, @intCast(x));
             const y_i32 = @as(i32, @intCast(y));
-            return (x_i32 >= title_bar_x and x_i32 < title_bar_x + @as(i32, @intCast(title_bar_width)) and
-                y_i32 >= title_bar_y and y_i32 < title_bar_y + @as(i32, @intCast(self.title_bar_height)));
+            const title_bar_x_end = title_bar_x +
+                @as(i32, @intCast(title_bar_width));
+            const title_bar_y_end = title_bar_y +
+                @as(i32, @intCast(self.title_bar_height));
+            return (x_i32 >= title_bar_x and x_i32 < title_bar_x_end and
+                y_i32 >= title_bar_y and y_i32 < title_bar_y_end);
         }
         return false;
     }
@@ -1469,7 +1519,8 @@ pub const Compositor = struct {
                 var i: u32 = 0;
                 while (i < self.windows_len) : (i += 1) {
                     const win = &self.windows[i];
-                    const workspace_id = if (self.workspace_manager.get_window_workspace(win.id)) |ws_id|
+                    const workspace_id = if (self.workspace_manager
+                        .get_window_workspace(win.id)) |ws_id|
                         ws_id
                     else
                         self.workspace_manager.current_workspace_id;
@@ -2057,7 +2108,15 @@ pub const Compositor = struct {
         format: screen_capture.CaptureFormat,
         timestamp: u64,
     ) ?u32 {
-        return self.screen_capture_manager.capture_screenshot(name, x, y, width, height, format, timestamp);
+        return self.screen_capture_manager.capture_screenshot(
+            name,
+            x,
+            y,
+            width,
+            height,
+            format,
+            timestamp,
+        );
     }
 
     // Start screen recording.
@@ -2071,7 +2130,15 @@ pub const Compositor = struct {
         format: screen_capture.CaptureFormat,
         timestamp: u64,
     ) ?u32 {
-        return self.screen_capture_manager.start_recording(name, x, y, width, height, format, timestamp);
+        return self.screen_capture_manager.start_recording(
+            name,
+            x,
+            y,
+            width,
+            height,
+            format,
+            timestamp,
+        );
     }
 
     // Stop screen recording.
@@ -2154,7 +2221,14 @@ pub const Compositor = struct {
         disk_total: u64,
         timestamp: u64,
     ) void {
-        self.resource_monitor.update_usage(cpu_percent, memory_used, memory_total, disk_used, disk_total, timestamp);
+        self.resource_monitor.update_usage(
+            cpu_percent,
+            memory_used,
+            memory_total,
+            disk_used,
+            disk_total,
+            timestamp,
+        );
     }
 
     // Update resource usage from kernel.
@@ -2779,7 +2853,14 @@ pub const Compositor = struct {
         size_bytes: u64,
         release_date: u64,
     ) ?u32 {
-        return self.update_manager.add_update(version, description, url, update_type, size_bytes, release_date);
+        return self.update_manager.add_update(
+            version,
+            description,
+            url,
+            update_type,
+            size_bytes,
+            release_date,
+        );
     }
 
     // Start download.
@@ -2957,7 +3038,12 @@ pub const Compositor = struct {
         max_restarts: u32,
         restart_delay_ms: u32,
     ) ?u32 {
-        return self.process_supervisor.add_supervised_process(process_id, policy, max_restarts, restart_delay_ms);
+        return self.process_supervisor.add_supervised_process(
+            process_id,
+            policy,
+            max_restarts,
+            restart_delay_ms,
+        );
     }
 
     // Update supervised process state.
@@ -3159,7 +3245,8 @@ pub const Compositor = struct {
             if (y >= win_y and y < win_y + handle_size) {
                 return ResizeHandle.top;
             }
-            if (y >= win_y + win.height - handle_size and y < win_y + win.height) {
+            const bottom_y = win_y + win.height;
+            if (y >= bottom_y - handle_size and y < bottom_y) {
                 return ResizeHandle.bottom;
             }
         }
@@ -3203,8 +3290,11 @@ pub const Compositor = struct {
                     // If not snapped, clamp to screen bounds.
                     if (!snap_state.snapped) {
                         const min_x: i32 = 0;
-                        const min_y: i32 = @as(i32, @intCast(self.border_width + self.title_bar_height));
-                        const max_x: i32 = @as(i32, @intCast(self.output.width)) - @as(i32, @intCast(win.width));
+                        const min_y: i32 = @as(i32, @intCast(
+                            self.border_width + self.title_bar_height,
+                        ));
+                        const max_x: i32 = @as(i32, @intCast(self.output.width)) -
+                            @as(i32, @intCast(win.width));
                         const max_y: i32 = @as(i32, @intCast(self.output.height)) - @as(i32, @intCast(win.height)) - @as(i32, @intCast(desktop_shell.STATUS_BAR_HEIGHT));
                         win.x = std.math.clamp(win.x, min_x, max_x);
                         win.y = std.math.clamp(win.y, min_y, max_y);
@@ -3255,12 +3345,14 @@ pub const Compositor = struct {
         const min_size: u32 = 100;
         switch (win.resize_state.handle) {
             .top_left => {
-                const new_width = if (win.resize_state.window_start_width > @as(u32, @intCast(-dx)))
-                    win.resize_state.window_start_width - @as(u32, @intCast(-dx))
+                const dx_abs = @as(u32, @intCast(-dx));
+                const new_width = if (win.resize_state.window_start_width > dx_abs)
+                    win.resize_state.window_start_width - dx_abs
                 else
                     min_size;
-                const new_height = if (win.resize_state.window_start_height > @as(u32, @intCast(-dy)))
-                    win.resize_state.window_start_height - @as(u32, @intCast(-dy))
+                const dy_abs = @as(u32, @intCast(-dy));
+                const new_height = if (win.resize_state.window_start_height > dy_abs)
+                    win.resize_state.window_start_height - dy_abs
                 else
                     min_size;
                 win.width = if (new_width < min_size) min_size else new_width;
@@ -3269,17 +3361,20 @@ pub const Compositor = struct {
                 win.y = win.resize_state.window_start_y + dy;
             },
             .top => {
-                const new_height = if (win.resize_state.window_start_height > @as(u32, @intCast(-dy)))
-                    win.resize_state.window_start_height - @as(u32, @intCast(-dy))
+                const dy_abs = @as(u32, @intCast(-dy));
+                const new_height = if (win.resize_state.window_start_height > dy_abs)
+                    win.resize_state.window_start_height - dy_abs
                 else
                     min_size;
                 win.height = if (new_height < min_size) min_size else new_height;
                 win.y = win.resize_state.window_start_y + dy;
             },
             .top_right => {
-                const new_width = win.resize_state.window_start_width + @as(u32, @intCast(dx));
-                const new_height = if (win.resize_state.window_start_height > @as(u32, @intCast(-dy)))
-                    win.resize_state.window_start_height - @as(u32, @intCast(-dy))
+                const new_width = win.resize_state.window_start_width +
+                    @as(u32, @intCast(dx));
+                const dy_abs = @as(u32, @intCast(-dy));
+                const new_height = if (win.resize_state.window_start_height > dy_abs)
+                    win.resize_state.window_start_height - dy_abs
                 else
                     min_size;
                 win.width = if (new_width < min_size) min_size else new_width;
@@ -3326,7 +3421,10 @@ pub const Compositor = struct {
         win.height = constrained.height;
         // Clamp window to screen bounds.
         const max_width = self.output.width - (self.border_width * 2);
-        const max_height = self.output.height - (self.border_width * 2) - self.title_bar_height - desktop_shell.STATUS_BAR_HEIGHT;
+        const max_height = self.output.height -
+            (self.border_width * 2) -
+            self.title_bar_height -
+            desktop_shell.STATUS_BAR_HEIGHT;
         win.width = if (win.width > max_width) max_width else win.width;
         win.height = if (win.height > max_height) max_height else win.height;
     }

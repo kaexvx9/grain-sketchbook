@@ -546,6 +546,116 @@ fn hmac_sha1(key: []const u8, message: []const u8, output: []u8) void {
     std.debug.assert(output.len >= 20);
 }
 
+// Convert u64 to string (helper for JWT claims JSON)
+fn u64_to_string(value: u64, str_out: []u8) u32 {
+    std.debug.assert(str_out.len >= 20);
+    if (value == 0) {
+        str_out[0] = '0';
+        return 1;
+    }
+    var remaining = value;
+    var temp_str: [20]u8 = undefined;
+    var temp_idx: u32 = 19;
+    while (remaining > 0) {
+        temp_str[temp_idx] = '0' + @as(u8, @intCast(remaining % 10));
+        remaining /= 10;
+        if (temp_idx == 0) {
+            break;
+        }
+        temp_idx -= 1;
+    }
+    const str_len = 20 - temp_idx;
+    std.mem.copyForwards(u8, str_out[0..str_len], temp_str[temp_idx + 1..20]);
+    std.debug.assert(str_len > 0);
+    std.debug.assert(str_len <= 20);
+    return str_len;
+}
+
+// Build claims JSON string from JwtClaims (helper for JWT generation)
+fn build_claims_json(claims: *const JwtClaims, json_out: []u8) u32 {
+    std.debug.assert(claims != null);
+    std.debug.assert(json_out.len >= 512);
+    var json_len: u32 = 0;
+    json_out[json_len] = '{';
+    json_len += 1;
+    json_out[json_len] = '"';
+    json_len += 1;
+    std.mem.copyForwards(u8, json_out[json_len..], "user_id");
+    json_len += 6;
+    json_out[json_len] = '"';
+    json_len += 1;
+    json_out[json_len] = ':';
+    json_len += 1;
+    json_out[json_len] = '"';
+    json_len += 1;
+    std.mem.copyForwards(
+        u8,
+        json_out[json_len..],
+        claims.user_id[0..claims.user_id_len],
+    );
+    json_len += claims.user_id_len;
+    json_out[json_len] = '"';
+    json_len += 1;
+    json_out[json_len] = ',';
+    json_len += 1;
+    json_out[json_len] = '"';
+    json_len += 1;
+    std.mem.copyForwards(u8, json_out[json_len..], "exp");
+    json_len += 3;
+    json_out[json_len] = '"';
+    json_len += 1;
+    json_out[json_len] = ':';
+    json_len += 1;
+    var exp_str: [20]u8 = undefined;
+    const exp_str_len = u64_to_string(claims.exp, &exp_str);
+    std.mem.copyForwards(u8, json_out[json_len..], exp_str[0..exp_str_len]);
+    json_len += exp_str_len;
+    json_out[json_len] = ',';
+    json_len += 1;
+    json_out[json_len] = '"';
+    json_len += 1;
+    std.mem.copyForwards(u8, json_out[json_len..], "iat");
+    json_len += 3;
+    json_out[json_len] = '"';
+    json_len += 1;
+    json_out[json_len] = ':';
+    json_len += 1;
+    var iat_str: [20]u8 = undefined;
+    const iat_str_len = u64_to_string(claims.iat, &iat_str);
+    std.mem.copyForwards(u8, json_out[json_len..], iat_str[0..iat_str_len]);
+    json_len += iat_str_len;
+    json_out[json_len] = '}';
+    json_len += 1;
+    std.debug.assert(json_len <= json_out.len);
+    return json_len;
+}
+
+// Assemble JWT token from parts (header.claims.signature)
+fn assemble_jwt_token(
+    header_encoded: []const u8,
+    claims_encoded: []const u8,
+    signature_encoded: []const u8,
+    token_out: []u8,
+) u32 {
+    std.debug.assert(header_encoded.len > 0);
+    std.debug.assert(claims_encoded.len > 0);
+    std.debug.assert(signature_encoded.len > 0);
+    std.debug.assert(token_out.len >= MAX_JWT_LEN);
+    var token_len: u32 = 0;
+    std.mem.copyForwards(u8, token_out[token_len..], header_encoded);
+    token_len += @intCast(header_encoded.len);
+    token_out[token_len] = '.';
+    token_len += 1;
+    std.mem.copyForwards(u8, token_out[token_len..], claims_encoded);
+    token_len += @intCast(claims_encoded.len);
+    token_out[token_len] = '.';
+    token_len += 1;
+    std.mem.copyForwards(u8, token_out[token_len..], signature_encoded);
+    token_len += @intCast(signature_encoded.len);
+    std.debug.assert(token_len <= token_out.len);
+    return token_len;
+}
+
 // Generate JWT token (internal helper)
 fn generate_jwt_token(
     claims: *const JwtClaims,
@@ -559,91 +669,7 @@ fn generate_jwt_token(
     var header_encoded: [256]u8 = undefined;
     const header_encoded_len = base64url_encode(header, &header_encoded);
     var claims_json: [512]u8 = undefined;
-    var claims_json_len: u32 = 0;
-    claims_json[claims_json_len] = '{';
-    claims_json_len += 1;
-    claims_json[claims_json_len] = '"';
-    claims_json_len += 1;
-    std.mem.copyForwards(u8, claims_json[claims_json_len..], "user_id");
-    claims_json_len += 6;
-    claims_json[claims_json_len] = '"';
-    claims_json_len += 1;
-    claims_json[claims_json_len] = ':';
-    claims_json_len += 1;
-    claims_json[claims_json_len] = '"';
-    claims_json_len += 1;
-    std.mem.copyForwards(
-        u8,
-        claims_json[claims_json_len..],
-        claims.user_id[0..claims.user_id_len],
-    );
-    claims_json_len += claims.user_id_len;
-    claims_json[claims_json_len] = '"';
-    claims_json_len += 1;
-    claims_json[claims_json_len] = ',';
-    claims_json_len += 1;
-    claims_json[claims_json_len] = '"';
-    claims_json_len += 1;
-    std.mem.copyForwards(u8, claims_json[claims_json_len..], "exp");
-    claims_json_len += 3;
-    claims_json[claims_json_len] = '"';
-    claims_json_len += 1;
-    claims_json[claims_json_len] = ':';
-    claims_json_len += 1;
-    var exp_str: [20]u8 = undefined;
-    var exp_remaining = claims.exp;
-    var exp_str_len: u32 = 0;
-    if (exp_remaining == 0) {
-        exp_str[0] = '0';
-        exp_str_len = 1;
-    } else {
-        var exp_idx: u32 = 19;
-        while (exp_remaining > 0) {
-            exp_str[exp_idx] = '0' + @as(u8, @intCast(exp_remaining % 10));
-            exp_remaining /= 10;
-            exp_idx -= 1;
-        }
-        exp_str_len = 20 - exp_idx - 1;
-        std.mem.copyForwards(
-            u8,
-            claims_json[claims_json_len..],
-            exp_str[exp_idx + 1..20],
-        );
-        claims_json_len += exp_str_len;
-    }
-    claims_json[claims_json_len] = ',';
-    claims_json_len += 1;
-    claims_json[claims_json_len] = '"';
-    claims_json_len += 1;
-    std.mem.copyForwards(u8, claims_json[claims_json_len..], "iat");
-    claims_json_len += 3;
-    claims_json[claims_json_len] = '"';
-    claims_json_len += 1;
-    claims_json[claims_json_len] = ':';
-    claims_json_len += 1;
-    var iat_remaining = claims.iat;
-    var iat_str: [20]u8 = undefined;
-    var iat_str_len: u32 = 0;
-    if (iat_remaining == 0) {
-        iat_str[0] = '0';
-        iat_str_len = 1;
-    } else {
-        var iat_idx: u32 = 19;
-        while (iat_remaining > 0) {
-            iat_str[iat_idx] = '0' + @as(u8, @intCast(iat_remaining % 10));
-            iat_remaining /= 10;
-            iat_idx -= 1;
-        }
-        iat_str_len = 20 - iat_idx - 1;
-        std.mem.copyForwards(
-            u8,
-            claims_json[claims_json_len..],
-            iat_str[iat_idx + 1..20],
-        );
-        claims_json_len += iat_str_len;
-    }
-    claims_json[claims_json_len] = '}';
-    claims_json_len += 1;
+    const claims_json_len = build_claims_json(claims, &claims_json);
     var claims_encoded: [512]u8 = undefined;
     const claims_encoded_len = base64url_encode(
         claims_json[0..claims_json_len],
@@ -666,31 +692,175 @@ fn generate_jwt_token(
     hmac_sha256(secret, message[0..message_len], &signature);
     var signature_encoded: [64]u8 = undefined;
     const signature_encoded_len = base64url_encode(&signature, &signature_encoded);
-    var token_len: u32 = 0;
-    std.mem.copyForwards(
-        u8,
-        token_out[token_len..],
+    const token_len = assemble_jwt_token(
         header_encoded[0..header_encoded_len],
-    );
-    token_len += header_encoded_len;
-    token_out[token_len] = '.';
-    token_len += 1;
-    std.mem.copyForwards(
-        u8,
-        token_out[token_len..],
         claims_encoded[0..claims_encoded_len],
-    );
-    token_len += claims_encoded_len;
-    token_out[token_len] = '.';
-    token_len += 1;
-    std.mem.copyForwards(
-        u8,
-        token_out[token_len..],
         signature_encoded[0..signature_encoded_len],
+        token_out,
     );
-    token_len += signature_encoded_len;
     std.debug.assert(token_len <= token_out.len);
     return token_len;
+}
+
+// Parse JWT token into three parts (header, claims, signature)
+fn parse_jwt_parts(token: []const u8, parts_out: *[3][]const u8) bool {
+    std.debug.assert(token.len > 0);
+    std.debug.assert(token.len <= MAX_JWT_LEN);
+    var part_count: u32 = 0;
+    var start: u32 = 0;
+    var i: u32 = 0;
+    while (i < token.len and part_count < 3) : (i += 1) {
+        if (token[i] == '.') {
+            parts_out[part_count] = token[start..i];
+            part_count += 1;
+            start = i + 1;
+        }
+    }
+    if (part_count < 2) {
+        return false;
+    }
+    parts_out[part_count] = token[start..];
+    part_count += 1;
+    if (part_count != 3) {
+        return false;
+    }
+    std.debug.assert(part_count == 3);
+    return true;
+}
+
+// Verify JWT signature matches computed signature
+fn verify_jwt_signature(
+    header: []const u8,
+    claims: []const u8,
+    signature: []const u8,
+    secret: []const u8,
+) bool {
+    std.debug.assert(header.len > 0);
+    std.debug.assert(claims.len > 0);
+    std.debug.assert(signature.len > 0);
+    std.debug.assert(secret.len > 0);
+    var message: [1024]u8 = undefined;
+    std.mem.copyForwards(u8, message[0..header.len], header);
+    message[header.len] = '.';
+    std.mem.copyForwards(
+        u8,
+        message[header.len + 1..header.len + 1 + claims.len],
+        claims,
+    );
+    const message_len = header.len + 1 + claims.len;
+    var computed_sig: [32]u8 = undefined;
+    hmac_sha256(secret, message[0..message_len], &computed_sig);
+    var computed_sig_encoded: [64]u8 = undefined;
+    const computed_sig_len = base64url_encode(&computed_sig, &computed_sig_encoded);
+    if (computed_sig_len != signature.len) {
+        return false;
+    }
+    if (!std.mem.eql(
+        u8,
+        computed_sig_encoded[0..computed_sig_len],
+        signature,
+    )) {
+        return false;
+    }
+    std.debug.assert(computed_sig_len == signature.len);
+    return true;
+}
+
+// Extract exp value from decoded claims JSON
+fn extract_exp_from_json(claims_json: []const u8, exp_out: *u64) bool {
+    std.debug.assert(claims_json.len > 0);
+    std.debug.assert(claims_json.len <= 512);
+    std.debug.assert(exp_out != null);
+    var exp_value: u64 = 0;
+    var i: u32 = 0;
+    while (i < claims_json.len) : (i += 1) {
+        if (i + 5 < claims_json.len and
+            std.mem.eql(u8, claims_json[i..i + 5], "\"exp\""))
+        {
+            var j = i + 5;
+            while (j < claims_json.len and claims_json[j] != ':') : (j += 1) {}
+            j += 1;
+            while (j < claims_json.len and
+                (claims_json[j] == ' ' or claims_json[j] == '\t')) : (j += 1) {}
+            exp_value = 0;
+            while (j < claims_json.len and
+                claims_json[j] >= '0' and claims_json[j] <= '9') : (j += 1)
+            {
+                exp_value = exp_value * 10 + @as(u64, @intCast(claims_json[j] - '0'));
+            }
+            exp_out.* = exp_value;
+            return true;
+        }
+    }
+    return false;
+}
+
+// Extract user_id from decoded claims JSON
+fn extract_user_id_from_json(
+    claims_json: []const u8,
+    user_id_out: *JwtClaims,
+) bool {
+    std.debug.assert(claims_json.len > 0);
+    std.debug.assert(claims_json.len <= 512);
+    std.debug.assert(user_id_out != null);
+    var user_id_start: ?u32 = null;
+    var user_id_end: ?u32 = null;
+    var i: u32 = 0;
+    while (i < claims_json.len) : (i += 1) {
+        if (i + 8 < claims_json.len and
+            std.mem.eql(u8, claims_json[i..i + 8], "\"user_id\""))
+        {
+            var j = i + 8;
+            while (j < claims_json.len and claims_json[j] != ':') : (j += 1) {}
+            j += 1;
+            while (j < claims_json.len and
+                (claims_json[j] == ' ' or claims_json[j] == '\t')) : (j += 1) {}
+            if (j < claims_json.len and claims_json[j] == '"') {
+                j += 1;
+                user_id_start = j;
+                while (j < claims_json.len and claims_json[j] != '"') : (j += 1) {}
+                user_id_end = j;
+                break;
+            }
+        }
+    }
+    if (user_id_start) |start_idx| {
+        if (user_id_end) |end_idx| {
+            const user_id_len = end_idx - start_idx;
+            if (user_id_len > MAX_USER_ID_LEN) {
+                return false;
+            }
+            std.mem.copyForwards(
+                u8,
+                &user_id_out.user_id,
+                claims_json[start_idx..end_idx],
+            );
+            user_id_out.user_id_len = user_id_len;
+            std.debug.assert(user_id_out.user_id_len > 0);
+            return true;
+        }
+    }
+    return false;
+}
+
+// Extract exp and user_id from decoded claims JSON
+fn extract_claims_fields(
+    claims_json: []const u8,
+    exp_out: *u64,
+    user_id_out: *JwtClaims,
+) bool {
+    std.debug.assert(claims_json.len > 0);
+    std.debug.assert(claims_json.len <= 512);
+    std.debug.assert(exp_out != null);
+    std.debug.assert(user_id_out != null);
+    if (!extract_exp_from_json(claims_json, exp_out)) {
+        return false;
+    }
+    if (!extract_user_id_from_json(claims_json, user_id_out)) {
+        return false;
+    }
+    std.debug.assert(user_id_out.user_id_len > 0);
+    return true;
 }
 
 // Validate JWT token (internal helper)
@@ -706,109 +876,23 @@ fn validate_jwt(
     std.debug.assert(current_time > 0);
     std.debug.assert(claims_out != null);
     var parts: [3][]const u8 = undefined;
-    var part_count: u32 = 0;
-    var start: u32 = 0;
-    var i: u32 = 0;
-    while (i < token.len and part_count < 3) : (i += 1) {
-        if (token[i] == '.') {
-            parts[part_count] = token[start..i];
-            part_count += 1;
-            start = i + 1;
-        }
-    }
-    if (part_count < 2) {
+    if (!parse_jwt_parts(token, &parts)) {
         return false;
     }
-    parts[part_count] = token[start..];
-    part_count += 1;
-    if (part_count != 3) {
-        return false;
-    }
-    var message: [1024]u8 = undefined;
-    std.mem.copyForwards(u8, message[0..parts[0].len], parts[0]);
-    message[parts[0].len] = '.';
-    std.mem.copyForwards(
-        u8,
-        message[parts[0].len + 1..parts[0].len + 1 + parts[1].len],
-        parts[1],
-    );
-    const message_len = parts[0].len + 1 + parts[1].len;
-    var computed_sig: [32]u8 = undefined;
-    hmac_sha256(secret, message[0..message_len], &computed_sig);
-    var computed_sig_encoded: [64]u8 = undefined;
-    const computed_sig_len = base64url_encode(&computed_sig, &computed_sig_encoded);
-    if (computed_sig_len != parts[2].len) {
-        return false;
-    }
-    if (!std.mem.eql(
-        u8,
-        computed_sig_encoded[0..computed_sig_len],
-        parts[2],
-    )) {
+    if (!verify_jwt_signature(parts[0], parts[1], parts[2], secret)) {
         return false;
     }
     var claims_decoded: [512]u8 = undefined;
     const claims_decoded_len = base64url_decode(parts[1], &claims_decoded);
-    var exp_found: bool = false;
     var exp_value: u64 = 0;
-    var user_id_start: ?u32 = null;
-    var user_id_end: ?u32 = null;
-    i = 0;
-    while (i < claims_decoded_len) : (i += 1) {
-        if (i + 5 < claims_decoded_len and
-            std.mem.eql(u8, claims_decoded[i..i + 5], "\"exp\""))
-        {
-            var j = i + 5;
-            while (j < claims_decoded_len and claims_decoded[j] != ':') : (j += 1) {}
-            j += 1;
-            while (j < claims_decoded_len and
-                (claims_decoded[j] == ' ' or claims_decoded[j] == '\t')) : (j += 1) {}
-            exp_value = 0;
-            while (j < claims_decoded_len and
-                claims_decoded[j] >= '0' and claims_decoded[j] <= '9') : (j += 1)
-            {
-                exp_value = exp_value * 10 + @as(u64, @intCast(claims_decoded[j] - '0'));
-            }
-            exp_found = true;
-        }
-        if (i + 8 < claims_decoded_len and
-            std.mem.eql(u8, claims_decoded[i..i + 8], "\"user_id\""))
-        {
-            var j = i + 8;
-            while (j < claims_decoded_len and claims_decoded[j] != ':') : (j += 1) {}
-            j += 1;
-            while (j < claims_decoded_len and
-                (claims_decoded[j] == ' ' or claims_decoded[j] == '\t')) : (j += 1) {}
-            if (j < claims_decoded_len and claims_decoded[j] == '"') {
-                j += 1;
-                user_id_start = j;
-                while (j < claims_decoded_len and claims_decoded[j] != '"') : (j += 1) {}
-                user_id_end = j;
-            }
-        }
-    }
-    if (!exp_found) {
+    if (!extract_claims_fields(
+        claims_decoded[0..claims_decoded_len],
+        &exp_value,
+        claims_out,
+    )) {
         return false;
     }
     claims_out.exp = exp_value;
-    if (user_id_start) |start_idx| {
-        if (user_id_end) |end_idx| {
-            const user_id_len = end_idx - start_idx;
-            if (user_id_len > MAX_USER_ID_LEN) {
-                return false;
-            }
-            std.mem.copyForwards(
-                u8,
-                &claims_out.user_id,
-                claims_decoded[start_idx..end_idx],
-            );
-            claims_out.user_id_len = user_id_len;
-        } else {
-            return false;
-        }
-    } else {
-        return false;
-    }
     claims_out.iat = current_time;
     claims_out.token_type = TokenType.access;
     std.debug.assert(claims_out.user_id_len > 0);
@@ -873,103 +957,123 @@ fn base64url_encode(input: []const u8, output: []u8) u32 {
     return out_idx;
 }
 
+// Convert Base64URL character to its numeric value
+fn base64url_char_to_value(char: u8) ?u8 {
+    const base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+    var j: u32 = 0;
+    while (j < 64) : (j += 1) {
+        if (base64_chars[j] == char) {
+            return @intCast(j);
+        }
+    }
+    return null;
+}
+
+// Decode 4 Base64URL characters to 3 bytes (helper for base64url_decode)
+fn decode_base64url_4chars(
+    chars: [4]u8,
+    output: []u8,
+    out_idx: u32,
+) ?u32 {
+    std.debug.assert(output.len > out_idx);
+    std.debug.assert(output.len >= out_idx + 3);
+    var values: [4]u8 = undefined;
+    var i: u32 = 0;
+    while (i < 4) : (i += 1) {
+        const val = base64url_char_to_value(chars[i]);
+        if (val) |v| {
+            values[i] = v;
+        } else {
+            return null;
+        }
+    }
+    const new_idx = out_idx + 3;
+    if (new_idx > output.len) {
+        return null;
+    }
+    output[out_idx] = (values[0] << 2) | (values[1] >> 4);
+    output[out_idx + 1] = ((values[1] & 0x0F) << 4) | (values[2] >> 2);
+    output[out_idx + 2] = ((values[2] & 0x03) << 6) | values[3];
+    std.debug.assert(new_idx <= output.len);
+    return new_idx;
+}
+
+// Decode 3 Base64URL characters to 2 bytes (padding case)
+fn decode_base64url_3chars(
+    chars: [3]u8,
+    output: []u8,
+    out_idx: u32,
+) ?u32 {
+    std.debug.assert(output.len > out_idx);
+    std.debug.assert(output.len >= out_idx + 2);
+    var values: [3]u8 = undefined;
+    var i: u32 = 0;
+    while (i < 3) : (i += 1) {
+        const val = base64url_char_to_value(chars[i]);
+        if (val) |v| {
+            values[i] = v;
+        } else {
+            return null;
+        }
+    }
+    const new_idx = out_idx + 2;
+    if (new_idx > output.len) {
+        return null;
+    }
+    output[out_idx] = (values[0] << 2) | (values[1] >> 4);
+    output[out_idx + 1] = ((values[1] & 0x0F) << 4) | (values[2] >> 2);
+    std.debug.assert(new_idx <= output.len);
+    return new_idx;
+}
+
+// Decode 2 Base64URL characters to 1 byte (padding case)
+fn decode_base64url_2chars(
+    chars: [2]u8,
+    output: []u8,
+    out_idx: u32,
+) ?u32 {
+    std.debug.assert(output.len > out_idx);
+    const val1 = base64url_char_to_value(chars[0]) orelse return null;
+    const val2 = base64url_char_to_value(chars[1]) orelse return null;
+    const new_idx = out_idx + 1;
+    if (new_idx > output.len) {
+        return null;
+    }
+    output[out_idx] = (val1 << 2) | (val2 >> 4);
+    std.debug.assert(new_idx <= output.len);
+    return new_idx;
+}
+
 // Base64URL decoding
 fn base64url_decode(input: []const u8, output: []u8) u32 {
     std.debug.assert(input.len > 0);
     std.debug.assert(output.len >= (input.len * 3 / 4));
-    const base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
     var out_idx: u32 = 0;
     var i: u32 = 0;
     while (i < input.len) {
         if (input[i] == '=') {
             break;
         }
-        var char_val: u8 = 255;
-        var j: u32 = 0;
-        while (j < 64) : (j += 1) {
-            if (base64_chars[j] == input[i]) {
-                char_val = @intCast(j);
-                break;
-            }
-        }
-        if (char_val == 255) {
+        if (i + 3 < input.len and input[i + 1] != '=' and
+            input[i + 2] != '=' and input[i + 3] != '=')
+        {
+            const chars = [4]u8{ input[i], input[i + 1], input[i + 2], input[i + 3] };
+            const new_idx = decode_base64url_4chars(chars, output, out_idx) orelse break;
+            out_idx = new_idx;
+            i += 4;
+        } else if (i + 2 < input.len and input[i + 1] != '=' and
+            input[i + 2] != '=')
+        {
+            const chars = [3]u8{ input[i], input[i + 1], input[i + 2] };
+            const new_idx = decode_base64url_3chars(chars, output, out_idx) orelse break;
+            out_idx = new_idx;
             break;
-        }
-        if (i + 1 < input.len and input[i + 1] != '=') {
-            var char_val2: u8 = 255;
-            j = 0;
-            while (j < 64) : (j += 1) {
-                if (base64_chars[j] == input[i + 1]) {
-                    char_val2 = @intCast(j);
-                    break;
-                }
-            }
-            if (char_val2 == 255) {
-                break;
-            }
-            if (i + 2 < input.len and input[i + 2] != '=') {
-                var char_val3: u8 = 255;
-                j = 0;
-                while (j < 64) : (j += 1) {
-                    if (base64_chars[j] == input[i + 2]) {
-                        char_val3 = @intCast(j);
-                        break;
-                    }
-                }
-                if (char_val3 == 255) {
-                    break;
-                }
-                if (i + 3 < input.len and input[i + 3] != '=') {
-                    var char_val4: u8 = 255;
-                    j = 0;
-                    while (j < 64) : (j += 1) {
-                        if (base64_chars[j] == input[i + 3]) {
-                            char_val4 = @intCast(j);
-                            break;
-                        }
-                    }
-                    if (char_val4 == 255) {
-                        break;
-                    }
-                    if (out_idx < output.len) {
-                        output[out_idx] = (char_val << 2) | (char_val2 >> 4);
-                        out_idx += 1;
-                    }
-                    if (out_idx < output.len) {
-                        output[out_idx] = ((char_val2 & 0x0F) << 4) | (char_val3 >> 2);
-                        out_idx += 1;
-                    }
-                    if (out_idx < output.len) {
-                        output[out_idx] = ((char_val3 & 0x03) << 6) | char_val4;
-                        out_idx += 1;
-                    }
-                    i += 4;
-                } else {
-                    if (out_idx < output.len) {
-                        output[out_idx] = (char_val << 2) | (char_val2 >> 4);
-                        out_idx += 1;
-                    }
-                    if (out_idx < output.len) {
-                        output[out_idx] = ((char_val2 & 0x0F) << 4) | (char_val3 >> 2);
-                        out_idx += 1;
-                    }
-                    i += 3;
-                    break;
-                }
-            } else {
-                if (out_idx < output.len) {
-                    output[out_idx] = (char_val << 2) | (char_val2 >> 4);
-                    out_idx += 1;
-                }
-                i += 2;
-                break;
-            }
+        } else if (i + 1 < input.len and input[i + 1] != '=') {
+            const chars = [2]u8{ input[i], input[i + 1] };
+            const new_idx = decode_base64url_2chars(chars, output, out_idx) orelse break;
+            out_idx = new_idx;
+            break;
         } else {
-            if (out_idx < output.len) {
-                output[out_idx] = char_val << 2;
-                out_idx += 1;
-            }
-            i += 1;
             break;
         }
     }

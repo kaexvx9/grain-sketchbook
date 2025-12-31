@@ -475,6 +475,48 @@ pub const BasinKernel = struct {
         return self.syscall_profiler.find_slow_path();
     }
     
+    /// Get top N syscalls by call count (most frequently called).
+    /// Why: Identify multiple hot paths for optimization.
+    /// Returns: Struct with entries array and count of valid entries.
+    pub fn get_profiler_top_syscalls_by_count(
+        self: *const BasinKernel,
+        max_count: u32,
+    ) struct {
+        entries: [150]struct {
+            syscall_num: u32,
+            call_count: u64,
+        },
+        count: u32,
+    } {
+        // Assert: Kernel must be initialized (precondition).
+        const self_ptr = @intFromPtr(self);
+        Debug.kassert(self_ptr != 0, "Kernel ptr is null", .{});
+        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Kernel ptr unaligned", .{});
+        
+        return self.syscall_profiler.get_top_syscalls_by_count(max_count);
+    }
+    
+    /// Get top N syscalls by average execution time (slowest syscalls).
+    /// Why: Identify multiple slow paths for optimization.
+    /// Returns: Struct with entries array and count of valid entries.
+    pub fn get_profiler_top_syscalls_by_time(
+        self: *const BasinKernel,
+        max_count: u32,
+    ) struct {
+        entries: [150]struct {
+            syscall_num: u32,
+            avg_time_ns: u64,
+        },
+        count: u32,
+    } {
+        // Assert: Kernel must be initialized (precondition).
+        const self_ptr = @intFromPtr(self);
+        Debug.kassert(self_ptr != 0, "Kernel ptr is null", .{});
+        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Kernel ptr unaligned", .{});
+        
+        return self.syscall_profiler.get_top_syscalls_by_time(max_count);
+    }
+    
     /// Calculate memory usage for a process by summing its memory mappings.
     /// Why: Track total memory used by a process for resource monitoring.
     /// Contract: process_id must be valid (non-zero).

@@ -94,13 +94,16 @@ Based on typical kernel workloads, these syscalls are likely to be called freque
 
 3. **`clock_gettime`** (Syscall 40):
    - Called frequently for time queries
-   - Should be fast (just timer read)
-   - **Priority**: Medium (if confirmed hot path)
+   - **Current Implementation**: Handled by integration layer (kernel stub just validates arguments)
+   - **Status**: ✅ **Likely optimal** - minimal kernel overhead (just validation)
+   - **Priority**: Medium (if confirmed hot path, but likely already optimal)
 
 4. **`sysinfo`** (Syscall 50):
    - Called for system information queries
-   - May involve aggregating statistics
+   - **Current Implementation**: Aggregates statistics (iterates through MAX_PROCESSES=16, calculates memory stats, gets uptime)
+   - **Optimization Opportunity**: If called frequently, could cache results or optimize aggregation
    - **Priority**: Medium (if confirmed hot path)
+   - **Note**: Linear iteration through 16 processes is O(16) = constant time, likely acceptable
 
 **Note**: Actual hot paths will be identified through profiling data.
 
@@ -114,15 +117,82 @@ These syscalls may have high execution times due to complexity:
 
 1. **`spawn`** (Syscall 1):
    - Process creation, ELF parsing, memory mapping
-   - **Optimization Opportunity**: Optimize ELF parsing, reduce allocations
+   - **Current Implementation**: 
+     - Finds free process slot (linear search through MAX_PROCESSES=16)
+     - Parses ELF header (reads from VM memory)
+     - Loads program segments (iterates through up to MAX_SEGMENTS=16)
+     - Finds parent process (linear search through MAX_PROCESSES=16)
+     - Counts processes in group (linear search through MAX_PROCESSES=16)
+   - **Optimization Opportunities**:
+     - Process lookup: Multiple linear searches through process table (could optimize with hash table if profiling shows bottleneck)
+     - ELF parsing: Could optimize if profiling shows it's expensive
+     - Segment loading: Iterates through segments, but MAX_SEGMENTS=16 is small
+   - **Priority**: Medium (if confirmed slow path)
+   - **Note**: Multiple linear searches through 16 processes is O(16) = constant time, likely acceptable
 
 2. **`map`** / **`unmap`** (Syscalls 10, 11):
    - Memory management operations
-   - **Optimization Opportunity**: Optimize page table operations
+   - **Current Implementation**:
+     - Validates arguments (size, alignment, flags)
+     - Finds free mapping entry (linear search through MAX_MAPPINGS=256)
+     - Checks for overlaps (iterates through all mappings)
+     - Finds process for resource limit checking (linear search through MAX_PROCESSES=16)
+     - Counts processes in group for memory limit (linear search through MAX_PROCESSES=16)
+     - Updates page table (page table operations)
+     - Updates memory statistics
+   - **Optimization Opportunities**:
+     - Mapping lookup: Linear search through MAX_MAPPINGS=256 (larger than handles/processes)
+     - Overlap checking: Iterates through all mappings (could optimize with sorted list or interval tree)
+     - Process lookup: Multiple linear searches (same as spawn)
+     - Page table operations: Could optimize if profiling shows it's expensive
+   - **Priority**: Medium (if confirmed slow path)
+   - **Note**: Linear search through 256 mappings is O(256) = constant time, but larger than handles/processes
 
-3. **Network Syscalls** (Syscalls 90-116):
+3. **File Syscalls** (Syscalls 20-40):
+   - File operations (open, read, write, close, unlink, rename, mkdir, opendir, readdir, closedir)
+   - **Current Implementation**:
+     - `syscall_open`: Validates path, finds free handle, checks process limits, creates handle entry
+     - `syscall_read`: Validates handle, calls `find_handle_by_id()` (linear search O(n) through MAX_HANDLES=64), calls timer for timeout, reads data
+     - `syscall_write`: Similar to read, validates handle, calls `find_handle_by_id()`, calls timer, writes data
+     - `syscall_close`: Finds handle by ID (linear search), updates process resource usage
+     - `syscall_unlink`/`syscall_rename`: Linear search through MAX_HANDLES=64 to find handle by path
+     - `syscall_opendir`/`syscall_readdir`/`syscall_closedir`: Linear search through MAX_DIR_HANDLES
+   - **Optimization Opportunities**:
+     - **Handle lookup**: `find_handle_by_id()` uses linear search O(n) through MAX_HANDLES=64 (read/write/close) - **HIGH PRIORITY** if hot path
+     - **Handle lookup by path**: Linear search through MAX_HANDLES=64 (unlink/rename) - **MEDIUM PRIORITY**
+     - **Directory handle lookup**: Linear search through MAX_DIR_HANDLES (opendir/readdir/closedir) - **LOW PRIORITY** (smaller array)
+     - **Timer calls**: `get_monotonic_ns()` for timeout checking (read/write) - **MEDIUM PRIORITY**
+     - **Process lookup**: Linear search through MAX_PROCESSES=16 for resource tracking - **LOW PRIORITY**
+   - **Priority**: High (if read/write are hot paths)
+   - **Note**: File I/O operations are likely hot paths, making handle lookup optimization critical
+
+4. **Audio Syscalls** (Syscalls 120-134):
+   - Audio device operations (create, configure, read/write, enumerate, delete)
+   - **Current Implementation**:
+     - Validates arguments (device ID, buffer pointers, lengths)
+     - Looks up device (likely linear search through MAX_AUDIO_DEVICES=16)
+     - Audio buffer operations (read/write)
+     - Process lookup for resource tracking (linear search through MAX_PROCESSES=16)
+   - **Optimization Opportunities**:
+     - **Device lookup**: Linear search through MAX_AUDIO_DEVICES=16 (small array, effectively constant time) - **LOW PRIORITY**
+     - **Process lookup**: Linear search through MAX_PROCESSES=16 for resource tracking - **LOW PRIORITY**
+   - **Priority**: Low (small arrays, unlikely to be hot paths)
+   - **Note**: MAX_AUDIO_DEVICES=16 is small, so linear search is effectively constant time
+
+5. **Network Syscalls** (Syscalls 90-116):
    - TCP/UDP operations, network stack processing
-   - **Optimization Opportunity**: Optimize network stack, reduce copies
+   - **Current Implementation**:
+     - Validates arguments (socket ID, data pointers, lengths)
+     - Looks up socket (socket table operations)
+     - Calls timer for timeout checking (tcp_send, tcp_recv, tcp_connect, udp_sendto_with_timeout, etc.)
+     - Finds process for resource tracking (linear search through MAX_PROCESSES=16)
+     - Network stack processing (socket operations, data transfer)
+   - **Optimization Opportunities**:
+     - Timer calls: Multiple network syscalls call `get_monotonic_ns()` for timeout checking (same as read/write)
+     - Process lookup: Linear search through MAX_PROCESSES=16 for resource tracking (same pattern as other syscalls)
+     - Network stack: Could optimize if profiling shows network operations are slow
+   - **Priority**: Medium (if confirmed slow path)
+   - **Note**: Network operations are inherently complex, but timer calls and process lookup follow same patterns as other syscalls
 
 4. **File Syscalls** (Syscalls 30-39):
    - File system operations, I/O
@@ -152,11 +222,14 @@ These syscalls may have high execution times due to complexity:
 
 **Opportunity**: Cache timer value or use platform-specific fast timer.
 
-**Impact**: Medium (affects all timed syscalls)
+**Impact**: Medium (affects all timed syscalls, including read/write with timeouts, sleep_until, sysinfo)
 
 **Priority**: Medium (if timer calls are identified as bottleneck)
 
-**Note**: Timer calls are only made when profiling is enabled, so overhead is acceptable.
+**Note**: 
+- Timer calls are only made when profiling is enabled (for profiler), so profiler overhead is acceptable
+- However, timer calls are also made for timeout checking in read/write syscalls, which could be a bottleneck if these are hot paths
+- If profiling shows timer calls are expensive, consider caching or platform-specific optimization
 
 ### 3. Handle Lookup Optimization
 
@@ -169,6 +242,8 @@ These syscalls may have high execution times due to complexity:
 **Priority**: Medium (if profiling confirms handle lookup is a bottleneck)
 
 **Note**: Linear search through 64 handles is O(64) = constant time in practice, but hash table could reduce to O(1). Only worth optimizing if profiling shows it's a bottleneck.
+
+**Similar Pattern**: Process lookup also uses linear search through MAX_PROCESSES=16 (even smaller, likely fine).
 
 ### 4. Memory Operations
 
@@ -219,11 +294,14 @@ These syscalls may have high execution times due to complexity:
 
 ## Optimization Checklist
 
+- [x] Code review completed (hot path candidates reviewed)
+- [x] Optimization opportunities identified (handle lookup, timer calls, sysinfo aggregation)
+- [x] Profiler infrastructure complete and ready
 - [ ] Collect performance data for representative workloads
 - [ ] Identify hot paths (most frequently called syscalls)
 - [ ] Identify slow paths (syscalls with highest execution time)
 - [ ] Analyze profiling data to identify bottlenecks
-- [ ] Prioritize optimization opportunities
+- [ ] Prioritize optimization opportunities based on profiling data
 - [ ] Implement optimizations for hot paths
 - [ ] Implement optimizations for slow paths
 - [ ] Benchmark before/after improvements
@@ -231,6 +309,6 @@ These syscalls may have high execution times due to complexity:
 
 ---
 
-**Last Updated**: 2025-12-29  
+**Last Updated**: 2025-12-30  
 **Agent**: Grain Basin Kernel Agent (3a)  
-**Status**: ⏳ Ready for data collection and analysis
+**Status**: ✅ Code review complete, ready for data collection and analysis

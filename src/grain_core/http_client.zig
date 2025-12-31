@@ -148,20 +148,26 @@ pub const HttpClientRequest = struct {
 
     // Set timeout for request.
     pub fn set_timeout(self: *HttpClientRequest, timeout_ms: ?u32) void {
+        std.debug.assert(self.request_id > 0);
         if (timeout_ms) |timeout| {
             self.timeout_ms = timeout;
+            std.debug.assert(self.timeout_ms > 0);
         } else {
             self.timeout_ms = DEFAULT_API_TIMEOUT_MS;
+            std.debug.assert(self.timeout_ms == DEFAULT_API_TIMEOUT_MS);
         }
     }
 
     // Check if request has timed out.
     pub fn is_timed_out(self: *const HttpClientRequest, current_time: u64) bool {
+        std.debug.assert(self.request_id > 0);
         if (self.created_at == 0) {
             return false;
         }
+        std.debug.assert(current_time >= self.created_at);
         const elapsed_ms = (current_time - self.created_at) / 1000000; // Convert ns to ms
-        return elapsed_ms > self.timeout_ms;
+        const timed_out = elapsed_ms > self.timeout_ms;
+        return timed_out;
     }
 };
 
@@ -201,6 +207,7 @@ pub const HttpClient = struct {
         timeout_ms: ?u32,
     ) ?*HttpClientRequest {
         std.debug.assert(url.len > 0);
+        std.debug.assert(self.requests_len <= MAX_CONCURRENT_REQUESTS);
         if (self.requests_len >= MAX_CONCURRENT_REQUESTS) {
             return null;
         }
@@ -218,6 +225,7 @@ pub const HttpClient = struct {
             if (self.requests[i] == null) {
                 self.requests[i] = req;
                 self.requests_len += 1;
+                std.debug.assert(self.requests_len <= MAX_CONCURRENT_REQUESTS);
                 return &self.requests[i].?;
             }
         }
@@ -226,11 +234,13 @@ pub const HttpClient = struct {
 
     // Check for timed out requests and mark them as failed.
     pub fn check_timeouts(self: *HttpClient, current_time: u64) void {
+        std.debug.assert(self.requests_len <= MAX_CONCURRENT_REQUESTS);
         var i: u32 = 0;
         while (i < MAX_CONCURRENT_REQUESTS) : (i += 1) {
             if (self.requests[i]) |*req| {
                 if (req.is_timed_out(current_time)) {
                     req.state = RequestState.failed;
+                    std.debug.assert(req.state == RequestState.failed);
                 }
             }
         }
@@ -241,10 +251,12 @@ pub const HttpClient = struct {
         request_id: u32,
     ) ?*HttpClientRequest {
         std.debug.assert(request_id > 0);
+        std.debug.assert(self.requests_len <= MAX_CONCURRENT_REQUESTS);
         var i: u32 = 0;
         while (i < MAX_CONCURRENT_REQUESTS) : (i += 1) {
             if (self.requests[i]) |*req| {
                 if (req.request_id == request_id) {
+                    std.debug.assert(req.request_id == request_id);
                     return req;
                 }
             }
@@ -257,12 +269,14 @@ pub const HttpClient = struct {
         request_id: u32,
     ) bool {
         std.debug.assert(request_id > 0);
+        std.debug.assert(self.requests_len <= MAX_CONCURRENT_REQUESTS);
         var i: u32 = 0;
         while (i < MAX_CONCURRENT_REQUESTS) : (i += 1) {
             if (self.requests[i]) |*req| {
                 if (req.request_id == request_id) {
                     self.requests[i] = null;
                     self.requests_len -= 1;
+                    std.debug.assert(self.requests_len < MAX_CONCURRENT_REQUESTS);
                     return true;
                 }
             }
@@ -272,7 +286,9 @@ pub const HttpClient = struct {
 
     pub fn get_request_count(self: *const HttpClient) u32 {
         std.debug.assert(self.requests_len <= MAX_CONCURRENT_REQUESTS);
-        return self.requests_len;
+        const count = self.requests_len;
+        std.debug.assert(count <= MAX_CONCURRENT_REQUESTS);
+        return count;
     }
 
     // Get response from completed request, returning structured errors.
@@ -282,6 +298,7 @@ pub const HttpClient = struct {
         current_time: u64,
     ) http_errors.HttpClientError!api_server.HttpResponse {
         std.debug.assert(request_id > 0);
+        std.debug.assert(self.requests_len <= MAX_CONCURRENT_REQUESTS);
         const req = self.find_request(request_id) orelse {
             return http_errors.HttpClientError.invalid_response;
         };
@@ -304,6 +321,7 @@ pub const HttpClient = struct {
         if (response.status.code >= 500) {
             return http_errors.HttpClientError.server_error;
         }
+        std.debug.assert(response.status.code < 500);
         return response;
     }
 };

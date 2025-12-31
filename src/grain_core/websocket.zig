@@ -100,41 +100,53 @@ pub const WebSocketConnection = struct {
 
     // Set connection timeout.
     pub fn set_connect_timeout(self: *WebSocketConnection, timeout_ms: ?u32) void {
+        std.debug.assert(self.connection_id > 0);
         if (timeout_ms) |timeout| {
             self.connect_timeout_ms = timeout;
+            std.debug.assert(self.connect_timeout_ms > 0);
         } else {
             self.connect_timeout_ms = DEFAULT_CONNECT_TIMEOUT_MS;
+            std.debug.assert(self.connect_timeout_ms == DEFAULT_CONNECT_TIMEOUT_MS);
         }
     }
 
     // Set message timeout.
     pub fn set_message_timeout(self: *WebSocketConnection, timeout_ms: ?u32) void {
+        std.debug.assert(self.connection_id > 0);
         if (timeout_ms) |timeout| {
             self.message_timeout_ms = timeout;
+            std.debug.assert(self.message_timeout_ms > 0);
         } else {
             self.message_timeout_ms = DEFAULT_MESSAGE_TIMEOUT_MS;
+            std.debug.assert(self.message_timeout_ms == DEFAULT_MESSAGE_TIMEOUT_MS);
         }
     }
 
     // Check if connection has timed out.
     pub fn is_connect_timed_out(self: *const WebSocketConnection, current_time: u64) bool {
+        std.debug.assert(self.connection_id > 0);
         if (self.created_at == 0) {
             return false;
         }
         if (self.state != ConnectionState.connecting) {
             return false;
         }
+        std.debug.assert(current_time >= self.created_at);
         const elapsed_ms = (current_time - self.created_at) / 1000000;
-        return elapsed_ms > self.connect_timeout_ms;
+        const timed_out = elapsed_ms > self.connect_timeout_ms;
+        return timed_out;
     }
 
     // Check if message operation has timed out.
     pub fn is_message_timed_out(self: *const WebSocketConnection, current_time: u64) bool {
+        std.debug.assert(self.connection_id > 0);
         if (self.last_activity == 0) {
             return false;
         }
+        std.debug.assert(current_time >= self.last_activity);
         const elapsed_ms = (current_time - self.last_activity) / 1000000;
-        return elapsed_ms > self.message_timeout_ms;
+        const timed_out = elapsed_ms > self.message_timeout_ms;
+        return timed_out;
     }
 };
 
@@ -183,6 +195,8 @@ pub const WebSocketManager = struct {
         while (i < MAX_WEBSOCKET_CONNECTIONS) : (i += 1) {
             manager.connections[i] = WebSocketConnection.init(0, 0);
         }
+        std.debug.assert(manager.connections_len == 0);
+        std.debug.assert(manager.next_connection_id > 0);
         return manager;
     }
 
@@ -194,6 +208,7 @@ pub const WebSocketManager = struct {
         message_timeout_ms: ?u32,
     ) ?*WebSocketConnection {
         std.debug.assert(socket_fd > 0);
+        std.debug.assert(self.connections_len <= MAX_WEBSOCKET_CONNECTIONS);
         if (self.connections_len >= MAX_WEBSOCKET_CONNECTIONS) {
             return null;
         }
@@ -210,6 +225,7 @@ pub const WebSocketManager = struct {
         conn.set_connect_timeout(connect_timeout_ms);
         conn.set_message_timeout(message_timeout_ms);
         self.connections_len += 1;
+        std.debug.assert(self.connections_len <= MAX_WEBSOCKET_CONNECTIONS);
         return conn;
     }
 
@@ -219,6 +235,7 @@ pub const WebSocketManager = struct {
         connection_id: u32,
     ) bool {
         std.debug.assert(connection_id > 0);
+        std.debug.assert(self.connections_len <= MAX_WEBSOCKET_CONNECTIONS);
         var i: u32 = 0;
         while (i < self.connections_len) : (i += 1) {
             if (self.connections[i].connection_id == connection_id) {
@@ -229,6 +246,7 @@ pub const WebSocketManager = struct {
                     self.connections[j] = self.connections[j + 1];
                 }
                 self.connections_len -= 1;
+                std.debug.assert(self.connections_len < MAX_WEBSOCKET_CONNECTIONS);
                 return true;
             }
         }
@@ -252,14 +270,17 @@ pub const WebSocketManager = struct {
 
     // Check for timed out connections and mark them as closed.
     pub fn check_timeouts(self: *WebSocketManager, current_time: u64) void {
+        std.debug.assert(self.connections_len <= MAX_WEBSOCKET_CONNECTIONS);
         var i: u32 = 0;
         while (i < self.connections_len) : (i += 1) {
             const conn = &self.connections[i];
             if (conn.is_connect_timed_out(current_time)) {
                 conn.state = ConnectionState.closed;
                 conn.active = false;
+                std.debug.assert(conn.state == ConnectionState.closed);
             } else if (conn.is_message_timed_out(current_time)) {
                 conn.state = ConnectionState.closing;
+                std.debug.assert(conn.state == ConnectionState.closing);
             }
         }
     }
@@ -300,6 +321,7 @@ pub fn generate_websocket_accept(
 
 // Check if HTTP request is WebSocket upgrade.
 pub fn is_websocket_upgrade(request: *api_server.HttpRequest) bool {
+    std.debug.assert(request != null);
     const upgrade_header = request.get_header("Upgrade");
     if (upgrade_header == null) {
         return false;
@@ -320,7 +342,44 @@ pub fn is_websocket_upgrade(request: *api_server.HttpRequest) bool {
             match_count = 0;
         }
     }
-    return match_count == 9;
+    const is_upgrade = match_count == 9;
+    std.debug.assert(!is_upgrade or upgrade_val.len >= 9);
+    return is_upgrade;
+}
+
+// Parse WebSocket frame payload length from buffer.
+fn parse_payload_length(
+    buffer: []const u8,
+    initial_len: u64,
+    header_len_out: *u32,
+) ?u64 {
+    std.debug.assert(buffer.len >= 2);
+    std.debug.assert(header_len_out != null);
+    var payload_len: u64 = initial_len;
+    var header_len: u32 = 2;
+    if (payload_len == 126) {
+        if (buffer.len < 4) {
+            return null;
+        }
+        payload_len = (@as(u64, buffer[2]) << 8) | @as(u64, buffer[3]);
+        header_len = 4;
+    } else if (payload_len == 127) {
+        if (buffer.len < 10) {
+            return null;
+        }
+        payload_len = (@as(u64, buffer[2]) << 56) |
+            (@as(u64, buffer[3]) << 48) |
+            (@as(u64, buffer[4]) << 40) |
+            (@as(u64, buffer[5]) << 32) |
+            (@as(u64, buffer[6]) << 24) |
+            (@as(u64, buffer[7]) << 16) |
+            (@as(u64, buffer[8]) << 8) |
+            @as(u64, buffer[9]);
+        header_len = 10;
+    }
+    header_len_out.* = header_len;
+    std.debug.assert(header_len_out.* >= 2);
+    return payload_len;
 }
 
 // Parse WebSocket frame from buffer.
@@ -341,28 +400,13 @@ pub fn parse_websocket_frame(
     const opcode_val = @as(u4, @truncate(byte1 & 0x0F));
     frame.flags.opcode = @enumFromInt(opcode_val);
     frame.flags.masked = (byte2 & 0x80) != 0;
-    var payload_len: u64 = @as(u64, byte2 & 0x7F);
-    var header_len: u32 = 2;
-    if (payload_len == 126) {
-        if (buffer.len < 4) {
-            return false;
-        }
-        payload_len = (@as(u64, buffer[2]) << 8) | @as(u64, buffer[3]);
-        header_len = 4;
-    } else if (payload_len == 127) {
-        if (buffer.len < 10) {
-            return false;
-        }
-        payload_len = (@as(u64, buffer[2]) << 56) |
-            (@as(u64, buffer[3]) << 48) |
-            (@as(u64, buffer[4]) << 40) |
-            (@as(u64, buffer[5]) << 32) |
-            (@as(u64, buffer[6]) << 24) |
-            (@as(u64, buffer[7]) << 16) |
-            (@as(u64, buffer[8]) << 8) |
-            @as(u64, buffer[9]);
-        header_len = 10;
+    const initial_len = @as(u64, byte2 & 0x7F);
+    var header_len: u32 = 0;
+    const payload_len_opt = parse_payload_length(buffer, initial_len, &header_len);
+    if (payload_len_opt == null) {
+        return false;
     }
+    const payload_len = payload_len_opt.?;
     if (payload_len > MAX_FRAME_SIZE) {
         return false;
     }
@@ -391,7 +435,49 @@ pub fn parse_websocket_frame(
         }
     }
     frame.payload_len = @intCast(payload_len);
+    std.debug.assert(frame.payload_len <= MAX_FRAME_SIZE);
     return true;
+}
+
+// Write WebSocket frame payload length to buffer.
+fn write_payload_length(
+    buffer: []u8,
+    offset: *u32,
+    payload_len: u32,
+    masked: bool,
+) void {
+    std.debug.assert(buffer.len > offset.*);
+    std.debug.assert(offset.* < buffer.len);
+    var byte2: u8 = 0;
+    if (masked) {
+        byte2 |= 0x80;
+    }
+    const initial_offset = offset.*;
+    if (payload_len < 126) {
+        byte2 |= @as(u8, @truncate(payload_len));
+        buffer[offset.*] = byte2;
+        offset.* += 1;
+    } else if (payload_len < 65536) {
+        byte2 |= 126;
+        buffer[offset.*] = byte2;
+        offset.* += 1;
+        buffer[offset.*] = @as(u8, @truncate(payload_len >> 8));
+        offset.* += 1;
+        buffer[offset.*] = @as(u8, @truncate(payload_len));
+        offset.* += 1;
+    } else {
+        byte2 |= 127;
+        buffer[offset.*] = byte2;
+        offset.* += 1;
+        var i: u32 = 0;
+        while (i < 8) : (i += 1) {
+            const byte_idx: u32 = 7 - i;
+            const shift_amt: u6 = @intCast(byte_idx * 8);
+            buffer[offset.*] = @as(u8, @truncate(payload_len >> shift_amt));
+            offset.* += 1;
+        }
+    }
+    std.debug.assert(offset.* > initial_offset);
 }
 
 // Generate WebSocket frame to buffer.
@@ -418,42 +504,15 @@ pub fn generate_websocket_frame(
     byte1 |= @intFromEnum(frame.flags.opcode);
     buffer[offset] = byte1;
     offset += 1;
-    var byte2: u8 = 0;
+    write_payload_length(buffer, &offset, frame.payload_len, frame.flags.masked);
     if (frame.flags.masked) {
-        byte2 |= 0x80;
+        var i: u32 = 0;
+        while (i < 4) : (i += 1) {
+            buffer[offset] = frame.flags.mask_key[i];
+            offset += 1;
+        }
     }
     const payload_len = frame.payload_len;
-    if (payload_len < 126) {
-        byte2 |= @as(u8, @truncate(payload_len));
-        buffer[offset] = byte2;
-        offset += 1;
-    } else if (payload_len < 65536) {
-        byte2 |= 126;
-        buffer[offset] = byte2;
-        offset += 1;
-        buffer[offset] = @as(u8, @truncate(payload_len >> 8));
-        offset += 1;
-        buffer[offset] = @as(u8, @truncate(payload_len));
-        offset += 1;
-    } else {
-        byte2 |= 127;
-        buffer[offset] = byte2;
-        offset += 1;
-        var i: u32 = 0;
-        while (i < 8) : (i += 1) {
-            const byte_idx: u32 = 7 - i;
-            const shift_amt: u6 = @intCast(byte_idx * 8);
-            buffer[offset] = @as(u8, @truncate(payload_len >> shift_amt));
-            offset += 1;
-        }
-    }
-    if (frame.flags.masked) {
-        var i: u32 = 0;
-        while (i < 4) : (i += 1) {
-            buffer[offset] = frame.flags.mask_key[i];
-            offset += 1;
-        }
-    }
     var i: u32 = 0;
     while (i < payload_len) : (i += 1) {
         if (frame.flags.masked) {
@@ -463,153 +522,6 @@ pub fn generate_websocket_frame(
         }
         offset += 1;
     }
-    return offset;
-}
-
-
-        }
-        offset += 1;
-    }
-    return offset;
-}
-
-
-    buffer[offset] = byte1;
-    offset += 1;
-    var byte2: u8 = 0;
-    if (frame.flags.masked) {
-        byte2 |= 0x80;
-    }
-    const payload_len = frame.payload_len;
-    if (payload_len < 126) {
-        byte2 |= @as(u8, @truncate(payload_len));
-        buffer[offset] = byte2;
-        offset += 1;
-    } else if (payload_len < 65536) {
-        byte2 |= 126;
-        buffer[offset] = byte2;
-        offset += 1;
-        buffer[offset] = @as(u8, @truncate(payload_len >> 8));
-        offset += 1;
-        buffer[offset] = @as(u8, @truncate(payload_len));
-        offset += 1;
-    } else {
-        byte2 |= 127;
-        buffer[offset] = byte2;
-        offset += 1;
-        var i: u32 = 0;
-        while (i < 8) : (i += 1) {
-            const byte_idx: u32 = 7 - i;
-            const shift_amt: u6 = @intCast(byte_idx * 8);
-            buffer[offset] = @as(u8, @truncate(payload_len >> shift_amt));
-            offset += 1;
-        }
-    }
-    if (frame.flags.masked) {
-        var i: u32 = 0;
-        while (i < 4) : (i += 1) {
-            buffer[offset] = frame.flags.mask_key[i];
-            offset += 1;
-        }
-    }
-    var i: u32 = 0;
-    while (i < payload_len) : (i += 1) {
-        if (frame.flags.masked) {
-            buffer[offset] = frame.payload[i] ^ frame.flags.mask_key[i % 4];
-        } else {
-            buffer[offset] = frame.payload[i];
-        }
-        offset += 1;
-    }
-    return offset;
-}
-
-
-        }
-        offset += 1;
-    }
-    return offset;
-}
-
-        var i: u32 = 0;
-        while (i < 4) : (i += 1) {
-            buffer[offset] = frame.flags.mask_key[i];
-            offset += 1;
-        }
-    }
-    var i: u32 = 0;
-    while (i < payload_len) : (i += 1) {
-        if (frame.flags.masked) {
-            buffer[offset] = frame.payload[i] ^ frame.flags.mask_key[i % 4];
-        } else {
-            buffer[offset] = frame.payload[i];
-        }
-        offset += 1;
-    }
-    return offset;
-}
-
-
-        }
-        offset += 1;
-    }
-    return offset;
-}
-
-
-    buffer[offset] = byte1;
-    offset += 1;
-    var byte2: u8 = 0;
-    if (frame.flags.masked) {
-        byte2 |= 0x80;
-    }
-    const payload_len = frame.payload_len;
-    if (payload_len < 126) {
-        byte2 |= @as(u8, @truncate(payload_len));
-        buffer[offset] = byte2;
-        offset += 1;
-    } else if (payload_len < 65536) {
-        byte2 |= 126;
-        buffer[offset] = byte2;
-        offset += 1;
-        buffer[offset] = @as(u8, @truncate(payload_len >> 8));
-        offset += 1;
-        buffer[offset] = @as(u8, @truncate(payload_len));
-        offset += 1;
-    } else {
-        byte2 |= 127;
-        buffer[offset] = byte2;
-        offset += 1;
-        var i: u32 = 0;
-        while (i < 8) : (i += 1) {
-            const byte_idx: u32 = 7 - i;
-            const shift_amt: u6 = @intCast(byte_idx * 8);
-            buffer[offset] = @as(u8, @truncate(payload_len >> shift_amt));
-            offset += 1;
-        }
-    }
-    if (frame.flags.masked) {
-        var i: u32 = 0;
-        while (i < 4) : (i += 1) {
-            buffer[offset] = frame.flags.mask_key[i];
-            offset += 1;
-        }
-    }
-    var i: u32 = 0;
-    while (i < payload_len) : (i += 1) {
-        if (frame.flags.masked) {
-            buffer[offset] = frame.payload[i] ^ frame.flags.mask_key[i % 4];
-        } else {
-            buffer[offset] = frame.payload[i];
-        }
-        offset += 1;
-    }
-    return offset;
-}
-
-
-        }
-        offset += 1;
-    }
+    std.debug.assert(offset <= buffer.len);
     return offset;
 }

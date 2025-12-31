@@ -272,6 +272,133 @@ pub const SyscallPerformanceProfiler = struct {
         
         return null;
     }
+    
+    /// Get top N syscalls by call count (most frequently called).
+    /// Why: Identify multiple hot paths for optimization.
+    /// Returns: Struct with fixed-size array and count of valid entries.
+    /// Note: Returns up to max_count entries (or fewer if not enough syscalls recorded).
+    /// Grain Style: Static allocation, bounded array.
+    pub fn get_top_syscalls_by_count(
+        self: *const SyscallPerformanceProfiler,
+        max_count: u32,
+    ) struct {
+        entries: [MAX_SYSCALLS]struct {
+            syscall_num: u32,
+            call_count: u64,
+        },
+        count: u32,
+    } {
+        // Assert: max_count must be reasonable.
+        Debug.kassert(max_count > 0, "Max count is zero", .{});
+        Debug.kassert(max_count <= MAX_SYSCALLS, "Max count too large", .{});
+        
+        // Static buffer for results (bounded allocation).
+        var results: [MAX_SYSCALLS]struct {
+            syscall_num: u32,
+            call_count: u64,
+        } = undefined;
+        var result_count: u32 = 0;
+        
+        // Collect all syscalls with non-zero call counts.
+        var i: u32 = 0;
+        while (i < MAX_SYSCALLS) : (i += 1) {
+            if (self.metrics[i].call_count > 0) {
+                results[result_count] = .{
+                    .syscall_num = i,
+                    .call_count = self.metrics[i].call_count,
+                };
+                result_count += 1;
+            }
+        }
+        
+        // Sort by call count (descending) using simple bubble sort.
+        // Why: Simple sort for small arrays (max MAX_SYSCALLS entries).
+        var swapped: bool = true;
+        var j: u32 = 0;
+        while (swapped and j < result_count) : (j += 1) {
+            swapped = false;
+            var k: u32 = 0;
+            while (k < result_count - j - 1) : (k += 1) {
+                if (results[k].call_count < results[k + 1].call_count) {
+                    const temp = results[k];
+                    results[k] = results[k + 1];
+                    results[k + 1] = temp;
+                    swapped = true;
+                }
+            }
+        }
+        
+        // Return up to max_count entries.
+        const return_count = @min(result_count, max_count);
+        return .{
+            .entries = results,
+            .count = return_count,
+        };
+    }
+    
+    /// Get top N syscalls by average execution time (slowest syscalls).
+    /// Why: Identify multiple slow paths for optimization.
+    /// Returns: Struct with fixed-size array and count of valid entries.
+    /// Note: Returns up to max_count entries (or fewer if not enough syscalls recorded).
+    /// Grain Style: Static allocation, bounded array.
+    pub fn get_top_syscalls_by_time(
+        self: *const SyscallPerformanceProfiler,
+        max_count: u32,
+    ) struct {
+        entries: [MAX_SYSCALLS]struct {
+            syscall_num: u32,
+            avg_time_ns: u64,
+        },
+        count: u32,
+    } {
+        // Assert: max_count must be reasonable.
+        Debug.kassert(max_count > 0, "Max count is zero", .{});
+        Debug.kassert(max_count <= MAX_SYSCALLS, "Max count too large", .{});
+        
+        // Static buffer for results (bounded allocation).
+        var results: [MAX_SYSCALLS]struct {
+            syscall_num: u32,
+            avg_time_ns: u64,
+        } = undefined;
+        var result_count: u32 = 0;
+        
+        // Collect all syscalls with non-zero call counts.
+        var i: u32 = 0;
+        while (i < MAX_SYSCALLS) : (i += 1) {
+            if (self.metrics[i].call_count > 0) {
+                const avg = self.metrics[i].get_average_time_ns();
+                results[result_count] = .{
+                    .syscall_num = i,
+                    .avg_time_ns = avg,
+                };
+                result_count += 1;
+            }
+        }
+        
+        // Sort by average time (descending) using simple bubble sort.
+        // Why: Simple sort for small arrays (max MAX_SYSCALLS entries).
+        var swapped: bool = true;
+        var j: u32 = 0;
+        while (swapped and j < result_count) : (j += 1) {
+            swapped = false;
+            var k: u32 = 0;
+            while (k < result_count - j - 1) : (k += 1) {
+                if (results[k].avg_time_ns < results[k + 1].avg_time_ns) {
+                    const temp = results[k];
+                    results[k] = results[k + 1];
+                    results[k + 1] = temp;
+                    swapped = true;
+                }
+            }
+        }
+        
+        // Return up to max_count entries.
+        const return_count = @min(result_count, max_count);
+        return .{
+            .entries = results,
+            .count = return_count,
+        };
+    }
 };
 
 // Test: Profiler initialization.
