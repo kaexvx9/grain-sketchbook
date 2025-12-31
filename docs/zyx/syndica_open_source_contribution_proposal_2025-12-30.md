@@ -3,7 +3,7 @@
 **Proposal Date**: 2025-12-30  
 **Author**: Keaton Dunsford-Livermore  
 **Organization**: Grain OS Project (teamcarry11)  
-**Proposed Contribution**: Zig-based Solana RPC client, global identity system, and Dream Browser templates  
+**Proposed Contribution**: Zig-based Solana RPC client, global identity system with SNS .sol domains, and Dream Browser templates  
 **Target**: Syndica (Sig Validator Project)  
 **License**: Apache 2.0 (compatible with Sig)
 
@@ -11,17 +11,19 @@
 
 ## Executive Summary
 
-This proposal outlines an open-source software contribution to Syndica's Sig project: a **Zig-based Solana RPC client** optimized for RPS (reads-per-second), a **global immutable referentially transparent identity system** via Solana L1 contract, and **Dream Browser templates** for sustainable material e-commerce websites. This contribution extends Sig's RPS-focused architecture to enable Grain OS applications to communicate with Solana blockchain, providing identity management and e-commerce templates that demonstrate Sig's capabilities.
+This proposal outlines an open-source software contribution to Syndica's Sig project: a **Zig-based Solana RPC client** optimized for RPS (reads-per-second), a **global immutable referentially transparent identity system** via Solana L1 contract with **SNS .sol domain integration** for human-readable identity names, and **Dream Browser templates** for sustainable material e-commerce websites. This contribution extends Sig's RPS-focused architecture to enable Grain OS applications to communicate with Solana blockchain, providing identity management with user-friendly naming and e-commerce templates that demonstrate Sig's capabilities.
 
 **Key Contributions**:
 1. **Zig Solana RPC Client**: RPS-optimized RPC client (inspired by Sig's architecture)
 2. **Solana L1 Identity Contract**: Global identity system for Grain OS
-3. **Dream Browser Templates**: E-commerce templates demonstrating Sig integration
-4. **Integration Examples**: Complete integration with Grainbank, Workspace tools, and Grain OS modules
+3. **SNS Domain Integration**: Solana Name Service (.sol domains) for human-readable identity
+4. **Dream Browser Templates**: E-commerce templates demonstrating Sig integration
+5. **Integration Examples**: Complete integration with Grainbank, Workspace tools, and Grain OS modules
 
 **Value to Syndica**:
 - Demonstrates Sig's RPS optimization in real-world applications
-- Expands Sig ecosystem with identity and e-commerce use cases
+- Expands Sig ecosystem with identity, SNS domains, and e-commerce use cases
+- Shows SNS integration with identity system (user-friendly naming)
 - Provides reference implementation for Zig-based Solana integration
 - Contributes to Solana client diversity and developer tooling
 
@@ -51,16 +53,18 @@ This proposal outlines an open-source software contribution to Syndica's Sig pro
 
 ### 1.2 Proposal Scope
 
-This proposal contributes three integrated components to the Sig ecosystem:
+This proposal contributes four integrated components to the Sig ecosystem:
 
 1. **Zig Solana RPC Client**: RPS-optimized RPC client for Grain OS applications
 2. **Solana L1 Identity Contract**: Global immutable referentially transparent identity system
-3. **Dream Browser Templates**: E-commerce templates for sustainable material websites (greenrbuilding-style)
+3. **SNS Domain Integration**: Solana Name Service (.sol domains) for human-readable identity names
+4. **Dream Browser Templates**: E-commerce templates for sustainable material websites (greenrbuilding-style)
 
 **Integration Points**:
 - RPC client communicates with Sig validator (or standard Solana validators)
 - Identity system uses Solana L1 contract for global identity management
-- Dream Browser templates demonstrate RPC client and identity system integration
+- SNS domains provide human-readable names (e.g., "keaton.sol") for identity addresses
+- Dream Browser templates demonstrate RPC client, identity system, and SNS integration
 - Grainbank and Workspace tools integrate with RPC client for payment processing and order management
 
 ---
@@ -84,11 +88,13 @@ This proposal contributes three integrated components to the Sig ecosystem:
 - **Local-only identity** (password-based, not cryptographic)
 - **Not referentially transparent** (no global address that can be copied/shared)
 - **Not immutable** (can be modified locally, no global consistency)
+- **No human-readable names** (long Solana addresses are hard to remember/share)
 
 **E-Commerce Integration**:
 - **No templates** for sustainable material e-commerce websites
 - **No integration** between Dream Browser, Grainbank, and Workspace tools
 - **No identity-based** user authentication for e-commerce
+- **No human-readable identity** for user-friendly e-commerce experience
 
 ### 2.2 Opportunity
 
@@ -99,13 +105,15 @@ This proposal contributes three integrated components to the Sig ecosystem:
 
 **Grain OS Integration**:
 - Grain OS needs Solana integration for identity and payments
+- Grain OS needs human-readable identity names (SNS .sol domains)
 - Dream Browser needs templates for e-commerce websites
 - Grainbank needs Solana integration for MMT-based payments
 
 **Ecosystem Value**:
 - Demonstrates Sig's capabilities in real-world applications
 - Provides reference implementation for Zig-based Solana integration
-- Expands Sig ecosystem with identity and e-commerce use cases
+- Expands Sig ecosystem with identity, SNS domains, and e-commerce use cases
+- Shows SNS integration with identity system (user-friendly naming)
 
 ---
 
@@ -141,21 +149,25 @@ This proposal contributes three integrated components to the Sig ecosystem:
 
 ---
 
-### 3.2 Solana L1 Identity Contract
+### 3.2 Solana L1 Identity Contract + SNS Integration
 
 **Component 2: Identity System** (`grain_solana/identity_contract.zig`)
 
 **Features**:
 - **Global Identity**: Solana public key (base58 encoded address)
+- **SNS Domain**: Human-readable .sol domain (e.g., "keaton.sol")
 - **Immutable**: Blockchain-backed (append-only updates)
-- **Referentially Transparent**: Solana address (copyable, shareable)
+- **Referentially Transparent**: Solana address + SNS domain (copyable, shareable)
 - **Cryptographic**: Ed25519 keypair (not password-based)
 - **Cross-Platform**: Same identity across all Grain OS instances
+- **User-Friendly**: Human-readable names instead of long addresses
 
 **Contract Structure**:
 ```zig
 pub const IdentityAccount = struct {
     identity_pubkey: [32]u8,        // Solana public key (global, unique)
+    sns_domain: [64]u8,             // SNS .sol domain (e.g., "keaton.sol")
+    sns_domain_len: u32,
     name: [64]u8,
     email: [256]u8,
     signing_key: [32]u8,            // Ed25519
@@ -170,14 +182,26 @@ pub const IdentityAccount = struct {
 
 **Contract Operations**:
 - `create_identity`: Deploy new identity account
+- `register_sns_domain`: Register .sol domain for identity (via SNS)
 - `update_identity`: Append-only updates (immutable history)
+- `update_sns_domain`: Update SNS domain mapping
 - `verify_identity`: Cryptographic signature verification
 - `link_device`: Link Grain OS devices to identity
+- `resolve_sns_domain`: Resolve .sol domain to Solana address
+- `reverse_lookup`: Find .sol domain for Solana address
+
+**SNS Integration**:
+- **Domain Registration**: Register .sol domain via SNS (Bonfida)
+- **Domain Resolution**: Resolve .sol domain to Solana address
+- **Reverse Lookup**: Find .sol domain for given Solana address
+- **Domain Updates**: Update domain mapping when identity changes
 
 **Integration**:
 - RPC client communicates with Solana L1 to create/update/verify identities
-- Dream Browser templates use identity for user authentication
-- Grainbank uses identity for payment processing
+- RPC client communicates with SNS to register/resolve .sol domains
+- Dream Browser templates use identity (with .sol domain) for user authentication
+- Grainbank uses identity (with .sol domain) for payment processing
+- Human-readable names improve user experience (e.g., "keaton.sol" vs long address)
 
 ---
 
@@ -261,6 +285,7 @@ pub const SustainableMaterialTemplate = struct {
 - **Immutable**: Blockchain-backed (cannot be modified)
 - **Referentially Transparent**: Solana address (copyable, shareable)
 - **Cryptographic**: Keypair-based (not password-based)
+- **Human-Readable**: SNS .sol domains (e.g., "keaton.sol") for user-friendly identity
 
 ---
 
@@ -274,6 +299,7 @@ src/grain_solana/
 ├── rpc_client.zig          # Core RPC client
 ├── rpc_methods.zig         # RPC methods (getProgramAccounts, etc.)
 ├── identity_rpc.zig        # Identity-specific RPC methods
+├── sns_rpc.zig             # SNS domain RPC methods
 ├── rpc_cache.zig           # Response caching
 ├── connection_pool.zig     # Connection pooling
 └── batch_request.zig       # Request batching
@@ -313,6 +339,23 @@ pub const IdentityRpcMethods = struct {
     pub fn update_identity(self: *IdentityRpcMethods, identity_pubkey: [32]u8, updates: IdentityUpdates, keypair: Keypair) !void;
     pub fn verify_identity_signature(self: *IdentityRpcMethods, identity_pubkey: [32]u8, message: []const u8, signature: [64]u8) bool;
 };
+
+// SNS RPC Methods
+pub const SnsRpcMethods = struct {
+    rpc: *RpcMethods,
+    
+    // Register .sol domain
+    pub fn register_sns_domain(self: *SnsRpcMethods, domain: []const u8, identity_pubkey: [32]u8, keypair: Keypair) !void;
+    
+    // Resolve .sol domain to Solana address
+    pub fn resolve_sns_domain(self: *SnsRpcMethods, domain: []const u8) ![32]u8;
+    
+    // Reverse lookup: find .sol domain for Solana address
+    pub fn reverse_lookup_sns(self: *SnsRpcMethods, address: [32]u8) ?[]const u8;
+    
+    // Update SNS domain mapping
+    pub fn update_sns_domain(self: *SnsRpcMethods, domain: []const u8, new_address: [32]u8, keypair: Keypair) !void;
+};
 ```
 
 **Performance Specifications**:
@@ -332,7 +375,9 @@ src/grain_solana/identity/
 ├── identity_contract.zig    # Solana Program (Rust or Zig)
 ├── identity_account.zig     # Identity account structure
 ├── identity_manager.zig     # Global Identity Manager (Grain OS)
-└── identity_rpc.zig          # Identity RPC methods (from 5.1)
+├── identity_rpc.zig         # Identity RPC methods (from 5.1)
+├── sns_integration.zig      # SNS domain integration
+└── sns_rpc.zig              # SNS RPC methods (from 5.1)
 ```
 
 **Contract Specification**:
@@ -340,6 +385,8 @@ src/grain_solana/identity/
 // Identity Account (Solana Program)
 pub const IdentityAccount = struct {
     identity_pubkey: [32]u8,        // Solana public key
+    sns_domain: [64]u8,             // SNS .sol domain (e.g., "keaton.sol")
+    sns_domain_len: u32,
     name: [64]u8,
     name_len: u32,
     email: [256]u8,
@@ -358,15 +405,20 @@ pub const IdentityAccount = struct {
 
 // Contract Operations
 pub fn create_identity(name: []const u8, email: []const u8, signing_keypair: Keypair) !IdentityAccount;
+pub fn register_sns_domain(domain: []const u8, identity_pubkey: [32]u8, keypair: Keypair) !void;
 pub fn update_identity(identity_pubkey: [32]u8, updates: IdentityUpdates, signature: [64]u8) !void;
+pub fn update_sns_domain(domain: []const u8, new_address: [32]u8, keypair: Keypair) !void;
 pub fn verify_identity(identity_pubkey: [32]u8, message: []const u8, signature: [64]u8) bool;
 pub fn link_device(identity_pubkey: [32]u8, device_id: [32]u8, signature: [64]u8) !void;
+pub fn resolve_sns_domain(domain: []const u8) ![32]u8;
+pub fn reverse_lookup_sns(address: [32]u8) ?[]const u8;
 ```
 
 **Global Identity Reference**:
-- **Format**: Solana public key (base58 encoded)
-- **Example**: `7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU`
-- **Properties**: Globally unique, referentially transparent, immutable, cryptographic
+- **Format**: Solana public key (base58 encoded) OR SNS .sol domain
+- **Example Address**: `7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU`
+- **Example Domain**: `keaton.sol` (human-readable)
+- **Properties**: Globally unique, referentially transparent, immutable, cryptographic, user-friendly (with SNS)
 
 ---
 
@@ -429,6 +481,9 @@ pub const SustainableMaterialTemplate = struct {
 - **Account Size**: Identity account must fit within Solana account size limits
 - **Gas Costs**: Minimize transaction costs for identity operations
 - **Security**: Cryptographic keypair management, signature verification
+- **SNS Integration**: Must integrate with Bonfida SNS for .sol domain registration/resolution
+- **Domain Availability**: Check domain availability before registration
+- **Domain Renewal**: Handle SNS domain renewal and expiration
 
 **Dream Browser Templates**:
 - **Template Engine**: Flexible template system for different use cases
@@ -455,6 +510,8 @@ pub const SustainableMaterialTemplate = struct {
 - **Best Practices**: Follow Solana development best practices
 - **Security**: Follow Solana security guidelines
 - **Documentation**: Clear documentation for Solana developers
+- **SNS Integration**: Follow Bonfida SNS standards and best practices
+- **Domain Management**: Handle SNS domain lifecycle (registration, renewal, expiration)
 
 ### 6.3 Open Source Considerations
 
@@ -525,24 +582,34 @@ pub const SustainableMaterialTemplate = struct {
 - Deploy to Solana devnet
 - Test contract operations
 
-**Week 7: Identity RPC Methods**
+**Week 7: Identity RPC Methods + SNS Integration**
 - Implement identity RPC methods (`identity_rpc.zig`)
+- Implement SNS RPC methods (`sns_rpc.zig`)
+  - Register .sol domain
+  - Resolve .sol domain to address
+  - Reverse lookup (address to domain)
+  - Update domain mapping
 - Integrate with RPC client (from Phase 1)
 - Test identity operations via RPC
+- Test SNS domain operations via RPC
 - Error handling and validation
 
-**Week 8: Grain OS Integration**
+**Week 8: Grain OS Integration + SNS**
 - Implement Global Identity Manager (`identity_manager.zig`)
+- Implement SNS integration (`sns_integration.zig`)
 - Integrate with Grain OS lock screen
-- Local identity cache
-- Cross-device identity sync
+- Local identity cache (with SNS domain cache)
+- Cross-device identity sync (with SNS domain sync)
+- SNS domain registration/resolution UI
 - Testing and validation
 
 **Deliverables**:
 - ✅ Solana L1 identity contract
 - ✅ Identity RPC methods
-- ✅ Global Identity Manager
-- ✅ Grain OS integration
+- ✅ SNS RPC methods (.sol domain registration/resolution)
+- ✅ SNS integration with identity system
+- ✅ Global Identity Manager (with SNS support)
+- ✅ Grain OS integration (with SNS domain UI)
 - ✅ Comprehensive tests
 - ✅ Documentation
 
@@ -735,22 +802,25 @@ pub const SustainableMaterialTemplate = struct {
 
 ### 9.1 Summary
 
-This proposal outlines an open-source software contribution to Syndica's Sig project: a **Zig-based Solana RPC client** optimized for RPS, a **global immutable referentially transparent identity system** via Solana L1 contract, and **Dream Browser templates** for sustainable material e-commerce websites.
+This proposal outlines an open-source software contribution to Syndica's Sig project: a **Zig-based Solana RPC client** optimized for RPS, a **global immutable referentially transparent identity system** via Solana L1 contract with **SNS .sol domain integration**, and **Dream Browser templates** for sustainable material e-commerce websites.
 
 **Key Contributions**:
 1. **Zig Solana RPC Client**: RPS-optimized, Sig-inspired architecture
 2. **Solana L1 Identity Contract**: Global identity system for Grain OS
-3. **Dream Browser Templates**: E-commerce templates demonstrating integration
+3. **SNS Domain Integration**: Human-readable .sol domains for user-friendly identity
+4. **Dream Browser Templates**: E-commerce templates demonstrating integration
 
 **Value to Syndica**:
 - Demonstrates Sig's RPS optimization in real-world applications
-- Expands Sig ecosystem with identity and e-commerce use cases
+- Expands Sig ecosystem with identity, SNS domains, and e-commerce use cases
 - Provides reference implementation for Zig-based Solana integration
+- Shows SNS integration with identity system (user-friendly naming)
 - Contributes to Solana client diversity and developer tooling
 
 **Value to Grain OS**:
 - Enables Solana integration for Grain OS applications
 - Provides global immutable referentially transparent identity
+- Provides human-readable identity names (SNS .sol domains)
 - Enables sustainable material e-commerce websites
 - Integrates Grainbank with Solana for MMT-based payments
 
@@ -795,9 +865,162 @@ This proposal outlines an open-source software contribution to Syndica's Sig pro
 
 ---
 
-## Appendix A: Technical Details
+## Appendix A: SNS Domain Integration Details
 
-### A.1 RPC Client Architecture
+### A.1 SNS Overview
+
+**Solana Name Service (SNS)** provides human-readable `.sol` domains for Solana addresses, making identity more user-friendly.
+
+**Key Features**:
+- **Human-Readable**: Replace long Solana addresses with short domains (e.g., "keaton.sol")
+- **Decentralized**: On-chain domain registration and resolution
+- **User-Friendly**: Easy to remember and share
+- **Integration**: Works with existing Solana infrastructure
+
+**SNS Integration Benefits**:
+- **Better UX**: Users can use "keaton.sol" instead of long addresses
+- **Easier Sharing**: Copy/paste friendly domain names
+- **Professional**: Brand identity through domain names
+- **Cross-Platform**: Same domain works across all Grain OS apps
+
+---
+
+### A.2 SNS RPC Integration
+
+**SNS RPC Methods** (Zig Implementation):
+
+```zig
+// SNS RPC Methods
+pub const SnsRpcMethods = struct {
+    rpc: *RpcMethods,
+    
+    // Register .sol domain (via Bonfida SNS)
+    pub fn register_sns_domain(
+        self: *SnsRpcMethods,
+        domain: []const u8,           // e.g., "keaton" (without .sol)
+        identity_pubkey: [32]u8,
+        keypair: Keypair,
+    ) !void {
+        // Check domain availability
+        // Register domain via Bonfida SNS Program
+        // Map domain to identity pubkey
+        // Return domain registration result
+    }
+    
+    // Resolve .sol domain to Solana address
+    pub fn resolve_sns_domain(
+        self: *SnsRpcMethods,
+        domain: []const u8,           // e.g., "keaton.sol"
+    ) ![32]u8 {
+        // Query SNS Program for domain
+        // Resolve domain to Solana address
+        // Return resolved address
+    }
+    
+    // Reverse lookup: find .sol domain for Solana address
+    pub fn reverse_lookup_sns(
+        self: *SnsRpcMethods,
+        address: [32]u8,
+    ) ?[]const u8 {
+        // Query SNS Program for address
+        // Find associated .sol domain
+        // Return domain if found
+    }
+    
+    // Update SNS domain mapping
+    pub fn update_sns_domain(
+        self: *SnsRpcMethods,
+        domain: []const u8,
+        new_address: [32]u8,
+        keypair: Keypair,
+    ) !void {
+        // Update domain mapping via SNS Program
+        // Verify ownership
+        // Update mapping
+    }
+    
+    // Check domain availability
+    pub fn check_domain_availability(
+        self: *SnsRpcMethods,
+        domain: []const u8,
+    ) !bool {
+        // Query SNS Program for domain
+        // Check if domain is available
+        // Return availability status
+    }
+};
+```
+
+---
+
+### A.3 Identity System with SNS
+
+**Enhanced Identity Account**:
+```zig
+pub const IdentityAccount = struct {
+    identity_pubkey: [32]u8,        // Solana public key
+    sns_domain: [64]u8,             // SNS .sol domain (e.g., "keaton.sol")
+    sns_domain_len: u32,
+    // ... other fields ...
+};
+```
+
+**Identity Operations with SNS**:
+- **Create Identity**: Create identity account, optionally register .sol domain
+- **Register Domain**: Register .sol domain for existing identity
+- **Resolve Domain**: Resolve .sol domain to identity address
+- **Reverse Lookup**: Find .sol domain for identity address
+- **Update Domain**: Update domain mapping if identity changes
+
+**User Experience**:
+- Users can create identity with .sol domain (e.g., "keaton.sol")
+- Users can share identity using .sol domain (easier than long address)
+- Users can look up identities by .sol domain (human-readable)
+- E-commerce templates can display .sol domain instead of long address
+
+---
+
+### A.4 SNS Integration Architecture
+
+**Domain Registration Flow**:
+```
+Grain OS Application
+    ↓
+GlobalIdentityManager
+    ↓
+Check Domain Availability (via SNS RPC)
+    ↓
+Register Domain (via SNS Program)
+    ↓
+Map Domain to Identity Pubkey
+    ↓
+Update Identity Account (add SNS domain)
+    ↓
+Cache Locally (identity + domain)
+```
+
+**Domain Resolution Flow**:
+```
+Grain OS Application
+    ↓
+GlobalIdentityManager
+    ↓
+Resolve .sol Domain (via SNS RPC)
+    ↓
+SNS Program (query domain)
+    ↓
+Get Identity Address
+    ↓
+Load Identity Account (via RPC)
+    ↓
+Return Identity (with domain)
+```
+
+---
+
+## Appendix B: Technical Details (RPC Client & Identity)
+
+### B.1 RPC Client Architecture
 
 **Request Flow**:
 ```
@@ -826,9 +1049,9 @@ Response (cached if applicable)
 
 ---
 
-### A.2 Identity Contract Architecture
+### B.2 Identity Contract Architecture (with SNS)
 
-**Identity Creation Flow**:
+**Identity Creation Flow** (with SNS):
 ```
 Grain OS Application
     ↓
@@ -844,7 +1067,11 @@ Solana L1 (deploy contract)
     ↓
 Identity Account Created
     ↓
-Cache Locally
+Register SNS Domain (e.g., "keaton.sol")
+    ↓
+SNS Domain Mapped to Identity
+    ↓
+Cache Locally (identity + domain)
 ```
 
 **Identity Verification Flow**:
@@ -866,30 +1093,32 @@ Return Verification Result
 
 ---
 
-### A.3 Dream Browser Template Architecture
+### B.3 Dream Browser Template Architecture (with SNS)
 
-**Template Rendering Flow**:
+**Template Rendering Flow** (with SNS):
 ```
-User Request
+User Request (with .sol domain)
     ↓
 Dream Browser Template
     ↓
+Resolve .sol Domain (via SNS RPC)
+    ↓
 RPC Client (fetch data)
     ↓
-Identity Manager (authenticate user)
+Identity Manager (authenticate user by .sol domain)
     ↓
-Grainbank (process payment)
+Grainbank (process payment, display .sol domain)
     ↓
-Workspace Tools (order management)
+Workspace Tools (order management, use .sol domain)
     ↓
-Render Template
+Render Template (display .sol domain instead of long address)
     ↓
-Display to User
+Display to User (user-friendly identity)
 ```
 
 ---
 
-## Appendix B: Code Examples
+## Appendix C: Code Examples
 
 ### B.1 RPC Client Usage
 
@@ -907,7 +1136,7 @@ var program_accounts = try rpc_client.get_program_accounts(program_id, null);
 std.debug.print("Found {} accounts\n", .{program_accounts.len});
 ```
 
-### B.2 Identity System Usage
+### C.2 Identity System Usage (with SNS)
 
 ```zig
 // Initialize identity manager
@@ -925,9 +1154,27 @@ std.debug.print("Identity name: {}\n", .{identity.name});
 // Verify signature
 var verified = try identity_manager.verify_signature(identity_pubkey, message, signature);
 std.debug.print("Signature verified: {}\n", .{verified});
+
+// Register SNS domain
+var sns_rpc = SnsRpcMethods.init(&rpc_methods);
+try sns_rpc.register_sns_domain("keaton", identity_pubkey, keypair);
+std.debug.print("SNS domain registered: keaton.sol\n", .{});
+
+// Resolve .sol domain to address
+var resolved_address = try sns_rpc.resolve_sns_domain("keaton.sol");
+std.debug.print("Resolved address: {}\n", .{resolved_address});
+
+// Reverse lookup: find .sol domain for address
+if (sns_rpc.reverse_lookup_sns(identity_pubkey)) |domain| {
+    std.debug.print("Domain found: {}\n", .{domain});
+}
+
+// Load identity by .sol domain
+var identity_by_domain = try identity_manager.load_identity_by_domain("keaton.sol");
+std.debug.print("Identity loaded: {}\n", .{identity_by_domain.name});
 ```
 
-### B.3 Dream Browser Template Usage
+### C.3 Dream Browser Template Usage (with SNS)
 
 ```zig
 // Initialize template
@@ -937,9 +1184,13 @@ defer template.deinit();
 // Render catalog
 template.render_catalog();
 
-// Process checkout
-var receipt = try template.checkout(cart, identity_pubkey);
+// Process checkout (using .sol domain)
+var receipt = try template.checkout(cart, "keaton.sol"); // Human-readable domain
 std.debug.print("Order confirmed: {}\n", .{receipt.order_id});
+
+// Or using identity pubkey
+var receipt2 = try template.checkout(cart, identity_pubkey);
+std.debug.print("Order confirmed: {}\n", .{receipt2.order_id});
 ```
 
 ---
@@ -963,7 +1214,7 @@ std.debug.print("Order confirmed: {}\n", .{receipt.order_id});
 
 ---
 
-## Appendix D: Contact Information
+## Appendix E: Contact Information
 
 **Author**: Keaton Dunsford-Livermore  
 **Email**: kj3x39@gmail.com  
@@ -975,6 +1226,12 @@ std.debug.print("Order confirmed: {}\n", .{receipt.order_id});
 - **Website**: https://syndica.io
 - **Sig GitHub**: https://github.com/Syndica/sig
 - **Sig Blog**: https://blog.syndica.io/introducing-sig-by-syndica-an-rps-focused-solana-validator-client-written-in-zig/
+
+**SNS (Solana Name Service) Resources**:
+- **SNS Website**: https://www.sns.id/
+- **SNS Documentation**: https://docs.sns.id/
+- **SNS Guide**: https://sns.guide/
+- **Bonfida SNS SDK**: @bonfida/spl-name-service (JavaScript/TypeScript reference)
 
 ---
 
