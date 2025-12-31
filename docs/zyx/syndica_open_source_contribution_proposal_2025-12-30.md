@@ -1233,6 +1233,13 @@ std.debug.print("Order confirmed: {}\n", .{receipt2.order_id});
 - **SNS Guide**: https://sns.guide/
 - **Bonfida SNS SDK**: @bonfida/spl-name-service (JavaScript/TypeScript reference)
 
+**Related Grain OS Integration**:
+- **SNS → Nostr → Skate Integration**: `docs/zyx/sns_nostr_skate_integration_2025-12-30.md`
+  - Extends this proposal with Nostr relay integration
+  - Links SNS .sol domains to Nostr npub addresses
+  - Integrates with Skate knowledge graph for social networking
+  - Enables unified identity across Solana, Nostr, and Skate
+
 ---
 
 **Date**: 2025-12-30  
