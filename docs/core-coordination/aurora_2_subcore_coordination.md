@@ -113,10 +113,11 @@
 
 ### 2a. Grain Dream Editor Agent (L2 Sub-Agent)
 
-**Status**: 🆕 **TO BE CREATED**  
+**Status**: ✅ **ACTIVE** (Created 2025-12-31)  
 **Domain**: IDE Editor Features  
 **Key Files**: `src/aurora_editor.zig`, `src/aurora_lsp.zig`, `src/aurora_tree_sitter.zig`, etc.  
-**Coordination**: Weekly/bi-weekly with Aurora 2 Subcore
+**Coordination**: Weekly/bi-weekly with Aurora 2 Subcore  
+**Coordination Document**: `docs/core-coordination/dream_editor_coordination.md`
 
 **Responsibilities**:
 - LSP (Language Server Protocol) integration
@@ -128,10 +129,11 @@
 
 ### 2b. Grain Dream Browser Agent (L2 Sub-Agent)
 
-**Status**: 🆕 **TO BE CREATED**  
+**Status**: ✅ **ACTIVE** (Created 2025-12-31)  
 **Domain**: Browser Features  
 **Key Files**: `src/dream_browser_*.zig`, `src/dream_protocol.zig`, `src/dream_websocket.zig`, etc.  
-**Coordination**: Weekly/bi-weekly with Aurora 2 Subcore
+**Coordination**: Weekly/bi-weekly with Aurora 2 Subcore  
+**Coordination Document**: `docs/core-coordination/dream_browser_coordination.md`
 
 **Responsibilities**:
 - Nostr protocol integration
@@ -143,10 +145,11 @@
 
 ### 2c. Grain Component Library Agent (L2 Sub-Agent)
 
-**Status**: 🆕 **TO BE CREATED** — **IMMEDIATE PRIORITY**  
+**Status**: ✅ **ACTIVE** (Created 2025-12-31) — **IMMEDIATE PRIORITY**  
 **Domain**: UI Components  
 **Key Files**: `src/dream_browser_components.zig`, `src/grain_aurora.zig`  
-**Coordination**: Weekly/bi-weekly with Aurora 2 Subcore
+**Coordination**: Weekly/bi-weekly with Aurora 2 Subcore  
+**Coordination Document**: `docs/core-coordination/component_library_coordination.md`
 
 **Responsibilities**:
 - Component API design and implementation (Phase 0.5) — **IMMEDIATE**
@@ -232,11 +235,11 @@
 
 ### Architecture Evolution
 
-**Status**: 🆕 **IN PROGRESS** (2025-12-31-192740-pst)
+**Status**: ✅ **COMPLETE** (2025-12-31-220825-pst)
 - ✅ Architecture evolution proposal reviewed
 - ✅ Coordination document created
-- ⏳ L2 sub-agents to be created
-- ⏳ Coordination structure to be established
+- ✅ L2 sub-agents created (2a Dream Editor, 2b Dream Browser, 2c Component Library)
+- ⏳ Coordination structure being established
 
 ### Completed Work
 
@@ -248,20 +251,21 @@
 
 ### Immediate Priorities
 
-1. **Create L2 Sub-Agents** (This Week):
-   - 2a. Dream Editor Agent
-   - 2b. Dream Browser Agent
-   - 2c. Component Library Agent (IMMEDIATE PRIORITY — Phase 0.5)
+1. ✅ **L2 Sub-Agents Created** (2025-12-31):
+   - ✅ 2a. Dream Editor Agent — Active
+   - ✅ 2b. Dream Browser Agent — Active
+   - ✅ 2c. Component Library Agent — Active (IMMEDIATE PRIORITY — Phase 0.5)
 
 2. **Establish Coordination** (This Week):
-   - Weekly/bi-weekly check-in schedule
-   - Clear ownership boundaries
-   - Shared foundation coordination protocol
+   - ⏳ Weekly/bi-weekly check-in schedule
+   - ⏳ Clear ownership boundaries
+   - ⏳ Shared foundation coordination protocol
+   - ⏳ Initial coordination check-ins with L2 sub-agents
 
 3. **Update Documentation** (This Week):
-   - Update plans and tasks documents
-   - Create L2 sub-agent coordination documents
-   - Update coordination references
+   - ⏳ Update plans and tasks documents
+   - ⏳ Verify L2 sub-agent coordination documents created
+   - ⏳ Update coordination references
 
 ---
 
@@ -269,20 +273,22 @@
 
 ### Immediate (This Week)
 
-1. **Create L2 Sub-Agents**:
-   - Use ready-to-use prompts from `docs/aurora_2_subcore_sub_agent_prompts_ready_to_use_2025-12-31.md`
-   - Create coordination documents for each L2 sub-agent
-   - Establish weekly/bi-weekly check-in schedule
+1. ✅ **L2 Sub-Agents Created** (2025-12-31):
+   - ✅ 2a. Dream Editor Agent — Active
+   - ✅ 2b. Dream Browser Agent — Active
+   - ✅ 2c. Component Library Agent — Active
 
-2. **Establish Coordination Structure**:
-   - Define coordination protocols
-   - Create shared foundation coordination process
-   - Set up integration testing framework
+2. **Establish Coordination Structure** (This Week):
+   - ⏳ Initial coordination check-ins with all L2 sub-agents
+   - ⏳ Define coordination protocols (weekly/bi-weekly schedule)
+   - ⏳ Create shared foundation coordination process
+   - ⏳ Set up integration testing framework
+   - ⏳ Verify L2 sub-agent coordination documents created
 
-3. **Update Documentation**:
-   - Update `docs/plans/plan_aurora.md` → `docs/plans/plan_aurora_2_subcore.md`
-   - Update `docs/tasks/tasks_aurora.md` → `docs/tasks/tasks_aurora_2_subcore.md`
-   - Create L2 sub-agent plan and tasks documents
+3. **Update Documentation** (This Week):
+   - ⏳ Update `docs/plans/plan_aurora.md` → `docs/plans/plan_aurora_2_subcore.md`
+   - ⏳ Update `docs/tasks/tasks_aurora.md` → `docs/tasks/tasks_aurora_2_subcore.md`
+   - ⏳ Verify L2 sub-agent plan and tasks documents created
 
 ### Short-Term (Next 2 Weeks)
 
@@ -308,5 +314,5 @@
 ---
 
 **Date**: 2025-12-31-220825-pst  
-**Status**: Architecture Evolution In Progress — Ready for L2 Sub-Agent Creation  
-**Next Steps**: Create L2 sub-agents, establish coordination structure, update documentation
+**Status**: ✅ Architecture Evolution Complete — All L2 Sub-Agents Active  
+**Next Steps**: Establish coordination structure, initial check-ins with L2 sub-agents, update documentation
