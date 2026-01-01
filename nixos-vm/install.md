@@ -6,48 +6,50 @@ Complete installation guide for NixOS in QEMU/KVM on Framework 16.
 
 ## Quick Start (3 Steps)
 
-### Step 1: Copy Configuration to VM
+### Step 1: Copy Files to VM
 
-**Option A: Copy-paste (easiest for first time)**
+**Option A: SCP from Host (Recommended - Easiest)**
 
-1. In the VM terminal, create the config file:
-   ```bash
-   sudo nano /tmp/configuration.nix
-   ```
-2. Copy the contents from `configuration.nix` on your host and paste
-3. Save (Ctrl+O, Enter, Ctrl+X)
+From your **host machine** (Ubuntu), copy the files to the VM:
 
-**Option B: Download (if VM has internet)**
 ```bash
-# In VM, download the configuration
-curl -o /tmp/configuration.nix https://raw.githubusercontent.com/YOUR_REPO/xy-mathematics/main/nixos-vm/configuration.nix
-```
-
-**Option C: SCP from host (after setting password)**
-```bash
-# In VM, set password first:
+# First, set a password in the VM (in VM terminal):
 passwd
 
-# Then from host:
-scp -P 2222 ~/xy-mathematics/nixos-vm/configuration.nix nixos@localhost:/tmp/
+# Then from host, copy all files at once:
+cd ~/xy-mathematics/nixos-vm
+scp -P 2222 configuration.nix install_nixos.sh nixos@localhost:/tmp/
+scp -P 2222 post_install.sh nixos@localhost:~/
+```
+
+Or use the helper script from the host:
+```bash
+cd ~/xy-mathematics/nixos-vm
+./copy_to_vm.sh
+```
+
+**Option B: Download from Git (if VM has internet)**
+
+```bash
+# In the VM, download files directly:
+cd /tmp
+curl -O https://codeberg.org/teamcarry11/xy-mathematics/raw/branch/main/nixos-vm/configuration.nix
+curl -O https://codeberg.org/teamcarry11/xy-mathematics/raw/branch/main/nixos-vm/install_nixos.sh
+curl -O https://codeberg.org/teamcarry11/xy-mathematics/raw/branch/main/nixos-vm/post_install.sh
+mv post_install.sh ~/
+chmod +x install_nixos.sh ~/post_install.sh
 ```
 
 ### Step 2: Run Installation Script
 
-**Copy the installation script to the VM:**
+In the VM terminal, simply run:
 
-1. In VM, create the script:
-   ```bash
-   sudo nano /tmp/install_nixos.sh
-   ```
-2. Copy the contents from `install_nixos.sh` on your host
-3. Save and run:
-   ```bash
-   sudo bash /tmp/install_nixos.sh
-   ```
+```bash
+sudo bash /tmp/install_nixos.sh
+```
 
 The script will:
-- ✅ Partition the disk automatically
+- ✅ Detect and partition the disk automatically
 - ✅ Format partitions
 - ✅ Mount filesystems
 - ✅ Generate and install configuration
@@ -62,7 +64,7 @@ reboot
 ```
 
 After reboot, **remove the ISO** from the launch script:
-- Edit `launch_nixos_vm.sh`
+- Edit `launch_nixos_vm.sh` on the host
 - Comment out or remove the `-cdrom $ISO_FILE \` line
 - Or change `-boot order=d` to `-boot order=c`
 
@@ -70,11 +72,9 @@ After reboot, **remove the ISO** from the launch script:
 
 ## Post-Installation
 
-After first boot, run:
+After first boot into installed NixOS, run:
 
 ```bash
-# Copy post_install.sh to VM (same methods as Step 1)
-# Then run:
 bash ~/post_install.sh
 ```
 
@@ -95,133 +95,125 @@ ssh -p 2222 xy@localhost
 
 ## Detailed Installation Guide
 
-This guide provides detailed, scripted instructions for installing NixOS in the QEMU VM with maximum automation.
-
 ### Prerequisites
 
 - NixOS VM booted from ISO
 - You should be logged in as `nixos` user (automatic login)
+- Host machine with the nixos-vm files accessible
 
-### Step 1: Download Configuration to VM
+### Step 1: Transfer Files to VM
 
-See "Quick Start" section above for methods to get `configuration.nix` into the VM.
+Choose one of these methods to get the files into the VM:
 
-### Step 2: Automated Installation Script
+#### Method 1: SCP (Recommended)
 
-The `install_nixos.sh` script automates the entire installation process:
-
-- Detects and partitions the disk automatically
-- Formats partitions (FAT32 for boot, ext4 for root)
-- Mounts filesystems
-- Generates initial NixOS configuration
-- Copies custom configuration if available
-- Installs NixOS with interactive prompts
-
-The script includes error handling and will prompt you before making destructive changes.
-
-### Step 3: Manual Installation Steps (if scripts don't work)
-
-#### Partitioning Manually
-
+**From host machine:**
 ```bash
-sudo -i
-DISK="/dev/vda"
-parted $DISK -- mklabel gpt
-parted $DISK -- mkpart ESP fat32 1MiB 512MiB
-parted $DISK -- set 1 esp on
-parted $DISK -- mkpart primary 512MiB 100%
-mkfs.fat -F 32 -n boot ${DISK}1
-mkfs.ext4 -L nixos ${DISK}2
+cd ~/xy-mathematics/nixos-vm
+
+# Set password in VM first (in VM: passwd)
+# Then copy files:
+scp -P 2222 configuration.nix install_nixos.sh nixos@localhost:/tmp/
+scp -P 2222 post_install.sh nixos@localhost:~/
+
+# In VM, make scripts executable:
+ssh -p 2222 nixos@localhost "chmod +x /tmp/install_nixos.sh ~/post_install.sh"
 ```
 
-#### Mounting
-
+Or use the helper script:
 ```bash
-mount /dev/disk/by-label/nixos /mnt
-mkdir -p /mnt/boot
-mount /dev/disk/by-label/boot /mnt/boot
+./copy_to_vm.sh
 ```
 
-#### Generate Config
+#### Method 2: Download from Repository
 
+**In the VM:**
 ```bash
-nixos-generate-config --root /mnt
+cd /tmp
+
+# Download configuration
+curl -L -o configuration.nix https://codeberg.org/teamcarry11/xy-mathematics/raw/branch/main/nixos-vm/configuration.nix
+
+# Download installation script
+curl -L -o install_nixos.sh https://codeberg.org/teamcarry11/xy-mathematics/raw/branch/main/nixos-vm/install_nixos.sh
+chmod +x install_nixos.sh
+
+# Download post-installation script
+curl -L -o ~/post_install.sh https://codeberg.org/teamcarry11/xy-mathematics/raw/branch/main/nixos-vm/post_install.sh
+chmod +x ~/post_install.sh
 ```
 
-#### Edit Configuration
+#### Method 3: QEMU Monitor (Advanced)
 
+If you have access to QEMU monitor, you can use a shared directory or virtio-fs.
+
+### Step 2: Run Installation
+
+**In the VM terminal:**
 ```bash
-nano /mnt/etc/nixos/configuration.nix
-# Copy your configuration.nix content here
+sudo bash /tmp/install_nixos.sh
 ```
 
-#### Install
+The script will:
+1. Detect the disk (usually `/dev/vda` for QEMU virtio)
+2. Prompt for confirmation before partitioning
+3. Create GPT partition table
+4. Create EFI boot partition (512MB, FAT32)
+5. Create root partition (ext4, rest of disk)
+6. Format partitions
+7. Mount filesystems
+8. Generate NixOS configuration
+9. Copy your custom configuration if found
+10. Install NixOS
 
-```bash
-nixos-install
-```
+### Step 3: Verify Installation
 
-#### Reboot
-
-```bash
-reboot
-```
+After the script completes:
+- Check that it says "Installation Complete!"
+- Run `reboot` to restart
+- After reboot, login and verify system works
 
 ---
 
-## Complete Automated Installation (All-in-One)
+## Manual Installation (Fallback)
 
-Here's a complete script that does everything in one go:
+If the automated script doesn't work, here are the manual steps:
+
+### Partitioning
 
 ```bash
-#!/bin/bash
-# Complete NixOS Installation Script
-# Run this in the NixOS VM ISO environment as root
-
-set -e
-
-DISK="/dev/vda"
-CONFIG_URL="https://raw.githubusercontent.com/YOUR_REPO/xy-mathematics/main/nixos-vm/configuration.nix"
-
-echo "=== Complete NixOS Installation ==="
-
-# Download configuration if possible
-if command -v curl &> /dev/null; then
-    echo "Downloading configuration..."
-    curl -o /tmp/configuration.nix "$CONFIG_URL" || echo "Download failed, will use generated config"
-fi
-
-# Partition
-echo "Partitioning $DISK..."
+sudo -i
+DISK="/dev/vda"  # Adjust if different
 parted $DISK -- mklabel gpt
 parted $DISK -- mkpart ESP fat32 1MiB 512MiB
 parted $DISK -- set 1 esp on
 parted $DISK -- mkpart primary 512MiB 100%
-
-# Format
-echo "Formatting..."
 mkfs.fat -F 32 -n boot ${DISK}1
 mkfs.ext4 -L nixos ${DISK}2
+```
 
-# Mount
-echo "Mounting..."
+### Mounting
+
+```bash
 mount /dev/disk/by-label/nixos /mnt
 mkdir -p /mnt/boot
 mount /dev/disk/by-label/boot /mnt/boot
+```
 
-# Generate and copy config
-echo "Generating configuration..."
+### Configuration
+
+```bash
 nixos-generate-config --root /mnt
 
-if [ -f /tmp/configuration.nix ]; then
-    cp /tmp/configuration.nix /mnt/etc/nixos/configuration.nix
-fi
+# Copy your configuration
+cp /tmp/configuration.nix /mnt/etc/nixos/configuration.nix
+```
 
-# Install
-echo "Installing NixOS (this takes a while)..."
+### Install
+
+```bash
 nixos-install --no-root-passwd
-
-echo "=== Installation Complete! Run 'reboot' to restart. ==="
+reboot
 ```
 
 ---
@@ -229,74 +221,130 @@ echo "=== Installation Complete! Run 'reboot' to restart. ==="
 ## Troubleshooting
 
 ### Installation script fails
-- Check disk: `lsblk` (might be `/dev/sda` instead of `/dev/vda`)
-- Check mounts: `mount | grep /mnt`
-- See manual steps above
 
-### Disk Not Found
+**Disk not found:**
+- Check available disks: `lsblk`
+- The script will prompt you to enter the correct disk path
+- For QEMU virtio, it's usually `/dev/vda`
+- For IDE/SATA, it might be `/dev/sda`
 
-If `/dev/vda` doesn't exist:
-```bash
-lsblk  # List available disks
-# Use the appropriate disk (might be /dev/sda, /dev/nvme0n1, etc.)
-```
+**Permission denied:**
+- Make sure you're running with `sudo bash /tmp/install_nixos.sh`
+- Check script is executable: `chmod +x /tmp/install_nixos.sh`
+
+**Configuration not found:**
+- Verify file exists: `ls -la /tmp/configuration.nix`
+- The script will use generated config if custom one isn't found
 
 ### Network Issues
 
-If you need internet in the VM:
-```bash
-# Check network
-ip addr
-# Configure if needed
-nmtui
-```
+**Can't download files:**
+- Check network: `ip addr`
+- Configure network: `nmtui`
+- Use SCP method instead (from host)
 
-### Configuration Errors
+**Can't SSH from host:**
+- Set password in VM: `passwd`
+- Check SSH is running (in installed NixOS): `sudo systemctl status sshd`
 
-Test your configuration:
-```bash
-nixos-install --dry-run
-# Or after mounting:
-nixos-rebuild --dry-run
-```
+### After Installation
 
-### Can't SSH after install
-- Check SSH is running: `sudo systemctl status sshd`
-- Check firewall: `sudo nixos-rebuild switch` (rebuild config)
+**Can't SSH after install:**
+- Check SSH service: `sudo systemctl status sshd`
+- Rebuild config: `sudo nixos-rebuild switch`
+- Check firewall settings in configuration.nix
 
-### Build system errors
-- Update: `sudo nixos-rebuild switch --upgrade`
+**Build system errors:**
+- Update system: `sudo nixos-rebuild switch --upgrade`
 - Check Zig: `zig version`
+- Verify packages in configuration.nix
+
+### Disk Issues
+
+**Wrong disk detected:**
+- List disks: `lsblk`
+- The script prompts for disk path if `/dev/vda` doesn't exist
+- Enter the correct path when prompted
+
+**Partition errors:**
+- Unmount if mounted: `umount /mnt/boot && umount /mnt`
+- Check disk isn't in use: `lsof | grep /dev/vda`
+- Start fresh: The script will handle cleanup
+
+---
+
+## File Locations
+
+**In VM during installation:**
+- Configuration: `/tmp/configuration.nix`
+- Installation script: `/tmp/install_nixos.sh`
+- Post-install script: `~/post_install.sh`
+
+**After installation:**
+- Configuration: `/etc/nixos/configuration.nix`
+- Post-install script: `~/post_install.sh`
+- Repository: `~/xy-mathematics/`
 
 ---
 
 ## Next Steps After Installation
 
 1. **Reboot the VM**
-2. **Remove ISO from launch script** (change boot order or remove `-cdrom` line)
+2. **Remove ISO from launch script** (on host, edit `launch_nixos_vm.sh`)
 3. **SSH access**: `ssh -p 2222 xy@localhost` (from host)
-4. **Set up development environment** using the post-installation script
+4. **Run post-installation**: `bash ~/post_install.sh`
+5. **Set up development environment** and continue with Grain OS development
 
 ---
 
 ## Helper Scripts
 
-### Copy Files to VM
+### copy_to_vm.sh
 
-Use `copy_to_vm.sh` from the host to copy files to the VM:
+Helper script to copy files from host to VM via SCP:
 
 ```bash
+# From host machine
+cd ~/xy-mathematics/nixos-vm
 ./copy_to_vm.sh
 ```
 
-This will copy `configuration.nix` and `install_nixos.sh` to the VM.
+This script:
+- Checks VM connectivity
+- Copies `configuration.nix` to `/tmp/`
+- Copies `install_nixos.sh` to `/tmp/`
+- Copies `post_install.sh` to `~/`
+- Makes scripts executable
 
-### Post-Installation Script
+### install_nixos.sh
 
-After first boot, run `post_install.sh` to:
-- Update the system
-- Clone xy-mathematics repository
-- Configure Git
-- Verify development tools
-- Test build system
+Main installation script that:
+- Detects disk automatically
+- Partitions and formats
+- Mounts filesystems
+- Generates NixOS config
+- Installs system
+- Includes error handling and prompts
 
+### post_install.sh
+
+Post-installation setup that:
+- Updates system packages
+- Clones xy-mathematics repository
+- Configures Git
+- Verifies development tools
+- Tests build system
+
+---
+
+## Summary
+
+**Quick Installation Flow:**
+
+1. **Copy files to VM** (SCP or download)
+2. **Run**: `sudo bash /tmp/install_nixos.sh`
+3. **Reboot**
+4. **Run**: `bash ~/post_install.sh`
+5. **Start developing!**
+
+All scripts are self-contained and can be run directly from the file system - no copy-paste needed!

@@ -7,35 +7,71 @@ VM_HOST="localhost"
 VM_PORT="2222"
 VM_TMP="/tmp"
 
-echo "Copying files to NixOS VM..."
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+echo "=========================================="
+echo "  Copy Files to NixOS VM"
+echo "=========================================="
 echo "VM: ${VM_USER}@${VM_HOST}:${VM_PORT}"
 echo ""
 
 # Check if VM is accessible
-if ! ssh -p ${VM_PORT} -o ConnectTimeout=2 ${VM_USER}@${VM_HOST} "echo 'Connected'" 2>/dev/null; then
+echo "Checking VM connectivity..."
+if ! ssh -p ${VM_PORT} -o ConnectTimeout=5 -o StrictHostKeyChecking=no ${VM_USER}@${VM_HOST} "echo 'Connected'" 2>/dev/null; then
+    echo ""
     echo "ERROR: Cannot connect to VM"
+    echo ""
     echo "Make sure:"
     echo "  1. VM is running"
-    echo "  2. SSH is enabled in VM (set password: passwd)"
-    echo "  3. Port forwarding is correct (2222 -> 22)"
+    echo "  2. Password is set in VM (run 'passwd' in VM terminal)"
+    echo "  3. Port forwarding is correct (host:2222 -> guest:22)"
+    echo ""
+    echo "To set password in VM:"
+    echo "  In VM terminal, run: passwd"
     exit 1
 fi
 
+echo "✓ VM is accessible"
+echo ""
+
 # Copy configuration
 echo "Copying configuration.nix..."
-scp -P ${VM_PORT} configuration.nix ${VM_USER}@${VM_HOST}:${VM_TMP}/
+scp -P ${VM_PORT} -o StrictHostKeyChecking=no "${SCRIPT_DIR}/configuration.nix" ${VM_USER}@${VM_HOST}:${VM_TMP}/ || {
+    echo "ERROR: Failed to copy configuration.nix"
+    exit 1
+}
 
 # Copy installation script
 echo "Copying install_nixos.sh..."
-scp -P ${VM_PORT} install_nixos.sh ${VM_USER}@${VM_HOST}:${VM_TMP}/
+scp -P ${VM_PORT} -o StrictHostKeyChecking=no "${SCRIPT_DIR}/install_nixos.sh" ${VM_USER}@${VM_HOST}:${VM_TMP}/ || {
+    echo "ERROR: Failed to copy install_nixos.sh"
+    exit 1
+}
 
 # Copy post-installation script
 echo "Copying post_install.sh..."
-scp -P ${VM_PORT} post_install.sh ${VM_USER}@${VM_HOST}:~/
+scp -P ${VM_PORT} -o StrictHostKeyChecking=no "${SCRIPT_DIR}/post_install.sh" ${VM_USER}@${VM_HOST}:~/ || {
+    echo "ERROR: Failed to copy post_install.sh"
+    exit 1
+}
+
+# Make scripts executable
+echo "Making scripts executable..."
+ssh -p ${VM_PORT} -o StrictHostKeyChecking=no ${VM_USER}@${VM_HOST} "chmod +x ${VM_TMP}/install_nixos.sh ~/post_install.sh" || {
+    echo "WARNING: Failed to make scripts executable (you can do this manually)"
+}
 
 echo ""
-echo "Files copied successfully!"
+echo "=========================================="
+echo "  Files Copied Successfully!"
+echo "=========================================="
 echo ""
-echo "In the VM, run:"
+echo "Files copied to VM:"
+echo "  /tmp/configuration.nix"
+echo "  /tmp/install_nixos.sh"
+echo "  ~/post_install.sh"
+echo ""
+echo "In the VM terminal, run:"
 echo "  sudo bash /tmp/install_nixos.sh"
+echo ""
 
