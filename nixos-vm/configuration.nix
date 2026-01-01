@@ -56,6 +56,10 @@
     nixos-rebuild
   ];
 
+  # Use Linux kernel 6.18.2 for better Framework 16 hardware support
+  # Newer kernel provides better AMD support, performance, and features
+  boot.kernelPackages = pkgs.linuxPackages_6_18;
+
   # Enable virtualization (for nested Alpine Linux if needed later)
   # Note: For AMD (Framework 16), nested virtualization may need special setup
   # virtualisation.libvirtd.enable = true;
