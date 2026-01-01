@@ -315,21 +315,12 @@
 - **Aurora 2 Subcore Tasks**: `docs/tasks/tasks_aurora_2_subcore.md` (to be created)
 - **L2 Sub-Agent Prompts**: `docs/aurora_2_subcore_sub_agent_prompts_ready_to_use_2025-12-31.md`
 - **Architecture Proposal**: `docs/aurora_2_subcore_sub_agent_proposal_2025-12-31.md`
+- **Component API Coordination**: `docs/agent-communications/aurora_2_subcore_component_api_coordination_2026-01-01-084330-pst.md`
+- **Editor Component Requirements**: `docs/agent-communications/aurora_2_subcore_to_2a_editor_component_requirements_2026-01-01-084331-pst.md`
+- **Browser Component API Review**: `docs/agent-communications/aurora_2_subcore_to_2b_browser_component_api_review_2026-01-01-084332-pst.md`
 
 ---
 
 **Date**: 2026-01-01-084330-pst  
-**Status**: ✅ Architecture Evolution Complete — All L2 Sub-Agents Active, Component API Design Coordination Initiated  
-**Next Steps**: Await Editor/Browser component requirements, finalize Component API design (Phase 0.5), approve Phase 1 implementation
-
-**Date**: 2026-01-01-084330-pst  
 **Status**: ✅ Architecture Evolution Complete — All L2 Sub-Agents Active — Component API Design Coordination Initiated  
 **Next Steps**: Await Editor (2a) and Browser (2b) component requirements/feedback, finalize Component API design (Phase 0.5), approve Phase 1 implementation
-
-**Date**: 2026-01-01-084330-pst  
-**Status**: ✅ Architecture Evolution Complete — All L2 Sub-Agents Active, Component API Design Coordination Initiated  
-**Next Steps**: Await Editor/Browser component requirements, finalize Component API design (Phase 0.5), approve Phase 1 implementation
-
-**Date**: 2025-12-31-220825-pst  
-**Status**: ✅ Architecture Evolution Complete — All L2 Sub-Agents Active  
-**Next Steps**: Establish coordination structure, initial check-ins with L2 sub-agents, update documentation
