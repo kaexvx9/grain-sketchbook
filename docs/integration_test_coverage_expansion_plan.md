@@ -216,24 +216,37 @@
 
 ### Phase 2: Edge Case Tests
 - **Priority**: HIGH
-- **Timeline**: After Phase 1
+- **Status**: ✅ **IN PROGRESS** (2025-12-31-174521-pst)
+- **Timeline**: Started per Core 1 Subcore guidance (independent work, doesn't require test execution)
 - **Tasks**:
-  1. Create test file: `tests/150_edge_case_integration_test.zig`
-  2. Implement invalid syscall number tests
-  3. Implement invalid argument tests
-  4. Implement resource limit tests
-  5. Implement memory bounds tests
-  6. Implement file system edge case tests
+  1. ✅ Create test file: `tests/150_edge_case_integration_test.zig` (2025-12-31-174521-pst)
+  2. ✅ Implement invalid syscall number tests (2025-12-31-174521-pst)
+  3. ✅ Implement invalid argument tests (2025-12-31-174521-pst)
+  4. ✅ Implement resource limit tests (2025-12-31-174521-pst)
+  5. ✅ Implement memory bounds tests (2025-12-31-174521-pst)
+  6. ✅ Implement file system edge case tests (2025-12-31-174521-pst)
+  7. ✅ Implement process edge case tests (2025-12-31-174521-pst)
+  8. ✅ Implement network edge case tests (2025-12-31-174521-pst)
+  9. ✅ Implement framebuffer edge case tests (2025-12-31-174521-pst)
+  10. ✅ Implement IPC edge case tests (2025-12-31-174521-pst)
+  11. ✅ Add test file to build.zig (2025-12-31-174521-pst)
+  12. ⏳ Test and refine tests once compilation errors resolved
 
 ### Phase 3: Stress Tests
 - **Priority**: MEDIUM
-- **Timeline**: After Phase 2
+- **Status**: ✅ **COMPLETE** (2025-12-31-174521-pst)
+- **Timeline**: Started per Core 1 Subcore guidance (independent work, doesn't require test execution)
 - **Tasks**:
-  1. Create test file: `tests/151_stress_integration_test.zig`
-  2. Implement rapid syscall sequence tests
-  3. Implement memory pressure tests
-  4. Implement process creation stress tests
-  5. Implement long-running execution tests
+  1. ✅ Create test file: `tests/151_stress_integration_test.zig` (2025-12-31-174521-pst)
+  2. ✅ Implement rapid syscall sequence tests (2025-12-31-174521-pst)
+  3. ✅ Implement process creation stress tests (2025-12-31-174521-pst)
+  4. ✅ Implement memory operations stress tests (2025-12-31-174521-pst)
+  5. ✅ Implement file operations stress tests (2025-12-31-174521-pst)
+  6. ✅ Implement long-running execution tests (2025-12-31-174521-pst)
+  7. ✅ Implement mixed syscall types stress tests (2025-12-31-174521-pst)
+  8. ✅ Implement resource exhaustion behavior tests (2025-12-31-174521-pst)
+  9. ✅ Add test file to build.zig (2025-12-31-174521-pst)
+  10. ⏳ Test and refine tests once compilation errors resolved
 
 ### Phase 4: Error Handling Tests
 - **Priority**: MEDIUM

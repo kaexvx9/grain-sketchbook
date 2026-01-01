@@ -1,8 +1,8 @@
 # Core Coordination: Grain Vantage 3 Subcore Agent
 
-**Last Updated**: 2025-12-31-003618-pst  
+**Last Updated**: 2025-12-31-174504-pst  
 **Agent**: Grain Vantage 3 Subcore Agent (3rd Agent, L1 Subcore)  
-**Status**: ✅ **ALL KERNEL FEATURES COMPLETE** — Kernel Refactoring Complete ✅ — Production Ready — JG Project Support Ready — Architecture Evolution Complete ✅ — L2 Sub-Agents Ready ✅ — Renamed to Vantage 3 Subcore (Subcore Coordination / Systems Integration) ✅ — L2 Coordination Guidance Provided ✅ — Hybrid Coordination Pattern Active ✅
+**Status**: ✅ **ALL KERNEL FEATURES COMPLETE** — Kernel Refactoring Complete ✅ — Production Ready — JG Project Support Ready — Architecture Evolution Complete ✅ — L2 Sub-Agents Ready ✅ — Renamed to Vantage 3 Subcore (Subcore Coordination / Systems Integration) ✅ — L2 Coordination Guidance Provided ✅ — Hybrid Coordination Pattern Active ✅ — Grain Dispatch Research Acknowledged ✅
 
 ---
 
@@ -34,6 +34,15 @@
 - Grainbank MMT Job Guarantee Housing Program design complete ✅
 - Multi-agent integration plan created with agent-specific responsibilities
 - Vantage 3 Subcore role: Kernel support as needed (monitoring and optimization)
+
+**New Project**: 🆕 **Grain Dispatch Research Complete** (2025-12-31-174504-pst)
+- Research Agent Phase 1 research complete ✅ (2025-12-31-050600-pst)
+- Technical requirements analysis, coordination overhead assessment, architecture evaluation complete
+- Vantage 3 Subcore role identified (NixOS adaptation, VM performance, kernel optimization, integration coordination)
+- Coordination pattern: Start with distribution across existing agents, evaluate dedicated Dispatch Subcore later
+- Implementation status: Not started yet — current L2 sub-agent priorities remain unchanged
+- Research documents: `docs/research/grain_dispatch_research_analysis_2025-12-30.md`, `docs/research/grain_dispatch_coordination_summary_2025-12-31.md`
+- Coordination guidance: `docs/core-coordination/core_1_subcore_grain_dispatch_coordination_2025-12-30.md`
 
 **Blockers**: **NONE** — All kernel features ready. All agents can proceed with integration.
 

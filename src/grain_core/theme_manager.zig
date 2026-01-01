@@ -96,7 +96,9 @@ pub const ThemeManager = struct {
         if (name.len > MAX_THEME_NAME_LEN) {
             return null;
         }
-        if (bg_color.len > MAX_COLOR_LEN or fg_color.len > MAX_COLOR_LEN or border_color.len > MAX_COLOR_LEN or accent_color.len > MAX_COLOR_LEN) {
+        if (bg_color.len > MAX_COLOR_LEN or fg_color.len > MAX_COLOR_LEN or
+            border_color.len > MAX_COLOR_LEN or accent_color.len > MAX_COLOR_LEN)
+        {
             return null;
         }
         const theme_id = self.next_theme_id;

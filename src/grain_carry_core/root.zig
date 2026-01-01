@@ -16,4 +16,6 @@ pub const api = @import("api/root.zig");
 pub const websocket = @import("websocket/root.zig");
 pub const email = @import("email/root.zig");
 pub const c_api = @import("ffi/c_api.zig");
+pub const database_api = @import("ffi/database_api.zig");
+pub const api_client_api = @import("ffi/api_client_api.zig");
 

@@ -98,4 +98,6 @@ pub const integrated_file_io = @import("integrated_file_io.zig");
 pub const chunked_transfer = @import("chunked_transfer.zig");
 pub const connection_pool = @import("connection_pool.zig");
 pub const ip_address = @import("ip_address.zig");
+pub const dns_query = @import("dns_query.zig");
+pub const dns_client = @import("dns_client.zig");
 

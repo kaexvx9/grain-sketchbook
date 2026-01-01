@@ -318,6 +318,7 @@ pub fn build(b: *std.Build) void {
         .imports = &.{
             .{ .name = "grain_core", .module = grain_core_module },
             .{ .name = "grain_workspace", .module = grain_workspace_module },
+            .{ .name = "dream_browser_components", .module = dream_browser_components_module },
         },
     });
 
@@ -1456,6 +1457,36 @@ pub fn build(b: *std.Build) void {
     });
     const run_syscall_combination_tests = b.addRunArtifact(syscall_combination_tests);
     test_step.dependOn(&run_syscall_combination_tests.step);
+    
+    // Edge Case Integration Tests (Phase 2)
+    const edge_case_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("tests/150_edge_case_integration_test.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "kernel_vm", .module = kernel_vm_module },
+                .{ .name = "basin_kernel", .module = basin_kernel_module },
+            },
+        }),
+    });
+    const run_edge_case_tests = b.addRunArtifact(edge_case_tests);
+    test_step.dependOn(&run_edge_case_tests.step);
+    
+    // Stress Integration Tests (Phase 3)
+    const stress_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("tests/151_stress_integration_test.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "kernel_vm", .module = kernel_vm_module },
+                .{ .name = "basin_kernel", .module = basin_kernel_module },
+            },
+        }),
+    });
+    const run_stress_tests = b.addRunArtifact(stress_tests);
+    test_step.dependOn(&run_stress_tests.step);
     
     const run_outputs_tests = b.addRunArtifact(outputs_tests);
     test_step.dependOn(&run_outputs_tests.step);
@@ -5182,6 +5213,21 @@ pub fn build(b: *std.Build) void {
     });
     const grain_bubble_async_integration_tests_run = b.addRunArtifact(grain_bubble_async_integration_tests);
     test_step.dependOn(&grain_bubble_async_integration_tests_run.step);
+
+    // Grain Bubble aurora integration tests
+    const grain_bubble_aurora_integration_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("tests/143_grain_bubble_aurora_integration_test.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "grain_bubble", .module = grain_bubble_module },
+                .{ .name = "dream_browser_components", .module = dream_browser_components_module },
+            },
+        }),
+    });
+    const grain_bubble_aurora_integration_tests_run = b.addRunArtifact(grain_bubble_aurora_integration_tests);
+    test_step.dependOn(&grain_bubble_aurora_integration_tests_run.step);
 
     // File system kernel verification test
     const file_system_kernel_tests = b.addTest(.{

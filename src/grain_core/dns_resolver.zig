@@ -6,6 +6,7 @@
 
 const std = @import("std");
 const network_stack = @import("network_stack.zig");
+const dns_client = @import("dns_client.zig");
 
 // Bounded: Max DNS cache entries.
 pub const MAX_DNS_CACHE_ENTRIES: u32 = 256;
@@ -70,6 +71,7 @@ pub const DnsResolver = struct {
     cache: [MAX_DNS_CACHE_ENTRIES]DnsCacheEntry,
     cache_len: u32,
     cache_ttl: u64,
+    dns_client: ?*dns_client.DnsClient,
 
     pub fn init(cache_ttl: u64) DnsResolver {
         std.debug.assert(cache_ttl > 0);
@@ -77,6 +79,7 @@ pub const DnsResolver = struct {
             .cache = undefined,
             .cache_len = 0,
             .cache_ttl = cache_ttl,
+            .dns_client = null,
         };
         var i: u32 = 0;
         while (i < MAX_DNS_CACHE_ENTRIES) : (i += 1) {
@@ -85,6 +88,13 @@ pub const DnsResolver = struct {
         std.debug.assert(resolver.cache_len == 0);
         std.debug.assert(resolver.cache_ttl == cache_ttl);
         return resolver;
+    }
+
+    // Set DNS client for network queries.
+    pub fn set_dns_client(self: *DnsResolver, client: *dns_client.DnsClient) void {
+        std.debug.assert(client != null);
+        self.dns_client = client;
+        std.debug.assert(self.dns_client != null);
     }
 
     // Find cache entry by hostname and record type.
@@ -181,7 +191,7 @@ pub const DnsResolver = struct {
         return cleared_count;
     }
 
-    // Resolve hostname to IP address (stub - requires network implementation).
+    // Resolve hostname to IP address (with network query support).
     pub fn resolve_hostname(
         self: *DnsResolver,
         hostname: []const u8,
@@ -200,7 +210,16 @@ pub const DnsResolver = struct {
             }
             return true;
         }
+        if (self.dns_client) |client| {
+            var ip_len: u32 = 0;
+            if (client.query(hostname, record_type, ip_out, &ip_len)) {
+                if (ip_len > 0 and ip_len <= MAX_IP_ADDRESS_LEN) {
+                    _ = self.add_cache_entry(hostname, record_type, ip_out[0..ip_len], current_time);
+                    std.debug.assert(ip_len <= MAX_IP_ADDRESS_LEN);
+                    return true;
+                }
+            }
+        }
         return false;
     }
 };
-

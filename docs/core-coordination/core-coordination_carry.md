@@ -1,7 +1,7 @@
 # Grain Carry Agent: Core Coordination Status
 
 **Agent**: Grain Carry Agent (6th Agent)  
-**Last Updated**: 2025-12-30-123504-pst
+**Last Updated**: 2025-12-31-174330-pst
 
 ---
 
@@ -16,6 +16,8 @@
 - ✅ Event Bus integration complete (Flow Agent ready, Carry Agent integrated)
 - ✅ Database integration fully functional with synchronous fallback
 - ✅ JG project mobile apps design complete (2025-12-30-021213-pst)
+- ✅ Offline support architecture design complete (2025-12-31-174330-pst)
+- ✅ FFI improvements complete (Database API, API Client API, Error Handling)
 - ⏳ Async response handling ready (waiting for Core Agent HTTP event publishing)
 
 **Blockers**: None for basic functionality — Synchronous fallback works perfectly
@@ -465,8 +467,10 @@ Carry Agent is responsible for developing mobile applications for the JG housing
 2. ⏳ **WAITING**: Coordinate with Core Agent on API contracts for JG modules (when Core Agent JG modules ready, Months 1-6)
 3. ⏳ **WAITING**: Coordinate with Silo Agent on storage schema requirements for mobile apps (when Silo Agent schemas ready, Months 1-3)
 4. ⏳ **WAITING**: Coordinate with Bubble/Aurora Agents on UI component requirements (Months 7-12)
-5. ⏳ **SHORT-TERM**: Prepare mobile framework infrastructure (FFI improvements, offline support, push notifications)
-6. ⏳ **MEDIUM-TERM**: Begin Worker Mobile App implementation (Month 6)
+5. ✅ **COMPLETE**: Offline support design complete (2025-12-31-174330-pst) — Ready for implementation
+6. ⏳ **SHORT-TERM**: Implement offline support (Phase 1: Local Storage Foundation)
+7. ⏳ **SHORT-TERM**: Push notifications architecture design
+8. ⏳ **MEDIUM-TERM**: Begin Worker Mobile App implementation (Month 6)
 7. ⏳ **MEDIUM-TERM**: Continue with Resident Mobile App (Month 9) and Cooperative Mobile App (Month 11)
 
 ### Coordination Notes
@@ -480,6 +484,41 @@ Carry Agent is responsible for developing mobile applications for the JG housing
 - **Skate Agent**: Knowledge graph (Months 5-12) — Mobile apps may query knowledge graph
 
 **Reference**: See `docs/agent-communications/core_agent_coordination_plan_2025-12-29-105655-pst.md` for full JG project integration plan.
+
+---
+
+## Mobile Framework Infrastructure
+
+**Status**: ⏳ **DESIGN PHASE** — Offline support design complete, ready for implementation
+
+### Offline Support Design
+
+**Design Document**: `docs/core-coordination/offline_support_design_2025-12-31-174330-pst.md`
+
+**Overview**: Comprehensive offline support architecture enabling mobile apps to function fully offline with automatic synchronization when connectivity is restored.
+
+**Key Features**:
+- **Local Storage**: SQLite-based local database for offline data
+- **Sync Queue**: Automatic synchronization of pending operations
+- **Conflict Resolution**: Last-write-wins, server-wins, and manual resolution strategies
+- **Data Freshness**: Configurable TTL policies per entity type
+- **Offline Queue**: Queue management for pending HTTP operations
+
+**Implementation Plan**: 6 phases over 9+ weeks
+- Phase 1: Local Storage Foundation (Week 1-2)
+- Phase 2: Sync Queue (Week 3-4)
+- Phase 3: Conflict Resolution (Week 5)
+- Phase 4: Data Freshness (Week 6)
+- Phase 5: Integration (Week 7-8)
+- Phase 6: JG Project Integration (Week 9+)
+
+**Status**: ✅ **DESIGN COMPLETE** — Ready for implementation
+
+**Next Steps**:
+1. Review and approve design with Core Agent coordination
+2. Begin Phase 1 implementation (Local Storage Foundation)
+3. Coordinate with Silo Agent on sync API endpoints
+4. Coordinate with Flow Agent on network state change events
 
 ---
 

@@ -25,4 +25,5 @@ pub const agent_flow = @import("agent_flow.zig");
 pub const slc_ui_components = @import("slc_ui_components.zig");
 pub const workspace_integration = @import("workspace_integration.zig");
 pub const async_integration = @import("async_integration.zig");
+pub const aurora_integration = @import("aurora_integration.zig");
 

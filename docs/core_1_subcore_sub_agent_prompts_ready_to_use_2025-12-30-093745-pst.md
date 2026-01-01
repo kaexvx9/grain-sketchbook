@@ -2062,26 +2062,65 @@ Review and plan integration points:
 2. **Participate in system-wide architecture** discussions
 3. **Plan JG project support** requirements
 4. **Monitor coordination overhead** and optimize as needed
+5. **Grain Dispatch Coordination** (NEW — 2025-12-31):
+   - Review Phase 1 research findings from Research Agent
+   - Share dispatch requirements with L2 sub-agents (1a, 1b, 1c, 1d)
+   - Plan dispatch system services integration:
+     - **1a Auth**: Dispatch authentication/authorization, security hardening, audit logging
+     - **1b Network**: Real-time communication protocols (< 50ms latency), vehicle network integration
+     - **1c Storage**: Dispatch data storage (incident reports, call logs, coordination data)
+     - **1d Compositor**: Touch-interface UI, dispatch UI components, vehicle display integration
+   - Monitor dispatch coordination overhead (target: 5-10 hours/week, manageable)
+   - Coordinate with Vantage 3 Subcore on dispatch work distribution
 
 ### Quick Decision Guide
 
 **Not sure what to do next? Answer these questions:**
 
 1. **Have you read all sub-agent coordination docs?** → If no, do that first
-2. **Are any agents blocked?** → If yes, help resolve blockers immediately
-3. **Do agents need guidance on next steps?** → If yes, provide guidance based on their plans
-4. **Is integration work ready to begin?** → If yes, design API contracts and test plans
-5. **Has coordination rhythm been established?** → If no, set up weekly/bi-weekly check-ins
+2. **Have you reviewed Grain Dispatch Phase 1 research findings?** → If no, review `docs/research/grain_dispatch_coordination_summary_2025-12-31.md`
+3. **Are any agents blocked?** → If yes, help resolve blockers immediately
+4. **Do agents need guidance on next steps?** → If yes, provide guidance based on their plans and current status:
+   - Auth Agent (1a): Production-ready → Next enhancement phase
+   - Network Agent (1b): Phase 2 in progress → Continue and coordinate Auth middleware
+   - Storage Agent (1c): Complete → Focus on integration work
+   - Compositor Agent (1d): Coordinated → Begin/continue implementation
+5. **Is integration work ready to begin?** → If yes, design API contracts and test plans (especially Auth ↔ Network middleware)
+6. **Should dispatch requirements be integrated?** → Review Phase 1 research, share findings with sub-agents, plan dispatch integration
+7. **Has coordination rhythm been established?** → If no, set up weekly/bi-weekly check-ins
 
 ### Success Indicators
 
 You'll know things are going well when:
-- ✅ All agents have clear next steps
+- ✅ All agents have clear next steps (Auth: enhancement phase, Network: Phase 2 completion, Storage: integration work, Compositor: implementation)
 - ✅ No critical blockers unresolved
-- ✅ Integration work is progressing
-- ✅ Coordination rhythm is established
+- ✅ Integration work is progressing (especially Auth ↔ Network middleware)
+- ✅ Coordination rhythm is established (weekly/bi-weekly)
 - ✅ Documentation is up to date
 - ✅ Agents are making steady progress
+- ✅ **Grain Dispatch Phase 1 research reviewed** and requirements shared with sub-agents
+- ✅ **Dispatch integration planning** in progress (if applicable)
+
+### Immediate Priority Actions (Based on Current Status)
+
+**High Priority** (Do Soon):
+1. ✅ Review Auth Agent's production-ready status → Guide to next enhancement phase
+2. ⏳ Support Network Agent Phase 2 completion → Coordinate Auth ↔ Network middleware design
+3. ✅ Review Storage Agent completion → Plan integration work (Auth, Network, Compositor)
+4. ⏳ Guide Compositor Agent → Begin/continue implementation, consider dispatch UI requirements
+5. ✅ **Review Grain Dispatch Phase 1 research** → Share findings with all sub-agents, plan dispatch integration
+
+**Medium Priority** (Next 1-2 Weeks):
+1. Design Auth ↔ Network authentication middleware API contract
+2. Plan integration test framework for cross-sub-agent testing
+3. Begin integration implementation (starting with highest-priority integration points)
+4. Monitor coordination overhead (target: 5-10 hours/week for dispatch work)
+
+**Lower Priority** (Next Month):
+1. Complete all cross-sub-agent integrations
+2. Full integration testing framework implementation
+3. Dispatch system services integration (if proceeding with dispatch work)
+4. Long-term optimization and enhancement phases
 
 ---
 
@@ -2153,7 +2192,7 @@ Each prompt is self-contained and includes all necessary information for agent i
 
 ---
 
-**Last Updated**: 2025-12-31-100000-pst  
+**Last Updated**: 2025-12-31-050600-pst (updated with Grain Dispatch Phase 1 research coordination and current agent status)  
 **Document**: Core 1 Subcore Sub-Agent Prompts (Ready to Use)  
 **Status**: ✅ Complete — All 4 prompts ready for copy-paste with comprehensive next steps  
-**Recommendation**: Review "Summary: Next Steps" section above for detailed action plan and next steps
+**Recommendation**: Review "What's Next: Comprehensive Action Plan" section above for detailed action plan with current agent status and Grain Dispatch coordination context

@@ -24,6 +24,7 @@ pub const AiInsights = struct {
     block_storage: *Block.BlockStorage,
     provider_pool: ?ProviderPool, // Optional provider pool (if API key provided)
     http_client: ?*grain_core.http_client.HttpClient, // HTTP client for providers
+    provider_type: ?LlmProvider.ProviderType, // Provider type (for ZON format support checking)
     // Note: Provider instances are heap-allocated and stored in provider_pool
     // For simplicity, we use arena allocator pattern or rely on allocator cleanup
     
@@ -68,7 +69,7 @@ pub const AiInsights = struct {
             .block_storage = block_storage,
             .provider_pool = null,
             .http_client = null,
-            .provider_instance = null,
+            .provider_type = null,
         };
     }
     
@@ -96,28 +97,24 @@ pub const AiInsights = struct {
         
         // Create provider based on type (heap-allocated for pool storage)
         var provider: *LlmProvider.ProviderTrait = undefined;
-        var provider_instance: ?*anyopaque = null;
         
         switch (provider_type) {
             .openai => {
                 var openai_provider = try allocator.create(OpenAIProvider);
                 openai_provider.* = try OpenAIProvider.init(allocator, api_key, http_client_ptr);
                 provider = &openai_provider.trait;
-                provider_instance = @ptrCast(openai_provider);
             },
             .anthropic => {
                 const AnthropicProvider = grain_court.AnthropicProvider;
                 var anthropic_provider = try allocator.create(AnthropicProvider);
                 anthropic_provider.* = try AnthropicProvider.init(allocator, api_key, http_client_ptr);
                 provider = &anthropic_provider.trait;
-                provider_instance = @ptrCast(anthropic_provider);
             },
             .mistral => {
                 const MistralProvider = grain_court.MistralProvider;
                 var mistral_provider = try allocator.create(MistralProvider);
                 mistral_provider.* = try MistralProvider.init(allocator, api_key, http_client_ptr);
                 provider = &mistral_provider.trait;
-                provider_instance = @ptrCast(mistral_provider);
             },
             else => return error.UnsupportedProvider,
         }
@@ -131,24 +128,73 @@ pub const AiInsights = struct {
             .block_storage = block_storage,
             .provider_pool = provider_pool,
             .http_client = http_client_ptr,
-            .provider_instance = provider_instance,
+            .provider_type = provider_type,
         };
     }
     
     /// Deinitialize AI insights (cleanup provider pool if present).
     pub fn deinit(self: *AiInsights) void {
-        // Cleanup heap-allocated provider instance
-        if (self.provider_instance) |instance| {
-            // Free provider instance (allocated in init_with_llm_provider)
-            // Note: Provider cleanup handled by allocator (e.g., arena allocator)
-            // For explicit cleanup, we'd need to know the concrete type
-            _ = instance;
-        }
+        // Note: Provider cleanup handled by allocator (e.g., arena allocator)
+        // Provider pool and provider instances are heap-allocated and will be
+        // cleaned up when the allocator is deinitialized
         self.* = undefined;
+    }
+    
+    /// Encode blocks to ZON format for token-efficient LLM communication.
+    /// Returns ZON-encoded data array (caller owns memory).
+    fn encode_blocks_to_zon(
+        self: *AiInsights,
+        block_ids: []const u64,
+    ) !?[]u8 {
+        // Assert: Block count must be within bounds
+        std.debug.assert(block_ids.len <= MAX_BLOCKS_PER_BATCH);
+        
+        // Get block contents and encode to ZON
+        var zon_pairs = std.ArrayList(struct { key: []const u8, value: zon_format.ZonValue }).init(self.allocator);
+        defer {
+            for (zon_pairs.items) |pair| {
+                self.allocator.free(pair.key);
+            }
+            zon_pairs.deinit();
+        }
+        
+        for (block_ids) |block_id| {
+            const block = self.block_storage.get_block(@as(u32, @intCast(block_id))) orelse continue;
+            
+            // Skip blocks with empty content
+            if (block.content_len == 0) continue;
+            
+            // Create key for block (e.g., "block_123")
+            const block_key = try std.fmt.allocPrint(self.allocator, "block_{d}", .{block_id});
+            
+            // Create ZON value from block content
+            const content_str = block.content[0..block.content_len];
+            const content_value = zon_format.ZonValue.from_string(content_str);
+            
+            // Append to zon_pairs (transfers ownership of block_key to zon_pairs)
+            zon_pairs.append(.{
+                .key = block_key,
+                .value = content_value,
+            }) catch {
+                // If append fails, free block_key before returning error
+                self.allocator.free(block_key);
+                return error.OutOfMemory;
+            };
+        }
+        
+        // If no blocks encoded, return null
+        if (zon_pairs.items.len == 0) {
+            return null;
+        }
+        
+        // Encode to ZON format
+        const zon_result = try LlmProvider.encode_data_to_zon(zon_pairs.items, self.allocator);
+        return zon_result;
     }
     
     /// Send LLM request using Court's provider pool.
     /// Converts system/user messages to a single prompt and sends via provider pool.
+    /// Optionally includes ZON-formatted block data if provider supports ZON.
     fn send_llm_request(
         self: *AiInsights,
         system_prompt: []const u8,
@@ -156,6 +202,7 @@ pub const AiInsights = struct {
         model: []const u8,
         max_tokens: u32,
         temperature: f32,
+        zon_block_ids: ?[]const u64,
     ) ![]const u8 {
         // Assert: Provider pool must be available
         std.debug.assert(self.provider_pool != null);
@@ -166,6 +213,17 @@ pub const AiInsights = struct {
         std.debug.assert(system_prompt.len + user_prompt.len <= LlmProvider.MAX_REQUEST_SIZE);
         
         const pool = &self.provider_pool.?;
+        
+        // Get provider type for ZON support checking
+        const provider_type = self.provider_type orelse .openai;
+        const supports_zon = LlmProvider.provider_supports_zon(provider_type);
+        
+        // Encode blocks to ZON format if provider supports ZON and block IDs provided
+        var zon_data: ?[]u8 = null;
+        
+        if (supports_zon and zon_block_ids) |block_ids| {
+            zon_data = try self.encode_blocks_to_zon(block_ids) catch null;
+        }
         
         // Build combined prompt (system + user)
         var combined_prompt = std.ArrayList(u8).init(self.allocator);
@@ -179,7 +237,7 @@ pub const AiInsights = struct {
         // Create LLM request with timeout (60s default for LLM operations)
         var request = LlmProvider.LlmRequest{
             .request_id = 0, // Will be set by provider
-            .provider_type = .openai, // Default, can be overridden
+            .provider_type = provider_type,
             .model = undefined,
             .model_len = 0,
             .prompt = undefined,
@@ -187,8 +245,8 @@ pub const AiInsights = struct {
             .max_tokens = max_tokens,
             .temperature = temperature,
             .created_at = @as(u64, @intCast(std.time.timestamp())),
-            .use_zon_format = false,
-            .zon_data = null,
+            .use_zon_format = supports_zon and zon_data != null,
+            .zon_data = if (zon_data) |zd| zd else null,
             .timeout_ms = LlmProvider.DEFAULT_LLM_TIMEOUT_MS, // 60 seconds default
         };
         
@@ -220,6 +278,9 @@ pub const AiInsights = struct {
         const max_retries: u32 = 3;
         var retry_count: u32 = 0;
         var last_error: ?LlmProvider.LlmProviderError = null;
+        
+        // Free zon_data after request completes (it's only used synchronously)
+        defer if (zon_data) |zd| self.allocator.free(zd);
         
         while (retry_count < max_retries) : (retry_count += 1) {
             const response = pool.send_request_with_fallback(&request, self.allocator) catch |err| {
@@ -307,13 +368,14 @@ pub const AiInsights = struct {
         const prompt_str = try prompt.toOwnedSlice();
         defer self.allocator.free(prompt_str);
         
-        // Get AI response via Court provider
+        // Get AI response via Court provider (include block IDs for ZON encoding)
         const response = try self.send_llm_request(
             "You are a knowledge graph analysis assistant. Analyze blocks and suggest semantic connections.",
             prompt_str,
             "gpt-4o", // Default model, can be configurable
             2000, // Max tokens
             0.7, // Temperature
+            block_ids, // Include block IDs for ZON encoding if supported
         );
         defer self.allocator.free(response);
         
@@ -447,13 +509,14 @@ pub const AiInsights = struct {
         const prompt_str = try prompt.toOwnedSlice();
         defer self.allocator.free(prompt_str);
         
-        // Get AI response via Court provider
+        // Get AI response via Court provider (include block IDs for ZON encoding)
         const response = try self.send_llm_request(
             "You are a knowledge graph analysis assistant. Identify missing connections between related blocks.",
             prompt_str,
             "gpt-4o", // Default model
             2000, // Max tokens
             0.7, // Temperature
+            block_ids, // Include block IDs for ZON encoding if supported
         );
         defer self.allocator.free(response);
         
@@ -540,13 +603,15 @@ pub const AiInsights = struct {
         const prompt_str = try prompt.toOwnedSlice();
         defer self.allocator.free(prompt_str);
         
-        // Get AI response via Court provider
+        // Get AI response via Court provider (include block ID for ZON encoding)
+        const block_id_array = [_]u64{block_id};
         const response = try self.send_llm_request(
             "You are a knowledge graph assistant. Generate concise, descriptive titles for blocks.",
             prompt_str,
             "gpt-4o", // Default model
             100, // Max tokens (titles are short)
             0.7, // Temperature
+            &block_id_array, // Include block ID for ZON encoding if supported
         );
         defer self.allocator.free(response);
         
@@ -625,13 +690,14 @@ pub const AiInsights = struct {
         const prompt_str = try prompt.toOwnedSlice();
         defer self.allocator.free(prompt_str);
         
-        // Get AI response via Court provider
+        // Get AI response via Court provider (include block IDs for ZON encoding)
         const response = try self.send_llm_request(
             "You are a knowledge graph assistant. Provide concise summaries of subgraphs.",
             prompt_str,
             "gpt-4o", // Default model
             500, // Max tokens (summaries are short)
             0.7, // Temperature
+            block_ids, // Include block IDs for ZON encoding if supported
         );
         
         // Validate response is not empty

@@ -717,10 +717,11 @@ All planned phases for Grain Workspace Agent have been completed (Phases 1-36). 
 ### Next Steps
 
 **Immediate** (Months 1-2):
-- [ ] Review Core Agent's Grainbank MMT integration design
-- [ ] Review Silo Agent's storage schema designs for JG modules
-- [ ] Design dashboard architecture and component structure
-- [ ] Plan integration points with Flow, Court, and Research agents
+- [x] Review Core Agent's Grainbank MMT integration design (2025-12-28-232324-pst)
+- [ ] Review Silo Agent's storage schema designs for JG modules (pending Silo Agent completion)
+- [x] Design dashboard architecture and component structure (2025-12-31-051000-pst)
+- [x] Plan integration points with Flow, Court, and Research agents (2025-12-31-051000-pst)
+- [x] **Desktop Dashboard Design Document Complete** (`docs/grain_workspace/jg_desktop_dashboards_design.md`) — Comprehensive design for all 5 dashboards
 
 **Short-term** (Months 3-4):
 - [ ] Begin desktop dashboard implementation
