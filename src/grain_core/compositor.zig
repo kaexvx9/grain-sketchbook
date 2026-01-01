@@ -34,6 +34,7 @@ const notification = @import("notification.zig");
 const clipboard = @import("clipboard.zig");
 const app_launcher = @import("app_launcher.zig");
 const system_tray = @import("system_tray.zig");
+const font_renderer = @import("font_renderer.zig");
 const power_management = @import("power_management.zig");
 const display_management = @import("display_management.zig");
 const settings_manager = @import("settings_manager.zig");
@@ -612,6 +613,14 @@ pub const Compositor = struct {
         // Render desktop shell (status bar and launcher).
         self.shell.set_current_workspace(self.workspace_manager.current_workspace_id);
         self.shell.render();
+        // Render system tray (in status bar area).
+        self.render_system_tray();
+        // Render notifications (top-right corner, on top of everything).
+        self.render_notifications();
+        // Render lock screen (if locked, on top of everything).
+        if (self.lock_screen_manager.is_locked()) {
+            self.render_lock_screen();
+        }
     }
 
     // Render window decorations (border, title bar, content area).
@@ -3572,6 +3581,199 @@ pub const Compositor = struct {
                     win.height,
                 );
             }
+        }
+    }
+
+    // Render notifications (top-right corner).
+    fn render_notifications(self: *Compositor) void {
+        const active_count = self.notification_manager.get_active_count();
+        if (active_count == 0) {
+            return;
+        }
+        // Notification dimensions.
+        const notif_width: u32 = 320;
+        const notif_height: u32 = 80;
+        const notif_spacing: u32 = 8;
+        const notif_padding: u32 = 8;
+        const max_visible: u32 = 5;
+        // Position: top-right corner.
+        const start_x = self.output.width - notif_width - notif_padding;
+        var current_y: u32 = notif_padding;
+        // Render active notifications (up to max_visible, newest first).
+        var rendered: u32 = 0;
+        var i: u32 = self.notification_manager.notifications_len;
+        while (i > 0 and rendered < max_visible) : (i -= 1) {
+            const idx = i - 1;
+            const notif = &self.notification_manager.notifications[idx];
+            if (notif.expired or notif.notification_id == 0) {
+                continue;
+            }
+            // Draw notification background.
+            self.renderer.draw_rect(
+                @as(i32, @intCast(start_x)),
+                @as(i32, @intCast(current_y)),
+                notif_width,
+                notif_height,
+                framebuffer_renderer.COLOR_DARK_BG,
+            );
+            // Draw notification border (color based on priority).
+            const border_color = switch (notif.priority) {
+                .urgent => framebuffer_renderer.COLOR_RED,
+                .high => framebuffer_renderer.COLOR_BLUE,
+                .normal, .low => framebuffer_renderer.COLOR_WHITE,
+            };
+            self.renderer.draw_rect(
+                @as(i32, @intCast(start_x)),
+                @as(i32, @intCast(current_y)),
+                notif_width,
+                2,
+                border_color,
+            );
+            // Draw notification title and message using shell's font renderer.
+            const title_slice = notif.title[0..notif.title_len];
+            const title_y = current_y + 16;
+            self.shell.font.draw_text(
+                title_slice,
+                start_x + notif_padding,
+                title_y,
+                framebuffer_renderer.COLOR_WHITE,
+            );
+            const message_slice = notif.message[0..notif.message_len];
+            const message_y = current_y + 32;
+            self.shell.font.draw_text(
+                message_slice,
+                start_x + notif_padding,
+                message_y,
+                framebuffer_renderer.COLOR_WHITE,
+            );
+            current_y += notif_height + notif_spacing;
+            rendered += 1;
+        }
+    }
+
+    // Render lock screen (full screen overlay when locked).
+    fn render_lock_screen(self: *Compositor) void {
+        // Draw full-screen overlay (semi-transparent dark background).
+        self.renderer.draw_rect(
+            0,
+            0,
+            self.output.width,
+            self.output.height,
+            framebuffer_renderer.COLOR_DARK_BG,
+        );
+        // Draw lock screen center panel.
+        self.render_lock_screen_panel();
+    }
+
+    // Render lock screen center panel.
+    fn render_lock_screen_panel(self: *Compositor) void {
+        const panel_width: u32 = 400;
+        const panel_height: u32 = 300;
+        const panel_x = (self.output.width - panel_width) / 2;
+        const panel_y = (self.output.height - panel_height) / 2;
+        self.renderer.draw_rect(
+            @as(i32, @intCast(panel_x)),
+            @as(i32, @intCast(panel_y)),
+            panel_width,
+            panel_height,
+            framebuffer_renderer.COLOR_BLACK,
+        );
+        // Draw lock screen border.
+        self.renderer.draw_rect(
+            @as(i32, @intCast(panel_x)),
+            @as(i32, @intCast(panel_y)),
+            panel_width,
+            2,
+            framebuffer_renderer.COLOR_WHITE,
+        );
+        // Draw "Locked" text.
+        const locked_text = "Locked";
+        const font_width = font_renderer.FONT_WIDTH;
+        const text_width = @as(u32, @intCast(locked_text.len)) * font_width;
+        const text_x = panel_x + (panel_width - text_width) / 2;
+        const text_y = panel_y + 64;
+        self.shell.font.draw_text(
+            locked_text,
+            text_x,
+            text_y,
+            framebuffer_renderer.COLOR_WHITE,
+        );
+        // Draw identity list (if multiple identities).
+        self.render_lock_screen_identities(panel_x, panel_y, panel_height);
+    }
+
+    // Render lock screen identity list.
+    fn render_lock_screen_identities(
+        self: *Compositor,
+        panel_x: u32,
+        panel_y: u32,
+        panel_height: u32,
+    ) void {
+        const manager = &self.lock_screen_manager.identity_manager;
+        if (manager.identities_len == 0) {
+            return;
+        }
+        var identity_y = panel_y + 100;
+        var identity_i: u32 = 0;
+        while (identity_i < manager.identities_len and
+            identity_y < panel_y + panel_height - 20) : (identity_i += 1)
+        {
+            const identity = &manager.identities[identity_i];
+            if (!identity.active) {
+                continue;
+            }
+            const name_slice = identity.name[0..identity.name_len];
+            self.shell.font.draw_text(
+                name_slice,
+                panel_x + 20,
+                identity_y,
+                framebuffer_renderer.COLOR_WHITE,
+            );
+            identity_y += 32;
+        }
+    }
+
+    // Render system tray (in status bar area).
+    fn render_system_tray(self: *Compositor) void {
+        if (!self.system_tray_manager.is_visible()) {
+            return;
+        }
+        const visible_count = self.system_tray_manager.get_visible_icon_count();
+        if (visible_count == 0) {
+            return;
+        }
+        // System tray position: right side of status bar.
+        const tray_x = self.output.width - desktop_shell.STATUS_BAR_HEIGHT - 8;
+        const tray_y = self.output.height - desktop_shell.STATUS_BAR_HEIGHT + 8;
+        const icon_size: u32 = 16;
+        const icon_spacing: u32 = 4;
+        var current_x: u32 = tray_x;
+        var rendered: u32 = 0;
+        // Render visible icons (right to left).
+        var i: u32 = 0;
+        while (i < self.system_tray_manager.icons_len and rendered < visible_count) : (i += 1) {
+            const icon = &self.system_tray_manager.icons[i];
+            if (!icon.visible or !icon.active or icon.icon_id == 0) {
+                continue;
+            }
+            // Draw icon background (simple rectangle for now).
+            self.renderer.draw_rect(
+                @as(i32, @intCast(current_x - icon_size)),
+                @as(i32, @intCast(tray_y)),
+                icon_size,
+                icon_size,
+                framebuffer_renderer.COLOR_DARK_BG,
+            );
+            // Draw icon border.
+            self.renderer.draw_rect(
+                @as(i32, @intCast(current_x - icon_size)),
+                @as(i32, @intCast(tray_y)),
+                icon_size,
+                1,
+                framebuffer_renderer.COLOR_WHITE,
+            );
+            current_x -= icon_size + icon_spacing;
+            rendered += 1;
         }
     }
 };

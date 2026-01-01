@@ -317,6 +317,43 @@
 
 #### Phase 3: Evaluation and Recommendations (Weeks 5-6)
 
+---
+
+### Hack Club Fiscal Sponsorship Research (Priority: MEDIUM)
+
+**Research Request**: Core 1 Subcore (2026-01-01-083000-pst)  
+**Research Request Document**: `docs/agent-communications/core_1_subcore_hack_club_fiscal_sponsorship_research_request_2026-01-01-083000-pst.md`  
+**Timeline**: 1-2 weeks
+
+#### Week 1: Hack Club Model Research
+
+- [x] Research Hack Club fiscal sponsorship model (application process, requirements, services, fee structure)
+- [x] Research transparency requirements and public transaction ledger
+- [x] Research limitations and restrictions
+- [x] Research comparison with independent 501(c)(3) foundation (advantages, disadvantages, costs, governance)
+- [x] Create Hack Club Fiscal Sponsorship Analysis Document
+
+#### Week 2: Grain OS Application Strategy
+
+- [ ] Evaluate Grain OS eligibility for Hack Club fiscal sponsorship
+- [ ] Evaluate fiscal sponsorship vs. independent 501(c)(3) vs. hybrid approach for Grain OS
+- [ ] Research grant opportunities for Grain OS (open-source infrastructure)
+- [ ] Research grant opportunities for Dispatch software work (first-responder systems)
+- [ ] Research donation processing capabilities and tax-deductible donation requirements
+- [ ] Create Grain OS Application Strategy Document
+- [ ] Create Grant and Donation Opportunities Analysis Document
+
+#### Deliverables
+
+- [x] Hack Club Fiscal Sponsorship Analysis Document (`docs/research/hack_club_fiscal_sponsorship_analysis_2026-01-01-091849-pst.md`)
+- [x] Fiscal Sponsorship vs. Independent 501(c)(3) Comparison Document (`docs/research/fiscal_sponsorship_vs_independent_501c3_comparison_2026-01-01-091849-pst.md`)
+- [ ] Grain OS Application Strategy Document (`docs/research/grain_os_fiscal_sponsorship_application_strategy_2026-01-XX.md`)
+- [ ] Grant and Donation Opportunities Analysis Document (`docs/research/grain_os_grant_donation_opportunities_2026-01-XX.md`)
+
+---
+
+#### Phase 3: Evaluation and Recommendations (Weeks 5-6)
+
 - [ ] Monitor coordination overhead during initial dispatch work
 - [ ] Evaluate development velocity
 - [ ] Assess integration complexity

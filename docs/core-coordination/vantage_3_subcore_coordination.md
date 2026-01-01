@@ -1,8 +1,8 @@
 # Core Coordination: Grain Vantage 3 Subcore Agent
 
-**Last Updated**: 2025-12-31-174504-pst  
+**Last Updated**: 2026-01-01-083047-pst  
 **Agent**: Grain Vantage 3 Subcore Agent (3rd Agent, L1 Subcore)  
-**Status**: ✅ **ALL KERNEL FEATURES COMPLETE** — Kernel Refactoring Complete ✅ — Production Ready — JG Project Support Ready — Architecture Evolution Complete ✅ — L2 Sub-Agents Ready ✅ — Renamed to Vantage 3 Subcore (Subcore Coordination / Systems Integration) ✅ — L2 Coordination Guidance Provided ✅ — Hybrid Coordination Pattern Active ✅ — Grain Dispatch Research Acknowledged ✅
+**Status**: ✅ **ALL KERNEL FEATURES COMPLETE** — Kernel Refactoring Complete ✅ — Production Ready — JG Project Support Ready — Architecture Evolution Complete ✅ — L2 Sub-Agents Ready ✅ — Renamed to Vantage 3 Subcore (Subcore Coordination / Systems Integration) ✅ — L2 Coordination Guidance Provided ✅ — Hybrid Coordination Pattern Active ✅ — Grain Dispatch Research Acknowledged ✅ — Intel x86_64 Legacy Hardware Support Priority Acknowledged ✅
 
 ---
 
@@ -43,6 +43,14 @@
 - Implementation status: Not started yet — current L2 sub-agent priorities remain unchanged
 - Research documents: `docs/research/grain_dispatch_research_analysis_2025-12-30.md`, `docs/research/grain_dispatch_coordination_summary_2025-12-31.md`
 - Coordination guidance: `docs/core-coordination/core_1_subcore_grain_dispatch_coordination_2025-12-30.md`
+
+**New Priority**: 🆕 **RISC-V to x86_64 Pipeline with Intel Legacy Hardware Support** (2026-01-01-083047-pst)
+- Core 1 Subcore parallel development prompt received ✅
+- Intel x86_64 legacy hardware support added as priority (existing first-responder systems in vehicles and stations)
+- Architecture coverage: ARM64, x86_64 AMD (Framework), and x86_64 Intel (including legacy hardware)
+- Critical for Dispatch software deployment (many existing systems use older Intel x86_64 hardware)
+- 3b VM Runtime Agent: RISC-V to x86_64 JIT compilation (NEW PRIORITY after Phase 2 completion)
+- 3c System Integration Agent: Multi-architecture testing strategy (ARM64, x86_64 AMD, x86_64 Intel including legacy)
 
 **Blockers**: **NONE** — All kernel features ready. All agents can proceed with integration.
 

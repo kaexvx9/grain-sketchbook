@@ -10,6 +10,10 @@ const api_server = @import("api_server.zig");
 const dns_resolver = @import("dns_resolver.zig");
 const http_errors = @import("http_errors.zig");
 const connection_pool = @import("connection_pool.zig");
+const file_transfer = @import("file_transfer.zig");
+const file_mime_type = @import("file_mime_type.zig");
+const integrated_file_io = @import("integrated_file_io.zig");
+const chunked_transfer = @import("chunked_transfer.zig");
 
 // Bounded: Max concurrent requests.
 pub const MAX_CONCURRENT_REQUESTS: u32 = 32;
@@ -180,6 +184,11 @@ pub const HttpClient = struct {
     network_stack: *network_stack.NetworkStack,
     dns_resolver: *dns_resolver.DnsResolver,
     pool: connection_pool.ConnectionPool,
+    transfer_manager: ?*file_transfer.FileTransferManager,
+    mime_detector: ?*file_mime_type.FileMimeTypeDetector,
+    file_io: ?*integrated_file_io.IntegratedFileIO,
+    current_time_fn: ?*const fn () u64,
+    allocator: ?std.mem.Allocator,
 
     pub fn init(
         net_stack: *network_stack.NetworkStack,
@@ -198,6 +207,11 @@ pub const HttpClient = struct {
             .network_stack = net_stack,
             .dns_resolver = resolver,
             .pool = pool,
+            .transfer_manager = null,
+            .mime_detector = null,
+            .file_io = null,
+            .current_time_fn = null,
+            .allocator = null,
         };
         var i: u32 = 0;
         while (i < MAX_CONCURRENT_REQUESTS) : (i += 1) {
@@ -333,6 +347,181 @@ pub const HttpClient = struct {
         const count = self.requests_len;
         std.debug.assert(count <= MAX_CONCURRENT_REQUESTS);
         return count;
+    }
+
+    // Set file transfer dependencies.
+    pub fn set_file_transfer_dependencies(
+        self: *HttpClient,
+        transfer_mgr: *file_transfer.FileTransferManager,
+        mime_det: *file_mime_type.FileMimeTypeDetector,
+        io: *integrated_file_io.IntegratedFileIO,
+        time_fn: *const fn () u64,
+        alloc: std.mem.Allocator,
+    ) void {
+        std.debug.assert(transfer_mgr != null);
+        std.debug.assert(mime_det != null);
+        std.debug.assert(io != null);
+        std.debug.assert(@intFromPtr(time_fn) != 0);
+        self.transfer_manager = transfer_mgr;
+        self.mime_detector = mime_det;
+        self.file_io = io;
+        self.current_time_fn = time_fn;
+        self.allocator = alloc;
+        std.debug.assert(self.transfer_manager != null);
+    }
+
+    // Upload file to remote server.
+    pub fn upload_file(
+        self: *HttpClient,
+        url: []const u8,
+        local_path: []const u8,
+        timeout_ms: ?u32,
+    ) http_errors.HttpClientError!u32 {
+        std.debug.assert(url.len > 0);
+        std.debug.assert(local_path.len > 0);
+        std.debug.assert(self.transfer_manager != null);
+        std.debug.assert(self.file_io != null);
+        std.debug.assert(self.current_time_fn != null);
+        std.debug.assert(self.allocator != null);
+        const transfer_mgr = self.transfer_manager.?;
+        const file_io_mgr = self.file_io.?;
+        const time_fn = self.current_time_fn.?;
+        const alloc = self.allocator.?;
+        const current_time = time_fn();
+        const user_id: u32 = 1;
+        const group_id: u32 = 1;
+        const file_data = file_io_mgr.read_file(
+            alloc,
+            local_path,
+            current_time,
+            user_id,
+            group_id,
+        ) catch return http_errors.HttpClientError.file_read_error;
+        defer alloc.free(file_data);
+        const file_size = file_data.len;
+        const transfer_id_opt = transfer_mgr.create_upload(
+            local_path,
+            url,
+            file_size,
+            current_time,
+        );
+        if (transfer_id_opt == null) {
+            return http_errors.HttpClientError.service_unavailable;
+        }
+        const transfer_id = transfer_id_opt.?;
+        const req_opt = self.create_request(api_server.HttpMethod.post, url, timeout_ms);
+        if (req_opt == null) {
+            _ = transfer_mgr.cancel_transfer(transfer_id);
+            return http_errors.HttpClientError.request_failed;
+        }
+        const req = req_opt.?;
+        const mime_type_opt = if (self.mime_detector) |det| det.detect_mime_type(local_path) else null;
+        if (mime_type_opt) |mime_type| {
+            _ = req.add_header("Content-Type", mime_type);
+        }
+        const content_len = @min(file_data.len, api_server.MAX_REQUEST_SIZE);
+        var i: u32 = 0;
+        while (i < content_len) : (i += 1) {
+            req.body[i] = file_data[i];
+        }
+        req.body_len = @intCast(content_len);
+        var length_buf: [32]u8 = undefined;
+        const length_str = std.fmt.bufPrint(&length_buf, "{}", .{content_len}) catch {
+            _ = transfer_mgr.cancel_transfer(transfer_id);
+            return http_errors.HttpClientError.request_failed;
+        };
+        _ = req.add_header("Content-Length", length_str[0..]);
+        if (content_len > file_transfer.MAX_CHUNK_SIZE) {
+            _ = req.add_header("Transfer-Encoding", "chunked");
+        }
+        std.debug.assert(transfer_id > 0);
+        return transfer_id;
+    }
+
+    // Download file from remote server.
+    pub fn download_file(
+        self: *HttpClient,
+        url: []const u8,
+        local_path: []const u8,
+        timeout_ms: ?u32,
+    ) http_errors.HttpClientError!u32 {
+        std.debug.assert(url.len > 0);
+        std.debug.assert(local_path.len > 0);
+        std.debug.assert(self.transfer_manager != null);
+        std.debug.assert(self.file_io != null);
+        std.debug.assert(self.current_time_fn != null);
+        std.debug.assert(self.allocator != null);
+        const transfer_mgr = self.transfer_manager.?;
+        const file_io_mgr = self.file_io.?;
+        const time_fn = self.current_time_fn.?;
+        const alloc = self.allocator.?;
+        const current_time = time_fn();
+        const file_size: u64 = 0;
+        const transfer_id_opt = transfer_mgr.create_download(
+            url,
+            local_path,
+            file_size,
+            current_time,
+        );
+        if (transfer_id_opt == null) {
+            return http_errors.HttpClientError.service_unavailable;
+        }
+        const transfer_id = transfer_id_opt.?;
+        const req_opt = self.create_request(api_server.HttpMethod.get, url, timeout_ms);
+        if (req_opt == null) {
+            _ = transfer_mgr.cancel_transfer(transfer_id);
+            return http_errors.HttpClientError.request_failed;
+        }
+        const req = req_opt.?;
+        std.debug.assert(transfer_id > 0);
+        return transfer_id;
+    }
+
+    // Complete file download by writing response data to file.
+    pub fn complete_download(
+        self: *HttpClient,
+        transfer_id: u32,
+        request_id: u32,
+        local_path: []const u8,
+    ) http_errors.HttpClientError!void {
+        std.debug.assert(transfer_id > 0);
+        std.debug.assert(request_id > 0);
+        std.debug.assert(local_path.len > 0);
+        std.debug.assert(self.transfer_manager != null);
+        std.debug.assert(self.file_io != null);
+        std.debug.assert(self.current_time_fn != null);
+        std.debug.assert(self.allocator != null);
+        const transfer_mgr = self.transfer_manager.?;
+        const file_io_mgr = self.file_io.?;
+        const time_fn = self.current_time_fn.?;
+        const alloc = self.allocator.?;
+        const current_time = time_fn();
+        const user_id: u32 = 1;
+        const group_id: u32 = 1;
+        const response = self.get_response(request_id, current_time) catch |err| {
+            _ = transfer_mgr.cancel_transfer(transfer_id);
+            return err;
+        };
+        if (response.status != api_server.HttpStatus.ok) {
+            _ = transfer_mgr.cancel_transfer(transfer_id);
+            return http_errors.HttpClientError.invalid_response;
+        }
+        const file_data = response.body[0..response.body_len];
+        file_io_mgr.write_file(
+            alloc,
+            local_path,
+            file_data,
+            current_time,
+            user_id,
+            group_id,
+        ) catch {
+            _ = transfer_mgr.cancel_transfer(transfer_id);
+            return http_errors.HttpClientError.file_write_error;
+        };
+        if (transfer_mgr.get_transfer(transfer_id)) |transfer| {
+            transfer.state = file_transfer.TransferState.completed;
+        }
+        std.debug.assert(transfer_id > 0);
     }
 
     // Get response from completed request, returning structured errors.

@@ -169,9 +169,9 @@ Alternate only for:
 
 ---
 
-### 1b. Grain Network Agent — 🆕 **INITIALIZED**
+### 1b. Grain Network Agent — ✅ **PHASES 1-4 COMPLETE, STORAGE INTEGRATION DESIGN COMPLETE**
 
-**Status**: 🆕 **INITIALIZED** — Ready to begin work
+**Status**: ✅ **READY FOR STORAGE INTEGRATION IMPLEMENTATION** — Integration design complete, ready to proceed
 
 **Responsibilities**:
 - TCP/UDP socket support
@@ -181,7 +181,21 @@ Alternate only for:
 - Network security (TLS/SSL)
 - Connection management
 
+**Recent Progress** (2025-12-31):
+- ✅ **Storage ↔ Network Integration Design Complete**
+  - Integration architecture designed
+  - API contracts defined
+  - Implementation plan created (2 weeks)
+  - Document: `docs/core-coordination/core_1b_network_storage_integration_response.md`
+
 **Coordination**: Weekly/bi-weekly check-ins with Core 1 Subcore, coordinate with Auth Agent (1a) on middleware, Storage Agent (1c) on file transfer
+
+**Active Integration Work**:
+- **Storage Agent (1c) ↔ Network Agent (1b) Integration**: Design complete, ready for implementation
+  - HTTP server file transfer endpoints (POST /api/files/upload, GET /api/files/{file_id}/download, GET /api/files/{transfer_id}/progress)
+  - HTTP client file transfer methods (upload_file(), download_file())
+  - Integration with Storage Agent's FileTransferManager and FileMimeTypeDetector
+  - Timeline: 2 weeks for full implementation
 
 ---
 

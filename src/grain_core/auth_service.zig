@@ -68,6 +68,13 @@ pub const MAX_RATE_LIMIT_ENTRIES: u32 = 10000; // Maximum rate limit entries
 pub const RATE_LIMIT_WINDOW: u64 = 60; // 60 seconds window
 pub const DEFAULT_RATE_LIMIT: u32 = 100; // 100 requests per window
 
+// Audit logging constants (Phase 6.2)
+pub const MAX_AUDIT_LOG_ENTRIES: u32 = 10000; // Maximum audit log entries
+pub const MAX_AUDIT_MESSAGE_LEN: u32 = 512; // Maximum audit log message length
+pub const MAX_AUDIT_IP_LEN: u32 = 45; // Maximum IP address length (IPv6)
+pub const MAX_AUDIT_USER_AGENT_LEN: u32 = 256; // Maximum user agent length
+pub const AUDIT_LOG_RETENTION: u64 = 2592000; // 30 days (in seconds)
+
 // JWT Claims structure
 pub const JwtClaims = struct {
     user_id: [MAX_USER_ID_LEN]u8,
@@ -170,6 +177,55 @@ pub const Role = struct {
     is_active: bool,
 };
 
+// Audit log event types (Phase 6.2)
+pub const AuditEventType = enum(u8) {
+    login_success,
+    login_failure,
+    token_revocation,
+    permission_denied,
+    api_key_usage,
+    api_key_revocation,
+    session_created,
+    session_revoked,
+    password_changed,
+    role_assigned,
+    role_revoked,
+};
+
+// Audit log entry structure (Phase 6.2)
+pub const AuditLogEntry = struct {
+    event_type: AuditEventType,
+    timestamp: u64, // Unix timestamp
+    user_id: [MAX_USER_ID_LEN]u8,
+    user_id_len: u32,
+    message: [MAX_AUDIT_MESSAGE_LEN]u8,
+    message_len: u32,
+    ip_address: [MAX_AUDIT_IP_LEN]u8, // Optional IP address
+    ip_address_len: u32,
+    user_agent: [MAX_AUDIT_USER_AGENT_LEN]u8, // Optional user agent
+    user_agent_len: u32,
+    success: bool, // Event success/failure status
+};
+
+// CSRF token structure (Phase 6)
+pub const CsrfToken = struct {
+    token: [CSRF_TOKEN_LEN]u8,
+    session_id: [MAX_SESSION_ID_LEN]u8,
+    session_id_len: u32,
+    created_at: u64,
+    expires_at: u64,
+    is_used: bool,
+};
+
+// Rate limit entry structure (Phase 6)
+pub const RateLimitEntry = struct {
+    identifier: [MAX_USER_ID_LEN]u8, // User ID or IP address
+    identifier_len: u32,
+    window_start: u64, // Start of rate limit window
+    request_count: u32,
+    limit: u32,
+};
+
 // Authentication Service
 pub const AuthService = struct {
     secret: [MAX_SECRET_LEN]u8,
@@ -191,6 +247,8 @@ pub const AuthService = struct {
     csrf_token_count: u32,
     rate_limits: [MAX_RATE_LIMIT_ENTRIES]RateLimitEntry, // Rate limiting (Phase 6)
     rate_limit_count: u32,
+    audit_logs: [MAX_AUDIT_LOG_ENTRIES]AuditLogEntry, // Audit logs (Phase 6.2)
+    audit_log_count: u32,
 
     // Initialize authentication service with secret
     pub fn init(secret: []const u8) AuthService {
@@ -216,6 +274,8 @@ pub const AuthService = struct {
             .csrf_token_count = 0,
             .rate_limits = undefined,
             .rate_limit_count = 0,
+            .audit_logs = undefined,
+            .audit_log_count = 0,
         };
         std.mem.copyForwards(u8, &service.secret, secret);
         std.mem.set(u8, &service.sessions, 0);
@@ -226,6 +286,7 @@ pub const AuthService = struct {
         std.mem.set(u8, &service.roles, 0);
         std.mem.set(u8, &service.csrf_tokens, 0);
         std.mem.set(u8, &service.rate_limits, 0);
+        std.mem.set(u8, &service.audit_logs, 0);
         std.debug.assert(service.secret_len > 0);
         return service;
     }
@@ -2249,5 +2310,225 @@ pub fn cleanup_expired_rate_limits(self: *AuthService, current_time: u64) void {
     }
     self.rate_limit_count = write_idx;
     std.debug.assert(self.rate_limit_count <= MAX_RATE_LIMIT_ENTRIES);
+}
+
+// ============================================================================
+// Security Audit Logging (Phase 6.2)
+// ============================================================================
+
+// Log audit event (internal helper)
+fn log_audit_event(
+    self: *AuthService,
+    event_type: AuditEventType,
+    timestamp: u64,
+    user_id: []const u8,
+    message: []const u8,
+    ip_address: []const u8,
+    user_agent: []const u8,
+    success: bool,
+) void {
+    std.debug.assert(user_id.len <= MAX_USER_ID_LEN);
+    std.debug.assert(message.len > 0);
+    std.debug.assert(message.len <= MAX_AUDIT_MESSAGE_LEN);
+    std.debug.assert(ip_address.len <= MAX_AUDIT_IP_LEN);
+    std.debug.assert(user_agent.len <= MAX_AUDIT_USER_AGENT_LEN);
+    if (self.audit_log_count >= MAX_AUDIT_LOG_ENTRIES) {
+        return;
+    }
+    var entry: AuditLogEntry = undefined;
+    entry.event_type = event_type;
+    entry.timestamp = timestamp;
+    entry.success = success;
+    std.mem.set(u8, &entry.user_id, 0);
+    std.mem.copyForwards(u8, entry.user_id[0..user_id.len], user_id);
+    entry.user_id_len = @intCast(user_id.len);
+    std.mem.set(u8, &entry.message, 0);
+    const msg_len = @min(message.len, MAX_AUDIT_MESSAGE_LEN);
+    std.mem.copyForwards(u8, entry.message[0..msg_len], message[0..msg_len]);
+    entry.message_len = @intCast(msg_len);
+    std.mem.set(u8, &entry.ip_address, 0);
+    const ip_len = @min(ip_address.len, MAX_AUDIT_IP_LEN);
+    if (ip_len > 0) {
+        std.mem.copyForwards(u8, entry.ip_address[0..ip_len], ip_address[0..ip_len]);
+    }
+    entry.ip_address_len = @intCast(ip_len);
+    std.mem.set(u8, &entry.user_agent, 0);
+    const ua_len = @min(user_agent.len, MAX_AUDIT_USER_AGENT_LEN);
+    if (ua_len > 0) {
+        std.mem.copyForwards(u8, entry.user_agent[0..ua_len], user_agent[0..ua_len]);
+    }
+    entry.user_agent_len = @intCast(ua_len);
+    self.audit_logs[self.audit_log_count] = entry;
+    self.audit_log_count += 1;
+    std.debug.assert(self.audit_log_count <= MAX_AUDIT_LOG_ENTRIES);
+}
+
+// Log login attempt (success or failure)
+pub fn log_login_attempt(
+    self: *AuthService,
+    user_id: []const u8,
+    success: bool,
+    timestamp: u64,
+    ip_address: []const u8,
+    user_agent: []const u8,
+) void {
+    std.debug.assert(user_id.len > 0);
+    std.debug.assert(user_id.len <= MAX_USER_ID_LEN);
+    std.debug.assert(ip_address.len <= MAX_AUDIT_IP_LEN);
+    std.debug.assert(user_agent.len <= MAX_AUDIT_USER_AGENT_LEN);
+    const event_type = if (success) AuditEventType.login_success else AuditEventType.login_failure;
+    const msg = if (success) "Login successful" else "Login failed";
+    log_audit_event(self, event_type, timestamp, user_id, msg, ip_address, user_agent, success);
+}
+
+// Log token revocation
+pub fn log_token_revocation(
+    self: *AuthService,
+    user_id: []const u8,
+    token_type: []const u8,
+    timestamp: u64,
+    ip_address: []const u8,
+) void {
+    std.debug.assert(user_id.len > 0);
+    std.debug.assert(user_id.len <= MAX_USER_ID_LEN);
+    std.debug.assert(token_type.len > 0);
+    std.debug.assert(ip_address.len <= MAX_AUDIT_IP_LEN);
+    var msg_buf: [MAX_AUDIT_MESSAGE_LEN]u8 = undefined;
+    const prefix = "Token revoked: ";
+    var msg_len: u32 = 0;
+    const prefix_len = @min(prefix.len, MAX_AUDIT_MESSAGE_LEN);
+    std.mem.copyForwards(u8, msg_buf[0..prefix_len], prefix);
+    msg_len += @intCast(prefix_len);
+    const type_len = @min(token_type.len, MAX_AUDIT_MESSAGE_LEN - msg_len);
+    if (type_len > 0) {
+        std.mem.copyForwards(u8, msg_buf[msg_len..msg_len + type_len], token_type[0..type_len]);
+        msg_len += type_len;
+    }
+    const msg = msg_buf[0..msg_len];
+    log_audit_event(
+        self,
+        AuditEventType.token_revocation,
+        timestamp,
+        user_id,
+        msg,
+        ip_address,
+        "",
+        true,
+    );
+}
+
+// Log permission denial
+pub fn log_permission_denial(
+    self: *AuthService,
+    user_id: []const u8,
+    resource: []const u8,
+    action: []const u8,
+    timestamp: u64,
+    ip_address: []const u8,
+) void {
+    std.debug.assert(user_id.len > 0);
+    std.debug.assert(user_id.len <= MAX_USER_ID_LEN);
+    std.debug.assert(resource.len > 0);
+    std.debug.assert(action.len > 0);
+    std.debug.assert(ip_address.len <= MAX_AUDIT_IP_LEN);
+    var msg_buf: [MAX_AUDIT_MESSAGE_LEN]u8 = undefined;
+    const prefix = "Permission denied: ";
+    var msg_len: u32 = 0;
+    const prefix_len = @min(prefix.len, MAX_AUDIT_MESSAGE_LEN);
+    std.mem.copyForwards(u8, msg_buf[0..prefix_len], prefix);
+    msg_len += @intCast(prefix_len);
+    const action_len = @min(action.len, MAX_AUDIT_MESSAGE_LEN - msg_len);
+    if (action_len > 0) {
+        std.mem.copyForwards(u8, msg_buf[msg_len..msg_len + action_len], action[0..action_len]);
+        msg_len += action_len;
+    }
+    const middle = " on ";
+    const middle_len = @min(middle.len, MAX_AUDIT_MESSAGE_LEN - msg_len);
+    if (middle_len > 0) {
+        std.mem.copyForwards(u8, msg_buf[msg_len..msg_len + middle_len], middle);
+        msg_len += middle_len;
+    }
+    const resource_len = @min(resource.len, MAX_AUDIT_MESSAGE_LEN - msg_len);
+    if (resource_len > 0) {
+        const resource_start = msg_len;
+        const resource_end = resource_start + resource_len;
+        std.mem.copyForwards(u8, msg_buf[resource_start..resource_end], resource[0..resource_len]);
+        msg_len += resource_len;
+    }
+    const msg = msg_buf[0..msg_len];
+    log_audit_event(
+        self,
+        AuditEventType.permission_denied,
+        timestamp,
+        user_id,
+        msg,
+        ip_address,
+        "",
+        false,
+    );
+}
+
+// Log API key usage
+pub fn log_api_key_usage(
+    self: *AuthService,
+    user_id: []const u8,
+    api_key_prefix: []const u8,
+    timestamp: u64,
+    ip_address: []const u8,
+) void {
+    std.debug.assert(user_id.len > 0);
+    std.debug.assert(user_id.len <= MAX_USER_ID_LEN);
+    std.debug.assert(api_key_prefix.len > 0);
+    std.debug.assert(ip_address.len <= MAX_AUDIT_IP_LEN);
+    var msg_buf: [MAX_AUDIT_MESSAGE_LEN]u8 = undefined;
+    const prefix = "API key used: ";
+    var msg_len: u32 = 0;
+    const prefix_len = @min(prefix.len, MAX_AUDIT_MESSAGE_LEN);
+    std.mem.copyForwards(u8, msg_buf[0..prefix_len], prefix);
+    msg_len += @intCast(prefix_len);
+    const key_len = @min(api_key_prefix.len, MAX_AUDIT_MESSAGE_LEN - msg_len);
+    if (key_len > 0) {
+        std.mem.copyForwards(u8, msg_buf[msg_len..msg_len + key_len], api_key_prefix[0..key_len]);
+        msg_len += key_len;
+    }
+    const suffix = "...";
+    const suffix_len = @min(suffix.len, MAX_AUDIT_MESSAGE_LEN - msg_len);
+    if (suffix_len > 0) {
+        std.mem.copyForwards(u8, msg_buf[msg_len..msg_len + suffix_len], suffix);
+        msg_len += suffix_len;
+    }
+    const msg = msg_buf[0..msg_len];
+    log_audit_event(
+        self,
+        AuditEventType.api_key_usage,
+        timestamp,
+        user_id,
+        msg,
+        ip_address,
+        "",
+        true,
+    );
+}
+
+// Cleanup old audit logs (older than retention period)
+pub fn cleanup_old_audit_logs(self: *AuthService, current_time: u64) void {
+    std.debug.assert(current_time > 0);
+    const cutoff_time = if (current_time > AUDIT_LOG_RETENTION)
+        current_time - AUDIT_LOG_RETENTION
+    else
+        0;
+    var i: u32 = 0;
+    var write_idx: u32 = 0;
+    while (i < self.audit_log_count) : (i += 1) {
+        const entry = &self.audit_logs[i];
+        if (entry.timestamp >= cutoff_time) {
+            if (write_idx != i) {
+                self.audit_logs[write_idx] = self.audit_logs[i];
+            }
+            write_idx += 1;
+        }
+    }
+    self.audit_log_count = write_idx;
+    std.debug.assert(self.audit_log_count <= MAX_AUDIT_LOG_ENTRIES);
 }
 

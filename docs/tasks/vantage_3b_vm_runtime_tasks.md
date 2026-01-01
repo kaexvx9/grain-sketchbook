@@ -2,8 +2,8 @@
 
 **Agent**: Grain VM Runtime Agent (3b)  
 **Parent Agent**: Grain Vantage 3 Subcore Agent (3rd Agent, L1 Subcore)  
-**Status**: ✅ **PHASE 1 COMPLETE** — Codebase Review Complete — Ready for Phase 2  
-**Last Updated**: 2025-12-30-214501-pst  
+**Status**: ⚠️ **PHASE 2 NEAR COMPLETE** — Minor Adjustments Needed (1-5 Lines Over Limit)  
+**Last Updated**: 2026-01-01-092227-pst  
 **Coordination Plan**: `docs/agent-communications/vantage_3_subcore_coordination_plan_2025-12-29-223949-pst.md`  
 **Coordination Summary**: `docs/agent-communications/vantage_3_subcore_coordination_summary_2025-12-29-223949-pst.md`
 
@@ -111,11 +111,11 @@
 
 ## Phase 2: VM Maintenance and Stability
 
-**Status**: ✅ **MAJOR PROGRESS**  
+**Status**: ⚠️ **NEAR COMPLETE**  
 **Priority**: HIGH  
 **Started**: 2025-12-30-223543-pst  
-**Current**: 2025-12-31-031255-pst  
-**Estimated Time**: Ongoing
+**Current**: 2026-01-01-092227-pst  
+**Estimated Time**: Ongoing (30-60 minutes to complete)
 
 ### Phase 2 Tasks
 
@@ -125,11 +125,12 @@
   - [✅] Investigate intermittent failures
   - [✅] Document fixes
 
-- [✅] Review and refactor code that doesn't follow Grain Style
-  - [✅] Split functions over 70 lines — **COMPLETE**:
-    - [✅] `vm.zig::step()`: 652 → 63 lines (extracted 20+ helpers)
-    - [✅] `jit.zig::compile_block()`: 268 → 62 lines (extracted 9 helpers)
-    - [✅] All functions now < 70 lines
+- [⚠️] Review and refactor code that doesn't follow Grain Style
+  - [⚠️] Split functions over 70 lines — **NEAR COMPLETE**:
+    - [⚠️] `vm.zig::step()`: 652 → **71 lines** (89% reduction, **1 line over limit**, extracted 20+ helpers)
+    - [⚠️] `jit.zig::compile_block()`: 268 → **75 lines** (72% reduction, **5 lines over limit**, extracted 9 helpers)
+    - [ ] **Action Needed**: Reduce `step()` by 1 line (extract comment, combine lines, or minor refactor)
+    - [ ] **Action Needed**: Reduce `compile_block()` by 5 lines (extract helper, combine operations, or minor refactor)
   - [✅] Wrap lines over 100 characters — **MAJOR PROGRESS**:
     - [✅] 16+ modules: 100% compliant
     - [✅] `vm.zig`: 74% reduction (22 remaining, mostly debug strings)
@@ -140,7 +141,7 @@
   - [✅] Add `MAX_` constants for bounded allocations
   - [✅] Remove recursion and use iterative algorithms
 
-- [⏳] Keep documentation up to date
+- [✅] Keep documentation up to date
   - [✅] Update code comments as code evolves
   - [✅] Update architecture documentation
   - [✅] Update API documentation
@@ -151,9 +152,11 @@
   - [ ] Fix remaining 8 violations in `integration.zig` (mostly debug strings)
 
 **Next Steps** (pending Vantage 3 Subcore direction):
-- Option A: Continue Phase 2 refinements (fix remaining 30 violations)
-- Option B: Proceed to Phase 3 (JIT Optimization) — **RECOMMENDED**
-- Option C: Other priorities as directed
+- **Option A**: Complete Phase 2 function length compliance now (30-60 minutes) — **RECOMMENDED**
+  - Make minor adjustments to achieve 100% compliance
+  - Then proceed to Phase 3
+- **Option B**: Proceed to Phase 3 (JIT Optimization) and fix function lengths later
+- **Option C**: Other priorities as directed
 
 **Ongoing**: This phase continues throughout VM development lifecycle
 

@@ -942,3 +942,171 @@ test "auth_service_csrf_token_single_use" {
     std.debug.assert(!second_use);
 }
 
+// ============================================================================
+// Security Audit Logging Tests (Phase 6.2)
+// ============================================================================
+
+test "auth_service_log_login_attempt_success" {
+    const secret = "test_secret_for_audit";
+    var service = auth_service.AuthService.init(secret);
+    const user_id = "user123";
+    const timestamp: u64 = 1000000;
+    const ip_address = "192.168.1.1";
+    const user_agent = "Mozilla/5.0";
+    service.log_login_attempt(user_id, true, timestamp, ip_address, user_agent);
+    std.debug.assert(service.audit_log_count == 1);
+    const entry = service.audit_logs[0];
+    std.debug.assert(entry.event_type == auth_service.AuditEventType.login_success);
+    std.debug.assert(entry.timestamp == timestamp);
+    std.debug.assert(entry.success == true);
+    std.debug.assert(entry.user_id_len == user_id.len);
+}
+
+test "auth_service_log_login_attempt_failure" {
+    const secret = "test_secret_for_audit";
+    var service = auth_service.AuthService.init(secret);
+    const user_id = "user123";
+    const timestamp: u64 = 1000000;
+    const ip_address = "192.168.1.1";
+    const user_agent = "Mozilla/5.0";
+    service.log_login_attempt(user_id, false, timestamp, ip_address, user_agent);
+    std.debug.assert(service.audit_log_count == 1);
+    const entry = service.audit_logs[0];
+    std.debug.assert(entry.event_type == auth_service.AuditEventType.login_failure);
+    std.debug.assert(entry.success == false);
+}
+
+test "auth_service_log_token_revocation" {
+    const secret = "test_secret_for_audit";
+    var service = auth_service.AuthService.init(secret);
+    const user_id = "user123";
+    const token_type = "access_token";
+    const timestamp: u64 = 1000000;
+    const ip_address = "192.168.1.1";
+    service.log_token_revocation(user_id, token_type, timestamp, ip_address);
+    std.debug.assert(service.audit_log_count == 1);
+    const entry = service.audit_logs[0];
+    std.debug.assert(entry.event_type == auth_service.AuditEventType.token_revocation);
+    std.debug.assert(entry.timestamp == timestamp);
+    std.debug.assert(entry.success == true);
+}
+
+test "auth_service_log_permission_denial" {
+    const secret = "test_secret_for_audit";
+    var service = auth_service.AuthService.init(secret);
+    const user_id = "user123";
+    const resource = "users";
+    const action = "delete";
+    const timestamp: u64 = 1000000;
+    const ip_address = "192.168.1.1";
+    service.log_permission_denial(user_id, resource, action, timestamp, ip_address);
+    std.debug.assert(service.audit_log_count == 1);
+    const entry = service.audit_logs[0];
+    std.debug.assert(entry.event_type == auth_service.AuditEventType.permission_denied);
+    std.debug.assert(entry.success == false);
+    std.debug.assert(entry.message_len > 0);
+}
+
+test "auth_service_log_api_key_usage" {
+    const secret = "test_secret_for_audit";
+    var service = auth_service.AuthService.init(secret);
+    const user_id = "user123";
+    const api_key_prefix = "grain_live_";
+    const timestamp: u64 = 1000000;
+    const ip_address = "192.168.1.1";
+    service.log_api_key_usage(user_id, api_key_prefix, timestamp, ip_address);
+    std.debug.assert(service.audit_log_count == 1);
+    const entry = service.audit_logs[0];
+    std.debug.assert(entry.event_type == auth_service.AuditEventType.api_key_usage);
+    std.debug.assert(entry.success == true);
+}
+
+test "auth_service_audit_log_multiple_events" {
+    const secret = "test_secret_for_audit";
+    var service = auth_service.AuthService.init(secret);
+    const user_id = "user123";
+    const timestamp: u64 = 1000000;
+    const ip_address = "192.168.1.1";
+    service.log_login_attempt(user_id, true, timestamp, ip_address, "");
+    service.log_token_revocation(user_id, "refresh", timestamp + 1, ip_address);
+    service.log_permission_denial(user_id, "data", "write", timestamp + 2, ip_address);
+    std.debug.assert(service.audit_log_count == 3);
+}
+
+test "auth_service_audit_log_cleanup_old" {
+    const secret = "test_secret_for_audit";
+    var service = auth_service.AuthService.init(secret);
+    const user_id = "user123";
+    const old_timestamp: u64 = 1000000;
+    const new_timestamp: u64 = old_timestamp + auth_service.AUDIT_LOG_RETENTION + 1;
+    const ip_address = "192.168.1.1";
+    service.log_login_attempt(user_id, true, old_timestamp, ip_address, "");
+    service.log_login_attempt(user_id, true, new_timestamp, ip_address, "");
+    std.debug.assert(service.audit_log_count == 2);
+    service.cleanup_old_audit_logs(new_timestamp);
+    std.debug.assert(service.audit_log_count == 1);
+    std.debug.assert(service.audit_logs[0].timestamp == new_timestamp);
+}
+
+test "auth_service_audit_log_max_entries" {
+    const secret = "test_secret_for_audit";
+    var service = auth_service.AuthService.init(secret);
+    const user_id = "user123";
+    const timestamp: u64 = 1000000;
+    const ip_address = "192.168.1.1";
+    var i: u32 = 0;
+    while (i < auth_service.MAX_AUDIT_LOG_ENTRIES) : (i += 1) {
+        service.log_login_attempt(user_id, true, timestamp + i, ip_address, "");
+    }
+    std.debug.assert(service.audit_log_count == auth_service.MAX_AUDIT_LOG_ENTRIES);
+    service.log_login_attempt(user_id, true, timestamp + 10000, ip_address, "");
+    std.debug.assert(service.audit_log_count == auth_service.MAX_AUDIT_LOG_ENTRIES);
+}
+
+test "auth_service_audit_log_empty_strings" {
+    const secret = "test_secret_for_audit";
+    var service = auth_service.AuthService.init(secret);
+    const user_id = "user123";
+    const timestamp: u64 = 1000000;
+    service.log_login_attempt(user_id, true, timestamp, "", "");
+    std.debug.assert(service.audit_log_count == 1);
+    const entry = service.audit_logs[0];
+    std.debug.assert(entry.ip_address_len == 0);
+    std.debug.assert(entry.user_agent_len == 0);
+}
+
+test "auth_service_audit_log_long_message_truncation" {
+    const secret = "test_secret_for_audit";
+    var service = auth_service.AuthService.init(secret);
+    const user_id = "user123";
+    const long_resource = "a" ** 600;
+    const action = "read";
+    const timestamp: u64 = 1000000;
+    const ip_address = "192.168.1.1";
+    service.log_permission_denial(user_id, long_resource[0..600], action, timestamp, ip_address);
+    std.debug.assert(service.audit_log_count == 1);
+    const entry = service.audit_logs[0];
+    std.debug.assert(entry.message_len <= auth_service.MAX_AUDIT_MESSAGE_LEN);
+}
+
+test "auth_service_audit_log_all_event_types" {
+    const secret = "test_secret_for_audit";
+    var service = auth_service.AuthService.init(secret);
+    const user_id = "user123";
+    const timestamp: u64 = 1000000;
+    const ip_address = "192.168.1.1";
+    service.log_login_attempt(user_id, true, timestamp, ip_address, "");
+    service.log_token_revocation(user_id, "access", timestamp, ip_address);
+    service.log_permission_denial(user_id, "resource", "action", timestamp, ip_address);
+    service.log_api_key_usage(user_id, "prefix_", timestamp, ip_address);
+    std.debug.assert(service.audit_log_count == 4);
+    std.debug.assert(service.audit_logs[0].event_type == auth_service.AuditEventType.login_success);
+    std.debug.assert(
+        service.audit_logs[1].event_type == auth_service.AuditEventType.token_revocation
+    );
+    std.debug.assert(
+        service.audit_logs[2].event_type == auth_service.AuditEventType.permission_denied
+    );
+    std.debug.assert(service.audit_logs[3].event_type == auth_service.AuditEventType.api_key_usage);
+}
+

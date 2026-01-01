@@ -310,6 +310,16 @@ pub fn build(b: *std.Build) void {
         },
     });
 
+    // Dream Browser Components module (needed by Grain Bubble)
+    const dream_browser_components_module = b.addModule("dream_browser_components", .{
+        .root_source_file = b.path("src/dream_browser_components.zig"),
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{
+            .{ .name = "grain_workspace", .module = grain_workspace_module },
+        },
+    });
+
     // Grain Bubble module
     const grain_bubble_module = b.addModule("grain_bubble", .{
         .root_source_file = b.path("src/grain_bubble/root.zig"),
@@ -713,16 +723,6 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/dream_browser_dag_integration.zig"),
         .target = target,
         .optimize = optimize,
-    });
-
-    // Dream Browser Components module (for test imports)
-    const dream_browser_components_module = b.addModule("dream_browser_components", .{
-        .root_source_file = b.path("src/dream_browser_components.zig"),
-        .target = target,
-        .optimize = optimize,
-        .imports = &.{
-            .{ .name = "grain_workspace", .module = grain_workspace_module },
-        },
     });
 
     // Grain Aurora module (for test imports)
@@ -1487,6 +1487,21 @@ pub fn build(b: *std.Build) void {
     });
     const run_stress_tests = b.addRunArtifact(stress_tests);
     test_step.dependOn(&run_stress_tests.step);
+    
+    // Error Handling Integration Tests (Phase 4)
+    const error_handling_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("tests/152_error_handling_integration_test.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "kernel_vm", .module = kernel_vm_module },
+                .{ .name = "basin_kernel", .module = basin_kernel_module },
+            },
+        }),
+    });
+    const run_error_handling_tests = b.addRunArtifact(error_handling_tests);
+    test_step.dependOn(&run_error_handling_tests.step);
     
     const run_outputs_tests = b.addRunArtifact(outputs_tests);
     test_step.dependOn(&run_outputs_tests.step);

@@ -9,10 +9,16 @@ pub const WebSocketClient = struct {
     host: []const u8,
     
     // Bounded: Max 16MB frame size
-    pub const MAX_FRAME_SIZE: usize = 16 * 1024 * 1024;
+    pub const MAX_FRAME_SIZE: u32 = 16 * 1024 * 1024;
     
     // Bounded: Max 64KB control frame
-    pub const MAX_CONTROL_FRAME_SIZE: usize = 64 * 1024;
+    pub const MAX_CONTROL_FRAME_SIZE: u32 = 64 * 1024;
+    
+    // Bounded: Max WebSocket key length (base64 encoded, 24 chars)
+    pub const MAX_WEBSOCKET_KEY_LEN: u32 = 24;
+    
+    // Bounded: Max WebSocket accept length (base64 encoded, 28 chars)
+    pub const MAX_WEBSOCKET_ACCEPT_LEN: u32 = 28;
     
     pub const Opcode = enum(u4) {
         continuation = 0x0,
@@ -43,15 +49,73 @@ pub const WebSocketClient = struct {
         self.* = undefined;
     }
     
+    /// Generate WebSocket accept key from client key.
+    /// Why: Verify server's Sec-WebSocket-Accept header in handshake.
+    fn generate_websocket_accept(
+        client_key: []const u8,
+        accept_buf: []u8,
+    ) u32 {
+        std.debug.assert(client_key.len > 0);
+        std.debug.assert(accept_buf.len >= MAX_WEBSOCKET_ACCEPT_LEN);
+        const magic_string = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+        var combined: [MAX_WEBSOCKET_KEY_LEN + 36]u8 = undefined;
+        var combined_len: u32 = 0;
+        const key_len = @min(client_key.len, MAX_WEBSOCKET_KEY_LEN);
+        var i: u32 = 0;
+        while (i < key_len) : (i += 1) {
+            combined[combined_len] = client_key[i];
+            combined_len += 1;
+        }
+        i = 0;
+        while (i < 36) : (i += 1) {
+            combined[combined_len] = magic_string[i];
+            combined_len += 1;
+        }
+        var hash: [20]u8 = undefined;
+        std.crypto.hash.Sha1.hash(combined[0..combined_len], &hash, .{});
+        const base64_len = std.base64.standard.Encoder.calcSize(20);
+        _ = std.base64.standard.Encoder.encode(accept_buf, &hash);
+        std.debug.assert(base64_len <= MAX_WEBSOCKET_ACCEPT_LEN);
+        return @intCast(base64_len);
+    }
+    
+    /// Extract header value from HTTP response.
+    /// Why: Parse Sec-WebSocket-Accept header from handshake response.
+    fn extract_header_value(
+        response: []const u8,
+        header_name: []const u8,
+    ) ?[]const u8 {
+        std.debug.assert(response.len > 0);
+        std.debug.assert(header_name.len > 0);
+        var header_prefix_buf: [64]u8 = undefined;
+        const header_prefix = std.fmt.bufPrint(
+            &header_prefix_buf,
+            "{s}: ",
+            .{header_name},
+        ) catch return null;
+        const header_idx = std.mem.indexOf(u8, response, header_prefix) orelse return null;
+        const value_start = header_idx + header_prefix.len;
+        if (value_start >= response.len) {
+            return null;
+        }
+        const line_end = std.mem.indexOfScalar(u8, response[value_start..], '\r') orelse {
+            return null;
+        };
+        return response[value_start..value_start + line_end];
+    }
+    
     /// Perform WebSocket handshake (HTTP upgrade).
     pub fn handshake(self: *WebSocketClient, path: []const u8) !void {
         // Assert: Path must be non-empty
         std.debug.assert(path.len > 0);
         
         // Generate WebSocket key (base64-encoded random 16 bytes)
-        var key_buf: [16]u8 = undefined;
-        std.crypto.random.bytes(&key_buf);
-        const key = try std.base64.standard.Encoder.encode(&key_buf, &key_buf);
+        var random_bytes: [16]u8 = undefined;
+        std.crypto.random.bytes(&random_bytes);
+        const base64_len = std.base64.standard.Encoder.calcSize(16);
+        var client_key: [MAX_WEBSOCKET_KEY_LEN]u8 = undefined;
+        _ = std.base64.standard.Encoder.encode(&client_key, &random_bytes);
+        const client_key_slice = client_key[0..base64_len];
         
         // Build HTTP upgrade request
         var request_buf: [1024]u8 = undefined;
@@ -61,7 +125,7 @@ pub const WebSocketClient = struct {
         try writer.print("Host: {s}\r\n", .{self.host});
         try writer.print("Upgrade: websocket\r\n", .{});
         try writer.print("Connection: Upgrade\r\n", .{});
-        try writer.print("Sec-WebSocket-Key: {s}\r\n", .{key});
+        try writer.print("Sec-WebSocket-Key: {s}\r\n", .{client_key_slice});
         try writer.print("Sec-WebSocket-Version: 13\r\n", .{});
         try writer.print("\r\n", .{});
         
@@ -85,8 +149,22 @@ pub const WebSocketClient = struct {
             return error.HandshakeFailed;
         }
         
-        // TODO: Verify Sec-WebSocket-Accept header
-        // For now, assume handshake succeeded
+        // Verify Sec-WebSocket-Accept header
+        var expected_accept: [MAX_WEBSOCKET_ACCEPT_LEN]u8 = undefined;
+        const accept_len = self.generate_websocket_accept(
+            client_key_slice,
+            &expected_accept,
+        );
+        const expected_accept_slice = expected_accept[0..accept_len];
+        const accept_header = self.extract_header_value(
+            response,
+            "Sec-WebSocket-Accept",
+        ) orelse {
+            return error.HandshakeFailed;
+        };
+        if (!std.mem.eql(u8, accept_header, expected_accept_slice)) {
+            return error.HandshakeFailed;
+        }
     }
     
     /// Read WebSocket frame.
@@ -136,9 +214,9 @@ pub const WebSocketClient = struct {
         
         // Unmask payload (if masked)
         if (masked) {
-            var i: usize = 0;
+            var i: u64 = 0;
             while (i < payload_len) : (i += 1) {
-                payload_buf[i] ^= masking_key[i % 4];
+                payload_buf[@intCast(i)] ^= masking_key[@intCast(i % 4)];
             }
         }
         
@@ -161,7 +239,7 @@ pub const WebSocketClient = struct {
         
         // Build frame header
         var header_buf: [14]u8 = undefined; // Max header size (2 + 8 + 4)
-        var header_len: usize = 0;
+        var header_len: u32 = 0;
         
         // Byte 1: FIN + opcode
         header_buf[0] = if (frame.fin) 0x80 else 0x00;
@@ -169,13 +247,14 @@ pub const WebSocketClient = struct {
         header_len = 1;
         
         // Byte 2: MASK + payload length
-        const payload_len = frame.payload.len;
+        const payload_len = @as(u32, @intCast(frame.payload.len));
+        std.debug.assert(payload_len <= MAX_FRAME_SIZE);
         if (payload_len < 126) {
             header_buf[1] = @as(u8, @intCast(payload_len));
             header_len = 2;
         } else if (payload_len < 65536) {
             header_buf[1] = 126;
-            std.mem.writeInt(u16, header_buf[2..4], @as(u16, @intCast(payload_len)), .big);
+            std.mem.writeInt(u16, header_buf[2..4], @as(u16, payload_len), .big);
             header_len = 4;
         } else {
             header_buf[1] = 127;
@@ -192,10 +271,11 @@ pub const WebSocketClient = struct {
         header_len += 4;
         
         // Mask payload
-        var masked_payload = try self.allocator.alloc(u8, payload_len);
+        const payload_len_u64: u64 = payload_len;
+        var masked_payload = try self.allocator.alloc(u8, payload_len_u64);
         defer self.allocator.free(masked_payload);
         std.mem.copyForwards(u8, masked_payload, frame.payload);
-        var i: usize = 0;
+        var i: u32 = 0;
         while (i < payload_len) : (i += 1) {
             masked_payload[i] ^= masking_key[i % 4];
         }
@@ -207,6 +287,9 @@ pub const WebSocketClient = struct {
     
     /// Close WebSocket connection.
     pub fn close(self: *WebSocketClient) !void {
+        // Assert: Client must be initialized
+        std.debug.assert(self.host.len > 0);
+        
         // Send close frame
         const close_frame = Frame{
             .fin = true,
@@ -216,9 +299,17 @@ pub const WebSocketClient = struct {
         };
         try self.writeFrame(close_frame);
         
-        // Read close frame from server
-        const response_frame = try self.readFrame();
+        // Try to read close frame from server (server may close immediately)
+        const response_frame = self.readFrame() catch {
+            // If read fails, stream may already be closed - that's okay
+            self.stream.close();
+            return;
+        };
+        defer self.allocator.free(response_frame.payload);
+        
+        // Verify close frame
         if (response_frame.opcode != .close) {
+            self.stream.close();
             return error.UnexpectedFrame;
         }
         

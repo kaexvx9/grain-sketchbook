@@ -52,6 +52,7 @@ pub const HttpStatus = enum(u16) {
     not_found = 404,
     conflict = 409,
     too_many_requests = 429,
+    payload_too_large = 413,
     internal_server_error = 500,
     service_unavailable = 503,
 };
@@ -411,7 +412,7 @@ pub const ApiServer = struct {
         return null;
     }
 
-    // Match path pattern (simple exact match for now).
+    // Match path pattern (supports {param} placeholders).
     fn match_path_pattern(
         _self: *const ApiServer,
         pattern: []const u8,
@@ -420,14 +421,35 @@ pub const ApiServer = struct {
         _ = _self;
         std.debug.assert(pattern.len > 0);
         std.debug.assert(path.len > 0);
-        if (pattern.len != path.len) {
-            return false;
+        var pattern_pos: u32 = 0;
+        var path_pos: u32 = 0;
+        var in_param: bool = false;
+        while (pattern_pos < pattern.len and path_pos < path.len) {
+            if (pattern[pattern_pos] == '{') {
+                in_param = true;
+                pattern_pos += 1;
+                while (path_pos < path.len and path[path_pos] != '/') : (path_pos += 1) {}
+            } else if (pattern[pattern_pos] == '}') {
+                in_param = false;
+                pattern_pos += 1;
+            } else if (!in_param) {
+                if (pattern[pattern_pos] != path[path_pos]) {
+                    return false;
+                }
+                pattern_pos += 1;
+                path_pos += 1;
+            } else {
+                pattern_pos += 1;
+            }
         }
-        var i: u32 = 0;
-        while (i < pattern.len) : (i += 1) {
-            if (pattern[i] != path[i]) {
+        if (pattern_pos < pattern.len) {
+            while (pattern_pos < pattern.len and (pattern[pattern_pos] == '}' or pattern[pattern_pos] == '{')) : (pattern_pos += 1) {}
+            if (pattern_pos < pattern.len) {
                 return false;
             }
+        }
+        if (path_pos < path.len) {
+            return false;
         }
         return true;
     }

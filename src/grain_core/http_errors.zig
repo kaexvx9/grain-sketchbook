@@ -16,6 +16,10 @@ pub const HttpClientError = error{
     rate_limit,
     server_error,
     invalid_response,
+    file_read_error,
+    file_write_error,
+    service_unavailable,
+    request_failed,
 };
 
 // Check if HTTP error is retryable.
@@ -25,9 +29,13 @@ pub fn is_http_error_retryable(err: HttpClientError) bool {
         .network_error => true,
         .rate_limit => true,
         .server_error => true,
+        .service_unavailable => true,
         .dns_error => false,
         .connection_refused => false,
         .invalid_response => false,
+        .file_read_error => false,
+        .file_write_error => false,
+        .request_failed => false,
     };
 }
 
@@ -41,5 +49,9 @@ pub fn get_http_error_message(err: HttpClientError) []const u8 {
         .rate_limit => "Rate limit exceeded",
         .server_error => "Server error occurred",
         .invalid_response => "Invalid response received",
+        .file_read_error => "File read error",
+        .file_write_error => "File write error",
+        .service_unavailable => "Service unavailable",
+        .request_failed => "Request failed",
     };
 }

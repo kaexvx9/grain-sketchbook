@@ -100,4 +100,8 @@ pub const connection_pool = @import("connection_pool.zig");
 pub const ip_address = @import("ip_address.zig");
 pub const dns_query = @import("dns_query.zig");
 pub const dns_client = @import("dns_client.zig");
+pub const file_transfer_handlers = @import("file_transfer_handlers.zig");
+pub const file_transfer_routes = @import("file_transfer_routes.zig");
+pub const file_id_manager = @import("file_id_manager.zig");
+pub const file_transfer_integration_helpers = @import("file_transfer_integration_helpers.zig");
 

@@ -11,6 +11,10 @@ const grain_core_http = @import("../../../grain_core/http_client.zig");
 const grain_core_api = @import("../../../grain_core/api_server.zig");
 const grain_core_network = @import("../../../grain_core/network_stack.zig");
 const grain_core_dns = @import("../../../grain_core/dns_resolver.zig");
+const grain_core_http_errors = @import("../../../grain_core/http_errors.zig");
+const grain_core_file_transfer = @import("../../../grain_core/file_transfer.zig");
+const grain_core_file_mime = @import("../../../grain_core/file_mime_type.zig");
+const grain_core_file_io = @import("../../../grain_core/integrated_file_io.zig");
 const client = @import("client.zig");
 
 // Global HTTP client instance (set during initialization).
@@ -175,5 +179,85 @@ pub fn get_request_response(
         return &resp;
     }
     return null;
+}
+
+// Set file transfer dependencies for HTTP client.
+pub fn set_file_transfer_dependencies(
+    transfer_mgr: *grain_core_file_transfer.FileTransferManager,
+    mime_det: *grain_core_file_mime.FileMimeTypeDetector,
+    io: *grain_core_file_io.IntegratedFileIO,
+    time_fn: *const fn () u64,
+    alloc: std.mem.Allocator,
+) bool {
+    std.debug.assert(transfer_mgr != null);
+    std.debug.assert(mime_det != null);
+    std.debug.assert(io != null);
+    std.debug.assert(@intFromPtr(time_fn) != 0);
+    const http_client = get_http_client() orelse {
+        return false;
+    };
+    http_client.set_file_transfer_dependencies(
+        transfer_mgr,
+        mime_det,
+        io,
+        time_fn,
+        alloc,
+    );
+    std.debug.assert(http_client.transfer_manager != null);
+    return true;
+}
+
+// Upload file to remote server.
+pub fn upload_file(
+    url: []const u8,
+    local_path: []const u8,
+    timeout_ms: ?u32,
+) grain_core_http_errors.HttpClientError!u32 {
+    std.debug.assert(url.len > 0);
+    std.debug.assert(local_path.len > 0);
+    const http_client = get_http_client() orelse {
+        return grain_core_http_errors.HttpClientError.service_unavailable;
+    };
+    const transfer_id = http_client.upload_file(url, local_path, timeout_ms) catch |err| {
+        return err;
+    };
+    std.debug.assert(transfer_id > 0);
+    return transfer_id;
+}
+
+// Download file from remote server.
+pub fn download_file(
+    url: []const u8,
+    local_path: []const u8,
+    timeout_ms: ?u32,
+) grain_core_http_errors.HttpClientError!u32 {
+    std.debug.assert(url.len > 0);
+    std.debug.assert(local_path.len > 0);
+    const http_client = get_http_client() orelse {
+        return grain_core_http_errors.HttpClientError.service_unavailable;
+    };
+    const transfer_id = http_client.download_file(url, local_path, timeout_ms) catch |err| {
+        return err;
+    };
+    std.debug.assert(transfer_id > 0);
+    return transfer_id;
+}
+
+// Complete file download by writing response data to file.
+pub fn complete_download(
+    transfer_id: u32,
+    request_id: u32,
+    local_path: []const u8,
+) grain_core_http_errors.HttpClientError!void {
+    std.debug.assert(transfer_id > 0);
+    std.debug.assert(request_id > 0);
+    std.debug.assert(local_path.len > 0);
+    const http_client = get_http_client() orelse {
+        return grain_core_http_errors.HttpClientError.service_unavailable;
+    };
+    http_client.complete_download(transfer_id, request_id, local_path) catch |err| {
+        return err;
+    };
+    std.debug.assert(transfer_id > 0);
 }
 
