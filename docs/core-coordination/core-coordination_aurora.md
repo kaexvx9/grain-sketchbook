@@ -1,14 +1,20 @@
-# Grain Aurora Agent: Core Coordination Status
+# Grain Aurora 2 Subcore Agent: Core Coordination Status
 
-**Agent**: Grain Aurora IDE Dream Browser Agent (2nd Agent)  
-**Last Updated**: 2025-12-31-174235-PST  
-**Status**: ✅ **ALL CORE AGENT COORDINATION DECISIONS INTEGRATED** ✅ — **JG PROJECT RESPONSIBILITIES ASSIGNED** ✅ — **ARCHITECTURE EVOLUTION ACKNOWLEDGED** ✅ — **COMPONENT API TESTS COMPLETE** ✅ — **ERROR TYPES REFINED** ✅ — **JG REQUIREMENTS SUMMARY COMPLETE** ✅ — Ready for Independent Work
+**Agent**: Grain Aurora 2 Subcore Agent (L1 Subcore Coordinator)  
+**Last Updated**: 2025-12-31-192740-PST  
+**Status**: 🆕 **ARCHITECTURE EVOLUTION IN PROGRESS** — **AURORA 2 SUBCORE (L1 SUBCORE COORDINATOR)** — **ALL CORE AGENT COORDINATION DECISIONS INTEGRATED** ✅ — **JG PROJECT RESPONSIBILITIES ASSIGNED** ✅ — **COMPONENT API TESTS COMPLETE** ✅ — **ERROR TYPES REFINED** ✅ — **JG REQUIREMENTS SUMMARY COMPLETE** ✅ — **PHASE 0.5 COMPLETE** ✅
 
 ---
 
 ## Executive Summary
 
-**Current Status**: All Core Agent coordination decisions integrated ✅ — HTTP/WebSocket/GLM-4.6 timeout/error handling complete ✅ — Component API implemented and tested ✅ — Error types refined ✅ — JG requirements summary complete ✅ — Ready for independent work and JG project implementation (Months 7-12)
+**Current Status**: 🆕 **ARCHITECTURE EVOLUTION IN PROGRESS** — Evolving to Aurora 2 Subcore (L1 Subcore Coordinator) with 3 L2 sub-agents (2a Dream Editor, 2b Dream Browser, 2c Component Library) — All Core Agent coordination decisions integrated ✅ — Component API implemented and tested ✅ — Error types refined ✅ — JG requirements summary complete ✅ — Phase 0.5 complete ✅
+
+**Architecture Evolution**: 🆕 **L1 Subcore/L2 Sub-Agent Pattern** (2025-12-31-192740-pst)
+- **Aurora 2 Subcore (L1 Subcore Coordinator)**: Overall IDE/Browser architecture coordination
+- **2a. Grain Dream Editor Agent (L2 Sub-Agent)**: IDE features (LSP, Tree-sitter, AI integration, editor core)
+- **2b. Grain Dream Browser Agent (L2 Sub-Agent)**: Browser features (Nostr, WebSocket, HTML/CSS rendering)
+- **2c. Grain Component Library Agent (L2 Sub-Agent)**: UI components (Component API, JG Project UI components)
 
 **Latest Milestones**:
 - ✅ HTTP Client Integration Complete (2025-12-28-184118-pst)
@@ -523,7 +529,7 @@
 
 ---
 
-**Status**: All Core Agent coordination decisions integrated ✅ — JG Project responsibilities assigned ✅ — Architecture evolution acknowledged ✅ — Component API tests complete ✅ — Error types refined ✅ — JG requirements summary complete ✅ — Phase 0.5 (Component API design) complete ✅ — Ready for independent work and JG project implementation (Months 7-12)
+**Status**: 🆕 **ARCHITECTURE EVOLUTION IN PROGRESS** — Aurora 2 Subcore (L1 Subcore Coordinator) with 3 L2 sub-agents — All Core Agent coordination decisions integrated ✅ — JG Project responsibilities assigned ✅ — Component API tests complete ✅ — Error types refined ✅ — JG requirements summary complete ✅ — Phase 0.5 (Component API design) complete ✅ — Ready for L2 sub-agent creation and parallel work
 
 **Welcome to the family, Grain Court Agent!** 🌾⚒️
 
