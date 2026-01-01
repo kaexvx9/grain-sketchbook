@@ -96,4 +96,14 @@ pub const MAX_EMAIL_LEN = @import("user_storage.zig").MAX_EMAIL_LEN;
 pub const validate_user_id = @import("user_storage.zig").validate_user_id;
 pub const validate_email = @import("user_storage.zig").validate_email;
 pub const UserStorageError = @import("user_storage.zig").UserStorageError;
+pub const PasswordStorage = @import("password_storage.zig").PasswordStorage;
+pub const MAX_SECRET_ID_LEN = @import("password_storage.zig").MAX_SECRET_ID_LEN;
+pub const MAX_KEY_ID_LEN = @import("password_storage.zig").MAX_KEY_ID_LEN;
+pub const MAX_AUDIT_ID_LEN = @import("password_storage.zig").MAX_AUDIT_ID_LEN;
+pub const MAX_SECRET_NAME_LEN = @import("password_storage.zig").MAX_SECRET_NAME_LEN;
+pub const MAX_SECRET_TYPE_LEN = @import("password_storage.zig").MAX_SECRET_TYPE_LEN;
+pub const validate_secret_id = @import("password_storage.zig").validate_secret_id;
+pub const validate_key_id = @import("password_storage.zig").validate_key_id;
+pub const validate_audit_id = @import("password_storage.zig").validate_audit_id;
+pub const PasswordStorageError = @import("password_storage.zig").PasswordStorageError;
 

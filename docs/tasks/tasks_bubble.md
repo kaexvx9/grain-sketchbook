@@ -2,7 +2,7 @@
 
 **Agent**: Grain Bubble Agent (5th Agent)  
 **Status**: All Phases Complete ✅ — SLC Product Integration Foundation Complete, Workspace Agent Integration Complete ✅, Async Pattern Integration Complete ✅, Aurora Agent Integration Complete ✅, JG Project UI Components Assigned (Months 7-12, Phases 1-3)  
-**Last Updated**: 2025-12-31-172210-pst  
+**Last Updated**: 2026-01-01-102610-pst  
 **Coordination File**: `docs/core-coordination/core-coordination_bubble.md`
 
 ---
@@ -459,6 +459,56 @@
 - [ ] Document JG UI component architecture
 - [ ] Document JG UI component integration points
 - [ ] Update coordination documentation with JG project status
+
+---
+
+## 🔴 HIGH PRIORITY: Component API Design Coordination (2026-01-01-102610-pst)
+
+**Status**: ⏳ **IN PROGRESS** — Waiting for Aurora 2 Subcore coordination  
+**Priority**: **HIGH PRIORITY**  
+**Timeline**: 1-2 weeks  
+**Blocking**: JG Project UI component integration
+
+**Context**:
+- Core 1 Subcore coordination summary received (2026-01-01-101236-pst)
+- Component API Design Coordination identified as HIGH PRIORITY
+- Unblocks JG Project UI component integration (Months 7-12)
+
+**Coordination Tasks**:
+- [ ] Coordinate with Aurora 2 Subcore on Component API design
+- [ ] Agree on Component API structure for Dream Browser integration
+- [ ] Agree on integration approach for Nostr profile rendering
+- [ ] Agree on integration approach for DAG website rendering
+- [ ] Agree on design pattern and animation preferences for browser UI
+- [ ] Agree on component variant usage patterns for browser context
+- [ ] Agree on animation integration approach for browser components
+- [ ] Agree on rendering approach (DOM, Canvas, WebGL)
+- [ ] Agree on JG Project UI component integration approach (Months 7-12)
+
+**Implementation Tasks** (after coordination):
+- [ ] Update `aurora_integration.zig` with coordinated Component API design
+- [ ] Implement Component API integration for Nostr profile rendering
+- [ ] Implement Component API integration for DAG website rendering
+- [ ] Implement JG Project UI component integration (Months 7-12)
+- [ ] Test Component API integration with Aurora 2 Subcore
+- [ ] Update coordination documentation with Component API design decisions
+
+**What Bubble Agent Has Ready**:
+- ✅ SLC UI components ready for integration (Profile, Website components)
+- ✅ Component variants, design patterns, and animations ready
+- ✅ Export helpers and animation utilities ready
+- ✅ Aurora integration module (`aurora_integration.zig`) with `DreamBrowserComponentAPI` integration
+- ✅ JG Project Phase 1 planning complete (3D visualization component design patterns)
+
+**What Aurora 2 Subcore Needs to Provide**:
+- Component API structure for Dream Browser integration
+- Integration approach for Nostr profile rendering
+- Integration approach for DAG website rendering
+- Design pattern and animation preferences for browser UI
+- Component variant usage patterns for browser context
+- Animation integration approach for browser components
+- Rendering approach (DOM, Canvas, WebGL)
+- JG Project UI component integration approach (Months 7-12)
 
 ---
 

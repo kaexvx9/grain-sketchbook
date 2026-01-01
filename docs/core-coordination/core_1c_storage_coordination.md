@@ -1,11 +1,12 @@
 # Grain Storage Agent (1c) Coordination
 
-**Date**: 2026-01-01-080000-pst  
+**Date**: 2026-01-01-101500-pst  
 **Agent**: Grain Storage Agent (1c)  
-**Status**: All Core Implementation Complete - Ready for System Integration  
+**Status**: All Core Implementation Complete - Network Integration 95% Complete - Auth Integration Design Ready  
 **Parent Agent**: Grain Core 1 Subcore Agent (1st Agent, L1 Subcore)  
 **Agent Type**: L2 Sub-Agent (under Core 1 Subcore)  
-**Timestamp Format**: Using YYYY-MM-DD-HHMMSS-pst (America/Los_Angeles timezone)
+**Timestamp Format**: Using YYYY-MM-DD-HHMMSS-pst (America/Los_Angeles timezone)  
+**Last Coordination Update**: 2026-01-01-101236-pst (Core 1 Subcore coordination plan received)
 
 ---
 
@@ -13,7 +14,8 @@
 
 **Status**: All Implementation, Testing, and Integration Complete
 
-**Last Updated**: 2026-01-01-080000-pst
+**Last Updated**: 2026-01-01-101500-pst  
+**Core 1 Subcore Coordination Plan**: `docs/core-coordination/core_1_subcore_coordination_plan_2026-01-01-101236-pst.md` (received and acknowledged)
 
 **Current Focus**: 
 - ✅ Phase 2 complete: Path resolver, file permissions, audit logging
@@ -153,9 +155,20 @@
 - **Action**: Storage Agent to implement file ID manager, then Network Agent integrates
 
 **Auth Agent (1a)** - Secure Credential Storage:
-- **Status**: Pending coordination
-- **Needs**: API design for secure storage integration
-- **Action**: Coordinate through Core 1 Subcore
+- **Status**: 🔄 Design Phase (Storage Agent design complete, awaiting Auth Agent coordination)
+- **Available**: Integration design document - COMPLETE
+- **Available**: API contracts designed - COMPLETE
+- **Available**: Implementation plan outlined - COMPLETE
+- **Coordination Document**: `docs/core-coordination/core_1c_storage_auth_integration_design_2026-01-01-083000-pst.md`
+- **Action**: Core 1 Subcore to facilitate coordination (MEDIUM PRIORITY, 2-4 weeks after Auth coordination)
+- **Priority**: RBAC roles/permissions first (recommended by Core 1 Subcore)
+
+**Compositor Agent (1d)** - Workspace Persistence:
+- **Status**: ⏳ Awaiting coordination (NEW PRIORITY from Core 1 Subcore)
+- **Needs**: Workspace persistence API design
+- **Needs**: Workspace state serialization format agreement (JSON, binary, custom)
+- **Needs**: Storage path/location definition (e.g., `~/.grain/compositor/workspaces/`)
+- **Action**: Coordinate through Core 1 Subcore (MEDIUM PRIORITY, 1-2 weeks after API design)
 
 ### L1 ↔ Other Agents (Core 1 Subcore ↔ Full Agents)
 
@@ -300,9 +313,10 @@ See `docs/core-coordination/core_1c_storage_implementation_summary.md` for detai
 
 ---
 
-**Date**: 2026-01-01-083000-pst  
+**Date**: 2026-01-01-101500-pst  
 **Agent**: Grain Storage Agent (1c)  
-**Status**: All Core Implementation Complete - Network Agent Integration 95% Complete - Auth Agent Integration Design Ready  
-**Last Updated**: 2026-01-01-083000-pst  
+**Status**: All Core Implementation Complete - Network Integration 95% Complete - Auth Integration Design Ready - Compositor Integration Pending  
+**Last Updated**: 2026-01-01-101500-pst  
+**Core 1 Subcore Coordination Plan**: Received and acknowledged (2026-01-01-101236-pst)  
 **Timestamp Format**: Acknowledged Core 1 Subcore timestamp memory setup (YYYY-MM-DD-HHMMSS-pst)  
-**Next Update**: After Network Agent testing complete or Auth Agent coordination
+**Next Update**: After Network Agent testing complete, Auth Agent coordination, or Compositor Agent coordination

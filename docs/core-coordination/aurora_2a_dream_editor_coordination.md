@@ -1,9 +1,9 @@
 # Core Coordination: Grain Dream Editor Agent (2a)
 
-**Last Updated**: 2026-01-01-092253-pst  
+**Last Updated**: 2026-01-01-102454-pst  
 **Agent**: Grain Dream Editor Agent (2a) — L2 Sub-Agent  
 **Parent Agent**: Grain Aurora 2 Subcore Agent (L1 Subcore Coordinator)  
-**Status**: ✅ **PHASE 1 COMPLETE** — Phase 2 In Progress ⏳ — Component API Requirements Provided ✅
+**Status**: ✅ **PHASE 1 COMPLETE** — Phase 2 In Progress ⏳ — Component API Requirements Provided ✅ — Core 1 Subcore Instructions Acknowledged ✅
 
 ---
 
@@ -247,6 +247,28 @@ Grain Dream Editor Agent (2a) has successfully completed **Phase 1 (Core Editor 
 
 4. **Shared Modules**: Are there any planned changes to GrainBuffer or DAG Core that would affect editor implementation? (ONGOING: Stability)
 
+### Core 1 Subcore Coordination
+
+**Instructions Received** (2026-01-01-101236-pst):
+- ✅ **Acknowledged**: Continue IDE features development (MEDIUM PRIORITY)
+- ✅ **Acknowledged**: Coordinate with Aurora 2 Subcore on architecture decisions
+- ✅ **Acknowledged**: Follow Grain Style strictly
+- ✅ **Acknowledged**: Update systems-integration docs and plans/tasks
+- ✅ **Acknowledged**: Inform Core 1 Subcore about plan.md and tasks.md updates
+- ✅ **Acknowledged**: Check in before integration steps
+- ✅ **Acknowledged**: Ensure all tests pass
+
+**Status Update for Core 1 Subcore**:
+- ✅ Phase 1 complete (all core editor features implemented)
+- ✅ Component API requirements provided to Component Library Agent (2c)
+- ⏳ Phase 2 in progress (multi-pane layout blocked on Component API)
+- ✅ Documentation updated (coordination, plan, tasks documents)
+- ✅ Grain Style compliance: 100%
+
+**Plan.md and Tasks.md Updates Needed**:
+- ✅ Recommendations provided to Core 1 Subcore: `docs/core-coordination/aurora_2a_dream_editor_plan_tasks_updates_2026-01-01-102454-pst.md`
+- ⏳ Waiting for Core 1 Subcore to update `docs/plan.md` and `docs/tasks.md` with Dream Editor Agent (2a) status
+
 ---
 
 ## File Ownership
@@ -279,7 +301,7 @@ Grain Dream Editor Agent (2a) has successfully completed **Phase 1 (Core Editor 
 
 ---
 
-**Last Updated**: 2026-01-01-092253-pst  
+**Last Updated**: 2026-01-01-102454-pst  
 **Agent**: Grain Dream Editor Agent (2a)  
 **Parent Agent**: Grain Aurora 2 Subcore Agent (L1 Subcore Coordinator)  
-**Status**: ✅ Phase 1 Complete — Phase 2 In Progress (Blocked on Component API)
+**Status**: ✅ Phase 1 Complete — Phase 2 In Progress (Blocked on Component API) — Core 1 Subcore Instructions Acknowledged
