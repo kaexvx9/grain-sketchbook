@@ -24,3 +24,8 @@ tmp_*.zig
 
 # Grain store (external dependencies)
 grainstore/
+
+# NixOS VM files (large binaries)
+nixos-vm/iso/*.iso
+nixos-vm/disk/*.qcow2
+nixos-vm/iso/computed.sha256
