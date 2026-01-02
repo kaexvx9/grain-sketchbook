@@ -128,6 +128,35 @@
 
 **Status**: ✅ **COMPLETE** — All profiler documentation and analysis tools ready
 
+### ✅ Handle Lookup Hash Table Optimization (COMPLETE)
+
+**Date**: 2026-01-02-100345-pst  
+**Priority**: HIGH - Performance optimization for likely hot paths
+
+**Work Completed**:
+1. **Implemented hash table for handle lookup**:
+   - Added `handle_id_to_index` hash table to `BasinKernel` struct
+   - Three-tier lookup strategy: MRU cache → hash table → linear search fallback
+   - O(1) average-case performance instead of O(n) linear search
+
+2. **Hash table maintenance**:
+   - `update_handle_hash_table()` - Updates hash table on handle creation
+   - `invalidate_handle_hash_table()` - Invalidates hash table on handle deletion
+   - Integrated into `syscall_open()` and `syscall_close()`
+
+3. **Performance impact**:
+   - Expected improvement: 2-10x faster for handle lookup operations
+   - High impact if read/write are hot paths (likely)
+   - Minimal overhead for hash table maintenance
+
+**Files Modified**:
+- `src/kernel/basin_kernel_core.zig` - Hash table implementation
+- `src/kernel/basin_kernel_syscalls_file.zig` - Hash table maintenance
+
+**Documentation**: `docs/kernel/handle_lookup_hash_table_optimization.md`
+
+**Status**: ✅ **COMPLETE** — Hash table optimization implemented, ready for profiler validation
+
 ---
 
 ### ✅ Integration Planning Documents Acknowledged (COMPLETE)
