@@ -15,11 +15,16 @@
     ];
 
   # Bootloader configuration for QEMU VM
-  boot.loader.grub.enable = true;
-  boot.loader.grub.devices = [ "nodev" ];
-  boot.loader.grub.efiSupport = true;
-  boot.loader.grub.efiInstallAsRemovable = true;
+  # Use systemd-boot (recommended per framework_16_linux_bootloader_grain_style_recommendation)
+  # Aligns with Grain Style: minimal dependencies, simple configuration, explicit limits
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.efi.efiSysMountPoint = "/boot";
+  
+  # Grain Style: explicit limits (bounded allocations)
+  boot.loader.systemd-boot.configurationLimit = 10;  # Max 10 boot entries
+  boot.loader.timeout = 5;  # 5 second boot timeout
+  boot.loader.systemd-boot.editor = false;  # Disable editor (security)
 
   # Enable networking
   networking.hostName = "nixos-vm";
