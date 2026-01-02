@@ -557,6 +557,7 @@
 - ⏳ **Step 2 ECALL INTEGRATION** — Coordinate Agent 3b ECALL integration after syscall docs received (WEEK 1-2, after Step 1)
 - ⏳ **Step 2 JIT TESTING** — Coordinate JIT testing with Agent 3c (IMMEDIATE — Agent 3b ready for coordination)
 - ✅ **Step 2 PARALLEL WORK APPROVED** — Agent 3b parallel work plan approved (test infrastructure, performance optimizations, documentation)
+- ✅ **Step 2 GUEST RAM ARCHITECTURE APPROVED** — Agent 3b guest RAM pointer architecture approved (R13 callee-saved register, matching ARM64 x27)
 - ⏳ **Step 3 COORDINATION** — Coordinate Agent 3d compilation fix, Phase 3/4 completion, Basin syscall integration (WEEK 1-2, after Step 1)
 - ⏳ **Step 5 COORDINATION** — Support Agent 3c multi-arch testing framework implementation (WEEK 1-2, parallel work)
 - ⏳ **Step 4 COORDINATION** — Coordinate cross-subcore integration (1e ↔ 3d) via Core 1 Subcore (WEEK 1-2, after Step 3)
