@@ -1,9 +1,9 @@
 # Documentation Navigation Guide for All Agents
 
-**Date**: 2026-01-02-003934-pst  
+**Date**: 2026-01-02-004323-pst  
 **Agent**: Free 12 (Coordination and Documentation Support, Core 1 Subcore)  
 **Status**: ✅ **NAVIGATION GUIDE READY** — Quick reference for all agents  
-**Last Updated**: 2026-01-02-003934-pst — Added reference to Complete Agent Awareness document
+**Last Updated**: 2026-01-02-004323-pst — Added reference to Recursion Prompt Guidelines document
 
 ---
 
@@ -69,6 +69,22 @@ This guide helps agents quickly find the coordination and communication document
 - Command: `TZ=America/Los_Angeles date +"%Y-%m-%d-%H%M%S-pst"`
 
 **When to Use**: When creating documents, filenames, or git commits.
+
+### 4. Recursion Prompt Guidelines
+
+**Framework 16 Recursion Prompt Strict Guidelines**:
+- `docs/framework_16_recursion_prompt_strict_guidelines_2026-01-01-202549-pst.md`
+- Strict guidelines for executing Core 1 Subcore recursion prompt
+- Step-by-step execution guidelines (7 steps)
+- Grain Style compliance requirements
+- Documentation update requirements
+- Integration check-in requirements
+- Test requirements
+- File naming conventions
+- Commit message format (Grain Style)
+- Verification checklist
+
+**When to Use**: Reference when executing the Core 1 Subcore recursion prompt in Framework Ubuntu workspace. Essential for maintaining consistency across sessions.
 
 ---
 
