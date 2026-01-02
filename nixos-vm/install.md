@@ -52,8 +52,15 @@ The script will:
 - ✅ Detect and partition the disk automatically
 - ✅ Format partitions
 - ✅ Mount filesystems
-- ✅ Generate and install configuration
+- ✅ Generate hardware-configuration.nix
+- ✅ Copy your configuration
 - ✅ Install NixOS
+
+**Important:** Use `configuration.nix` (complete version) which includes:
+- Hardware configuration imports (fileSystems from hardware-configuration.nix)
+- Bootloader configuration for QEMU VM (GRUB with EFI)
+
+The `configuration-base.nix` is a template without these additions - use `configuration.nix` for installation.
 
 **Note:** If the script fails at the mounting step (error about `/dev/disk/by-label/nixos`), see "Troubleshooting: Mount Issue" below.
 

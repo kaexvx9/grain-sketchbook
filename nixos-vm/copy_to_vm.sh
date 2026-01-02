@@ -17,7 +17,7 @@ echo ""
 
 # Check if VM is accessible
 echo "Checking VM connectivity..."
-if ! ssh -p ${VM_PORT} -o ConnectTimeout=5 -o StrictHostKeyChecking=no ${VM_USER}@${VM_HOST} "echo 'Connected'" 2>/dev/null; then
+if ! ssh -p ${VM_PORT} -o ConnectTimeout=5 -o StrictHostKeyChecking=no -o PreferredAuthentications=password ${VM_USER}@${VM_HOST} "echo 'Connected'" 2>/dev/null; then
     echo ""
     echo "ERROR: Cannot connect to VM"
     echo ""
@@ -28,6 +28,9 @@ if ! ssh -p ${VM_PORT} -o ConnectTimeout=5 -o StrictHostKeyChecking=no ${VM_USER
     echo ""
     echo "To set password in VM:"
     echo "  In VM terminal, run: passwd"
+    echo ""
+    echo "If password is set, you may need to enter it interactively."
+    echo "Alternatively, use the download method from within the VM."
     exit 1
 fi
 
@@ -36,21 +39,22 @@ echo ""
 
 # Copy configuration
 echo "Copying configuration.nix..."
-scp -P ${VM_PORT} -o StrictHostKeyChecking=no "${SCRIPT_DIR}/configuration.nix" ${VM_USER}@${VM_HOST}:${VM_TMP}/ || {
+scp -P ${VM_PORT} -o StrictHostKeyChecking=no -o PreferredAuthentications=password "${SCRIPT_DIR}/configuration.nix" ${VM_USER}@${VM_HOST}:${VM_TMP}/ || {
     echo "ERROR: Failed to copy configuration.nix"
+    echo "Make sure password is set in VM (run 'passwd' in VM terminal)"
     exit 1
 }
 
 # Copy installation script
 echo "Copying install_nixos.sh..."
-scp -P ${VM_PORT} -o StrictHostKeyChecking=no "${SCRIPT_DIR}/install_nixos.sh" ${VM_USER}@${VM_HOST}:${VM_TMP}/ || {
+scp -P ${VM_PORT} -o StrictHostKeyChecking=no -o PreferredAuthentications=password "${SCRIPT_DIR}/install_nixos.sh" ${VM_USER}@${VM_HOST}:${VM_TMP}/ || {
     echo "ERROR: Failed to copy install_nixos.sh"
     exit 1
 }
 
 # Copy post-installation script
 echo "Copying post_install.sh..."
-scp -P ${VM_PORT} -o StrictHostKeyChecking=no "${SCRIPT_DIR}/post_install.sh" ${VM_USER}@${VM_HOST}:~/ || {
+scp -P ${VM_PORT} -o StrictHostKeyChecking=no -o PreferredAuthentications=password "${SCRIPT_DIR}/post_install.sh" ${VM_USER}@${VM_HOST}:~/ || {
     echo "ERROR: Failed to copy post_install.sh"
     exit 1
 }

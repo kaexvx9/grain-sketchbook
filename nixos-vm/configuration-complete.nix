@@ -1,9 +1,5 @@
 # NixOS Configuration for Framework 16 Development Environment
-# Complete working configuration - includes hardware imports and bootloader
 # Based on Framework 16 Virtualization Strategy Recommendation
-# 
-# This is the complete version that works for QEMU VM installation.
-# For the base template (without hardware/bootloader), see configuration-base.nix
 
 { config, pkgs, ... }:
 
