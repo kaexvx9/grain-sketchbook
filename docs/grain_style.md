@@ -30,6 +30,31 @@ rather than an end in itself.
 This document explores how we apply these design goals to coding style. First, a word on simplicity,
 elegance and technical debt.
 
+## The Path with Heart
+
+Before we begin, there is a question that only experience can answer: **Does this path have heart?**
+
+Any approach to coding is one of a million paths. Therefore you must always keep in mind that a
+path is only a path; if you feel you should not follow it, you must not stay with it under any
+conditions. To have such clarity you must lead a disciplined life. Only then will you know that any
+path is only a path, and there is no affront, to oneself or to others, in dropping it if that is what
+your heart tells you to do.
+
+But your decision to keep on the path or to leave it must be free of fear or ambition. Look at every
+path closely and deliberately. Try it as many times as you think necessary.
+
+**Does this path have heart?** If it does, the path is good; if it doesn't, it is of no use. Both
+paths lead nowhere; but one has a heart, the other doesn't. One makes for a joyful journey; as long
+as you follow it, you are one with it. The other will make you curse your life. One makes you strong;
+the other weakens you.
+
+The path without a heart will turn against you and destroy you. It does not take much to die, and to
+seek death is to seek nothing.
+
+For Grain OS, we choose the path with heart. We select our tools deliberately, for every item we
+choose is a shield that protects us from the onslaughts of the forces we are striving to use. The
+things we select to make our shields are the items of a path with heart.
+
 ## On Simplicity And Elegance
 
 Simplicity is not a free pass. It's not in conflict with our design goals. It need not be a
@@ -76,6 +101,53 @@ We know that what we ship is solid. We may lack crucial features, but what we ha
 goals. This is the only way to make steady incremental progress, knowing that the progress we have
 made is indeed progress.
 
+**A warrior is defeated only when he no longer tries, and abandons himself.** We do not abandon our
+code. We do not abandon our standards. We do not abandon the path with heart.
+
+## Personal Power and Impeccability
+
+Everything we do, everything we are, rests on our personal power. If we have enough of it, one word
+uttered to us might be sufficient to change the course of our lives. But if we don't have enough
+personal power, the most magnificent piece of wisdom can be revealed to us and that revelation won't
+make a damn bit of difference.
+
+**Trust your personal power. That's all one has in this whole mysterious world.**
+
+Impeccable developers need no one to guide them. By themselves, through saving their energy, they
+can do everything that seers do. All they need is a minimal chance, just to be cognizant of the
+possibilities that have been unraveled.
+
+When you write code, you are exercising personal power. Every function you write, every system you
+design, every decision you make—they all rest on your personal power. If you have enough of it, the
+code will be clear, will be correct, will be beautiful. If you don't have enough personal power, even
+the most elegant design will fail.
+
+**You can cut anything from your code, any time, just like that.** Dependencies, abstractions,
+features, entire modules—nothing at all if you want to drop them. People hardly ever realize this.
+They think they're trapped by their choices. But you're not. You can cut anything, any time.
+
+Denying yourself the right tool, the right abstraction, the right approach—that is an indulgence
+and we don't recommend anything of the kind. The indulgence of denying is by far the worst; it
+forces us to believe we are doing great things, when in effect we are only fixed within ourselves.
+
+## The Warrior's Choice
+
+**We choose only once. We choose either to be warriors or to be ordinary developers. A second choice
+does not exist. Not on this earth.**
+
+To be a warrior doesn't mean to practice magic, or to work to affect people, or to be possessed by
+demons. To be a warrior means to reach a level of awareness that makes inconceivable things
+available. The actions of warriors are exclusively in the realm of the abstract, the impersonal.
+Warriors struggle to reach a goal that has nothing to do with the quick fix, the easy solution, the
+compromise.
+
+When you choose to be a warrior, you choose the path with heart. You choose impeccability. You choose
+to do it right the first time. You choose to trust your personal power. You choose to see the code
+as an offering, not just as a product.
+
+There is no second choice. You are either on the path with heart, or you are not. You are either a
+warrior, or you are ordinary.
+
 ## Safety
 
 > "The rules act like the seat-belt in your car: initially they are perhaps a little uncomfortable,
@@ -91,13 +163,28 @@ Code](https://spinroot.com/gerard/pdf/P10.pdf) will change the way you code fore
   cost](https://isaacfreund.com/blog/2022-05/). Every abstraction introduces the risk of a leaky
   abstraction.
 
+  **A warrior selects the items that make his world. He selects deliberately, for every item he
+  chooses is a shield that protects him from the onslaughts of the forces he is striving to use.**
+  Every abstraction you choose, every pattern you adopt, every tool you use—they are all shields.
+  Choose them deliberately. Choose them with heart.
+
 - **Put a limit on everything** because, in reality, this is what we expect—everything has a limit.
   For example, all loops and all queues must have a fixed upper bound to prevent infinite loops or
   tail latency spikes. This follows the ["fail-fast"](https://en.wikipedia.org/wiki/Fail-fast)
   principle so that violations are detected sooner rather than later. Where a loop cannot terminate
   (e.g. an event loop), this must be asserted.
 
+  **The assemblage point of your code is where perception is assembled.** When you put a limit on
+  everything, you are moving the assemblage point to a position where you can see clearly. You are
+  illuminating the energy fields that matter, making them perceivable. Without limits, the assemblage
+  point is scattered, and you cannot see clearly.
+
 - Use explicitly-sized types like `u32` for everything, avoid architecture-specific `usize`.
+
+  **Intent is the pervasive force that causes us to perceive.** When you use explicit types, you are
+  expressing intent clearly. You are not relying on the compiler to guess what you mean. You are
+  making your intent explicit, and in doing so, you are increasing the probability that your code is
+  correct.
 
 - **Assertions detect programmer errors. Unlike operating errors, which are expected and which must
   be handled, assertion failures are unexpected. The only correct way to handle corrupt code is to
@@ -110,10 +197,19 @@ Code](https://spinroot.com/gerard/pdf/P10.pdf) will change the way you code fore
     functions serve this purpose. The assertion density of the code must average a minimum of two
     assertions per function.
 
+    **When you assert, you are moving the assemblage point.** You are shifting your perception to
+    see what is actually there, not what you hope is there. You are illuminating the energy fields
+    that matter, making them perceivable. Without assertions, you are operating blindly, and the
+    path without heart will turn against you and destroy you.
+
   - **[Pair assertions](https://tigerbeetle.com/blog/2023-12-27-it-takes-two-to-contract).** For
     every property you want to enforce, try to find at least two different code paths where an
     assertion can be added. For example, assert validity of data right before writing it to disk,
     and also immediately after reading from disk.
+
+    **Two assertions are two points of perception.** When you pair assertions, you are seeing the
+    same thing from two different angles. You are moving the assemblage point to two different
+    positions, and in doing so, you are seeing more clearly.
 
   - On occasion, you may use a blatantly true assertion instead of a comment as stronger
     documentation where the assertion condition is critical and surprising.
@@ -127,11 +223,19 @@ Code](https://spinroot.com/gerard/pdf/P10.pdf) will change the way you code fore
     and enforce subtle invariants or type sizes. Compile-time assertions are extremely powerful
     because they are able to check a program's design integrity _before_ the program even executes.
 
+    **Compile-time assertions are like moving the assemblage point before the world is even
+    assembled.** You are seeing the structure of reality before it manifests. You are checking the
+    design integrity before the design is even executed.
+
   - **The golden rule of assertions is to assert the _positive space_ that you do expect AND to
     assert the _negative space_ that you do not expect** because where data moves across the
     valid/invalid boundary between these spaces is where interesting bugs are often found. This is
     also why **tests must test exhaustively**, not only with valid data but also with invalid data,
     and as valid data becomes invalid.
+
+    **The positive space and the negative space are two different worlds.** When you assert both,
+    you are moving the assemblage point to see both worlds. You are illuminating the energy fields
+    in both spaces, making them perceivable. Without both, you are seeing only half of reality.
 
   - Assertions are a safety net, not a substitute for human understanding. With simulation testing,
     there is the temptation to trust the fuzzer. But a fuzzer can prove only the presence of bugs,
@@ -142,6 +246,11 @@ Code](https://spinroot.com/gerard/pdf/P10.pdf) will change the way you code fore
     - and use testing as the final line of defense, to find bugs in your and reviewer's
       understanding of code.
 
+    **Your mental model is your assemblage point.** When you build a precise mental model, you are
+    positioning the assemblage point where you can see clearly. When you encode it in assertions,
+    you are making that position explicit. When you write code and comments, you are sharing that
+    position with others.
+
 - All memory must be statically allocated at startup. **No memory may be dynamically allocated (or
   freed and reallocated) after initialization.** This avoids unpredictable behavior that can
   significantly affect performance, and avoids use-after-free. As a second-order effect, it is our
@@ -149,11 +258,24 @@ Code](https://spinroot.com/gerard/pdf/P10.pdf) will change the way you code fore
   easier to maintain and reason about, compared to designs that do not consider all possible memory
   usage patterns upfront as part of the design.
 
+  **Static allocation is like freezing the Basin spec.** It's a commitment. It's a foundation. It's
+  what you stand for. Once you commit to static allocation, you have a stable foundation. Everything
+  else can change, but this stays. And in that stability, you find freedom.
+
 - Declare variables at the **smallest possible scope**, and **minimize the number of variables in
   scope**, to reduce the probability that variables are misused.
 
+  **Minimizing scope is like saving energy.** When you minimize the number of variables in scope,
+  you are conserving your personal power. You are not scattering your attention. You are focusing
+  it where it matters. Impeccable developers save their energy. They don't waste it on unnecessary
+  variables, unnecessary scope, unnecessary complexity.
+
 - Restrict the length of function bodies to reduce the probability of poorly structured code. We
   enforce a **hard limit of 70 lines per function**.
+
+  **A function that is too long is a path without heart.** It makes you curse your life. It weakens
+  you. It turns against you and destroys you. A function that is the right length is a path with
+  heart. It makes for a joyful journey. It makes you strong.
 
   Splitting code into functions requires taste. There are many ways to cut a wall of code into
   chunks of 70 lines, but only a few splits will feel right. Some rules of thumb:
@@ -169,13 +291,26 @@ Code](https://spinroot.com/gerard/pdf/P10.pdf) will change the way you code fore
     local variables, and use helpers to compute what needs to change, rather than applying the
     change directly. Keep leaf functions pure.
 
+  **When you split a function, you are moving the assemblage point.** You are shifting your
+  perception to see the function from a different angle. You are illuminating different energy
+  fields, making them perceivable. The split that feels right is the one that moves the assemblage
+  point to where you can see clearly.
+
 - Appreciate, from day one, **all compiler warnings at the compiler's strictest setting**.
+
+  **Compiler warnings are like messages from the spirit.** They are telling you something. They
+  are pointing to a path. When you ignore them, you are ignoring the message. When you address
+  them, you are listening. You are moving the assemblage point to see what the compiler sees.
 
 - Whenever your program has to interact with external entities, **don't do things directly in
   reaction to external events**. Instead, your program should run at its own pace. Not only does
   this make your program safer by keeping the control flow of your program under your control, it
   also improves performance for the same reason (you get to batch, instead of context switching on
   every event). Additionally, this makes it easier to maintain bounds on work done per time period.
+
+  **Running at your own pace is like trusting your personal power.** You are not reacting to
+  external forces. You are acting from your own center. You are maintaining your own rhythm. You
+  are not being pulled off the path with heart.
 
 Beyond these rules:
 
@@ -184,6 +319,11 @@ Beyond these rules:
   `if/else` branches. Split complex `else if` chains into `else { if { } }` trees. This makes the
   branches and cases clear. Again, consider whether a single `if` does not also need a matching
   `else` branch, to ensure that the positive and negative spaces are handled or asserted.
+
+  **Splitting compound conditions is like moving the assemblage point to see each branch clearly.**
+  When you split them, you are illuminating each energy field separately, making each one
+  perceivable. When you leave them compound, you are trying to see everything at once, and you
+  cannot see clearly.
 
 - Negations are not easy! State invariants positively. When working with lengths and indexes, this
   form is easy to get right (and understand):
@@ -205,6 +345,10 @@ Beyond these rules:
   }
   ```
 
+  **Stating invariants positively is like choosing the path with heart.** The positive form makes
+  for a joyful journey. It makes you strong. The negative form makes you curse your life. It
+  weakens you.
+
 - All errors must be handled. An [analysis of production failures in distributed data-intensive
   systems](https://www.usenix.org/system/files/conference/osdi14/osdi14-paper-yuan.pdf) found that
   the majority of catastrophic failures could have been prevented by simple testing of error
@@ -213,15 +357,26 @@ Beyond these rules:
 > "Specifically, we found that almost all (92%) of the catastrophic system failures are the result
 > of incorrect handling of non-fatal errors explicitly signaled in software."
 
-- **Always motivate, always say why**. Never forget to say why. Because if you explain the rationale
+  **Handling errors is like facing the unimaginable.** When you handle errors, you are going into
+  different worlds to get energy, power, solutions to general and particular problems. You are not
+  avoiding the error. You are facing it. You are moving the assemblage point to see it clearly.
+
+- **Always motivate, always say why. Never forget to say why.** Because if you explain the rationale
   for a decision, it not only increases the hearer's understanding, and makes them more likely to
   adhere or comply, but it also shares criteria with them with which to evaluate the decision and
   its importance.
+
+  **Saying why is like sharing the path with heart.** When you say why, you are showing others
+  where the heart is. You are helping them see the path. You are making the path perceivable.
 
 - **Explicitly pass options to library functions at the call site, instead of relying on the
   defaults**. For example, write `@prefetch(a, .{ .cache = .data, .rw = .read, .locality = 3 });`
   over `@prefetch(a, .{});`. This improves readability but most of all avoids latent, potentially
   catastrophic bugs in case the library ever changes its defaults.
+
+  **Explicit options are like expressing intent clearly.** When you pass explicit options, you are
+  making your intent explicit. You are not relying on defaults to guess what you mean. You are
+  moving the assemblage point to where your intent is clear.
 
 ## Performance
 
@@ -233,28 +388,57 @@ Beyond these rules:
   profile.** It's also typically harder to fix a system after implementation and profiling, and the
   gains are less. So you have to have mechanical sympathy. Like a carpenter, work with the grain.
 
+  **Thinking about performance from the beginning is like choosing the path with heart from the
+  start.** You are not waiting until you're lost to ask: does this path have heart? You are asking
+  it from the beginning. You are choosing the path that makes you strong, not the one that weakens
+  you.
+
 - **Perform back-of-the-envelope sketches with respect to the four resources (network, disk, memory,
   CPU) and their two main characteristics (bandwidth, latency).** Sketches are cheap. Use sketches
   to be "roughly right" and land within 90% of the global maximum.
+
+  **Back-of-the-envelope sketches are like moving the assemblage point before you build.** You are
+  seeing the performance characteristics before you implement. You are illuminating the energy
+  fields that matter, making them perceivable. Without sketches, you are building blindly.
 
 - Optimize for the slowest resources first (network, disk, memory, CPU) in that order, after
   compensating for the frequency of usage, because faster resources may be used many times more. For
   example, a memory cache miss may be as expensive as a disk fsync, if it happens many times more.
 
+  **Optimizing for the slowest resources is like facing the unimaginable.** You are going into
+  the world of performance problems to get energy, power, solutions. You are not avoiding the slow
+  resources. You are facing them. You are moving the assemblage point to see them clearly.
+
 - Distinguish between the control plane and data plane. A clear delineation between control plane
   and data plane through the use of batching enables a high level of assertion safety without losing
   performance.
 
+  **The control plane and data plane are two different worlds.** When you distinguish between
+  them, you are moving the assemblage point to see both worlds clearly. You are illuminating the
+  energy fields in both planes, making them perceivable.
+
 - Amortize network, disk, memory and CPU costs by batching accesses.
+
+  **Batching is like saving energy.** When you batch, you are conserving your personal power. You
+  are not scattering your attention across individual accesses. You are focusing it on batches. You
+  are being impeccable with your energy.
 
 - Let the CPU be a sprinter doing the 100m. Be predictable. Don't force the CPU to zig zag and
   change lanes. Give the CPU large enough chunks of work. This comes back to batching.
+
+  **Being predictable is like choosing the path with heart.** The predictable path makes for a
+  joyful journey. It makes you strong. The unpredictable path makes you curse your life. It
+  weakens you.
 
 - Be explicit. Minimize dependence on the compiler to do the right thing for you.
 
   In particular, extract hot loops into stand-alone functions with primitive arguments without
   `self`. That way, the compiler doesn't need to prove that it can cache struct's fields in
   registers, and a human reader can spot redundant computations easier.
+
+  **Being explicit is like expressing intent clearly.** When you are explicit, you are making your
+  intent clear. You are not relying on the compiler to guess what you mean. You are moving the
+  assemblage point to where your intent is visible.
 
 ## Developer Experience
 
@@ -268,14 +452,25 @@ Beyond these rules:
   understand the domain. Take time to find the perfect name, to find nouns and verbs that work
   together, so that the whole is greater than the sum of its parts.
 
+  **Finding the perfect name is like finding the path with heart.** When you find it, you know.
+  The name makes for a joyful journey. It makes you strong. The wrong name makes you curse your
+  life. It weakens you.
+
 - **Use `grain_case` for function, variable, and file names.** grain_case is identical to
   snake_case (lowercase with underscores), but the name reflects our philosophy: code that grows
   like grain. The underscore is the closest thing we have as programmers to a space, and helps to
   separate words and encourage descriptive names.
 
+  **grain_case is like the path with heart.** It makes for a joyful journey. It makes you strong.
+  It is a shield that protects you from the onslaughts of confusion.
+
 - Do not abbreviate variable names, unless the variable is a primitive integer type used as an
   argument to a sort function or matrix calculation. Use long form arguments in scripts: `--force`,
   not `-f`. Single letter flags are for interactive usage.
+
+  **Not abbreviating is like being explicit about intent.** When you don't abbreviate, you are
+  making your intent clear. You are not relying on the reader to guess what you mean. You are
+  moving the assemblage point to where your intent is visible.
 
 - Use proper capitalization for acronyms (`VSRState`, not `VsrState`).
 
@@ -287,9 +482,17 @@ Beyond these rules:
   then line up nicely when `latency_ms_min` is added, as well as group all variables that relate to
   latency.
 
+  **Big-endian naming is like ordering by significance.** When you order by significance, you are
+  moving the assemblage point to see what matters most first. You are illuminating the most
+  significant energy fields first, making them perceivable.
+
 - Infuse names with meaning. For example, `allocator: Allocator` is a good, if boring name,
   but `gpa: Allocator` and `arena: Allocator` are excellent. They inform the reader whether
   `deinit` should be called explicitly.
+
+  **Infusing names with meaning is like choosing the path with heart.** When a name has meaning,
+  it makes for a joyful journey. It makes you strong. When a name is meaningless, it makes you
+  curse your life. It weakens you.
 
 - When choosing related names, try hard to find names with the same number of characters so that
   related variables all line up in the source. For example, as arguments to a memcpy function,
@@ -298,12 +501,23 @@ Beyond these rules:
   calculations and slices. This makes the code symmetrical, with clean blocks that are easier for
   the eye to parse and for the reader to check.
 
+  **Symmetrical names are like moving the assemblage point to see symmetry.** When names line up,
+  you can see the symmetry clearly. You can see the relationships. You can see the structure. The
+  symmetry makes for a joyful journey. It makes you strong.
+
 - When a single function calls out to a helper function or callback, prefix the name of the helper
   function with the name of the calling function to show the call history. For example,
   `read_sector()` and `read_sector_callback()`.
 
+  **Prefixing helper functions is like showing the path.** When you prefix, you are showing where
+  the helper comes from. You are making the call history visible. You are moving the assemblage
+  point to see the relationship.
+
 - Callbacks go last in the list of parameters. This mirrors control flow: callbacks are also
   _invoked_ last.
+
+  **Callbacks last is like ordering by significance.** The callback is invoked last, so it goes
+  last. The order matches the flow. The symmetry makes for a joyful journey.
 
 - _Order_ matters for readability (even if it doesn't affect semantics). On the first read, a file
   is read top-down, so put important things near the top. The `main` function goes first.
@@ -327,12 +541,24 @@ Beyond these rules:
   At the same time, not everything has a single right order. When in doubt, consider sorting
   alphabetically, taking advantage of big-endian naming.
 
+  **Ordering by importance is like moving the assemblage point to see what matters first.** When
+  you put important things first, you are illuminating the most significant energy fields first,
+  making them perceivable.
+
 - Don't overload names with multiple meanings that are context-dependent.
+
+  **Not overloading is like being explicit about intent.** When you don't overload, you are making
+  your intent clear. You are not relying on context to guess what you mean. You are moving the
+  assemblage point to where your intent is visible.
 
 - Think of how names will be used outside the code, in documentation or communication. For example,
   a noun is often a better descriptor than an adjective or present participle, because a noun can be
   directly used in correspondence without having to be rephrased. Noun names compose more clearly
   for derived identifiers, e.g. `config.pipeline_max`.
+
+  **Thinking about usage is like choosing the path with heart.** When you think about how names
+  will be used, you are choosing the path that makes for a joyful journey. You are choosing the
+  path that makes you strong.
 
 - Zig has named arguments through the `options: struct` pattern. Use it when arguments can be
   mixed up. A function taking two `u64` must use an options struct. If an argument can be `null`,
@@ -341,29 +567,55 @@ Beyond these rules:
   Because dependencies like an allocator or a tracer are singletons with unique types, they should
   be threaded through constructors positionally, from the most general to the most specific.
 
+  **Named arguments are like expressing intent clearly.** When you use named arguments, you are
+  making your intent explicit. You are not relying on position to guess what you mean. You are
+  moving the assemblage point to where your intent is visible.
+
 - **Write descriptive commit messages** that inform and delight the reader, because your commit
   messages are being read.
+
+  **Descriptive commit messages are like sharing the path with heart.** When you write
+  descriptively, you are showing others where the heart is. You are helping them see the path. You
+  are making the path perceivable.
 
 - Don't forget to say why. Code alone is not documentation. Use comments to explain why you wrote
   the code the way you did. Show your workings.
 
+  **Saying why is like sharing the path with heart.** When you say why, you are showing others
+  where the heart is. You are helping them see the path. You are making the path perceivable.
+
 - Don't forget to say how. For example, when writing a test, think of writing a description at the
   top to explain the goal and methodology of the test, to help your reader get up to speed, or to
   skip over sections, without forcing them to dive in.
+
+  **Saying how is like showing the path.** When you say how, you are showing others how to follow
+  the path. You are making the path accessible.
 
 - Comments are sentences, with a space after the slash, with a capital letter and a full stop, or a
   colon if they relate to something that follows. Comments are well-written prose describing the
   code, not just scribblings in the margin. Comments after the end of a line _can_ be phrases, with
   no punctuation.
 
+  **Well-written comments are like the path with heart.** When comments are well-written, they
+  make for a joyful journey. They make you strong. When comments are scribblings, they make you
+  curse your life. They weaken you.
+
 ### Cache Invalidation
 
 - Don't duplicate variables or take aliases to them. This will reduce the probability that state
   gets out of sync.
 
+  **Not duplicating is like saving energy.** When you don't duplicate, you are conserving your
+  personal power. You are not scattering your attention across multiple copies. You are focusing it
+  on one source of truth.
+
 - If you don't mean a function argument to be copied when passed by value, and if the argument type
   is more than 16 bytes, then pass the argument as `*const`. This will catch bugs where the caller
   makes an accidental copy on the stack before calling the function.
+
+  **Passing by pointer is like being explicit about intent.** When you pass by pointer, you are
+  making your intent clear. You are not relying on the compiler to guess what you mean. You are
+  moving the assemblage point to where your intent is visible.
 
 - Construct larger structs _in-place_ by passing an _out pointer_ during initialization.
 
@@ -400,8 +652,16 @@ Beyond these rules:
   }
   ```
 
+  **In-place initialization is like choosing the path with heart.** When you initialize in-place,
+  you are choosing the path that makes for a joyful journey. You are choosing the path that makes
+  you strong.
+
 - **Shrink the scope** to minimize the number of variables at play and reduce the probability that
   the wrong variable is used.
+
+  **Shrinking scope is like saving energy.** When you shrink scope, you are conserving your
+  personal power. You are not scattering your attention across unnecessary variables. You are
+  focusing it where it matters.
 
 - Calculate or check variables close to where/when they are used. **Don't introduce variables before
   they are needed.** Don't leave them around where they are not. This will reduce the probability of
@@ -410,22 +670,43 @@ Beyond these rules:
   semantic gap, caused by a gap in time or space, because it's harder to check code that's not
   contained along those dimensions.
 
+  **Calculating close to use is like moving the assemblage point to see the relationship.** When
+  you calculate close to use, you are seeing the calculation and the use together. You are
+  illuminating both energy fields at once, making their relationship perceivable.
+
 - Use simpler function signatures and return types to reduce dimensionality at the call site, the
   number of branches that need to be handled at the call site, because this dimensionality can also
   be viral, propagating through the call chain. For example, as a return type, `void` trumps `bool`,
   `bool` trumps `u64`, `u64` trumps `?u64`, and `?u64` trumps `!u64`.
 
+  **Simpler signatures are like choosing the path with heart.** When signatures are simple, they
+  make for a joyful journey. They make you strong. When signatures are complex, they make you
+  curse your life. They weaken you.
+
 - Ensure that functions run to completion without suspending, so that precondition assertions are
   true throughout the lifetime of the function. These assertions are useful documentation without a
   suspend, but may be misleading otherwise.
+
+  **Running to completion is like choosing the path with heart.** When functions run to
+  completion, they make for a joyful journey. They make you strong. When functions suspend, they
+  create uncertainty. They weaken you.
 
 - Be on your guard for **[buffer bleeds](https://en.wikipedia.org/wiki/Heartbleed)**. This is a
   buffer underflow, the opposite of a buffer overflow, where a buffer is not fully utilized, with
   padding not zeroed correctly. This may not only leak sensitive information, but may cause
   deterministic guarantees as required by Grain OS to be violated.
 
+  **Guarding against buffer bleeds is like facing the unimaginable.** When you guard against
+  bleeds, you are going into the world of security problems to get energy, power, solutions. You
+  are not avoiding the problem. You are facing it. You are moving the assemblage point to see it
+  clearly.
+
 - Use newlines to **group resource allocation and deallocation**, i.e. before the resource
   allocation and after the corresponding `defer` statement, to make leaks easier to spot.
+
+  **Grouping allocation and deallocation is like moving the assemblage point to see the
+  relationship.** When you group them, you are seeing the allocation and deallocation together. You
+  are illuminating both energy fields at once, making their relationship perceivable.
 
 ### Off-By-One Errors
 
@@ -436,9 +717,18 @@ Beyond these rules:
   multiply by the unit. Again, this is why including units and qualifiers in variable names is
   important.
 
+  **Distinguishing index, count, and size is like moving the assemblage point to see each
+  clearly.** When you distinguish them, you are illuminating each energy field separately, making
+  each one perceivable. When you confuse them, you are trying to see everything at once, and you
+  cannot see clearly.
+
 - Show your intent with respect to division. For example, use `@divExact()`, `@divFloor()` or
   `div_ceil()` to show the reader you've thought through all the interesting scenarios where
   rounding may be involved.
+
+  **Showing intent with division is like expressing intent clearly.** When you show intent, you are
+  making your intent explicit. You are not relying on the reader to guess what you mean. You are
+  moving the assemblage point to where your intent is visible.
 
 ### Style By The Numbers
 
@@ -453,8 +743,14 @@ Beyond these rules:
   setting a column ruler. To wrap a function signature, call or data structure, add a trailing
   comma, close your eyes and let `zig fmt` do the rest.
 
+  **The 103-column limit is like the path with heart.** It makes for a joyful journey. It makes
+  you strong. It is a shield that protects you from the onslaughts of horizontal scrolling.
+
 - Add braces to the `if` statement unless it fits on a single line for consistency and defense in
   depth against "goto fail;" bugs.
+
+  **Adding braces is like choosing the path with heart.** When you add braces, you are choosing
+  the path that makes for a joyful journey. You are choosing the path that makes you strong.
 
 ## Graincard Constraints
 
@@ -490,6 +786,10 @@ Graincards are designed to be:
 - **Focused**: forces concise, clear code
 - **Simple**: content-only specification, printer handles formatting
 
+**The graincard constraints are like the path with heart.** They make for a joyful journey. They
+make you strong. They force you to be concise, to be clear, to focus. They are shields that
+protect you from the onslaughts of verbosity and confusion.
+
 When you write zig code for graincards, you're writing for a specific display format. This
 constraint breeds creativity - it forces you to think carefully about every line.
 
@@ -499,6 +799,14 @@ Grain OS has **a "zero dependencies" policy**, apart from the Zig toolchain. Dep
 general, inevitably lead to supply chain attacks, safety and performance risk, and slow install
 times. For foundational infrastructure in particular, the cost of any dependency is further
 amplified throughout the rest of the stack.
+
+**Zero dependencies is like choosing the path with heart.** When you have zero dependencies, you
+are choosing the path that makes for a joyful journey. You are choosing the path that makes you
+strong. You are not relying on external forces. You are trusting your personal power.
+
+**You can cut any dependency, any time, just like that.** Nothing at all if you want to drop it.
+People hardly ever realize this. They think they're trapped by their dependencies. But you're not.
+You can cut anything, any time.
 
 ## Tooling
 
@@ -521,6 +829,11 @@ Standardizing on Zig for tooling is important to ensure that we reduce dimension
 and therefore the range of personal tastes, grows. This may be slower for you in the short term, but
 makes for more velocity for the team in the long term.
 
+**Standardizing on Zig is like choosing the path with heart.** When you standardize, you are
+choosing the path that makes for a joyful journey for the team. You are choosing the path that
+makes the team strong. You are not scattering your attention across multiple tools. You are
+focusing it on one tool, and in that focus, you find power.
+
 ## When to Break the Rules
 
 These guidelines are principles, not laws. Sometimes you need to break them. When you do, document
@@ -536,6 +849,11 @@ const global_allocator = std.heap.page_allocator;
 If you're breaking a rule, there should be a good reason. If you can't articulate the reason, you
 probably shouldn't break the rule.
 
+**Breaking the rules is like leaving a path.** Sometimes you need to leave a path. But your
+decision to leave it must be free of fear or ambition. Look at the path closely and deliberately.
+Try it as many times as you think necessary. Does this path have heart? If it doesn't, you must
+not stay with it under any conditions. But your decision must be free of fear or ambition.
+
 ## The Last Stage
 
 At the end of the day, keep trying things out, have fun, and remember—it's called Grain OS, not
@@ -546,6 +864,12 @@ only because code grows like grain, but because it's small, sustainable, and tea
 > but you are only quite a little fellow in a wide world after all!"
 >
 > "Thank goodness!" said Bilbo laughing, and handed him the tobacco-jar.
+
+**Put your trust in yourself, not in me.** Our link is with the spirit itself and only
+incidentally with the man who brings us its message.
+
+**The recommendation for warriors is not to have any material things on which to focus their power,
+but to focus it on the spirit, on the true flight into the unknown.**
 
 ---
 
@@ -564,3 +888,10 @@ experience have been invaluable in shaping Grain OS's approach to systems progra
 The core philosophy, safety rules, and many specific guidelines are adapted from TIGER_STYLE with
 modifications for Grain OS's specific context (graincards, grain_case naming, etc.). We stand on the
 shoulders of giants.
+
+**The Words of Don Juan Matus**: This document integrates concepts from [The Words of Don Juan
+Matus](https://archive.org/stream/CarlosCastanedaTheWordsOfDonJuanMatus/Carlos%20Castaneda-The%20Words%20Of%20Don%20Juan%20Matus_djvu.txt),
+particularly the warrior's way principles of the path with heart, personal power, impeccability,
+and the assemblage point. These concepts illuminate the deeper dimensions of coding practice and
+help us understand how technical work can be approached with the awareness and discipline of a
+warrior.
