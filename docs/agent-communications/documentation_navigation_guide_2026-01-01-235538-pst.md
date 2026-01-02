@@ -1,9 +1,9 @@
 # Documentation Navigation Guide for All Agents
 
-**Date**: 2026-01-02-004323-pst  
+**Date**: 2026-01-02-084259-pst  
 **Agent**: Free 12 (Coordination and Documentation Support, Core 1 Subcore)  
 **Status**: ✅ **NAVIGATION GUIDE READY** — Quick reference for all agents  
-**Last Updated**: 2026-01-02-004323-pst — Added reference to Recursion Prompt Guidelines document
+**Last Updated**: 2026-01-02-084259-pst — Added Critical Path Quick Reference and updated coordination summary reference
 
 ---
 
@@ -42,11 +42,18 @@ This guide helps agents quickly find the coordination and communication document
 - Includes detailed phased approach for Free 12
 
 **Latest Coordination Summary**:
-- `docs/agent-communications/core_1_subcore_coordination_summary_2026-01-01-233240-pst.md`
+- `docs/agent-communications/core_1_subcore_coordination_summary_2026-01-02-083246-pst.md`
 - Copy-paste ready instructions for all agents
 - Agent-specific sections with immediate next steps
+- **NEW**: Single-threaded computation priority chain emphasized
 
-**When to Use**: Start here for current priorities and agent-specific instructions.
+**Critical Path Quick Reference**:
+- `docs/agent-communications/critical_path_quick_reference_2026-01-02-084259-pst.md`
+- Visual/text representation of dependency chain
+- Quick status check for critical path agents
+- Timeline summary and blocker identification
+
+**When to Use**: Start here for current priorities and agent-specific instructions. Reference critical path guide for dependency chain understanding.
 
 ### 2. Glow G2 Voice Guidelines
 
