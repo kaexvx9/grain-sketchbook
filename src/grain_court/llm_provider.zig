@@ -86,6 +86,28 @@ pub const LlmErrorContext = struct {
         std.debug.assert(ctx.operation_len > 0);
         return ctx;
     }
+
+    // Get operation name as string slice.
+    pub fn get_operation(self: *const LlmErrorContext) []const u8 {
+        std.debug.assert(self.operation_len > 0);
+        std.debug.assert(self.operation_len <= 64);
+        return self.operation[0..self.operation_len];
+    }
+
+    // Get error message as string slice.
+    pub fn get_message(self: *const LlmErrorContext) []const u8 {
+        std.debug.assert(self.message_len <= 256);
+        if (self.message_len == 0) {
+            return "";
+        }
+        return self.message[0..self.message_len];
+    }
+
+    // Check if error context represents a retryable error.
+    pub fn is_retryable(self: *const LlmErrorContext) bool {
+        std.debug.assert(@intFromEnum(self.error_type) < 15);
+        return is_llm_error_retryable(self.error_type);
+    }
 };
 
 // Check if LLM error is retryable.
@@ -108,7 +130,6 @@ pub fn is_llm_error_retryable(err: LlmProviderError) bool {
         .ConnectionRefused => return false,
     }
 }
-
 
 // Parse Retry-After header value (seconds or HTTP date).
 pub fn parse_retry_after_header(value: []const u8) ?u64 {
