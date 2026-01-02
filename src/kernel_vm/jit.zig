@@ -1651,6 +1651,78 @@ pub const JitContext = struct {
         std.debug.assert(self.cursor == start_cursor + 5);
     }
 
+    /// Emit SETcc instruction (x86_64): setcc r/m8.
+    /// Why: Set byte register to 1 if condition is true, else 0.
+    /// Parameters: condition code (0-15), destination register (low 8 bits).
+    /// Contract: Sets destination byte to 1 if condition is true, 0 otherwise.
+    /// GrainStyle: Explicit instruction encoding, deterministic behavior.
+    /// Note: Sets only the low 8 bits; caller must zero-extend to 64 bits.
+    pub fn emit_setcc_x86_64(self: *JitContext, cond: u4, rd: u5) void {
+        std.debug.assert(cond < 16);
+        std.debug.assert(self.cursor + 3 <= self.code_buffer.len);
+        const start_cursor = self.cursor;
+        
+        // SETcc opcode: 0x0F 0x9X (where X is condition code).
+        self.emit_u8_x86_64(0x0F);
+        const setcc_opcode: u8 = 0x90 | @as(u8, cond);
+        self.emit_u8_x86_64(setcc_opcode);
+        
+        // ModR/M: mod=11 (register mode), reg=0, r/m=rd (destination, low 8 bits).
+        const mod: u2 = 0b11; // Register mode
+        const reg: u3 = 0b000; // SETcc doesn't use reg field
+        const rm_field: u3 = map_riscv_to_x86_64_reg(rd); // Destination register
+        self.emit_modrm_x86_64(mod, reg, rm_field);
+        
+        std.debug.assert(self.cursor == start_cursor + 3);
+    }
+
+    /// Emit MOVZX instruction (x86_64): movzx r64, r/m8.
+    /// Why: Zero-extend byte to 64-bit register.
+    /// Contract: Zero-extends source byte to 64-bit destination.
+    /// GrainStyle: Explicit instruction encoding, deterministic behavior.
+    pub fn emit_movzx_x86_64(self: *JitContext, rd: u5, rn: u5) void {
+        std.debug.assert(self.cursor + 4 <= self.code_buffer.len);
+        const start_cursor = self.cursor;
+        
+        // REX.W prefix (64-bit operation).
+        self.emit_rex_w_x86_64();
+        
+        // MOVZX opcode: 0x0F 0xB6 (movzx r64, r/m8).
+        self.emit_u8_x86_64(0x0F);
+        self.emit_u8_x86_64(0xB6);
+        
+        // ModR/M: mod=11 (register mode), reg=rd (destination), r/m=rn (source).
+        const mod: u2 = 0b11; // Register mode
+        const reg: u3 = map_riscv_to_x86_64_reg(rd); // Destination register
+        const rm_field: u3 = map_riscv_to_x86_64_reg(rn); // Source register
+        self.emit_modrm_x86_64(mod, reg, rm_field);
+        
+        std.debug.assert(self.cursor == start_cursor + 4);
+    }
+
+    /// Emit indirect jump (x86_64): jmp r64.
+    /// Why: Jump to address in register (for JALR indirect jumps).
+    /// Contract: Jumps to address stored in register.
+    /// GrainStyle: Explicit instruction encoding, deterministic behavior.
+    pub fn emit_jmp_indirect_x86_64(self: *JitContext, rn: u5) void {
+        std.debug.assert(self.cursor + 2 <= self.code_buffer.len);
+        const start_cursor = self.cursor;
+        
+        // REX.W prefix (64-bit operation).
+        self.emit_rex_w_x86_64();
+        
+        // JMP opcode: 0xFF /4 (jmp r/m64, indirect jump).
+        self.emit_u8_x86_64(0xFF);
+        
+        // ModR/M: mod=11 (register mode), reg=4 (JMP opcode extension), r/m=rn (target register).
+        const mod: u2 = 0b11; // Register mode
+        const reg: u3 = 0b100; // JMP opcode extension
+        const rm_field: u3 = map_riscv_to_x86_64_reg(rn); // Target register
+        self.emit_modrm_x86_64(mod, reg, rm_field);
+        
+        std.debug.assert(self.cursor == start_cursor + 3);
+    }
+
     /// Emit MOV from memory (x86_64): mov r64, [base+offset].
     /// Why: Load 64-bit value from memory (RISC-V load instructions).
     /// Contract: Loads value from memory address into register.
@@ -2062,6 +2134,16 @@ pub const JitContext = struct {
                 self.translate_jalr_x86_64(inst, current_pc);
                 return true; // JALR breaks block
             },
+            0x73 => {
+                // ECALL instruction: fall back to interpreter.
+                // Why: ECALL not JIT-compiled per syscall interface documentation.
+                // Strategy: Return error to trigger interpreter fallback.
+                // GrainStyle: Explicit fallback handling, deterministic behavior.
+                _ = inst;
+                _ = current_pc;
+                self.perf_counters.interpreter_fallbacks += 1;
+                return error.InvalidInstruction; // Fall back to interpreter
+            },
             else => {
                 // Unknown opcode: fall back to interpreter
                 return false;
@@ -2103,21 +2185,17 @@ pub const JitContext = struct {
             },
             0x2 => { // SLT (Set Less Than, signed)
                 self.emit_cmp_x86_64(0, 1); // Compare rs1 and rs2
-                // Set register 0 to 1 if less than, else 0.
-                // Use SETL (set byte if less) then zero-extend.
-                // For now, use conditional move (will optimize later).
-                self.emit_mov_imm64_x86_64(2, 1); // reg 2 = 1
-                self.emit_mov_imm64_x86_64(3, 0); // reg 3 = 0
-                // Conditional move: if less than, move 1, else 0.
-                // Note: This is simplified - proper implementation needs CMOV.
-                self.emit_mov_x86_64(0, 2); // Temporary: always set to 1
+                // Set register 0 to 1 if less than (signed), else 0.
+                // Use SETL (set byte if less, signed) then zero-extend to 64 bits.
+                self.emit_setcc_x86_64(0xC, 0); // SETL (condition 0xC = less than, signed)
+                self.emit_movzx_x86_64(0, 0); // Zero-extend byte to 64 bits
             },
             0x3 => { // SLTU (Set Less Than Unsigned)
                 self.emit_cmp_x86_64(0, 1); // Compare rs1 and rs2
-                // Similar to SLT but unsigned comparison.
-                self.emit_mov_imm64_x86_64(2, 1);
-                self.emit_mov_imm64_x86_64(3, 0);
-                self.emit_mov_x86_64(0, 2); // Temporary: always set to 1
+                // Set register 0 to 1 if below (unsigned), else 0.
+                // Use SETB (set byte if below, unsigned) then zero-extend to 64 bits.
+                self.emit_setcc_x86_64(0x2, 0); // SETB (condition 0x2 = below, unsigned)
+                self.emit_movzx_x86_64(0, 0); // Zero-extend byte to 64 bits
             },
             0x6 => self.emit_or_x86_64(0, 0, 1), // OR
             0x7 => self.emit_and_x86_64(0, 0, 1), // AND
@@ -2168,15 +2246,16 @@ pub const JitContext = struct {
             0x2 => { // SLTI (Set Less Than Immediate, signed)
                 self.emit_mov_imm64_x86_64(1, imm_u);
                 self.emit_cmp_x86_64(0, 1); // Compare rs1 and imm
-                // Set register 0 to 1 if less than, else 0.
-                self.emit_mov_imm64_x86_64(2, 1);
-                self.emit_mov_x86_64(0, 2); // Temporary: always set to 1
+                // Set register 0 to 1 if less than (signed), else 0.
+                self.emit_setcc_x86_64(0xC, 0); // SETL (condition 0xC = less than, signed)
+                self.emit_movzx_x86_64(0, 0); // Zero-extend byte to 64 bits
             },
             0x3 => { // SLTIU (Set Less Than Immediate Unsigned)
                 self.emit_mov_imm64_x86_64(1, imm_u);
                 self.emit_cmp_x86_64(0, 1); // Compare rs1 and imm
-                self.emit_mov_imm64_x86_64(2, 1);
-                self.emit_mov_x86_64(0, 2); // Temporary: always set to 1
+                // Set register 0 to 1 if below (unsigned), else 0.
+                self.emit_setcc_x86_64(0x2, 0); // SETB (condition 0x2 = below, unsigned)
+                self.emit_movzx_x86_64(0, 0); // Zero-extend byte to 64 bits
             },
             else => {},
         }

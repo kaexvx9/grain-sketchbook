@@ -4,7 +4,36 @@
 //! Architecture: Bounded transactions, iterative algorithms.
 //! GrainStyle: grain_case, u32/u64, bounded allocations, assertions, max 70 lines.
 //!
+//! Performance Characteristics:
+//! - Transaction creation: O(1) (allocates fixed-size array)
+//! - Add operation: O(1) (array append)
+//! - Commit/Abort: O(1) (state change only)
+//! - Operation execution: O(n) where n is number of operations (sequential)
+//!
+//! Thread Safety: Not thread-safe. Caller must synchronize access.
+//!
+//! Usage Example:
+//! ```zig
+//! var tx = try Transaction.init(allocator, transaction_id);
+//! defer tx.deinit();
+//!
+//! try tx.add_operation(.insert, record_id, key, value);
+//! try tx.add_operation(.update, record_id, key, new_value);
+//!
+//! if (should_commit) {
+//!     tx.commit();
+//! } else {
+//!     tx.abort();
+//! }
+//! ```
+//!
+//! Common Patterns:
+//! - Add all operations before commit/abort
+//! - Check is_active() before adding operations
+//! - Use commit() for success, abort() for rollback
+//!
 //! 2025-12-03-163155-pst: Grain Database Agent
+//! 2026-01-02-085625-pst: Documentation enhanced (Silo Agent)
 
 const std = @import("std");
 
@@ -87,7 +116,22 @@ pub const Transaction = struct {
     created_at: u64,
     allocator: std.mem.Allocator,
 
-    // Initialize transaction.
+    //! Initializes a new transaction.
+    //!
+    //! Why: Provides ACID transaction management for atomic operations.
+    //! Performance: O(1) initialization (allocates fixed-size array).
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Edge Cases:
+    //! - Returns error if allocation fails
+    //! - Allocates MAX_OPERATIONS_PER_TX operations array (fixed size)
+    //! - Initial state is TransactionState.active
+    //!
+    //! Example:
+    //! ```zig
+    //! var tx = try Transaction.init(allocator, transaction_id);
+    //! defer tx.deinit();
+    //! ```
     pub fn init(allocator: std.mem.Allocator, transaction_id: u64) !Transaction {
         std.debug.assert(transaction_id > 0);
         _ = allocator;
@@ -121,7 +165,21 @@ pub const Transaction = struct {
         self.* = undefined;
     }
 
-    // Add operation to transaction.
+    //! Adds an operation to the transaction.
+    //!
+    //! Why: Builds transaction operation list for atomic execution.
+    //! Performance: O(1) average case (array append).
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Edge Cases:
+    //! - Returns error.TransactionFull if MAX_OPERATIONS_PER_TX reached
+    //! - Returns error if transaction is not active (already committed/aborted)
+    //! - Returns error if operation allocation fails
+    //!
+    //! Example:
+    //! ```zig
+    //! try tx.add_operation(.insert, record_id, key, value);
+    //! ```
     pub fn add_operation(
         self: *Transaction,
         operation_type: TransactionOperation.OperationType,
@@ -151,24 +209,74 @@ pub const Transaction = struct {
         std.debug.assert(self.operations_len <= MAX_OPERATIONS_PER_TX);
     }
 
-    // Commit transaction.
+    //! Commits the transaction (marks as committed).
+    //!
+    //! Why: Finalizes transaction for execution (atomicity guarantee).
+    //! Performance: O(1) (state change only).
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Edge Cases:
+    //! - Panics if transaction is not active (use is_active() to check)
+    //! - After commit, transaction cannot be modified
+    //!
+    //! Example:
+    //! ```zig
+    //! tx.commit();
+    //! ```
     pub fn commit(self: *Transaction) void {
         std.debug.assert(self.state == TransactionState.active);
         self.state = TransactionState.committed;
     }
 
-    // Abort transaction.
+    //! Aborts the transaction (marks as aborted for rollback).
+    //!
+    //! Why: Cancels transaction operations (atomicity guarantee).
+    //! Performance: O(1) (state change only).
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Edge Cases:
+    //! - Panics if transaction is not active (use is_active() to check)
+    //! - After abort, transaction cannot be modified
+    //!
+    //! Example:
+    //! ```zig
+    //! tx.abort();
+    //! ```
     pub fn abort(self: *Transaction) void {
         std.debug.assert(self.state == TransactionState.active);
         self.state = TransactionState.aborted;
     }
 
-    // Check if transaction is active.
+    //! Checks if transaction is active (can be modified).
+    //!
+    //! Why: Provides state check before operations.
+    //! Performance: O(1) (field access).
+    //!
+    //! Returns: true if transaction is active, false otherwise.
+    //!
+    //! Example:
+    //! ```zig
+    //! if (tx.is_active()) {
+    //!     try tx.add_operation(.insert, record_id, key, value);
+    //! }
+    //! ```
     pub fn is_active(self: *Transaction) bool {
         return self.state == TransactionState.active;
     }
 
-    // Check if transaction is committed.
+    //! Checks if transaction is committed.
+    //!
+    //! Why: Provides state check for transaction status.
+    //! Performance: O(1) (field access).
+    //!
+    //! Returns: true if transaction is committed, false otherwise.
+    //!
+    //! Example:
+    //! ```zig
+    //! if (tx.is_committed()) {
+    //!     // Transaction was committed
+    //! }
+    //! ```
     pub fn is_committed(self: *Transaction) bool {
         return self.state == TransactionState.committed;
     }

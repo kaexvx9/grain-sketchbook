@@ -48,31 +48,33 @@
   - **Dependencies**: Dream Protocol Connection (1.12) — complete
   - **Files**: `src/dream_browser_nostr.zig`, `src/dream_protocol.zig`
 
-- [⏳] Complete HTML/CSS Parser (1.3) — **IN PROGRESS**
-  - [⏳] Full HTML5 parser implementation
-    - [📋] Nested tag parsing
-    - [📋] Attribute parsing (quoted and unquoted values)
-    - [📋] Text node parsing
-    - [📋] Comment handling
-    - [📋] DOCTYPE handling
-    - [📋] Self-closing tag handling
-    - [📋] Malformed HTML recovery
-  - [⏳] Full CSS3 parser implementation
-    - [📋] Selector parsing (tag, class, id, pseudo-class, pseudo-element)
-    - [📋] Property parsing
-    - [📋] Value parsing (keywords, lengths, colors, URLs)
-    - [📋] Media query parsing
-    - [📋] @rules parsing (@media, @import, @keyframes)
-  - [⏳] Style computation
-    - [📋] Cascade algorithm
-    - [📋] Specificity calculation
-    - [📋] Computed style resolution
-    - [📋] Inheritance handling
-  - **Estimated**: 5-7 days
+- [⏳] Complete HTML/CSS Parser (1.3) — **NEARLY COMPLETE** (90%, 1-2 days remaining)
+  - [✅] HTML5 parser implementation (core complete)
+    - [✅] Nested tag parsing (iterative approach)
+    - [✅] Attribute parsing (quoted, unquoted, boolean attributes)
+    - [✅] Text node parsing
+    - [✅] Self-closing tag handling
+    - [📋] Comment handling (future enhancement)
+    - [📋] DOCTYPE handling (future enhancement)
+    - [⏳] Malformed HTML recovery (testing and refinement needed)
+  - [✅] CSS3 parser implementation (core complete)
+    - [✅] Selector parsing (tag, class, id, pseudo-class, combinations)
+    - [✅] Property parsing
+    - [✅] Value parsing (basic support)
+    - [📋] Media query parsing (future enhancement)
+    - [📋] @rules parsing (@media, @import, @keyframes) (future enhancement)
+  - [✅] Style computation (core complete)
+    - [✅] Cascade algorithm
+    - [✅] Specificity calculation (id=100, class=10, tag=1)
+    - [✅] Computed style resolution (property deduplication)
+    - [📋] Inheritance handling (future enhancement)
+  - **Estimated**: 1-2 days remaining (was 5-7 days, significant progress made)
+  - **Status**: Core functionality complete, ready for testing and refinement
   - **Blockers**: None
   - **Dependencies**: None
+  - **Files**: `src/dream_browser_parser.zig`, `tests/115_dream_browser_parser_test.zig`
 
-- [⏳] Complete Rendering Engine (1.4) — **IN PROGRESS**
+- [⏳] Complete Rendering Engine (1.4) — **READY TO BEGIN** (depends on HTML/CSS parser completion)
   - [⏳] Complete layout algorithm implementation
     - [📋] Block layout (block-level elements)
     - [📋] Inline layout (inline-level elements)
@@ -85,7 +87,7 @@
   - [⏳] Paint order (z-index, stacking context)
   - [⏳] Clipping and overflow handling
   - **Estimated**: 4-5 days
-  - **Blockers**: HTML/CSS parser (1.3)
+  - **Blockers**: HTML/CSS parser (1.3) — nearly complete (90%, 1-2 days remaining)
   - **Dependencies**: HTML/CSS parser (1.3), Component Library Agent
 
 ### Medium Priority

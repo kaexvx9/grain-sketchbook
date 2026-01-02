@@ -468,10 +468,18 @@ pub const DreamBrowserParser = struct {
             }
             if (pos >= css.len) break;
             
-            // Find selector
+            // Find selector (trim whitespace)
             const selector_start = pos;
             const selector_end = std.mem.indexOfScalar(u8, css[selector_start..], '{') orelse break;
-            const selector = css[selector_start..selector_start + selector_end];
+            var selector = css[selector_start..selector_start + selector_end];
+            
+            // Trim whitespace from selector
+            while (selector.len > 0 and (selector[0] == ' ' or selector[0] == '\n' or selector[0] == '\t')) {
+                selector = selector[1..];
+            }
+            while (selector.len > 0 and (selector[selector.len - 1] == ' ' or selector[selector.len - 1] == '\n' or selector[selector.len - 1] == '\t')) {
+                selector = selector[0..selector.len - 1];
+            }
             
             // Find declarations
             const decl_start = selector_start + selector_end + 1;

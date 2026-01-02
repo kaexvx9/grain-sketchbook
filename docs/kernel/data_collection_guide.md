@@ -1,8 +1,8 @@
 # Performance Data Collection Guide
 
-**Date**: 2025-12-31  
+**Date**: 2026-01-02  
 **Agent**: Grain Basin Kernel Agent (3a)  
-**Status**: Ready for Execution
+**Status**: Infrastructure Ready, Blocked by External Compilation Errors
 
 ---
 
@@ -15,9 +15,10 @@ This guide provides step-by-step instructions for collecting performance data us
 ## Prerequisites
 
 1. ✅ Profiler infrastructure complete
-2. ✅ Benchmark tests created
+2. ✅ Benchmark tests created and configured in build.zig
 3. ✅ Code review complete
-4. ⏳ Compilation issues in other parts of codebase resolved (minor blocker)
+4. ⚠️ **BLOCKED**: External compilation errors in other modules (network syscalls, grain_database, etc.) preventing test suite execution
+5. ⏳ Once external compilation issues resolved, profiler tests ready to run immediately
 
 ---
 
@@ -38,16 +39,24 @@ try testing.expect(summary.enabled);
 
 ### Step 2: Run Comprehensive Benchmarks
 
+**Current Status**: ⚠️ **BLOCKED** — External compilation errors preventing test execution. Once resolved, run:
+
 Execute the benchmark test suite:
 
 ```bash
 zig build test --summary all
 ```
 
-Or run specific benchmark test:
+Or run specific profiler tests:
 ```bash
-zig build test tests/144_syscall_performance_benchmark_test.zig
+# Profiler module tests
+zig build test  # Will run 143_syscall_performance_profiler_test.zig
+
+# Benchmark tests  
+zig build test  # Will run 144_syscall_performance_benchmark_test.zig
 ```
+
+**Note**: Both profiler tests are configured in `build.zig` and will run automatically when test suite executes.
 
 **Test Coverage**:
 - ✅ Basic syscall execution (`syscall performance benchmark`)

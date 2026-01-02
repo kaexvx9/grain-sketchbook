@@ -156,7 +156,7 @@ pub const HttpRequest = struct {
         while (i < name_len) : (i += 1) {
             self.headers[self.headers_len].name[i] = name[i];
         }
-        self.headers[self.headers_len].name_len = @intCast(name_len);
+        self.headers[self.headers_len].name_len = @as(u32, @intCast(name_len));
         i = 0;
         while (i < MAX_HEADER_VALUE_LEN) : (i += 1) {
             self.headers[self.headers_len].value[i] = 0;
@@ -166,7 +166,7 @@ pub const HttpRequest = struct {
         while (i < value_len) : (i += 1) {
             self.headers[self.headers_len].value[i] = value[i];
         }
-        self.headers[self.headers_len].value_len = @intCast(value_len);
+        self.headers[self.headers_len].value_len = @as(u32, @intCast(value_len));
         self.headers_len += 1;
         return true;
     }
@@ -219,7 +219,7 @@ pub const HttpResponse = struct {
         while (i < name_len) : (i += 1) {
             self.headers[self.headers_len].name[i] = name[i];
         }
-        self.headers[self.headers_len].name_len = @intCast(name_len);
+        self.headers[self.headers_len].name_len = @as(u32, @intCast(name_len));
         i = 0;
         while (i < MAX_HEADER_VALUE_LEN) : (i += 1) {
             self.headers[self.headers_len].value[i] = 0;
@@ -229,7 +229,7 @@ pub const HttpResponse = struct {
         while (i < value_len) : (i += 1) {
             self.headers[self.headers_len].value[i] = value[i];
         }
-        self.headers[self.headers_len].value_len = @intCast(value_len);
+        self.headers[self.headers_len].value_len = @as(u32, @intCast(value_len));
         self.headers_len += 1;
         return true;
     }
@@ -319,7 +319,7 @@ pub const ApiServer = struct {
         while (i < pattern_len) : (i += 1) {
             self.routes[self.routes_len].path_pattern[i] = path_pattern[i];
         }
-        self.routes[self.routes_len].path_pattern_len = @intCast(pattern_len);
+        self.routes[self.routes_len].path_pattern_len = @as(u32, @intCast(pattern_len));
         self.routes_len += 1;
         std.debug.assert(self.routes_len <= MAX_ROUTES);
         return true;

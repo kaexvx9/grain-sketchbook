@@ -21,9 +21,9 @@ Silo Agent is proceeding with independent, non-conflicting improvements focused 
 
 ### Phase 1: Documentation Enhancements (In Progress)
 
-**Module**: `src/grain_database/storage_engine.zig`
+**Modules Completed**:
 
-**Completed**:
+**1. `src/grain_database/storage_engine.zig`**:
 - ✅ Enhanced module-level documentation with:
   - Performance characteristics (time complexity for all operations)
   - Thread safety notes
@@ -47,7 +47,33 @@ Silo Agent is proceeding with independent, non-conflicting improvements focused 
   - `has_record()` - Added "Why", performance, thread safety, example
   - `has_record_by_id()` - Added "Why", performance, thread safety, example
 
-**Impact**: Improved code readability, better developer experience, clearer performance expectations
+**2. `src/grain_database/index.zig`**:
+- ✅ Enhanced module-level documentation with:
+  - Performance characteristics for HashIndex, BTreeIndex, InvertedIndex
+  - Thread safety notes
+  - Usage examples for all three index types
+  - Common patterns for index selection
+
+- ✅ Enhanced public function documentation:
+  - `HashIndex.init()`, `insert()`, `lookup()` - Added "Why", performance, thread safety, examples
+  - `BTreeIndex.init()`, `insert()`, `lookup()` - Added "Why", performance, thread safety, examples
+  - `InvertedIndex.init()`, `index_document()`, `search()` - Added "Why", performance, thread safety, examples
+  - `tokenize()`, `stem()` - Added "Why", performance, edge cases, examples
+
+**3. `src/grain_database/transaction.zig`**:
+- ✅ Enhanced module-level documentation with:
+  - Performance characteristics for transaction operations
+  - Thread safety notes
+  - Usage examples for transaction lifecycle
+  - Common patterns for commit/abort
+
+- ✅ Enhanced public function documentation:
+  - `Transaction.init()` - Added "Why", performance, thread safety, edge cases, example
+  - `add_operation()` - Added "Why", performance, thread safety, edge cases, example
+  - `commit()`, `abort()` - Added "Why", performance, thread safety, edge cases, examples
+  - `is_active()`, `is_committed()` - Added "Why", performance, examples
+
+**Impact**: Improved code readability, better developer experience, clearer performance expectations across all core modules
 
 ---
 
@@ -56,12 +82,12 @@ Silo Agent is proceeding with independent, non-conflicting improvements focused 
 ### Continue Phase 1: Documentation Enhancements
 
 **Remaining Modules** (in priority order):
-1. `src/grain_database/index.zig` - Index system documentation
-2. `src/grain_database/transaction.zig` - Transaction management documentation
-3. `src/grain_database/wal.zig` - Write-ahead log documentation
-4. `src/grain_database/query.zig` - Query system documentation
-5. `src/grain_database/user_storage.zig` - User storage helper documentation
-6. `src/grain_database/password_storage.zig` - Password storage helper documentation
+1. ✅ `src/grain_database/index.zig` - Index system documentation - COMPLETE
+2. ✅ `src/grain_database/transaction.zig` - Transaction management documentation - COMPLETE
+3. ⏳ `src/grain_database/wal.zig` - Write-ahead log documentation - NEXT
+4. ⏳ `src/grain_database/query.zig` - Query system documentation
+5. ⏳ `src/grain_database/user_storage.zig` - User storage helper documentation
+6. ⏳ `src/grain_database/password_storage.zig` - Password storage helper documentation
 
 **Approach**: Enhance each module with similar documentation improvements (performance notes, usage examples, edge cases, thread safety)
 
@@ -118,15 +144,10 @@ Silo Agent is proceeding with independent, non-conflicting improvements focused 
 ## Progress Tracking
 
 ### Phase 1: Documentation Enhancements
-- ✅ Module-level documentation: `storage_engine.zig` - COMPLETE
-- ✅ Function-level documentation: `storage_engine.zig` - COMPLETE
-- ✅ Module-level documentation: `index.zig` - COMPLETE
-- ✅ Function-level documentation: `index.zig` - COMPLETE
-  - HashIndex: init, insert, lookup
-  - BTreeIndex: init, insert, lookup
-  - InvertedIndex: init, index_document, search
-  - Utility functions: tokenize, stem
-- ⏳ Next module: `transaction.zig` - IN PROGRESS
+- ✅ `storage_engine.zig` - COMPLETE (module + all public functions)
+- ✅ `index.zig` - COMPLETE (module + HashIndex, BTreeIndex, InvertedIndex, utilities)
+- ✅ `transaction.zig` - COMPLETE (module + Transaction lifecycle functions)
+- ⏳ `wal.zig` - NEXT (write-ahead log documentation)
 
 ### Estimated Timeline
 - **Week 1**: Complete documentation for core modules (storage_engine, index, transaction, wal)
