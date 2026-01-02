@@ -223,17 +223,21 @@
 ### Workspace Persistence Tasks
 
 - [✅] **Create coordination request document for Storage Agent (1c)** - ✅ **COMPLETE**
-- [🔄] **Await Storage Agent (1c) response to coordination request** - ⚠️ **IN PROGRESS**
-- [⏳] Review Storage Agent response and discuss API contract
-- [⏳] Agree on data format (JSON, binary, or custom format) with Storage Agent
-- [⏳] Agree on storage location/path (e.g., `~/.grain/compositor/workspaces/`)
-- [⏳] Finalize API contract for workspace state persistence
-- [⏳] Design workspace state format (pending Storage Agent agreement)
-- [⏳] Implement workspace state saving (pending Storage Agent API contract)
-- [⏳] Implement workspace state loading (pending Storage Agent API contract)
-- [⏳] Implement workspace restoration on startup (pending Storage Agent API contract)
-- [⏳] Add comprehensive tests (pending API contract agreement)
-- [⏳] Integration testing with Storage Agent
+- [✅] **Storage Agent (1c) API design received and reviewed** - ✅ **COMPLETE**
+- [✅] **API design approved** - ✅ **COMPLETE**
+- [✅] **API contract agreed** (JSON format, `~/.grain/compositor/` storage location) - ✅ **COMPLETE**
+- [✅] **Persistence design document complete** - ✅ **COMPLETE**
+- [✅] **Test plan document complete** - ✅ **COMPLETE**
+- [✅] **Integration preparation document complete** - ✅ **COMPLETE**
+- [⏳] **Review Storage Agent API implementation** (module exists, minor TODOs remain)
+- [⏳] **Import Storage Agent modules** (once API finalized)
+- [⏳] **Initialize IntegratedFileIO in compositor** (once API finalized)
+- [⏳] **Implement persistence hooks at integration points** (once API finalized)
+- [⏳] **Add helper functions** (once API finalized)
+- [⏳] **Add error handling (graceful degradation)** (once API finalized)
+- [⏳] **Add comprehensive tests for workspace persistence** (once API finalized)
+- [⏳] **Integration testing with Storage Agent** (once API finalized)
+- [⏳] **Framework x86_64 verification** (once integration complete)
 
 **Coordination Request Document**: `docs/agent-communications/core_1d_compositor_to_1c_storage_coordination_request_2026-01-01-234000-pst.md`
 
