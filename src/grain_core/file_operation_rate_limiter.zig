@@ -18,7 +18,7 @@ pub const FileOperationRateLimitEntry = struct {
     active: bool,
 
     pub fn init() FileOperationRateLimitEntry {
-        var entry = FileOperationRateLimitEntry{
+        const entry = FileOperationRateLimitEntry{
             .user_id = 0,
             .tokens = 0,
             .last_refill = 0,

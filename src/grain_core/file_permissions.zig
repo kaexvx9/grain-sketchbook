@@ -199,7 +199,7 @@ pub const PermissionManager = struct {
     default_permissions: PermissionBits,
 
     pub fn init() PermissionManager {
-        var manager = PermissionManager{
+        const manager = PermissionManager{
             .default_permissions = PermissionBits.from_octal(0o644),
         };
         return manager;

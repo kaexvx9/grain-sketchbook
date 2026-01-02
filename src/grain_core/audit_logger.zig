@@ -246,7 +246,7 @@ pub const AuditLogger = struct {
         user_id: u32,
         event_type: SecurityEventType,
         file_path: []const u8,
-        details: []const u8,
+        _: []const u8,
     ) bool {
         std.debug.assert(user_id > 0);
         std.debug.assert(file_path.len > 0);

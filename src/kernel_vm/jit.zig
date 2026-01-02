@@ -1328,6 +1328,46 @@ pub const JitContext = struct {
         self.compilation_threshold = threshold;
     }
 
+    /// Get cached compiled block from offset.
+    /// Why: Extract cache hit logic to reduce compile_block() line count.
+    /// GrainStyle: Explicit pointer arithmetic, deterministic behavior.
+    fn get_cached_block(self: *JitContext, addr: u32) *const fn (*GuestState) callconv(.c) void {
+        self.perf_counters.cache_hits += 1;
+        const base_ptr = @intFromPtr(self.code_buffer.ptr);
+        const offset_ptr = base_ptr + @as(usize, addr);
+        const code_anyopaque: *const anyopaque = @ptrFromInt(offset_ptr);
+        const FuncType = *const fn (*GuestState) callconv(.c) void;
+        return @as(FuncType, @ptrCast(@alignCast(code_anyopaque)));
+    }
+
+    /// Get compiled block function pointer from start offset.
+    /// Why: Extract return statement construction to reduce compile_block() line count.
+    /// GrainStyle: Explicit pointer arithmetic, deterministic behavior.
+    fn get_compiled_block(self: *JitContext, start_offset: u32) *const fn (*GuestState) callconv(.c) void {
+        const base_ptr = @intFromPtr(self.code_buffer.ptr);
+        const offset_ptr = base_ptr + @as(usize, start_offset);
+        const code_anyopaque: *const anyopaque = @ptrFromInt(offset_ptr);
+        const FuncType = *const fn (*GuestState) callconv(.c) void;
+        return @as(FuncType, @ptrCast(@alignCast(code_anyopaque)));
+    }
+
+    /// Track code size statistics for compiled block.
+    /// Why: Extract code size tracking to reduce compile_block() line count.
+    /// GrainStyle: Explicit statistics tracking, deterministic behavior.
+    fn track_block_code_size(self: *JitContext, start_offset: u32) void {
+        const block_size: u32 = self.cursor - start_offset;
+        const block_size_u64: u64 = @intCast(block_size);
+        self.perf_counters.total_code_size_bytes += block_size_u64;
+        const max_size = self.perf_counters.max_code_size_bytes;
+        if (max_size == 0 or block_size_u64 > max_size) {
+            self.perf_counters.max_code_size_bytes = block_size_u64;
+        }
+        const min_size = self.perf_counters.min_code_size_bytes;
+        if (min_size == 0 or block_size_u64 < min_size) {
+            self.perf_counters.min_code_size_bytes = block_size_u64;
+        }
+    }
+
     pub fn compile_block(
         self: *JitContext,
         guest_pc: u64,
@@ -1340,13 +1380,7 @@ pub const JitContext = struct {
         var instructions_in_block: u32 = 0;
 
         if (self.block_cache.get(guest_pc)) |addr| {
-            // Cache hit: return existing compiled block.
-            self.perf_counters.cache_hits += 1;
-            const base_ptr = @intFromPtr(self.code_buffer.ptr);
-            const offset_ptr = base_ptr + @as(usize, addr);
-            const code_anyopaque: *const anyopaque = @ptrFromInt(offset_ptr);
-            const FuncType = *const fn (*GuestState) callconv(.c) void;
-            return @as(FuncType, @ptrCast(@alignCast(code_anyopaque)));
+            return self.get_cached_block(addr);
         }
 
         // Check compilation threshold before compiling.
@@ -1382,26 +1416,10 @@ pub const JitContext = struct {
         self.perf_counters.blocks_compiled += 1;
         
         // Track code size for this block.
-        const block_size: u32 = self.cursor - start_offset;
-        const block_size_u64: u64 = @intCast(block_size);
-        self.perf_counters.total_code_size_bytes += block_size_u64;
-        const max_size = self.perf_counters.max_code_size_bytes;
-        if (max_size == 0 or block_size_u64 > max_size) {
-            self.perf_counters.max_code_size_bytes = block_size_u64;
-        }
-        const min_size = self.perf_counters.min_code_size_bytes;
-        if (min_size == 0 or block_size_u64 < min_size) {
-            self.perf_counters.min_code_size_bytes = block_size_u64;
-        }
+        self.track_block_code_size(start_offset);
 
         self.flush_cache(start_offset, self.cursor - start_offset);
-
-        // GrainStyle: Cast u32 to usize only for pointer arithmetic
-        const base_ptr = @intFromPtr(self.code_buffer.ptr);
-        const offset_ptr = base_ptr + @as(usize, start_offset);
-        const code_anyopaque: *const anyopaque = @ptrFromInt(offset_ptr);
-        const FuncType = *const fn (*GuestState) callconv(.c) void;
-        return @as(FuncType, @ptrCast(@alignCast(code_anyopaque)));
+        return self.get_compiled_block(start_offset);
     }
 
     /// Translate a single instruction to ARM64 code.

@@ -3,7 +3,9 @@
 **Agent**: Grain Dream Browser Agent (2b, L2 Sub-Agent)  
 **Parent Agent**: Grain Aurora 2 Subcore Agent (L1 Subcore Coordinator)  
 **Status**: ⏳ **PHASE 1 IN PROGRESS** ⏳ — Core Browser Foundation  
-**Last Updated**: 2025-12-31-193000-pst
+**Last Updated**: 2026-01-01-092301-pst  
+**Plan Document**: `docs/plans/aurora_2b_dream_browser_plan.md`  
+**Coordination Document**: `docs/core-coordination/aurora_2b_dream_browser_coordination.md`
 
 ---
 
@@ -11,28 +13,40 @@
 
 ### High Priority
 
-- [⏳] Complete WebSocket Transport Implementation (1.2) — **IN PROGRESS**
-  - [⏳] Complete WebSocket handshake implementation
-  - [⏳] Frame parsing implementation
-  - [⏳] Frame serialization (masking for client frames)
-  - [⏳] Text frame parsing and handling
-  - [⏳] Binary frame parsing and handling
-  - [⏳] Control frame handling (ping/pong, close)
-  - [⏳] Connection error handling and reconnection
-  - **Estimated**: 3-4 days
-  - **Blockers**: None
-  - **Dependencies**: Network stack (via Core Agent)
+- [x] Complete WebSocket Transport Implementation (1.2) — **COMPLETE** (2026-01-01)
+  - [x] Complete WebSocket handshake implementation
+  - [x] Frame parsing implementation
+  - [x] Frame serialization (masking for client frames)
+  - [x] Text frame parsing and handling
+  - [x] Binary frame parsing and handling
+  - [x] Control frame handling (ping/pong, close)
+  - [x] Connection error handling and reconnection
+  - [📋] TLS support for `wss://` connections (deferred, 2-3 days when prioritized)
+  - **Files**: `src/dream_websocket.zig`
+  - **Note**: Core functionality complete for `ws://` connections, TLS support deferred
 
-- [⏳] Complete Dream Protocol Connection (1.12) — **IN PROGRESS**
-  - [⏳] Integrate WebSocket client into Dream Protocol
-  - [⏳] REQ message serialization (JSON)
-  - [⏳] EVENT message deserialization (JSON)
-  - [⏳] EOSE handling
-  - [⏳] NOTICE handling
-  - [⏳] Connection state management
-  - **Estimated**: 2-3 days
-  - **Blockers**: WebSocket implementation (1.2)
-  - **Dependencies**: WebSocket client (1.2)
+- [x] Complete Dream Protocol Connection (1.12) — **COMPLETE** (2026-01-01)
+  - [x] Integrate WebSocket client into Dream Protocol
+  - [x] REQ message serialization (JSON)
+  - [x] EVENT message deserialization (JSON)
+  - [x] EOSE handling
+  - [x] NOTICE handling
+  - [x] Connection state management
+  - [📋] State machine execution (event ordering/consensus) — **TODO** (1-2 weeks)
+  - [📋] Event deduplication and caching — **TODO**
+  - **Files**: `src/dream_protocol.zig`
+  - **Note**: Core functionality complete for `ws://` connections, state machine execution pending
+
+- [⏳] Complete Nostr Protocol Integration (1.1) — **IN PROGRESS**
+  - [x] Structure complete (URL parsing, subscription management, event types)
+  - [x] Dream Protocol connection implemented (WebSocket, JSON serialization/deserialization)
+  - [⏳] Event streaming and handling (event ordering, state machine execution needed)
+  - [⏳] Event ordering and consensus (TigerBeetle-style state machine)
+  - [⏳] Bech32 encoding/decoding for Nostr identifiers
+  - **Estimated**: 1-2 weeks
+  - **Blockers**: None
+  - **Dependencies**: Dream Protocol Connection (1.12) — complete
+  - **Files**: `src/dream_browser_nostr.zig`, `src/dream_protocol.zig`
 
 - [⏳] Complete HTML/CSS Parser (1.3) — **IN PROGRESS**
   - [⏳] Full HTML5 parser implementation
@@ -145,6 +159,24 @@
   - [x] Performance optimization for Dream Protocol
   - **Files**: `src/dream_browser_protocol_optimizer.zig`
 
+- [x] WebSocket Transport (1.2) — **COMPLETE** (2026-01-01)
+  - [x] WebSocket handshake implementation
+  - [x] Frame parsing and serialization
+  - [x] Text and binary frame handling
+  - [x] Control frame handling (ping/pong, close)
+  - [x] Connection error handling
+  - [📋] TLS support for `wss://` connections (deferred)
+  - **Files**: `src/dream_websocket.zig`
+
+- [x] Dream Protocol Connection (1.12) — **COMPLETE** (2026-01-01)
+  - [x] WebSocket integration (connect, disconnect)
+  - [x] REQ/CLOSE message serialization (JSON)
+  - [x] EVENT/EOSE/NOTICE message deserialization (JSON)
+  - [x] Connection state management
+  - [📋] State machine execution (event ordering/consensus) — **TODO**
+  - [📋] Event deduplication and caching — **TODO**
+  - **Files**: `src/dream_protocol.zig`
+
 ---
 
 ## Blocked Tasks
@@ -177,6 +209,6 @@
 
 ---
 
-**Last Updated**: 2025-12-31-193000-pst  
+**Last Updated**: 2026-01-01-092301-pst  
 **Agent**: Grain Dream Browser Agent (2b)  
 **Status**: Phase 1 In Progress ⏳

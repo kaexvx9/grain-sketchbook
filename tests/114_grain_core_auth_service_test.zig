@@ -6,7 +6,7 @@ const auth_service = @import("grain_core").auth_service;
 
 test "auth_service_init" {
     const secret = "test_secret_key_for_jwt_signing";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     std.debug.assert(service.secret_len > 0);
     std.debug.assert(service.session_count == 0);
     std.debug.assert(service.otp_count == 0);
@@ -15,7 +15,7 @@ test "auth_service_init" {
 
 test "auth_service_generate_access_token" {
     const secret = "test_secret_key_for_jwt_signing";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const user_id = "user123";
     const current_time: u64 = 1000000;
     var token: [auth_service.MAX_JWT_LEN]u8 = undefined;
@@ -26,7 +26,7 @@ test "auth_service_generate_access_token" {
 
 test "auth_service_validate_jwt_token" {
     const secret = "test_secret_key_for_jwt_signing";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const user_id = "user123";
     const current_time: u64 = 1000000;
     var token: [auth_service.MAX_JWT_LEN]u8 = undefined;
@@ -45,7 +45,7 @@ test "auth_service_validate_jwt_token" {
 
 test "auth_service_revoke_token" {
     const secret = "test_secret_key_for_jwt_signing";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const user_id = "user123";
     const current_time: u64 = 1000000;
     var token: [auth_service.MAX_JWT_LEN]u8 = undefined;
@@ -83,7 +83,7 @@ test "auth_service_verify_password" {
 
 test "auth_service_create_session" {
     const secret = "test_secret_key_for_jwt_signing";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const user_id = "user123";
     const current_time: u64 = 1000000;
     var session: auth_service.Session = undefined;
@@ -97,7 +97,7 @@ test "auth_service_create_session" {
 
 test "auth_service_validate_session" {
     const secret = "test_secret_key_for_jwt_signing";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const user_id = "user123";
     const current_time: u64 = 1000000;
     var session: auth_service.Session = undefined;
@@ -112,7 +112,7 @@ test "auth_service_validate_session" {
 
 test "auth_service_revoke_session" {
     const secret = "test_secret_key_for_jwt_signing";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const user_id = "user123";
     const current_time: u64 = 1000000;
     var session: auth_service.Session = undefined;
@@ -127,7 +127,7 @@ test "auth_service_revoke_session" {
 
 test "auth_service_generate_otp" {
     const secret = "test_secret_key_for_jwt_signing";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const email = "test@example.com";
     const current_time: u64 = 1000000;
     var otp: auth_service.Otp = undefined;
@@ -142,7 +142,7 @@ test "auth_service_generate_otp" {
 
 test "auth_service_validate_otp" {
     const secret = "test_secret_key_for_jwt_signing";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const email = "test@example.com";
     const current_time: u64 = 1000000;
     var otp: auth_service.Otp = undefined;
@@ -337,7 +337,7 @@ test "auth_service_argon2_custom_parameters" {
 
 test "auth_service_generate_api_key" {
     const secret = "test_secret_key_for_api_keys";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const user_id = "user123";
     const prefix = "grain_live";
     const scopes = [_]auth_service.ApiKeyScope{
@@ -366,7 +366,7 @@ test "auth_service_generate_api_key" {
 
 test "auth_service_validate_api_key" {
     const secret = "test_secret_key_for_api_keys";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const user_id = "user123";
     const prefix = "grain_test";
     const scopes = [_]auth_service.ApiKeyScope{ auth_service.ApiKeyScope.read };
@@ -396,7 +396,7 @@ test "auth_service_validate_api_key" {
 
 test "auth_service_validate_api_key_wrong_key" {
     const secret = "test_secret_key_for_api_keys";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const wrong_key = "wrong_api_key_string";
     const current_time: u64 = 1000000;
     const is_valid = service.validate_api_key(wrong_key, current_time, null);
@@ -405,7 +405,7 @@ test "auth_service_validate_api_key_wrong_key" {
 
 test "auth_service_validate_api_key_expired" {
     const secret = "test_secret_key_for_api_keys";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const user_id = "user123";
     const prefix = "grain_test";
     const scopes = [_]auth_service.ApiKeyScope{ auth_service.ApiKeyScope.read };
@@ -432,7 +432,7 @@ test "auth_service_validate_api_key_expired" {
 
 test "auth_service_revoke_api_key" {
     const secret = "test_secret_key_for_api_keys";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const user_id = "user123";
     const prefix = "grain_test";
     const scopes = [_]auth_service.ApiKeyScope{ auth_service.ApiKeyScope.read };
@@ -461,7 +461,7 @@ test "auth_service_revoke_api_key" {
 
 test "auth_service_api_key_has_scope" {
     const secret = "test_secret_key_for_api_keys";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const user_id = "user123";
     const prefix = "grain_test";
     const scopes = [_]auth_service.ApiKeyScope{
@@ -497,7 +497,7 @@ test "auth_service_api_key_has_scope" {
 
 test "auth_service_api_key_admin_scope" {
     const secret = "test_secret_key_for_api_keys";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const user_id = "user123";
     const prefix = "grain_test";
     const scopes = [_]auth_service.ApiKeyScope{ auth_service.ApiKeyScope.admin };
@@ -528,7 +528,7 @@ test "auth_service_api_key_admin_scope" {
 
 test "auth_service_api_key_multiple_keys" {
     const secret = "test_secret_key_for_api_keys";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const user_id = "user123";
     const prefix = "grain_test";
     const scopes = [_]auth_service.ApiKeyScope{ auth_service.ApiKeyScope.read };
@@ -565,7 +565,7 @@ test "auth_service_api_key_multiple_keys" {
 
 test "auth_service_api_key_last_used_tracking" {
     const secret = "test_secret_key_for_api_keys";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const user_id = "user123";
     const prefix = "grain_test";
     const scopes = [_]auth_service.ApiKeyScope{ auth_service.ApiKeyScope.read };
@@ -597,7 +597,7 @@ test "auth_service_api_key_last_used_tracking" {
 
 test "auth_service_create_role" {
     const secret = "test_secret_for_rbac";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const role_name = "admin";
     const role_id = service.create_role(role_name, null);
     std.debug.assert(role_id != null);
@@ -608,7 +608,7 @@ test "auth_service_create_role" {
 
 test "auth_service_create_role_with_parent" {
     const secret = "test_secret_for_rbac";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const parent_name = "user";
     const child_name = "editor";
     const parent_id = service.create_role(parent_name, null);
@@ -623,7 +623,7 @@ test "auth_service_create_role_with_parent" {
 
 test "auth_service_add_permission_to_role" {
     const secret = "test_secret_for_rbac";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const role_name = "editor";
     const role_id = service.create_role(role_name, null);
     std.debug.assert(role_id != null);
@@ -640,7 +640,7 @@ test "auth_service_add_permission_to_role" {
 
 test "auth_service_user_has_permission" {
     const secret = "test_secret_for_rbac";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const role_name = "editor";
     const role_id = service.create_role(role_name, null);
     std.debug.assert(role_id != null);
@@ -664,7 +664,7 @@ test "auth_service_user_has_permission" {
 
 test "auth_service_admin_permission_grants_all" {
     const secret = "test_secret_for_rbac";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const role_name = "admin";
     const role_id = service.create_role(role_name, null);
     std.debug.assert(role_id != null);
@@ -692,7 +692,7 @@ test "auth_service_admin_permission_grants_all" {
 
 test "auth_service_assign_role_to_user" {
     const secret = "test_secret_for_rbac";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const user_id = "user123";
     const role_name = "editor";
     const role_id = service.create_role(role_name, null);
@@ -720,7 +720,7 @@ test "auth_service_assign_role_to_user" {
 
 test "auth_service_multiple_roles_per_user" {
     const secret = "test_secret_for_rbac";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const user_id = "user123";
     const role1_name = "editor";
     const role2_name = "reviewer";
@@ -740,7 +740,7 @@ test "auth_service_multiple_roles_per_user" {
 
 test "auth_service_inactive_role_no_permission" {
     const secret = "test_secret_for_rbac";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const role_name = "editor";
     const role_id = service.create_role(role_name, null);
     std.debug.assert(role_id != null);
@@ -764,7 +764,7 @@ test "auth_service_inactive_role_no_permission" {
 
 test "auth_service_role_hierarchy" {
     const secret = "test_secret_for_rbac";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const parent_name = "user";
     const child_name = "editor";
     const parent_id = service.create_role(parent_name, null);
@@ -795,7 +795,7 @@ test "auth_service_role_hierarchy" {
 
 test "auth_service_generate_csrf_token" {
     const secret = "test_secret_for_csrf";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const session_id = "session123";
     const current_time: u64 = 1000000;
     var token: [auth_service.CSRF_TOKEN_STRING_LEN]u8 = undefined;
@@ -807,7 +807,7 @@ test "auth_service_generate_csrf_token" {
 
 test "auth_service_validate_csrf_token" {
     const secret = "test_secret_for_csrf";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const session_id = "session123";
     const current_time: u64 = 1000000;
     var token: [auth_service.CSRF_TOKEN_STRING_LEN]u8 = undefined;
@@ -829,7 +829,7 @@ test "auth_service_validate_csrf_token" {
 
 test "auth_service_validate_csrf_token_wrong_session" {
     const secret = "test_secret_for_csrf";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const session_id = "session123";
     const wrong_session = "session456";
     const current_time: u64 = 1000000;
@@ -846,7 +846,7 @@ test "auth_service_validate_csrf_token_wrong_session" {
 
 test "auth_service_validate_csrf_token_expired" {
     const secret = "test_secret_for_csrf";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const session_id = "session123";
     const created_time: u64 = 1000000;
     var token: [auth_service.CSRF_TOKEN_STRING_LEN]u8 = undefined;
@@ -863,7 +863,7 @@ test "auth_service_validate_csrf_token_expired" {
 
 test "auth_service_check_rate_limit" {
     const secret = "test_secret_for_rate_limit";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const identifier = "user123";
     const current_time: u64 = 1000000;
     const limit: u32 = 5;
@@ -878,7 +878,7 @@ test "auth_service_check_rate_limit" {
 
 test "auth_service_rate_limit_new_window" {
     const secret = "test_secret_for_rate_limit";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const identifier = "user123";
     const window1_time: u64 = 1000000;
     const window2_time: u64 = 1000000 + auth_service.RATE_LIMIT_WINDOW;
@@ -896,7 +896,7 @@ test "auth_service_rate_limit_new_window" {
 
 test "auth_service_cleanup_expired_csrf_tokens" {
     const secret = "test_secret_for_csrf";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const session_id = "session123";
     const created_time: u64 = 1000000;
     var token: [auth_service.CSRF_TOKEN_STRING_LEN]u8 = undefined;
@@ -909,7 +909,7 @@ test "auth_service_cleanup_expired_csrf_tokens" {
 
 test "auth_service_cleanup_expired_rate_limits" {
     const secret = "test_secret_for_rate_limit";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const identifier = "user123";
     const window1_time: u64 = 1000000;
     const limit: u32 = 5;
@@ -922,7 +922,7 @@ test "auth_service_cleanup_expired_rate_limits" {
 
 test "auth_service_csrf_token_single_use" {
     const secret = "test_secret_for_csrf";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const session_id = "session123";
     const current_time: u64 = 1000000;
     var token: [auth_service.CSRF_TOKEN_STRING_LEN]u8 = undefined;
@@ -948,7 +948,7 @@ test "auth_service_csrf_token_single_use" {
 
 test "auth_service_log_login_attempt_success" {
     const secret = "test_secret_for_audit";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const user_id = "user123";
     const timestamp: u64 = 1000000;
     const ip_address = "192.168.1.1";
@@ -964,7 +964,7 @@ test "auth_service_log_login_attempt_success" {
 
 test "auth_service_log_login_attempt_failure" {
     const secret = "test_secret_for_audit";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const user_id = "user123";
     const timestamp: u64 = 1000000;
     const ip_address = "192.168.1.1";
@@ -978,7 +978,7 @@ test "auth_service_log_login_attempt_failure" {
 
 test "auth_service_log_token_revocation" {
     const secret = "test_secret_for_audit";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const user_id = "user123";
     const token_type = "access_token";
     const timestamp: u64 = 1000000;
@@ -993,7 +993,7 @@ test "auth_service_log_token_revocation" {
 
 test "auth_service_log_permission_denial" {
     const secret = "test_secret_for_audit";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const user_id = "user123";
     const resource = "users";
     const action = "delete";
@@ -1009,7 +1009,7 @@ test "auth_service_log_permission_denial" {
 
 test "auth_service_log_api_key_usage" {
     const secret = "test_secret_for_audit";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const user_id = "user123";
     const api_key_prefix = "grain_live_";
     const timestamp: u64 = 1000000;
@@ -1023,7 +1023,7 @@ test "auth_service_log_api_key_usage" {
 
 test "auth_service_audit_log_multiple_events" {
     const secret = "test_secret_for_audit";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const user_id = "user123";
     const timestamp: u64 = 1000000;
     const ip_address = "192.168.1.1";
@@ -1035,7 +1035,7 @@ test "auth_service_audit_log_multiple_events" {
 
 test "auth_service_audit_log_cleanup_old" {
     const secret = "test_secret_for_audit";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const user_id = "user123";
     const old_timestamp: u64 = 1000000;
     const new_timestamp: u64 = old_timestamp + auth_service.AUDIT_LOG_RETENTION + 1;
@@ -1050,7 +1050,7 @@ test "auth_service_audit_log_cleanup_old" {
 
 test "auth_service_audit_log_max_entries" {
     const secret = "test_secret_for_audit";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const user_id = "user123";
     const timestamp: u64 = 1000000;
     const ip_address = "192.168.1.1";
@@ -1065,7 +1065,7 @@ test "auth_service_audit_log_max_entries" {
 
 test "auth_service_audit_log_empty_strings" {
     const secret = "test_secret_for_audit";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const user_id = "user123";
     const timestamp: u64 = 1000000;
     service.log_login_attempt(user_id, true, timestamp, "", "");
@@ -1077,7 +1077,7 @@ test "auth_service_audit_log_empty_strings" {
 
 test "auth_service_audit_log_long_message_truncation" {
     const secret = "test_secret_for_audit";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const user_id = "user123";
     const long_resource = "a" ** 600;
     const action = "read";
@@ -1091,7 +1091,7 @@ test "auth_service_audit_log_long_message_truncation" {
 
 test "auth_service_audit_log_all_event_types" {
     const secret = "test_secret_for_audit";
-    var service = auth_service.AuthService.init(secret);
+    const service = auth_service.AuthService.init(secret);
     const user_id = "user123";
     const timestamp: u64 = 1000000;
     const ip_address = "192.168.1.1";

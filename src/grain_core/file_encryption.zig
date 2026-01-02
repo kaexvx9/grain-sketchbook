@@ -141,7 +141,7 @@ pub fn decrypt_aes256_gcm(
     while (i < GCM_NONCE_SIZE) : (i += 1) {
         nonce_array[i] = nonce[i];
     }
-    var decrypted = try allocator.alloc(u8, data_len);
+    const decrypted = try allocator.alloc(u8, data_len);
     try std.crypto.aead.aes_gcm.Aes256Gcm.decrypt(
         decrypted,
         encrypted_data[0..data_len],
@@ -156,8 +156,8 @@ pub fn decrypt_aes256_gcm(
 // Generate random nonce.
 pub fn generate_nonce(allocator: std.mem.Allocator) ![]u8 {
     std.debug.assert(allocator != null);
-    var nonce = try allocator.alloc(u8, GCM_NONCE_SIZE);
-    std.crypto.random.bytes(nonce);
+    const nonce = try allocator.alloc(u8, GCM_NONCE_SIZE);
+    std.crypto.random.bytes(@constCast(nonce));
     return nonce;
 }
 

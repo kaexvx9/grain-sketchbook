@@ -2,7 +2,8 @@
 
 **Date**: 2026-01-01-230939-pst  
 **Agent**: Core 1 Subcore (L1 Subcore Coordinator)  
-**Status**: ✅ **COORDINATION ACTIVE** — Framework Ubuntu x86 adaptation in progress, sevenos/Grainscript Shell integration planning
+**Status**: ✅ **COORDINATION ACTIVE** — Framework Ubuntu x86 adaptation in progress, sevenos/Grainscript Shell integration planning  
+**Latest Coordination**: `docs/core-coordination/core_1_subcore_coordination_plan_2026-01-01-233240-pst.md`
 
 ---
 
@@ -211,31 +212,33 @@
 ### Current Status
 
 **Agent**: Grainscript Shell (Agent 1e, L2 Sub-Agent under Core 1 Subcore)  
-**Status**: 🆕 **TO BE CREATED** — New agent for first Grainscript shell  
-**Last Updated**: 2026-01-01-230939-pst
+**Status**: 🆕 **IMPLEMENTATION IN PROGRESS** — Core structure complete, API compatibility in progress  
+**Last Updated**: 2026-01-01-233240-pst  
+**Critical Blocker**: Zig 0.15.2 API compatibility (stdio, file I/O) — **HIGHEST PRIORITY**
 
 ### Immediate Next Steps for Grainscript Shell
 
-#### Phase 1: Shell Architecture Design (Week 1)
+#### Phase 1: Fix API Compatibility (This Week) - HIGHEST PRIORITY
 
-**Priority**: **HIGH** — Design shell architecture
+**Priority**: **HIGHEST** — Unblock shell compilation
 
 **Tasks**:
-1. **Review sevenos Project Structure**:
-   - Review `grainstore/sevenos/` project structure
-   - Review sevenos Init System documentation (from Agent 3d)
-   - Understand Basin Kernel syscall interface
+1. **Fix Zig 0.15.2 API Compatibility**:
+   - Update stdio wrapper for Zig 0.15.2 API
+   - Use `std.posix.STDOUT_FILENO` / `STDERR_FILENO` / `STDIN_FILENO` directly
+   - Implement proper buffer-based writer/reader APIs
+   - Fix file I/O operations for Zig 0.15.2
+   - Test with minimal shell commands
 
-2. **Design Grainscript Shell Architecture**:
-   - Design shell command parser
-   - Design command executor
-   - Design built-in commands (cd, ls, pwd, echo, exit)
-   - Design external program execution
-   - Design shell → Core service integration points
+2. **Verify Compilation**:
+   - Ensure shell compiles successfully
+   - Test basic commands (cd, ls, pwd, echo, exit)
+   - Verify output/error handling works correctly
 
 **Deliverables**:
-- Shell architecture design document
-- Shell implementation plan
+- Working shell that compiles and runs
+- Basic command execution verified
+- API compatibility layer complete
 
 #### Phase 2: Basic Shell Implementation (Week 2-3)
 

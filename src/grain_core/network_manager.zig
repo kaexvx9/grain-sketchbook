@@ -324,7 +324,7 @@ pub const NetworkManager = struct {
     ) u32 {
         std.debug.assert(interfaces_out.len <= MAX_INTERFACES);
         std.debug.assert(self.interfaces_len <= MAX_INTERFACES);
-        const count = @min(self.interfaces_len, @intCast(interfaces_out.len));
+        const count = @min(self.interfaces_len, @as(u32, @intCast(interfaces_out.len)));
         var i: u32 = 0;
         var out_idx: u32 = 0;
         while (i < self.interfaces_len and out_idx < count) : (i += 1) {

@@ -1,10 +1,11 @@
 # Grain Compositor Agent (1d) Tasks
 
-**Date**: 2026-01-01-211500-pst  
+**Date**: 2026-01-01-235300-pst  
 **Agent**: Grain Compositor Agent (1d)  
 **Parent Agent**: Grain Core 1 Subcore Agent (L1 Subcore)  
-**Status**: ✅ Framework Ubuntu x86 Ready — Phases 1-6 Complete, Phase 8 Preview Complete, Phase 7 In Progress (90% complete)  
+**Status**: ✅ Framework Ubuntu x86 Ready — Phases 1-6 Complete, Phase 8 Preview Complete, Phase 7 Coordination In Progress (90% complete)  
 **Environment**: Framework 16 (x86_64 AMD, 64GB RAM), Ubuntu 24.04 LTS  
+**Voice**: Glow G2 (masculine, steadfast, Aquarian, calm, upbeat, graceful)  
 **Timestamp Format**: YYYY-MM-DD-HHMMSS-pst (America/Los_Angeles timezone)
 
 ---
@@ -221,16 +222,20 @@
 
 ### Workspace Persistence Tasks
 
-- [🔄] **Initiate coordination with Storage Agent (1c) on API** - ⚠️ **IN PROGRESS**
-- [⏳] Define API contract for workspace state persistence
+- [✅] **Create coordination request document for Storage Agent (1c)** - ✅ **COMPLETE**
+- [🔄] **Await Storage Agent (1c) response to coordination request** - ⚠️ **IN PROGRESS**
+- [⏳] Review Storage Agent response and discuss API contract
 - [⏳] Agree on data format (JSON, binary, or custom format) with Storage Agent
-- [⏳] Define storage location/path (e.g., `~/.grain/compositor/workspaces/`)
-- [⏳] Design workspace state format (pending Storage Agent coordination)
-- [⏳] Implement workspace state saving (pending Storage Agent API)
-- [⏳] Implement workspace state loading (pending Storage Agent API)
-- [⏳] Implement workspace restoration on startup (pending Storage Agent API)
-- [⏳] Add comprehensive tests (pending API availability)
+- [⏳] Agree on storage location/path (e.g., `~/.grain/compositor/workspaces/`)
+- [⏳] Finalize API contract for workspace state persistence
+- [⏳] Design workspace state format (pending Storage Agent agreement)
+- [⏳] Implement workspace state saving (pending Storage Agent API contract)
+- [⏳] Implement workspace state loading (pending Storage Agent API contract)
+- [⏳] Implement workspace restoration on startup (pending Storage Agent API contract)
+- [⏳] Add comprehensive tests (pending API contract agreement)
 - [⏳] Integration testing with Storage Agent
+
+**Coordination Request Document**: `docs/agent-communications/core_1d_compositor_to_1c_storage_coordination_request_2026-01-01-234000-pst.md`
 
 ---
 
@@ -392,9 +397,10 @@
 
 ---
 
-**Last Updated**: 2026-01-01-211500-pst  
-**Status**: ✅ Framework Ubuntu x86 Ready — Phases 1-6 Complete, Phase 8 Preview Complete, Phase 7 In Progress (90% complete, persistence pending Storage Agent coordination)  
-**Timestamp Format**: YYYY-MM-DD-HHMMSS-pst (America/Los_Angeles timezone)
+**Last Updated**: 2026-01-01-235300-pst  
+**Status**: ✅ Framework Ubuntu x86 Ready — Phases 1-6 Complete, Phase 8 Preview Complete, Phase 7 Coordination In Progress (90% complete, persistence coordination in progress)  
+**Timestamp Format**: YYYY-MM-DD-HHMMSS-pst (America/Los_Angeles timezone)  
+**Voice**: ✅ Glow G2 (masculine, steadfast, Aquarian, calm, upbeat, graceful)
 
 **Completion Summary**:
 - ✅ Phase 1: Assessment & Foundation - Complete
@@ -403,12 +409,18 @@
 - ✅ Phase 4: Compositing Pipeline - Complete
 - ✅ Phase 5: Advanced Window Features - Complete (window rule application added)
 - ✅ Phase 6: Input Handling - Complete
-- ⏳ Phase 7: Workspace Management - In Progress (90% complete, persistence coordination in progress)
+- 🔄 Phase 7: Workspace Management - Coordination In Progress (90% complete, coordination request sent to Storage Agent 1c)
 - ✅ Phase 8 Preview: Desktop Environment Rendering Integration - Complete (notifications, lock screen, system tray rendering added)
-- ⏳ Phase 9: Grainscript Shell (1e) UI Integration - Awaiting Agent 1e creation
+- ⏳ Phase 9: Grainscript Shell (1e) UI Integration - Awaiting Agent 1e creation and Zig 0.15.2 API fix
 
 **Framework Ubuntu x86 Status**:
 - ✅ Environment verified (Framework 16, Ubuntu 24.04 LTS, Zig 0.15.2)
 - ✅ Code compatibility verified (architecture-agnostic, no adaptations needed)
 - ✅ Build system verified (errors fixed)
 - ✅ Ready for native x86_64 development
+
+**Recent Actions (2026-01-01-235300-pst)**:
+- ✅ Glow G2 voice adopted in all communications
+- ✅ Coordination request sent to Storage Agent (1c) for Phase 7 workspace persistence
+- ✅ Coordination request document prepared with comprehensive requirements
+- ✅ Status updated to reflect coordination in progress

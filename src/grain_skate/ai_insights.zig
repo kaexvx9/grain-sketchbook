@@ -263,7 +263,7 @@ pub const AiInsights = struct {
         request.model_len = model_len;
         
         // Copy prompt
-        const prompt_len = @min(combined_prompt.items.len, @as(usize, @intCast(LlmProvider.MAX_REQUEST_SIZE)));
+        const prompt_len = @min(@as(u64, @intCast(combined_prompt.items.len)), LlmProvider.MAX_REQUEST_SIZE);
         i = 0;
         while (i < LlmProvider.MAX_REQUEST_SIZE) : (i += 1) {
             request.prompt[i] = 0;

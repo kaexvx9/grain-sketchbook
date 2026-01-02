@@ -114,7 +114,7 @@ pub const EncryptionAtRestManager = struct {
         std.debug.assert(allocator != null);
         std.debug.assert(self != null);
         if (!self.config.enabled) {
-            var result = try allocator.alloc(u8, data.len);
+            const result = try allocator.alloc(u8, data.len);
             @memcpy(result, data);
             return result;
         }
@@ -173,7 +173,7 @@ pub const EncryptionAtRestManager = struct {
         std.debug.assert(allocator != null);
         std.debug.assert(self != null);
         if (!self.config.enabled) {
-            var result = try allocator.alloc(u8, encrypted_data.len);
+            const result = try allocator.alloc(u8, encrypted_data.len);
             @memcpy(result, encrypted_data);
             return result;
         }
@@ -197,7 +197,7 @@ pub const EncryptionAtRestManager = struct {
                 );
             }
         }
-        var result = try allocator.alloc(u8, encrypted_data.len);
+        const result = try allocator.alloc(u8, encrypted_data.len);
         @memcpy(result, encrypted_data);
         return result;
     }

@@ -1162,10 +1162,8 @@ pub const VM = struct {
             return;
         }
 
-        // Assert: PC must be 4-byte aligned (RISC-V instruction alignment).
+        // Assert: PC must be 4-byte aligned and within memory bounds.
         std.debug.assert(pc_before % 4 == 0);
-
-        // Assert: PC must be within memory bounds.
         std.debug.assert(pc_before < self.memory_size);
 
         // Fetch instruction at PC.

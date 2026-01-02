@@ -92,7 +92,7 @@ pub const ContentNegotiator = struct {
                 while (pos < accept_header.len and accept_header[pos] == ' ') : (pos += 1) {}
                 if (pos < accept_header.len and accept_header[pos] == 'q' and pos + 1 < accept_header.len and accept_header[pos + 1] == '=') {
                     pos += 2;
-                    var q_start = pos;
+                    const q_start = pos;
                     var q_end = pos;
                     while (q_end < accept_header.len and accept_header[q_end] != ',' and accept_header[q_end] != ' ') : (q_end += 1) {}
                     if (q_end > q_start) {
