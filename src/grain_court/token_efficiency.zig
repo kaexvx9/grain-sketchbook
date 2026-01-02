@@ -1,14 +1,21 @@
 //! Grain Court Token Efficiency: Token counting and cost tracking for LLM operations.
 //!
-//! Why: Enable token efficiency optimization and cost tracking per provider.
-//! Architecture: Token counting utilities, cost tracking, efficiency metrics.
-//! GrainStyle: grain_case, u32/u64, bounded allocations, assertions, max 70 lines.
+//! This module enables token efficiency optimization and comprehensive cost tracking across
+//! all LLM providers. It provides utilities for estimating token counts, calculating costs
+//! per provider, tracking usage over time, and recommending the most cost-effective provider
+//! for each request.
+//!
+//! Architecture: Token counting utilities, cost tracking with bounded storage, efficiency
+//! metrics calculation, and provider cost comparison.
 //!
 //! Provider Pricing (as of 2025-12-28):
 //! - OpenAI GPT-4o: $2.50/1k input, $10.00/1k output
 //! - Anthropic Claude 3.5 Sonnet: $3.00/1k input, $15.00/1k output
 //! - Mistral Large: $2.00/1k input, $6.00/1k output
 //! - Cerebras GLM-4.6: $1.875/1k input, $7.50/1k output (Developer tier, ~25% cheaper)
+//!
+//! GrainStyle: grain_case function names, explicit u32/u64 types, bounded allocations with
+//! MAX_ constants, minimum 2 assertions per function, max 70 lines per function.
 
 const std = @import("std");
 const llm_provider = @import("llm_provider.zig");
@@ -248,7 +255,9 @@ pub fn calculate_cerebras_cost(
     return total;
 }
 
-// Calculate cost for provider.
+// Calculate cost for a specific provider based on token counts.
+// This function handles provider-specific pricing differences, enabling
+// cost comparison and optimization across all available providers.
 pub fn calculate_provider_cost(
     provider_type: llm_provider.ProviderType,
     input_tokens: u32,
@@ -421,7 +430,9 @@ pub const ProviderRecommendation = struct {
     savings_vs_most_expensive: f64,
 };
 
-// Recommend cheapest provider for estimated token counts.
+// Recommend the cheapest provider for estimated token counts.
+// This function compares costs across all providers and returns a recommendation
+// with estimated savings, helping optimize LLM costs automatically.
 pub fn recommend_cheapest_provider(
     estimated_input_tokens: u32,
     estimated_output_tokens: u32,

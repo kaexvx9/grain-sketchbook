@@ -1,9 +1,15 @@
 //! Grain Court LLM Provider: Multi-provider LLM API abstraction.
 //!
-//! Why: Enable agents to use multiple LLM providers (OpenAI, Anthropic, Mistral, self-hosted)
-//! with a unified interface.
-//! Architecture: Provider abstraction, request/response handling, provider switching.
-//! GrainStyle: grain_case, u32/u64, bounded allocations, assertions, max 70 lines.
+//! This module provides a unified interface for multiple LLM providers, enabling seamless
+//! switching between OpenAI, Anthropic, Mistral, and self-hosted providers. The abstraction
+//! handles request/response translation, provider health checking, and automatic fallback
+//! when providers encounter errors.
+//!
+//! Architecture: Provider abstraction with trait-based design, request/response handling,
+//! provider pool management, and automatic fallback mechanisms.
+//!
+//! GrainStyle: grain_case function names, explicit u32/u64 types, bounded allocations with
+//! MAX_ constants, minimum 2 assertions per function, max 70 lines per function.
 
 const std = @import("std");
 const grain_core = @import("grain_core");
@@ -333,7 +339,10 @@ pub const ProviderPool = struct {
         return false;
     }
 
-    // Send request with fallback.
+    // Send request with automatic fallback to healthy providers.
+    // This function attempts the default provider first, then automatically
+    // falls back to other healthy providers if the request fails. This ensures
+    // resilience when providers encounter temporary issues.
     pub fn send_request_with_fallback(
         self: *ProviderPool,
         request: *const LlmRequest,
