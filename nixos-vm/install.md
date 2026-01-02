@@ -42,7 +42,7 @@ chmod +x install_nixos.sh ~/post_install.sh
 
 ### Step 2: Run Installation Script
 
-In the VM terminal, simply run:
+In the VM terminal, run:
 
 ```bash
 sudo bash /tmp/install_nixos.sh
@@ -54,6 +54,8 @@ The script will:
 - ✅ Mount filesystems
 - ✅ Generate and install configuration
 - ✅ Install NixOS
+
+**Note:** If the script fails at the mounting step (error about `/dev/disk/by-label/nixos`), see "Troubleshooting: Mount Issue" below.
 
 **Time: ~10-30 minutes**
 
@@ -220,6 +222,40 @@ reboot
 
 ## Troubleshooting
 
+### Mount Issue (Can't lookup blockdev)
+
+**Symptom:** Script fails with error:
+```
+mount: /mnt: fsconfig() failed: /dev/disk/by-label/nixos: Can't lookup blockdev.
+```
+
+**Solution:** Use the fix script:
+
+1. **Copy fix script to VM:**
+   ```bash
+   # From host:
+   cd ~/xy-mathematics/nixos-vm
+   scp -P 2222 fix_mount_and_install.sh nixos@localhost:/tmp/
+   ```
+
+2. **Run fix script in VM:**
+   ```bash
+   sudo bash /tmp/fix_mount_and_install.sh
+   ```
+
+   The fix script will:
+   - Refresh device links
+   - Mount filesystems using partition devices directly (`/dev/sda1`, `/dev/sda2`)
+   - Generate NixOS configuration
+   - Copy your custom configuration
+   - Continue with installation
+
+3. **If script is cancelled or you need to continue manually:**
+   ```bash
+   # Filesystems should already be mounted, just run:
+   sudo nixos-install --no-root-passwd
+   ```
+
 ### Installation script fails
 
 **Disk not found:**
@@ -326,6 +362,16 @@ Main installation script that:
 - Installs system
 - Includes error handling and prompts
 
+**Note:** If this script fails at mounting, use `fix_mount_and_install.sh` instead.
+
+### fix_mount_and_install.sh
+
+Recovery script for mount issues:
+- Refreshes device links (fixes mount lookup errors)
+- Mounts filesystems using partition devices directly
+- Continues installation from where install_nixos.sh left off
+- Can be run if install_nixos.sh fails or is cancelled
+
 ### post_install.sh
 
 Post-installation setup that:
@@ -343,8 +389,12 @@ Post-installation setup that:
 
 1. **Copy files to VM** (SCP or download)
 2. **Run**: `sudo bash /tmp/install_nixos.sh`
+   - If mount error occurs, use: `sudo bash /tmp/fix_mount_and_install.sh`
+   - If script is cancelled, continue with: `sudo nixos-install --no-root-passwd`
 3. **Reboot**
 4. **Run**: `bash ~/post_install.sh`
 5. **Start developing!**
 
 All scripts are self-contained and can be run directly from the file system - no copy-paste needed!
+
+**Common Issue:** If `install_nixos.sh` fails at mounting, the `fix_mount_and_install.sh` script handles this by using partition devices directly instead of labels.
