@@ -1,10 +1,10 @@
 # Grain Core 1 Subcore Agent: Task List
 
 **Agent**: Grain Core 1 Subcore Agent (1st Agent, L1 Subcore)  
-**Status**: ✅ **COORDINATION ACTIVE** — Framework Ubuntu x86 adaptation in progress, sevenos/Grainscript Shell integration planning  
-**Last Updated**: 2026-01-02-004011-pst  
+**Status**: ✅ **COORDINATION ACTIVE** — Framework Ubuntu x86 adaptation in progress, sevenos/Grainscript Shell integration planning, critical blockers resolution  
+**Last Updated**: 2026-01-02-003948-pst  
 **Latest Coordination**: `docs/core-coordination/core_1_subcore_coordination_plan_2026-01-01-233240-pst.md`  
-**System Integration**: `docs/core-coordination/core_1_subcore_system_integration_2026-01-02-004011-pst.md`  
+**System Integration**: `docs/core-coordination/core_1_subcore_system_integration_2026-01-02-003948-pst.md`  
 **Complete Agent Awareness**: `docs/agent-communications/complete_agent_awareness_all_agents_2026-01-02-002948-pst.md`
 
 ---
@@ -249,6 +249,42 @@
 **Location**: `grainstore/sevenos/src/shell/`  
 **Completed**: Zig 0.15.2 API compatibility, basic built-in commands, external program execution, multi-command input processing, error handling  
 **Next Steps**: See `docs/core-coordination/core_1_subcore_coordination_plan_2026-01-01-235944-pst.md`
+
+---
+
+## Current Work: Phase 1 - Critical Blockers Resolution (This Week) — HIGHEST PRIORITY
+
+**Priority**: **HIGHEST** — Unblock critical development blockers  
+**Status**: 🆕 **IN PROGRESS**  
+**Duration**: This week
+
+### Tasks
+
+1. **Support Agent 1e (Grainscript Shell) - Zig 0.15.2 API Compatibility**:
+   - [ ] Review shell implementation status and API compatibility issues
+   - [ ] Coordinate with Agent 1e on stdio wrapper fixes
+   - [ ] Verify shell compilation after API fixes
+   - [ ] Test basic shell functionality (cd, ls, pwd, echo, exit)
+   - [ ] Document API compatibility solutions for future reference
+
+2. **Coordinate with Vantage 3 Subcore on Critical Blockers**:
+   - [ ] Coordinate with Agent 3b on Grain Style compliance (1-5 line overages)
+   - [ ] Coordinate with Agent 3a on syscall interface documentation
+   - [ ] Coordinate with Agent 3c on multi-architecture testing framework
+   - [ ] Coordinate with Agent 3d on service configuration loader
+
+3. **Cross-Subcore Coordination Setup**:
+   - [ ] Establish coordination channel with Vantage 3 Subcore
+   - [ ] Set up weekly cross-subcore coordination meetings
+   - [ ] Document coordination procedures
+   - [ ] Track critical blocker resolution progress
+
+**Deliverables**:
+- Shell API compatibility resolved
+- Cross-subcore coordination established
+- Critical blockers documented and tracked
+
+**Timeline**: This week
 
 ---
 
