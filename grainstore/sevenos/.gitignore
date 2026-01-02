@@ -1,0 +1,20 @@
+# Nix build artifacts
+result
+result-*
+.drv
+
+# NixOS build outputs
+/nixos-iso/
+/disk/
+
+# Temporary files
+*.tmp
+*.bak
+*~
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+

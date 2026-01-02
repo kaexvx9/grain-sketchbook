@@ -1,0 +1,3 @@
+[submodule "sixos"]
+	path = grainstore/sevenos/sixos
+	url = https://codeberg.org/amjoseph/sixos.git
