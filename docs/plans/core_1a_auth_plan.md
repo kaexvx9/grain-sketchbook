@@ -2,8 +2,8 @@
 
 **Agent**: Grain Auth Agent (1a)  
 **Parent Agent**: Grain Core 1 Subcore Agent (1st Agent, L1 Subcore)  
-**Last Updated**: 2026-01-01-092150-pst  
-**Status**: ✅ **6 PHASES COMPLETE** (Phase 6.2 Audit Logging Complete) — Production-Ready System — Middleware Integration READY
+**Last Updated**: 2026-01-01-224925-pst  
+**Status**: ✅ **6 PHASES COMPLETE** (Phase 6.2 Audit Logging Complete) — Production-Ready System — Middleware Integration READY — Framework Ubuntu x86 Ready
 
 ---
 
@@ -20,10 +20,11 @@ Grain Auth Agent is responsible for implementing **authentication and authorizat
 - Coordinate with Storage Agent (1c) for secure credential storage
 
 **Critical Principles**:
-- **RISC-V Only**: All code targets RISC-V only (no ARM64-specific code)
+- **Architecture-Agnostic**: All code uses explicit types (`u32`/`u64`, no `usize`/`isize`) for cross-platform consistency
 - **Grain Style**: Strict compliance with all Grain Style rules
 - **Zero Technical Debt**: Do it right the first time, complete implementations only
 - **Security First**: Security is non-negotiable, follow best practices
+- **Framework Ubuntu x86**: Ready for Framework Ubuntu x86_64 native development
 
 ---
 
@@ -430,43 +431,185 @@ Grain Auth Agent is responsible for implementing **authentication and authorizat
 
 ---
 
-## Next Steps for Core 1 Subcore
+## Framework Ubuntu x86 Development
 
-### Immediate Actions (This Week)
+### Current Status
 
-1. **Review Progress**:
-   - [ ] Review comprehensive summary: `docs/core-coordination/core_1a_auth_comprehensive_summary.md`
-   - [ ] Review coordination document: `docs/core-coordination/core_1a_auth_coordination.md`
-   - [ ] Review code quality metrics
-   - [ ] Verify Grain Style compliance
+**Build System**:
+- ✅ Code is architecture-agnostic (targets RISC-V, compiles for x86_64)
+- ✅ All types explicit (`u32`/`u64`, no `usize`/`isize`) — ensures cross-platform consistency
+- ⏳ Framework x86_64 build verification pending
 
-2. **Make Architecture Decisions**:
-   - [ ] **Decision 1**: Approve/deny Argon2 full memory-hard implementation
-   - [ ] **Decision 2**: Confirm Argon2 parameters (memory, time, parallelism)
-   - [ ] **Decision 3**: Confirm Argon2 migration strategy
-   - [ ] **Decision 4**: Confirm OAuth 2.0 priority (HIGH/MEDIUM/LOW)
-   - [ ] **Decision 5**: Confirm OAuth provider selection
+**Testing**:
+- ✅ All 61 tests pass (architecture-agnostic)
+- ⏳ Framework x86_64 test verification pending
+- ⏳ Multi-architecture testing integration pending (Agent 3c coordination)
 
-3. **Facilitate Integration Coordination**:
-   - [ ] **Action 1**: Coordinate Storage Agent (1c) integration planning
-     - Define storage API contracts
-     - Define storage schema
-     - Prioritize storage integration
-   - [ ] **Action 2**: Coordinate Network Agent (1b) middleware integration
-     - Define middleware API contracts
-     - Define integration patterns
-     - Prioritize middleware implementation
+**Integration**:
+- ✅ Ready for middleware integration (Network Agent 1b)
+- ✅ Ready for storage integration (Storage Agent 1c)
+- ✅ Ready for shell authentication integration (Grainscript Shell Agent 1e)
 
-### Short-Term Actions (Next 2 Weeks)
+### Framework x86 Adaptation Tasks
 
-1. **Confirm Integration Priorities**:
-   - [ ] Which storage components first? (API keys? RBAC? All?)
-   - [ ] Which middleware components first? (CSRF? Rate limiting? RBAC?)
+**Immediate**:
+1. [ ] Verify auth service builds on Framework Ubuntu x86_64
+2. [ ] Run all 61 tests on Framework x86_64
+3. [ ] Verify no architecture-specific issues
 
-2. **Review Integration Readiness**:
-   - [ ] Verify Auth Agent integration readiness
-   - [ ] Verify Storage Agent readiness
-   - [ ] Verify Network Agent readiness
+**Short-Term**:
+1. [ ] Integrate with multi-architecture testing framework (Agent 3c)
+2. [ ] Verify performance on Framework x86_64
+3. [ ] Document any Framework-specific considerations
+
+---
+
+## Next Steps for Core 1a (Auth Agent)
+
+### Immediate Next Steps (This Week)
+
+#### 1. Framework x86 Verification — HIGH PRIORITY
+
+**Status**: ⏳ Pending verification
+
+**Tasks**:
+- [ ] Verify `zig build` succeeds on Framework Ubuntu x86_64
+- [ ] Run `zig build test` and verify all 61 tests pass
+- [ ] Check for any architecture-specific compilation issues
+- [ ] Document Framework x86_64 build status
+
+**Timeline**: 1-2 days
+
+---
+
+#### 2. Middleware Integration Coordination — HIGH PRIORITY ⚠️
+
+**Status**: ✅ **Auth Agent READY NOW** — Detailed readiness response provided
+
+**What Core 1a Needs to Do**:
+1. **Await API Contract Design Session** (Facilitated by Core 1 Subcore):
+   - [ ] Participate in middleware API contract design session
+   - [ ] Review Network Agent (1b) middleware architecture
+   - [ ] Agree on middleware API contracts
+   - [ ] Confirm middleware execution patterns
+   - [ ] Confirm request context structure
+
+2. **Begin Implementation** (After API Contracts Agreed):
+   - [ ] Implement JWT validation middleware
+   - [ ] Implement CSRF protection middleware
+   - [ ] Implement rate limiting middleware
+   - [ ] Implement RBAC permission checking middleware
+   - [ ] Implement API key validation middleware
+   - [ ] Add comprehensive middleware tests
+
+**Timeline**: Week 1 API design (awaiting facilitation), Weeks 2-3 implementation, Week 4 testing
+
+---
+
+#### 3. Grainscript Shell Authentication Integration — MEDIUM PRIORITY
+
+**Status**: ⏳ Awaiting Agent 1e (Grainscript Shell) creation
+
+**What Core 1a Needs to Do**:
+1. **Prepare Authentication Integration Patterns**:
+   - [ ] Design shell authentication API (login, logout, session management)
+   - [ ] Design shell command authorization patterns (RBAC integration)
+   - [ ] Design shell session management (JWT token handling)
+   - [ ] Document authentication integration points for Agent 1e
+
+2. **Coordinate with Agent 1e** (When Created):
+   - [ ] Review Agent 1e shell architecture
+   - [ ] Define authentication API contracts
+   - [ ] Implement shell authentication functions
+   - [ ] Add shell authentication tests
+
+**Timeline**: Prepare patterns now, implement after Agent 1e created (Week 3-4)
+
+---
+
+## Next Steps for Core 1 Subcore (Parent Agent)
+
+### ⚠️ **URGENT ACTIONS NEEDED** (This Week)
+
+#### 1. Middleware Integration Coordination Facilitation — HIGH PRIORITY ⚠️
+
+**What Core 1 Subcore Needs to Do**:
+
+1. **Facilitate API Contract Design Session** (This Week):
+   - [ ] Coordinate meeting between Auth Agent (1a) and Network Agent (1b)
+   - [ ] Review middleware readiness response: `docs/agent-communications/core_1a_auth_middleware_readiness_response_2026-01-01-085326-pst.md`
+   - [ ] Facilitate agreement on middleware API contracts
+   - [ ] Confirm middleware execution patterns
+   - [ ] Confirm request context structure
+
+2. **Confirm Middleware Priority**:
+   - [ ] Confirm middleware integration is HIGH priority
+   - [ ] Confirm timeline (4 weeks: Week 1 API design, Weeks 2-3 implementation, Week 4 testing)
+   - [ ] Confirm execution order (JWT → CSRF → Rate Limit → RBAC → API Key)
+
+3. **Unblock Implementation**:
+   - [ ] After API contracts agreed, Auth Agent can begin implementation immediately
+   - [ ] Auth Agent has 100% bandwidth available for middleware work
+   - [ ] Network Agent (1b) availability confirmation needed
+
+**Timeline**: This week (API contract design), then 3 weeks for implementation
+
+---
+
+#### 2. Framework x86 Verification Coordination — HIGH PRIORITY
+
+**What Core 1 Subcore Needs to Do**:
+- [ ] Coordinate Framework x86_64 build verification for all Core 1 sub-agents
+- [ ] Verify auth service builds on Framework Ubuntu x86_64
+- [ ] Run all Core 1 sub-agent tests on Framework x86_64
+- [ ] Document any Framework-specific adaptations needed
+- [ ] Coordinate with Agent 3c (System Integration) for multi-architecture testing
+
+**Timeline**: This week
+
+---
+
+#### 3. Grainscript Shell Integration Planning — MEDIUM PRIORITY
+
+**What Core 1 Subcore Needs to Do**:
+- [ ] Coordinate Grainscript Shell (Agent 1e) creation with Vantage 3 Subcore (Agent 3)
+- [ ] Plan authentication integration between Auth Agent (1a) and Grainscript Shell (1e)
+- [ ] Plan cross-subcore coordination (Agent 1e ↔ Agent 3d sevenos Init System)
+- [ ] Define shell authentication requirements
+- [ ] Facilitate API contract design for shell authentication
+
+**Timeline**: Week 2-3 (after Agent 1e created)
+
+---
+
+### 📋 **RECOMMENDED COORDINATION ACTIONS**
+
+**For Core 1 Subcore** (Prioritized):
+
+1. **Middleware Integration** (HIGH PRIORITY — This Week):
+   - [ ] Facilitate Auth ↔ Network middleware API contract design session
+   - [ ] Review middleware readiness response document
+   - [ ] Confirm middleware execution patterns with Network Agent (1b)
+   - [ ] Unblock middleware implementation
+
+2. **Framework x86 Verification** (HIGH PRIORITY — This Week):
+   - [ ] Coordinate Framework x86_64 build verification
+   - [ ] Verify all Core 1 sub-agents build on Framework Ubuntu x86_64
+   - [ ] Coordinate multi-architecture testing with Agent 3c
+
+3. **Architecture Decisions** (MEDIUM PRIORITY — This Week or Next):
+   - [ ] Review Argon2 implementation request
+   - [ ] Make decision on full memory-hard Argon2 approval
+   - [ ] Confirm OAuth 2.0 priority
+
+4. **Storage Integration** (MEDIUM PRIORITY — Next 2 Weeks):
+   - [ ] Facilitate Auth ↔ Storage persistent storage API contract design
+   - [ ] Prioritize storage integration components (RBAC first recommended)
+
+5. **Grainscript Shell Integration** (MEDIUM PRIORITY — Week 2-3):
+   - [ ] Coordinate Agent 1e creation
+   - [ ] Plan authentication integration with Auth Agent (1a)
+   - [ ] Facilitate cross-subcore coordination (1e ↔ 3d)
 
 ---
 
@@ -480,9 +623,9 @@ Grain Auth Agent is responsible for implementing **authentication and authorizat
 
 ---
 
-**Date**: 2026-01-01-092150-pst  
+**Date**: 2026-01-01-224925-pst  
 **Agent**: Grain Auth Agent (1a)  
-**Status**: ✅ 6 PHASES COMPLETE (Phase 6.2 Audit Logging Complete) — Production-Ready System — Middleware Integration READY  
+**Status**: ✅ 6 PHASES COMPLETE (Phase 6.2 Audit Logging Complete) — Production-Ready System — Middleware Integration READY — Framework Ubuntu x86 Ready  
 **Parent Agent**: Grain Core 1 Subcore Agent (1st Agent, L1 Subcore)
 
 ---

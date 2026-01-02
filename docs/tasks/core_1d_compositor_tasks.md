@@ -1,9 +1,10 @@
 # Grain Compositor Agent (1d) Tasks
 
-**Date**: 2026-01-01-092230-pst  
+**Date**: 2026-01-01-211500-pst  
 **Agent**: Grain Compositor Agent (1d)  
 **Parent Agent**: Grain Core 1 Subcore Agent (L1 Subcore)  
-**Status**: Phases 1-6 Complete ✅, Phase 8 Preview Complete ✅, Phase 7 In Progress (90% complete)  
+**Status**: ✅ Framework Ubuntu x86 Ready — Phases 1-6 Complete, Phase 8 Preview Complete, Phase 7 In Progress (90% complete)  
+**Environment**: Framework 16 (x86_64 AMD, 64GB RAM), Ubuntu 24.04 LTS  
 **Timestamp Format**: YYYY-MM-DD-HHMMSS-pst (America/Los_Angeles timezone)
 
 ---
@@ -220,7 +221,10 @@
 
 ### Workspace Persistence Tasks
 
-- [⏳] **Coordinate with Storage Agent (1c) on API** - ⚠️ **AWAITING COORDINATION**
+- [🔄] **Initiate coordination with Storage Agent (1c) on API** - ⚠️ **IN PROGRESS**
+- [⏳] Define API contract for workspace state persistence
+- [⏳] Agree on data format (JSON, binary, or custom format) with Storage Agent
+- [⏳] Define storage location/path (e.g., `~/.grain/compositor/workspaces/`)
 - [⏳] Design workspace state format (pending Storage Agent coordination)
 - [⏳] Implement workspace state saving (pending Storage Agent API)
 - [⏳] Implement workspace state loading (pending Storage Agent API)
@@ -291,6 +295,46 @@
 
 ---
 
+## Phase 9: Grainscript Shell (1e) UI Integration ⏳
+
+### Shell UI Integration Tasks
+
+- [⏳] **Await Grainscript Shell Agent (1e) creation** - ⚠️ **AWAITING AGENT CREATION**
+- [⏳] Coordinate UI integration with Agent 1e
+- [⏳] Define compositor API for shell window creation
+- [⏳] Design terminal window management support
+- [⏳] Implement shell-specific window behaviors (resizing, scrolling, etc.)
+- [⏳] Integrate with compositor rendering pipeline
+- [⏳] Add window focus management for shell windows
+- [⏳] Add comprehensive tests for shell UI integration
+- [⏳] Integration testing with Grainscript Shell Agent (1e)
+
+---
+
+## Framework Ubuntu x86 Adaptation Tasks
+
+### Environment Verification
+
+- [✅] Verify Framework Ubuntu 24.04 LTS environment
+- [✅] Verify Zig 0.15.2 installation
+- [✅] Verify build system compatibility
+- [✅] Fix build system errors (duplicate `error_handling_tests` declaration)
+
+### Code Compatibility
+
+- [✅] Verify compositor code is architecture-agnostic
+- [✅] Verify no platform-specific code (RISC-V/ARM64/x86_64)
+- [✅] Verify build system uses standard target options
+- [✅] Verify Grain Style compliance (grain_case, explicit types, bounded allocations)
+
+### Status
+
+- [✅] Framework Ubuntu x86_64 compatibility verified
+- [✅] Ready for native x86_64 development
+- [✅] No adaptations needed
+
+---
+
 ## Testing Tasks
 
 ### Test Infrastructure
@@ -333,8 +377,9 @@
 
 ### External Dependencies
 
-- **Storage Agent (1c)**: Workspace state persistence API
-- **Core 1 Subcore**: Architecture decisions and coordination
+- **Storage Agent (1c)**: Workspace state persistence API (coordination in progress)
+- **Grainscript Shell Agent (1e)**: UI integration (awaiting agent creation)
+- **Core 1 Subcore**: Architecture decisions and coordination support
 
 ### Internal Dependencies
 
@@ -347,8 +392,8 @@
 
 ---
 
-**Last Updated**: 2026-01-01-092230-pst  
-**Status**: Phases 1-6 Complete ✅, Phase 8 Preview Complete ✅, Phase 7 In Progress (90% complete, persistence pending Storage Agent coordination)  
+**Last Updated**: 2026-01-01-211500-pst  
+**Status**: ✅ Framework Ubuntu x86 Ready — Phases 1-6 Complete, Phase 8 Preview Complete, Phase 7 In Progress (90% complete, persistence pending Storage Agent coordination)  
 **Timestamp Format**: YYYY-MM-DD-HHMMSS-pst (America/Los_Angeles timezone)
 
 **Completion Summary**:
@@ -358,5 +403,12 @@
 - ✅ Phase 4: Compositing Pipeline - Complete
 - ✅ Phase 5: Advanced Window Features - Complete (window rule application added)
 - ✅ Phase 6: Input Handling - Complete
-- ⏳ Phase 7: Workspace Management - In Progress (90% complete, persistence pending Storage Agent coordination)
+- ⏳ Phase 7: Workspace Management - In Progress (90% complete, persistence coordination in progress)
 - ✅ Phase 8 Preview: Desktop Environment Rendering Integration - Complete (notifications, lock screen, system tray rendering added)
+- ⏳ Phase 9: Grainscript Shell (1e) UI Integration - Awaiting Agent 1e creation
+
+**Framework Ubuntu x86 Status**:
+- ✅ Environment verified (Framework 16, Ubuntu 24.04 LTS, Zig 0.15.2)
+- ✅ Code compatibility verified (architecture-agnostic, no adaptations needed)
+- ✅ Build system verified (errors fixed)
+- ✅ Ready for native x86_64 development

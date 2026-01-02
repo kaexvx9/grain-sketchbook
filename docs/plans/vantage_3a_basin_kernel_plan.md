@@ -2,15 +2,15 @@
 
 **Agent**: Grain Basin Kernel Agent (3a)  
 **Parent Agent**: Grain Vantage 3 Subcore Agent (3rd Agent, L1 Subcore)  
-**Last Updated**: 2025-12-29-231000-pst  
-**Status**: ⏳ **PERFORMANCE DATA COLLECTION** — Profiler infrastructure complete, code review done, ready for data collection
+**Last Updated**: 2026-01-01-220000-pst  
+**Status**: ⏳ **FRAMEWORK X86_64 INTEGRATION** — Profiler infrastructure complete, ready for Framework x86_64 work
 
 ---
 
 ## Current Status
 
-**Phase**: ⏳ **PERFORMANCE DATA COLLECTION** — Profiler infrastructure complete, code review done, ready for data collection  
-**Focus**: Kernel Performance Optimization (HIGH priority) — Profiler ready, benchmark test created, code review complete, ready to collect data and identify optimization opportunities
+**Phase**: ⏳ **FRAMEWORK X86_64 INTEGRATION** — Profiler infrastructure complete, code review done, ready for Framework x86_64 integration work  
+**Focus**: Framework x86_64 Integration (HIGH priority) — Syscall interface documentation, profiler data collection, JIT compatibility verification, performance benchmarks
 
 ---
 
@@ -121,31 +121,78 @@
 
 ---
 
-## Current Work: Kernel Performance Optimization
+## Current Work: Framework x86_64 Integration
 
-### Priority Guidance Received (2025-12-29-214643-pst)
+### Priority Guidance Received (2026-01-01-210806-pst)
 
-**From Vantage 3 Subcore Coordination Plan**:
-- ✅ **Kernel Performance Optimization** (HIGH priority, RECOMMENDED) — **SELECTED**
+**From Core 1 Subcore Coordination Summary**:
+- ✅ **Framework x86_64 Integration** (HIGH priority) — **SELECTED**
+- Kernel Performance Optimization (HIGH priority, ongoing)
 - Kernel Security Hardening (MEDIUM priority)
 - Kernel Maintenance and Code Quality (ONGOING priority)
 - JG Project Kernel Support (AS NEEDED)
 
-### IMMEDIATE: Kernel Performance Optimization
+### IMMEDIATE: Framework x86_64 Integration
 
-**Status**: ⏳ **IN PROGRESS** — Beginning work on recommended high-priority task
+**Status**: ⏳ **IN PROGRESS** — Framework x86_64 integration work beginning
+
+**Work Plan** (from Core 1 Subcore, 2026-01-01-210806-pst):
+
+1. **Verify Basin Kernel Syscall Interface** (IMMEDIATE, HIGH priority):
+   - Verify syscall interface works correctly on Framework x86_64 host
+   - Test syscall routing and argument validation
+   - Verify syscall return value handling
+   - Document any Framework x86_64 specific considerations
+   - **Deliverable**: Syscall interface verification report
+
+2. **Document Syscall Interface** (HIGH priority):
+   - Document all 140 syscalls with signatures, arguments, return values
+   - Document syscall error codes and error handling
+   - Document syscall calling conventions (RISC-V ABI)
+   - Create syscall interface reference document
+   - Create JIT-specific interface guide (for Agent 3b)
+   - Create Init system interface guide (for Agent 3d)
+   - **Deliverables**: 
+     - `docs/kernel/syscall_interface_reference.md`
+     - `docs/kernel/syscall_interface_for_jit.md`
+     - `docs/kernel/syscall_interface_for_init.md`
+
+3. **Collect Profiler Data on Framework x86_64** (HIGH priority):
+   - Run profiler tests on Framework x86_64
+   - Run benchmark tests on Framework x86_64
+   - Enable profiler during typical kernel workloads
+   - Collect performance data for representative syscall patterns
+   - Use helper functions to identify hot paths and slow paths
+   - **Deliverable**: Performance benchmark results (Framework x86_64)
+
+4. **Verify Syscall Interface Compatibility with x86_64 JIT** (HIGH priority):
+   - Review x86_64 JIT syscall interface requirements (from Agent 3b)
+   - Verify syscall calling conventions are compatible with x86_64 JIT
+   - Document any compatibility considerations
+   - Test syscall interface with JIT-compiled code (when JIT is ready)
+   - **Deliverable**: Compatibility verification report
+
+5. **Run Performance Benchmarks on Framework x86_64** (MEDIUM priority):
+   - Run comprehensive syscall performance benchmarks
+   - Compare performance characteristics (if multi-arch data available)
+   - Document Framework x86_64 performance characteristics
+   - **Deliverable**: Framework x86_64 performance benchmark report
+
+### ONGOING: Kernel Performance Optimization
+
+**Status**: ⏳ **ONGOING** — Profiler infrastructure complete, ready for data collection
 
 **Work Plan** (from Vantage 3 Subcore, 2025-12-29-223949-pst):
-1. **Performance Data Collection** (HIGH priority, CURRENT):
+1. **Performance Data Collection** (HIGH priority, ONGOING):
    - ✅ Profiler infrastructure complete
    - ✅ Benchmark test created (`tests/144_syscall_performance_benchmark_test.zig`)
    - ✅ Helper functions for hot/slow path analysis added
    - ✅ Code review completed (hot path candidates reviewed)
-   - ⏳ **CURRENT**: Run tests to validate profiler functionality
-   - ⏳ **CURRENT**: Enable profiler in test scenarios
-   - ⏳ **CURRENT**: Run comprehensive syscall benchmarks
-   - ⏳ **CURRENT**: Collect performance data for all syscalls
-   - ⏳ **CURRENT**: Use helper functions to identify hot paths and slow paths
+   - ⏳ **ONGOING**: Run tests to validate profiler functionality
+   - ⏳ **ONGOING**: Enable profiler in test scenarios
+   - ⏳ **ONGOING**: Run comprehensive syscall benchmarks
+   - ⏳ **ONGOING**: Collect performance data for all syscalls
+   - ⏳ **ONGOING**: Use helper functions to identify hot paths and slow paths
 
 2. **Performance Analysis** (HIGH priority, after data collection):
    - Analyze profiler data to identify optimization opportunities
@@ -159,23 +206,6 @@
    - Improve syscall handler efficiency
    - Reduce syscall overhead
    - Benchmark performance improvements
-
-2. **Optimize Syscall Handlers** (NEXT):
-   - Optimize hot paths identified in profiling
-   - Reduce syscall overhead (argument validation, routing)
-   - Optimize common operations (file I/O, process management, network)
-
-3. **Improve Scheduler Efficiency** (NEXT):
-   - Review scheduler implementation (`scheduler.zig`)
-   - Analyze scheduler statistics (`scheduler_stats.zig`)
-   - Optimize context switching overhead
-   - Improve time slice management
-
-4. **Performance Benchmarking** (ONGOING):
-   - Create performance benchmarks for key syscalls
-   - Measure before/after optimization improvements
-   - Validate performance improvements with tests
-   - Document performance characteristics
 
 ---
 

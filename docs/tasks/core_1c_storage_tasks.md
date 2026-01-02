@@ -287,9 +287,12 @@ Phase 1 (Foundation) ✅
                 └── 5.4: Documentation ✅ (core complete)
                     │
                     └── Phase 6 (System Integration) ⏳
-                        ├── 6.1: Network Agent Integration ⏳ (needs Network Agent 1b)
-                        ├── 6.2: Auth Agent Integration ⏳ (needs Auth Agent 1a)
-                        └── 6.3: Production Deployment ⏳ (needs 6.1, 6.2)
+                        ├── 6.1: Network Agent Integration ⏳ (95% complete, needs Network Agent 1b testing)
+                        ├── 6.2: Framework x86 Adaptation ⏳ (NEW - this week)
+                        ├── 6.3: Compositor Agent Integration ⏳ (NEW - needs Compositor Agent 1d)
+                        ├── 6.4: Grainscript Shell Integration ⏳ (NEW - needs Grainscript Shell Agent 1e)
+                        ├── 6.5: Auth Agent Integration ⏳ (needs Auth Agent 1a)
+                        └── 6.6: Production Deployment ⏳ (needs 6.1, 6.2, 6.3, 6.4, 6.5)
 ```
 
 ---
@@ -324,6 +327,30 @@ Phase 1 (Foundation) ✅
   - [ ] Network Agent testing complete ⏳ IN PROGRESS
   - [ ] HTTP client methods implemented ⏳ (Network Agent)
   - [ ] Integration testing complete ⏳ (Network Agent)
+  - [ ] Complete remaining 5% integration work ⏳
+
+### With Compositor Agent (1d) - Through Core 1 Subcore (NEW)
+- **Frequency**: As-needed for Phase 7 workspace persistence
+- **Status**: ⏳ Pending (awaiting coordination)
+- **Tasks**:
+  - [ ] Review Compositor Phase 7 requirements ⏳
+  - [ ] Design workspace persistence API ⏳
+  - [ ] Design workspace state serialization format ⏳
+  - [ ] Define storage path/location ⏳
+  - [ ] Implement workspace persistence storage layer ⏳
+  - [ ] Coordinate API contracts ⏳
+  - [ ] Test workspace persistence integration ⏳
+
+### With Grainscript Shell Agent (1e) - Through Core 1 Subcore (NEW)
+- **Frequency**: As-needed for file operations integration
+- **Status**: ⏳ Pending (awaiting Agent 1e creation)
+- **Tasks**:
+  - [ ] Review Grainscript Shell architecture ⏳ (when available)
+  - [ ] Design file operations API for shell integration ⏳
+  - [ ] Design shell command integration ⏳
+  - [ ] Implement file operation APIs ⏳
+  - [ ] Coordinate API contracts ⏳
+  - [ ] Test shell file operations integration ⏳
 
 ### With Auth Agent (1a) - Through Core 1 Subcore
 - **Frequency**: As-needed for secure credential storage
@@ -352,7 +379,7 @@ Phase 1 (Foundation) ✅
 
 ---
 
-## Phase 6: System Integration (NEW)
+## Phase 6: System Integration (IN PROGRESS)
 
 ### Task 6.1: Network Agent (1b) Integration
 - **Status**: ✅ 95% Complete (HTTP server endpoints done, testing in progress)
@@ -374,8 +401,51 @@ Phase 1 (Foundation) ✅
   - [ ] Integrate content negotiation for Accept headers (Network Agent)
   - [ ] Test HTTP file upload/download end-to-end (Network Agent)
   - [ ] Write integration tests (Network Agent)
+  - [ ] Complete remaining 5% integration work - PENDING
 
-### Task 6.2: Auth Agent (1a) Integration
+### Task 6.2: Framework x86 Adaptation (NEW)
+- **Status**: ⏳ Pending
+- **Description**: Adapt Storage Agent for Framework Ubuntu x86_64 development
+- **Dependencies**: None
+- **Subtasks**:
+  - [ ] Verify Storage Agent code builds for x86_64 target
+  - [ ] Update test targets for multi-architecture testing (ARM64, x86_64 AMD, x86_64 Intel)
+  - [ ] Verify all tests pass on Framework x86_64
+  - [ ] Document Framework-specific considerations
+  - [ ] Update build system for x86_64 native compilation
+- **Grain Style**: All code must follow Grain Style strictly
+- **Timeline**: This week
+
+### Task 6.3: Compositor Agent (1d) Integration (NEW - Phase 7)
+- **Status**: ⏳ Pending
+- **Description**: Integrate workspace persistence with Compositor Agent for Phase 7
+- **Dependencies**: Task 6.2 (Framework x86), Compositor Agent coordination
+- **Subtasks**:
+  - [ ] Review Compositor Agent Phase 7 requirements
+  - [ ] Design workspace persistence API
+  - [ ] Design workspace state serialization format (coordinate with Compositor)
+  - [ ] Define storage path/location (e.g., `~/.grain/compositor/workspaces/`)
+  - [ ] Implement workspace persistence storage layer
+  - [ ] Coordinate API contracts with Compositor Agent
+  - [ ] Test workspace persistence integration
+- **Grain Style**: All code must follow Grain Style strictly
+- **Timeline**: Next 1-2 weeks (after Framework x86 verification)
+
+### Task 6.4: Grainscript Shell Agent (1e) Integration (NEW)
+- **Status**: ⏳ Pending
+- **Description**: Integrate file operations with Grainscript Shell Agent
+- **Dependencies**: Task 6.2 (Framework x86), Grainscript Shell Agent (1e) creation
+- **Subtasks**:
+  - [ ] Review Grainscript Shell architecture (when available from Agent 1e)
+  - [ ] Design file operations API for shell integration
+  - [ ] Design shell command integration (cd, ls, pwd, cat, etc.)
+  - [ ] Implement file operation APIs for shell commands
+  - [ ] Coordinate API contracts with Grainscript Shell Agent
+  - [ ] Test shell file operations integration
+- **Grain Style**: All code must follow Grain Style strictly
+- **Timeline**: Next 2-3 weeks (after Agent 1e is created and architecture is available)
+
+### Task 6.5: Auth Agent (1a) Integration
 - **Status**: 🔄 Design Phase (Storage Agent design complete, pending Auth Agent coordination)
 - **Description**: Integrate secure credential storage with Auth Agent
 - **Dependencies**: Task 4.1 (encryption_at_rest), Task 4.2 (access_control), Auth Agent coordination
@@ -394,7 +464,7 @@ Phase 1 (Foundation) ✅
   - [ ] Test secure credential storage end-to-end ⏳
   - [ ] Write integration tests ⏳
 
-### Task 6.3: Production Deployment Preparation
+### Task 6.6: Production Deployment Preparation
 - **Status**: ⏳ Pending
 - **Description**: Prepare for production deployment
 - **Dependencies**: Task 6.1, Task 6.2
@@ -407,8 +477,9 @@ Phase 1 (Foundation) ✅
 
 ---
 
-**Date**: 2026-01-01-090000-pst  
+**Date**: 2026-01-01-232104-pst  
 **Agent**: Grain Storage Agent (1c)  
-**Status**: Core Implementation Complete - Network Integration 95% Complete - Auth Integration Design Ready  
-**Last Updated**: 2026-01-01-090000-pst  
-**Next Update**: After Network Agent testing complete or Auth Agent coordination
+**Status**: Core Implementation Complete - Network Integration 95% Complete - Framework x86 Adaptation Pending  
+**Last Updated**: 2026-01-01-232104-pst  
+**Core 1 Subcore Unified Coordination Summary**: Received and acknowledged (2026-01-01-210806-pst)  
+**Next Update**: After Framework x86 verification, Network integration completion, Compositor coordination, or Grainscript Shell coordination

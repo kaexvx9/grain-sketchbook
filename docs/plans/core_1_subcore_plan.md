@@ -1,15 +1,15 @@
 # Grain Core 1 Subcore Agent: Implementation Plan
 
-**Agent**: Grain Core 1 Subcore Agent (1st Agent, L1 Subcore)  
-**Last Updated**: 2025-12-30-093745-pst  
-**Status**: 🆕 **ARCHITECTURE EVOLUTION COMPLETE** — Core 1 Subcore (L1 Subcore) with 4 L2 Sub-Agents
+**Agent**: Grain Core 1 Subcore Agent (1st Agent, L1 Subcore) — Carry 6  
+**Last Updated**: 2026-01-01-225036-pst  
+**Status**: 🆕 **ARCHITECTURE EVOLUTION COMPLETE** — Core 1 Subcore (L1 Subcore) with 5 L2 Sub-Agents (1a-1e) — Framework Ubuntu x86 Coordination Active
 
 ---
 
 ## Current Status
 
-**Phase**: 🆕 **ARCHITECTURE EVOLUTION COMPLETE** — L1 Subcore/L2 Sub-Agent Pattern Implemented  
-**Focus**: **COORDINATION & INTEGRATION** — Overall Core system services architecture coordination, integration testing, cross-sub-agent decision making, coordination with other full agents
+**Phase**: 🆕 **ARCHITECTURE EVOLUTION COMPLETE** — L1 Subcore/L2 Sub-Agent Pattern Implemented (5 L2 Sub-Agents: 1a-1e)  
+**Focus**: **FRAMEWORK UBUNTU X86 COORDINATION & INTEGRATION** — Overall Core system services architecture coordination, Framework x86 adaptation, integration testing, cross-sub-agent decision making, cross-subcore coordination with Vantage 3 Subcore
 
 ---
 
@@ -361,6 +361,15 @@
 **Responsibilities**: Window management, compositing, input handling, workspace management, desktop shell  
 **Coordination**: Weekly/bi-weekly check-ins with Core 1 Subcore, coordinate with Storage Agent (1c) on workspace state persistence
 
+### 1e. Grainscript Shell Agent (L2) — NEW
+
+**Status**: 🆕 **IMPLEMENTATION IN PROGRESS** — Core structure complete, API compatibility in progress  
+**Responsibilities**: First shell for Grain OS sevenos, command parsing and execution, script execution support  
+**Coordination**: Weekly/bi-weekly check-ins with Core 1 Subcore, coordinate with sevenos Init System (3d) on shell integration, coordinate with Core services (1a-1d) on service integration  
+**Location**: `grainstore/sevenos/src/shell/`  
+**Current Blocker**: Zig 0.15.2 API compatibility (stdio/file I/O)  
+**Next Steps**: Fix API compatibility, complete basic shell functionality, add Grainscript script execution, integrate with Core services
+
 ---
 
 ## Success Criteria
@@ -426,7 +435,56 @@
 
 ---
 
-**Date**: 2025-12-30-093745-pst  
-**Agent**: Grain Core 1 Subcore Agent (1st Agent, L1 Subcore)  
-**Status**: Architecture Evolution Complete — Coordination & Integration Focus  
-**Next Update**: After Phase 2 progress
+**Date**: 2026-01-01-225036-pst  
+**Agent**: Grain Core 1 Subcore Agent (1st Agent, L1 Subcore) — Carry 6  
+**Status**: Architecture Evolution Complete — Framework Ubuntu x86 Coordination & Integration Focus  
+**Next Update**: After Framework x86 coordination progress
+
+**Latest Coordination Document**: `docs/core-coordination/core_1_subcore_system_integration_coordination_2026-01-01-225036-pst.md`
+
+---
+
+## Coordination with Grain Core Agent (Parent)
+
+### Integration Points
+
+**Core 1 Subcore ↔ Grain Core Agent**:
+
+1. **API Server** (Grain Core Agent → Core 1 Subcore Network Agent):
+   - Core 1 Subcore Network Agent uses Grain Core Agent API Server for HTTP/REST endpoints
+   - Coordination: Define route registration interface, request/response handling
+   - Status: 🆕 Ready to coordinate
+
+2. **Auth Service** (Grain Core Agent → Core 1 Subcore Auth Agent):
+   - Core 1 Subcore Auth Agent uses Grain Core Agent Auth Service for JWT, OAuth, 2FA
+   - Coordination: Define authentication interface, token management, session handling
+   - Status: 🆕 Ready to coordinate
+
+3. **Network Stack** (Grain Core Agent → Core 1 Subcore Network Agent):
+   - Core 1 Subcore Network Agent uses Grain Core Agent Network Stack for TCP/UDP, WebSocket, DNS
+   - Coordination: Define network interface, socket management, connection handling
+   - Status: 🆕 Ready to coordinate
+
+4. **File Storage** (Grain Core Agent → Core 1 Subcore Storage Agent):
+   - Core 1 Subcore Storage Agent uses Grain Core Agent File Storage for database files, WAL, indexes
+   - Coordination: Define file storage interface, database file format, backup/restore
+   - Status: 🆕 Ready to coordinate
+
+### Next Steps for Grain Core Agent
+
+**Immediate (This Week)**:
+1. Coordinate with Core 1 Subcore on API contracts (API Server, Auth Service, Network Stack, File Storage)
+2. Coordinate on integration testing infrastructure
+3. Document API contracts in API contracts registry
+
+**Short-Term (Next 2 Weeks)**:
+1. Complete API contract documentation
+2. Create integration test framework (if not exists)
+3. Create Core Agent → Core 1 Subcore integration tests
+
+**Medium-Term (Next Month)**:
+1. Complete integration testing
+2. System-wide architecture coordination
+3. Roadmap coordination
+
+See `docs/core-coordination/core_1_subcore_system_integration_coordination_2026-01-01-225036-pst.md` for detailed coordination plan with System Integration (3c) and Framework Ubuntu x86 priorities.

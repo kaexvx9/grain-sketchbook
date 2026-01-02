@@ -2,16 +2,16 @@
 
 **Agent**: Grain Basin Kernel Agent (3a)  
 **Parent Agent**: Grain Vantage 3 Subcore Agent (3rd Agent, L1 Subcore)  
-**Status**: ⏳ **PERFORMANCE DATA COLLECTION** — Profiler infrastructure complete, benchmark test created, ready for data collection  
-**Last Updated**: 2025-12-29-225000-pst
+**Status**: ⏳ **FRAMEWORK X86_64 INTEGRATION** — Profiler infrastructure complete, ready for Framework x86_64 work  
+**Last Updated**: 2026-01-01-220000-pst
 
 ---
 
-## Current Work: Kernel Performance Optimization
+## Current Work: Framework x86_64 Integration
 
-**Status**: ⏳ **PERFORMANCE DATA COLLECTION** — Profiler infrastructure complete, code review done, ready for data collection  
-**Date**: 2025-12-29-231000-pst  
-**Priority**: HIGH — Kernel Performance Optimization (from Vantage 3 Subcore, 2025-12-29-223949-pst)
+**Status**: ⏳ **FRAMEWORK X86_64 INTEGRATION** — Profiler infrastructure complete, ready for Framework x86_64 integration work  
+**Date**: 2026-01-01-220000-pst  
+**Priority**: HIGH — Framework x86_64 Integration (from Core 1 Subcore, 2026-01-01-210806-pst)
 
 ---
 
@@ -59,7 +59,24 @@
 - [x] Profiler infrastructure complete and ready for use
 - [x] Acknowledged Vantage 3 Subcore coordination (2025-12-29-223949-pst)
 
-#### Phase 2: Performance Data Collection (CURRENT ⏳)
+#### Phase 2: Framework x86_64 Integration (CURRENT ⏳)
+- [ ] Verify Basin Kernel syscall interface works correctly on Framework x86_64 host
+- [ ] Test syscall routing and argument validation on Framework x86_64
+- [ ] Verify syscall return value handling on Framework x86_64
+- [ ] Document any Framework x86_64 specific considerations
+- [ ] Document all 140 syscalls with signatures, arguments, return values
+- [ ] Document syscall error codes and error handling
+- [ ] Document syscall calling conventions (RISC-V ABI)
+- [ ] Create syscall interface reference document (`docs/kernel/syscall_interface_reference.md`)
+- [ ] Create JIT-specific interface guide (`docs/kernel/syscall_interface_for_jit.md`)
+- [ ] Create Init system interface guide (`docs/kernel/syscall_interface_for_init.md`)
+- [ ] Coordinate with Agent 3b (VM Runtime) for JIT requirements
+- [ ] Coordinate with Agent 3d (sevenos Init System) for init requirements
+- [ ] Review x86_64 JIT syscall interface requirements
+- [ ] Verify syscall calling conventions are compatible with x86_64 JIT
+- [ ] Document compatibility considerations
+
+#### Phase 3: Performance Data Collection (ONGOING ⏳)
 - [x] Created performance benchmark test (`tests/144_syscall_performance_benchmark_test.zig`)
 - [x] Added helper functions for hot/slow path analysis (`find_profiler_hot_path`, `find_profiler_slow_path`)
 - [x] Updated usage documentation with analysis examples
@@ -67,20 +84,20 @@
 - [x] Completed code review - hot path candidates reviewed (yield, read/write)
 - [x] Identified that yield syscall is already optimal (no-op)
 - [x] Documented optimization opportunities for future work
-- [ ] Run tests to validate profiler functionality
-- [ ] Enable profiler in test scenarios
-- [ ] Run comprehensive syscall benchmarks
-- [ ] Collect performance data for all syscalls
+- [ ] Run tests to validate profiler functionality on Framework x86_64
+- [ ] Enable profiler in test scenarios on Framework x86_64
+- [ ] Run comprehensive syscall benchmarks on Framework x86_64
+- [ ] Collect performance data for all syscalls on Framework x86_64
 - [ ] Use helper functions to identify hot paths and slow paths
 - [ ] Analyze profiling data to identify optimization opportunities
 
-#### Phase 3: Performance Analysis (NEXT)
+#### Phase 4: Performance Analysis (NEXT)
 - [ ] Analyze profiler data to identify optimization opportunities
 - [ ] Profile individual syscall handlers for bottlenecks
 - [ ] Identify common syscall patterns
 - [ ] Document performance characteristics
 
-#### Phase 4: Performance Optimization (NEXT)
+#### Phase 5: Performance Optimization (NEXT)
 - [ ] Optimize hot path syscalls (reduce overhead)
 - [ ] Optimize slow path syscalls (improve algorithms)
 - [ ] Improve syscall handler efficiency
@@ -241,7 +258,7 @@ Once priorities are set, task dependencies will be:
 
 ## Summary
 
-**Status**: ⏳ **PERFORMANCE DATA COLLECTION** — Profiler infrastructure complete, benchmark test created, ready for data collection
+**Status**: ⏳ **FRAMEWORK X86_64 INTEGRATION** — Profiler infrastructure complete, ready for Framework x86_64 work
 
 **Completed**:
 - ✅ All initialization tasks complete
@@ -249,7 +266,9 @@ Once priorities are set, task dependencies will be:
 - ✅ Coordination documents reviewed
 - ✅ Plan and tasks files prepared
 - ✅ Priority guidance received from Vantage 3 Subcore (2025-12-29-214643-pst)
+- ✅ Priority guidance received from Core 1 Subcore (2026-01-01-210806-pst)
 - ✅ **Profiler infrastructure complete** — Ready for use
+- ✅ **Framework x86_64 environment verified** — x86_64 AMD, Ubuntu 24.04 LTS, Zig 0.15.2
 
 **Current Work**:
 - ✅ **Phase 1: Syscall Performance Profiling** (INFRASTRUCTURE COMPLETE):
@@ -261,21 +280,26 @@ Once priorities are set, task dependencies will be:
   - Helper functions for hot/slow path analysis
   - Code review completed
   - Ready for data collection
-- ⏳ **Phase 2: Performance Data Collection** (CURRENT):
+- ⏳ **Phase 2: Framework x86_64 Integration** (CURRENT):
+  - Verify syscall interface on Framework x86_64
+  - Document syscall interface for Agents 3b and 3d
+  - Verify JIT compatibility
+  - Coordinate with Agents 3b, 3c, 3d
+- ⏳ **Phase 3: Performance Data Collection** (ONGOING):
   - Infrastructure complete, benchmark test created, code review done
-  - Ready to run tests, enable profiling, collect data
+  - Ready to run tests on Framework x86_64, enable profiling, collect data
   - Ready to use helper functions to identify hot paths and slow paths
 - ⏳ **NEXT**: Analyze profiling data, identify optimization opportunities, implement optimizations
 
-**Blockers**: **MINOR** — Compilation errors in other parts of codebase (not kernel-related) prevent full test suite execution. Profiler infrastructure is complete and ready; tests can be run once compilation issues are resolved.
+**Blockers**: **MINOR** — Awaiting coordination with Agents 3b, 3c, 3d for requirements clarification. Ready to proceed with Framework x86_64 work once coordination is established.
 
-**Next Action**: Vantage 3 Subcore guidance received (2025-12-29-223949-pst). Profiler infrastructure complete, code review done, ready to proceed with performance data collection. Will report findings and optimization recommendations after data collection.
+**Next Action**: Core 1 Subcore guidance received (2026-01-01-210806-pst). Framework x86_64 integration work beginning. Will coordinate with Vantage 3 Subcore and other agents for requirements clarification.
 
 ---
 
 **Note**: This is a detailed task list for the Grain Basin Kernel Agent. For high-level overview and cross-agent coordination, see `docs/tasks.md`.
 
-**Date**: 2025-12-29-231000-pst  
+**Date**: 2026-01-01-220000-pst  
 **Agent**: Grain Basin Kernel Agent (3a)  
 **Parent Agent**: Grain Vantage 3 Subcore Agent (3rd Agent, L1 Subcore)  
-**Status**: ⏳ **PERFORMANCE DATA COLLECTION** — Profiler infrastructure complete, code review done, ready for data collection
+**Status**: ⏳ **FRAMEWORK X86_64 INTEGRATION** — Profiler infrastructure complete, ready for Framework x86_64 work

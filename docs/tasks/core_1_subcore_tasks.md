@@ -36,16 +36,26 @@
 ## Current Work: Phase 2 - Integration Testing and Validation
 
 **Priority**: **HIGH** — Ensure cross-sub-agent integration works correctly  
-**Status**: 🆕 **READY TO BEGIN**  
+**Status**: 🆕 **READY TO BEGIN** — Includes sevenos integration  
 **Duration**: Ongoing
 
 ### Tasks
 
+**Core Services Integration**:
 - [ ] Create integration test framework
 - [ ] Test Auth + Network integration (authentication middleware)
 - [ ] Test Network + Storage integration (file upload/download)
 - [ ] Test Storage + Auth integration (secure credential storage)
 - [ ] Test Compositor + Storage integration (workspace state persistence)
+
+**sevenos Integration** (NEW):
+- [ ] Test init system → Core service startup sequence
+- [ ] Test shell → Core service command execution
+- [ ] Test service dependency management (Auth → Network → Storage)
+- [ ] Test service lifecycle (start, stop, restart, status)
+- [ ] Test shell → Core service API contracts
+
+**General Integration**:
 - [ ] Create end-to-end system tests
 - [ ] Profile cross-sub-agent operations
 - [ ] Identify performance bottlenecks
@@ -217,15 +227,38 @@
 **Tasks**: See `docs/tasks/core_1d_compositor_tasks.md`  
 **Coordination**: Weekly/bi-weekly check-ins, coordinate on workspace state persistence with Storage Agent (1c)
 
+### 1e. Grainscript Shell Agent (L2) — NEW
+
+**Status**: 🆕 **IMPLEMENTATION IN PROGRESS** — Core structure complete, API compatibility in progress  
+**Tasks**: 
+- [x] Create shell directory structure
+- [x] Implement command parser
+- [x] Implement command executor
+- [x] Implement built-in commands (cd, ls, pwd, echo, exit)
+- [x] Implement main shell loop
+- [x] Update build.zig
+- [ ] Fix Zig 0.15.2 API compatibility (stdio, file I/O) — **IN PROGRESS**
+- [ ] Test basic shell functionality
+- [ ] Add Grainscript script execution support
+- [ ] Integrate with Core services (1a-1d)
+
+**Coordination**: Weekly/bi-weekly check-ins, coordinate with sevenos Init System (3d) on shell integration, coordinate with Core services (1a-1d) on service integration  
+**Location**: `grainstore/sevenos/src/shell/`  
+**Current Blocker**: Zig 0.15.2 API compatibility  
+**Next Steps**: See `docs/core-coordination/core_1_subcore_system_integration_2026-01-01-224946-pst.md`
+
 ---
 
 ## Critical Path Tasks
 
 ### Immediate (This Week)
 
-1. **Core 1 Subcore**: Begin Phase 2 integration testing framework — **PRIORITY 1**
-2. **Core 1 Subcore**: Begin Phase 3 architecture documentation — **PRIORITY 2**
-3. **L2 Sub-Agents**: All sub-agents begin domain-specific implementation — **PRIORITY 1**
+1. **Core 1 Subcore**: Begin sevenos integration planning (Phase 1) — **PRIORITY 1**
+2. **Core 1 Subcore**: Coordinate with sevenos Init System (3d) and Grainscript Shell (1e) — **PRIORITY 1**
+3. **Grainscript Shell (1e)**: Fix Zig 0.15.2 API compatibility — **PRIORITY 1**
+4. **Core 1 Subcore**: Begin Phase 2 integration testing framework — **PRIORITY 2**
+5. **Core 1 Subcore**: Begin Phase 3 architecture documentation — **PRIORITY 2**
+6. **L2 Sub-Agents (1a-1d)**: All sub-agents begin domain-specific implementation — **PRIORITY 2**
 
 ### Short-Term (Next 2 Weeks)
 
@@ -275,6 +308,34 @@
 
 ---
 
+## Current Work: Framework Ubuntu x86 Coordination (HIGH PRIORITY)
+
+**Priority**: **HIGH** — Framework Ubuntu x86 development with Grain OS sevenos  
+**Status**: 🆕 **IN PROGRESS**  
+**Duration**: Ongoing
+
+### Tasks
+
+- [ ] Coordinate L2 sub-agent Framework x86 adaptation
+- [ ] Set up cross-subcore coordination with Vantage 3 Subcore
+- [ ] Plan integration with sevenos Init System (3d)
+- [ ] Plan integration with Grainscript Shell (1e)
+- [ ] Coordinate with System Integration (3c) on multi-architecture testing
+- [ ] Plan Framework x86_64 integration testing
+- [ ] Set up weekly/bi-weekly check-ins with L2 sub-agents
+- [ ] Review Framework x86 requirements for each L2 sub-agent
+- [ ] Create Framework x86 adaptation plan
+- [ ] Document cross-subcore integration architecture
+
+### Dependencies
+
+- **Needs**: Vantage 3 Subcore coordination, System Integration (3c) coordination
+- **Provides**: Framework x86 coordination, integration planning, cross-subcore coordination
+
+**See**: `docs/core-coordination/core_1_subcore_system_integration_coordination_2026-01-01-225036-pst.md` for detailed next steps
+
+---
+
 ## Notes
 
 - All tasks must follow Grain Style strictly
@@ -286,7 +347,9 @@
 
 ---
 
-**Date**: 2025-12-30-093745-pst  
-**Agent**: Grain Core 1 Subcore Agent (1st Agent, L1 Subcore)  
-**Status**: Architecture Evolution Complete — Coordination & Integration Focus  
-**Next Update**: After Phase 2 progress
+**Date**: 2026-01-01-225036-pst  
+**Agent**: Grain Core 1 Subcore Agent (1st Agent, L1 Subcore) — Carry 6  
+**Status**: Architecture Evolution Complete — Framework Ubuntu x86 Coordination & Integration Focus  
+**Next Update**: After Framework x86 coordination progress
+
+**Latest Coordination Document**: `docs/core-coordination/core_1_subcore_system_integration_coordination_2026-01-01-225036-pst.md`

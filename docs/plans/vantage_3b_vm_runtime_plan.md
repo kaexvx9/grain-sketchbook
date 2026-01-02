@@ -2,8 +2,8 @@
 
 **Agent**: Grain VM Runtime Agent (3b)  
 **Parent Agent**: Grain Vantage 3 Subcore Agent (3rd Agent, L1 Subcore)  
-**Last Updated**: 2026-01-01-092227-pst  
-**Status**: ⚠️ **PHASE 2 NEAR COMPLETE** — Minor Adjustments Needed (1-5 Lines Over Limit)  
+**Last Updated**: 2026-01-01-230000-pst  
+**Status**: ⚠️ **PHASE 2 NEAR COMPLETE** — Minor Adjustments Needed (1-5 Lines Over Limit) — Framework Ubuntu x86 Priorities Received  
 **Coordination Plan**: `docs/agent-communications/vantage_3_subcore_coordination_plan_2025-12-29-223949-pst.md`  
 **Coordination Summary**: `docs/agent-communications/vantage_3_subcore_coordination_summary_2025-12-29-223949-pst.md`
 
@@ -16,10 +16,13 @@ Grain VM Runtime Agent is responsible for developing and maintaining the **Vanta
 **Key Goals**:
 - Maintain and improve RISC-V emulator core
 - Optimize JIT compilation (RISC-V → ARM64 translation)
+- **NEW**: Implement RISC-V → x86_64 JIT compilation (Framework Ubuntu x86)
 - Ensure macOS Tahoe compatibility
+- **NEW**: Ensure Framework Ubuntu x86_64 compatibility
 - Improve VM performance and stability
 - Provide comprehensive testing and validation
 - Document VM APIs and interfaces
+- **NEW**: Support Grain OS sevenos VM Runtime requirements
 
 **Critical Principle**: Vantage VM is a **development tool** that runs on ARM64 macOS. It is NOT part of Grain OS. All Grain OS software (including Basin kernel) targets RISC-V only. The VM enables development/testing of RISC-V software on Apple Silicon.
 
@@ -230,27 +233,34 @@ Grain VM Runtime Agent is responsible for developing and maintaining the **Vanta
 
 ### Phase 3: JIT Compilation Optimization
 
-**Status**: 📋 **PLANNED**  
+**Status**: 📋 **PLANNED** — Ready after Phase 2 completion  
 **Priority**: MEDIUM  
-**Estimated Time**: 2-3 weeks
+**Estimated Time**: 2-4 weeks
 
 **Goals**:
-- Improve JIT compilation performance
+- Improve JIT compilation performance (RISC-V → ARM64)
+- **NEW**: Implement RISC-V → x86_64 JIT compilation (Framework Ubuntu x86)
 - Optimize hot path detection
 - Reduce JIT compilation overhead
 - Improve code generation quality
 - Benchmark JIT vs interpreter performance
+- **NEW**: Test JIT across architectures (ARM64, x86_64 AMD, x86_64 Intel)
 
 **Tasks**:
 - Analyze current JIT implementation (`jit.zig`)
 - Profile JIT compilation overhead
 - Optimize hot path detection algorithm
 - Improve code generation for common instruction patterns
+- **NEW**: Create x86_64 JIT backend (`src/kernel_vm/jit_x86_64.zig`)
+- **NEW**: Implement RISC-V → x86_64 instruction translation
+- **NEW**: Support x86_64 AMD (Framework 16) and x86_64 Intel (legacy hardware)
+- **NEW**: Implement architecture detection and selection
 - Add JIT-specific benchmarks
 - Measure performance improvements
 - Coordinate with Vantage 3 Subcore on performance goals
+- **NEW**: Coordinate with System Integration Agent (3c) for multi-architecture testing
 
-**Dependencies**: Phase 1 (Codebase Review)
+**Dependencies**: Phase 1 (Codebase Review), Phase 2 (VM Maintenance)
 
 ---
 
@@ -329,6 +339,61 @@ Grain VM Runtime Agent is responsible for developing and maintaining the **Vanta
 
 ---
 
+## New Priorities: Framework Ubuntu x86 and Grain OS sevenos
+
+### Priority: RISC-V → x86_64 JIT Compilation
+
+**Status**: 🆕 **NEW PRIORITY** — Framework Ubuntu x86 development (2026-01-01-210806-pst)  
+**Priority**: HIGH (after Phase 3 or in parallel if prioritized)  
+**Estimated Time**: 4-6 weeks
+
+**Context**: Core 1 Subcore coordination summary received — Framework Ubuntu x86 priorities include:
+- RISC-V → x86_64 JIT compilation for Vantage VM
+- Support for Framework 16 AMD hardware (x86_64 AMD)
+- Support for legacy Intel x86_64 hardware (existing first-responder systems)
+- Critical for Dispatch software deployment
+
+**Implementation Plan**:
+1. Create x86_64 JIT backend (`src/kernel_vm/jit_x86_64.zig`)
+2. Implement RISC-V → x86_64 instruction translation
+3. Support x86_64 AMD (Framework 16) and x86_64 Intel (legacy hardware)
+4. Implement architecture detection and selection
+5. Coordinate with System Integration Agent (3c) for multi-architecture testing
+6. Document x86_64 JIT backend architecture and performance characteristics
+
+**Timeline**: After Phase 3 completion, or in parallel if prioritized by Vantage 3 Subcore
+
+**Coordination**: Coordinate with System Integration Agent (3c) for multi-architecture testing framework
+
+---
+
+### Priority: Grain OS sevenos VM Runtime Support
+
+**Status**: 🆕 **NEW PRIORITY** — Grain OS sevenos development (2026-01-01-210806-pst)  
+**Priority**: ONGOING (as sevenos development progresses)  
+**Estimated Time**: Ongoing support
+
+**Context**: Core 1 Subcore coordination summary received — Grain OS sevenos development includes:
+- Agent 3d (sevenos Init System) added as L2 sub-agent
+- Goal: First Grainscript shell running on Grain OS sevenos
+- Framework Ubuntu x86 development priorities
+
+**VM Runtime Support Requirements**:
+1. Ensure VM Runtime supports sevenos init system execution
+2. Test init system startup sequence in VM
+3. Validate service supervision system in VM environment
+4. Ensure VM Runtime supports Grainscript shell execution
+5. Test shell interactive features in VM
+6. Ensure VM Runtime works on Framework Ubuntu x86_64
+7. Coordinate with Agent 3d (sevenos Init System) for integration
+8. Coordinate with Agent 1e (Grainscript Shell) for integration (cross-subcore)
+
+**Timeline**: Ongoing support (as sevenos development progresses)
+
+**Coordination**: Coordinate with Agent 3d (sevenos Init System) and Agent 1e (Grainscript Shell) via Core 1 Subcore
+
+---
+
 ## Future Enhancements (As Needed)
 
 **Potential Future Work**:
@@ -399,18 +464,28 @@ Grain VM Runtime Agent is responsible for developing and maintaining the **Vanta
 - ✅ Phase 2 major progress (function length 100%, line length major progress)
 - ✅ 150+ violations fixed across all VM modules
 
-**Next Steps** (pending Vantage 3 Subcore direction):
-1. ⏳ Coordinate with Vantage 3 Subcore on next steps (Phase 2 refinements vs Phase 3)
-2. Option A: Continue Phase 2 refinements (fix remaining 30 violations)
-3. Option B: Proceed to Phase 3 (JIT Optimization) — **RECOMMENDED**
-4. Option C: Other priorities as directed
+**Next Steps**:
+1. **IMMEDIATE**: Complete Phase 2 function length compliance (30-60 minutes)
+   - Make minor adjustments to `vm.zig::step()` (reduce by 1 line)
+   - Make minor adjustments to `jit.zig::compile_block()` (reduce by 5 lines)
+   - Achieve 100% Phase 2 compliance
+2. **SHORT-TERM**: Phase 3 - JIT Compilation Optimization (2-4 weeks)
+   - Optimize RISC-V → ARM64 translation (current)
+   - **NEW**: Implement RISC-V → x86_64 translation (Framework Ubuntu x86)
+3. **NEW PRIORITY**: RISC-V → x86_64 JIT compilation (4-6 weeks, after Phase 3 or in parallel)
+   - Create x86_64 JIT backend
+   - Support Framework 16 AMD and legacy Intel x86_64 hardware
+4. **NEW PRIORITY**: Grain OS sevenos VM Runtime support (ongoing)
+   - Support sevenos init system execution
+   - Support Grainscript shell execution
+   - Ensure Framework Ubuntu x86_64 compatibility
 5. ⏳ Continue Phase 6: VM Testing and Validation (ongoing)
 
-**Blockers**: **NONE** — Phase 2 major progress achieved, ready for next phase direction.
+**Blockers**: **NONE** — Phase 2 near complete, ready for Phase 3 and new priorities.
 
 ---
 
-**Date**: 2025-12-31-031255-pst  
+**Date**: 2026-01-01-230000-pst  
 **Agent**: Grain VM Runtime Agent (3b)  
 **Parent Agent**: Grain Vantage 3 Subcore Agent (3rd Agent, L1 Subcore)  
-**Status**: ✅ **PHASE 2 MAJOR PROGRESS** — Grain Style Compliance (150+ Violations Fixed)
+**Status**: ⚠️ **PHASE 2 NEAR COMPLETE** — Minor Adjustments Needed (1-5 Lines Over Limit) — Framework Ubuntu x86 Priorities Received

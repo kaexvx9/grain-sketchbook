@@ -226,11 +226,14 @@ This plan outlines the implementation strategy for the Grain Storage Agent, cove
 
 ### Phase 6: System Integration (IN PROGRESS)
 
-**Status**: 🔄 95% Complete (Network Agent) | 🔄 Design Phase (Auth Agent)  
-**Duration**: 2-4 weeks (in progress)
+**Status**: 🔄 95% Complete (Network Agent) | 🔄 Design Phase (Auth Agent) | ⏳ Pending (Compositor, Grainscript Shell)  
+**Duration**: 4-6 weeks (in progress)
 
 **Objectives**:
-- Integrate with Network Agent (1b) for HTTP file transfer
+- Complete Network Agent (1b) integration (95% → 100%)
+- Framework x86 adaptation
+- Integrate with Compositor Agent (1d) for Phase 7 workspace persistence
+- Integrate with Grainscript Shell Agent (1e) for file operations
 - Integrate with Auth Agent (1a) for secure credential storage
 - Complete production deployment preparation
 
@@ -247,8 +250,33 @@ This plan outlines the implementation strategy for the Grain Storage Agent, cove
    - ⏳ Network Agent testing - IN PROGRESS
    - ⏳ HTTP client methods (`HttpClient.upload_file()`, `HttpClient.download_file()`) - PENDING (Network Agent)
    - ⏳ Test HTTP file upload/download end-to-end - PENDING (Network Agent)
+   - ⏳ Complete remaining 5% integration work - PENDING
 
-2. **Auth Agent (1a) Integration** (Design Phase):
+2. **Framework x86 Adaptation** (NEW - Priority):
+   - ⏳ Verify Storage Agent code builds for x86_64 target - PENDING
+   - ⏳ Update test targets for multi-architecture testing - PENDING
+   - ⏳ Verify all tests pass on Framework x86_64 - PENDING
+   - ⏳ Document Framework-specific considerations - PENDING
+   - ⏳ Update build system for x86_64 native compilation - PENDING
+
+3. **Compositor Agent (1d) Integration** (NEW - Phase 7):
+   - ⏳ Review Compositor Agent Phase 7 requirements - PENDING
+   - ⏳ Design workspace persistence API - PENDING
+   - ⏳ Design workspace state serialization format - PENDING
+   - ⏳ Define storage path/location - PENDING
+   - ⏳ Implement workspace persistence storage layer - PENDING
+   - ⏳ Coordinate API contracts with Compositor Agent - PENDING
+   - ⏳ Test workspace persistence integration - PENDING
+
+4. **Grainscript Shell Agent (1e) Integration** (NEW - File Operations):
+   - ⏳ Review Grainscript Shell architecture (when available) - PENDING
+   - ⏳ Design file operations API for shell integration - PENDING
+   - ⏳ Design shell command integration - PENDING
+   - ⏳ Implement file operation APIs for shell commands - PENDING
+   - ⏳ Coordinate API contracts with Grainscript Shell Agent - PENDING
+   - ⏳ Test shell file operations integration - PENDING
+
+5. **Auth Agent (1a) Integration** (Design Phase):
    - ✅ Design secure credential storage integration - COMPLETE
    - ✅ Design user/group context API integration - COMPLETE
    - ✅ Design key management API integration - COMPLETE
@@ -260,7 +288,7 @@ This plan outlines the implementation strategy for the Grain Storage Agent, cove
    - ⏳ Integrate user/group context with file operations - PENDING
    - ⏳ Test secure credential storage end-to-end - PENDING
 
-3. **Production Deployment Preparation** (Pending):
+6. **Production Deployment Preparation** (Pending):
    - ⏳ Complete production testing - PENDING
    - ⏳ Review production readiness checklist - PENDING
    - ⏳ Obtain Core 1 Subcore approval - PENDING
@@ -268,6 +296,9 @@ This plan outlines the implementation strategy for the Grain Storage Agent, cove
 
 **Deliverables**:
 - ✅ Network Agent integration 95% complete (Storage Agent side: 100%)
+- ⏳ Framework x86 adaptation complete (pending verification)
+- ⏳ Compositor Agent Phase 7 integration complete (pending coordination)
+- ⏳ Grainscript Shell file operations integration complete (pending Agent 1e creation)
 - 🔄 Auth Agent integration design complete (coordination pending)
 - ⏳ Production deployment approved (pending integrations)
 - ⏳ All integration tests passing (pending Network Agent testing)
@@ -364,7 +395,10 @@ This plan outlines the implementation strategy for the Grain Storage Agent, cove
 - ✅ Core documentation is complete
 
 ### Phase 6 (System Integration) ⏳
-- ⏳ Network Agent integration complete
+- ⏳ Network Agent integration complete (95% → 100%)
+- ⏳ Framework x86 adaptation complete
+- ⏳ Compositor Agent Phase 7 integration complete
+- ⏳ Grainscript Shell file operations integration complete
 - ⏳ Auth Agent integration complete
 - ⏳ All external integration tests pass
 - ⏳ Production deployment approved
@@ -383,12 +417,15 @@ This plan outlines the implementation strategy for the Grain Storage Agent, cove
 
 ### Pending ⏳
 
-- **Phase 6**: System Integration (2-4 weeks) - ⏳ PENDING
-  - Network Agent (1b) integration
+- **Phase 6**: System Integration (4-6 weeks) - ⏳ IN PROGRESS
+  - Network Agent (1b) integration (95% → 100%)
+  - Framework x86 adaptation (NEW)
+  - Compositor Agent (1d) Phase 7 integration (NEW)
+  - Grainscript Shell Agent (1e) file operations integration (NEW)
   - Auth Agent (1a) integration
   - Production deployment preparation
 
-**Total Duration**: ~14 weeks (3.5 months) core implementation + 2-4 weeks system integration
+**Total Duration**: ~14 weeks (3.5 months) core implementation + 4-6 weeks system integration
 
 ---
 
@@ -401,8 +438,9 @@ This plan outlines the implementation strategy for the Grain Storage Agent, cove
 
 ---
 
-**Date**: 2026-01-01-090000-pst  
+**Date**: 2026-01-01-232104-pst  
 **Agent**: Grain Storage Agent (1c)  
-**Status**: Core Implementation Complete - Network Integration 95% Complete - Auth Integration Design Ready  
-**Last Updated**: 2026-01-01-090000-pst  
-**Next Update**: After Network Agent testing complete or Auth Agent coordination
+**Status**: Core Implementation Complete - Network Integration 95% Complete - Framework x86 Adaptation Pending  
+**Last Updated**: 2026-01-01-232104-pst  
+**Core 1 Subcore Unified Coordination Summary**: Received and acknowledged (2026-01-01-210806-pst)  
+**Next Update**: After Framework x86 verification, Network integration completion, Compositor coordination, or Grainscript Shell coordination
