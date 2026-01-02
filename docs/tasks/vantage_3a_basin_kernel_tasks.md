@@ -1,313 +1,211 @@
-# Grain Basin Kernel Agent: Task List
+# Grain Basin Kernel Tasks
 
+**Last Updated**: 2026-01-02-092228-pst  
 **Agent**: Grain Basin Kernel Agent (3a)  
-**Parent Agent**: Grain Vantage 3 Subcore Agent (3rd Agent, L1 Subcore)  
-**Status**: ⏳ **FRAMEWORK X86_64 INTEGRATION** — Syscall interface documentation complete, awaiting coordination approval  
-**Last Updated**: 2026-01-02-003000-pst
+**Status**: ✅ **STEP 1 COMPLETE, STEP 2 IN PROGRESS** — Framework x86_64 integration focus
 
 ---
 
 ## Current Work: Framework x86_64 Integration
 
-**Status**: ⏳ **FRAMEWORK X86_64 INTEGRATION** — Profiler infrastructure complete, ready for Framework x86_64 integration work  
-**Date**: 2026-01-01-220000-pst  
-**Priority**: HIGH — Framework x86_64 Integration (from Core 1 Subcore, 2026-01-01-210806-pst)
+### Phase 1: Syscall Interface Documentation (COMPLETE ✅)
+
+**Status**: ✅ **COMPLETE** (2026-01-02-090000-pst)
+
+#### Task 1.1: Create Complete Syscall Interface Reference
+- ✅ **COMPLETE**: Created `docs/kernel/syscall_interface_reference.md`
+- ✅ All 140 syscalls documented with complete signatures
+- ✅ Arguments, return values, error codes for each syscall
+- ✅ Type definitions and RISC-V ABI calling convention
+
+#### Task 1.2: Create JIT-Specific Interface Guide
+- ✅ **COMPLETE**: Created `docs/kernel/syscall_interface_for_jit.md`
+- ✅ ECALL instruction handling strategies
+- ✅ Register mapping (RISC-V → x86_64)
+- ✅ Return value encoding/decoding
+- ✅ Implementation strategy recommendations
+
+#### Task 1.3: Create Init System Interface Guide
+- ✅ **COMPLETE**: Created `docs/kernel/syscall_interface_for_init.md`
+- ✅ Critical syscalls for service management
+- ✅ Service lifecycle patterns
+- ✅ Configuration loading patterns
+- ✅ Dependency management patterns
+
+#### Task 1.4: Distribute Documentation to Agents 3b and 3d
+- ✅ **COMPLETE**: Distributed to Agent 3b (2026-01-02-090000-pst)
+- ✅ **COMPLETE**: Distributed to Agent 3d (2026-01-02-090000-pst)
+- ✅ **COMPLETE**: Created ECALL reminder for Agent 3b
 
 ---
 
-## Initialization Tasks (COMPLETE ✅)
+### Phase 2: Support Agent 3b and 3d Implementation (IN PROGRESS ⏳)
 
-**Status**: ✅ **ALL INITIALIZATION TASKS COMPLETE**
+**Status**: ⏳ **IN PROGRESS**
 
-### Completed Tasks
+#### Task 2.1: Support Agent 3b ECALL Implementation
+- ✅ **COMPLETE**: Documentation distributed
+- ✅ **COMPLETE**: ECALL reminder sent
+- ⏳ **IN PROGRESS**: Available for questions and clarifications
+- ⏳ **IN PROGRESS**: Monitor ECALL implementation progress
+- ⏳ **PENDING**: Verify syscall interface compatibility when Agent 3b has questions
 
-- [x] Review kernel codebase (`src/kernel/`)
-- [x] Understand current kernel architecture
-- [x] Review kernel module organization (8 modules)
-- [x] Review kernel code quality (zero technical debt verified)
-- [x] Review test coverage (comprehensive test suite exists)
-- [x] Review coordination documents (Core Agent and Vantage 3 Subcore)
-- [x] Understand coordination model (L1/L2 pattern)
-- [x] Update coordination document with status
-- [x] Prepare plan and tasks files for updates
+**Timeline**: WEEK 1-2 (Step 2)
 
-**Completion Date**: 2025-12-29-160000-pst
+#### Task 2.2: Support Agent 3d Init System Integration
+- ✅ **COMPLETE**: Documentation distributed
+- ⏳ **IN PROGRESS**: Available for questions and clarifications
+- ⏳ **IN PROGRESS**: Monitor Init System implementation progress
+- ⏳ **PENDING**: Verify syscall interface compatibility when Agent 3d has questions
 
----
-
-## Current Tasks: Kernel Performance Optimization
-
-**Status**: ⏳ **IN PROGRESS** — Priority guidance received from Vantage 3 Subcore (2025-12-29-214643-pst)
-
-### Priority Guidance Received
-
-**From Vantage 3 Subcore** (2025-12-29-214643-pst):
-- ✅ **Kernel Performance Optimization** (HIGH priority, RECOMMENDED) — **SELECTED**
-- Kernel Security Hardening (MEDIUM priority)
-- Kernel Maintenance and Code Quality (ONGOING priority)
-- JG Project Kernel Support (AS NEEDED)
-
-### Current Work Tasks (Kernel Performance Optimization)
-
-#### Phase 1: Syscall Performance Profiling (INFRASTRUCTURE COMPLETE ✅)
-- [x] Created syscall performance profiler module (`syscall_performance_profiler.zig`)
-- [x] Integrated profiler into BasinKernel struct (`basin_kernel_core.zig`)
-- [x] Integrated profiler into syscall router (`basin_kernel.zig` handle_syscall)
-- [x] Created comprehensive test suite (`tests/143_syscall_performance_profiler_test.zig`)
-- [x] Added helper functions for profiling summary statistics (`get_profiler_summary`)
-- [x] Created usage documentation (`docs/kernel/syscall_performance_profiler_usage.md`)
-- [x] Profiler infrastructure complete and ready for use
-- [x] Acknowledged Vantage 3 Subcore coordination (2025-12-29-223949-pst)
-
-#### Phase 2: Framework x86_64 Integration (CURRENT ⏳)
-- [ ] Coordinate with Vantage 3 Subcore for documentation review and approval
-- [ ] Distribute syscall interface documentation to Agents 3b and 3d (after approval)
-- [ ] Verify Basin Kernel syscall interface works correctly on Framework x86_64 host
-- [ ] Test syscall routing and argument validation on Framework x86_64
-- [ ] Verify syscall return value handling on Framework x86_64
-- [ ] Document any Framework x86_64 specific considerations
-- [x] Document all 140 syscalls with signatures, arguments, return values ✅
-- [x] Document syscall error codes and error handling ✅
-- [x] Document syscall calling conventions (RISC-V ABI) ✅
-- [x] Create syscall interface reference document (`docs/kernel/syscall_interface_reference.md`) ✅
-- [x] Create JIT-specific interface guide (`docs/kernel/syscall_interface_for_jit.md`) ✅
-- [x] Create Init system interface guide (`docs/kernel/syscall_interface_for_init.md`) ✅
-- [ ] Coordinate with Agent 3b (VM Runtime) for JIT requirements (after documentation distribution)
-- [ ] Coordinate with Agent 3d (sevenos Init System) for init requirements (after documentation distribution)
-- [ ] Review x86_64 JIT syscall interface requirements
-- [ ] Verify syscall calling conventions are compatible with x86_64 JIT
-- [ ] Document compatibility considerations
-
-#### Phase 3: Performance Data Collection (ONGOING ⏳)
-- [x] Created performance benchmark test (`tests/144_syscall_performance_benchmark_test.zig`)
-- [x] Added helper functions for hot/slow path analysis (`find_profiler_hot_path`, `find_profiler_slow_path`)
-- [x] Updated usage documentation with analysis examples
-- [x] Created performance optimization analysis document (`docs/kernel/performance_optimization_analysis.md`)
-- [x] Completed code review - hot path candidates reviewed (yield, read/write)
-- [x] Identified that yield syscall is already optimal (no-op)
-- [x] Documented optimization opportunities for future work
-- [ ] Run tests to validate profiler functionality on Framework x86_64
-- [ ] Enable profiler in test scenarios on Framework x86_64
-- [ ] Run comprehensive syscall benchmarks on Framework x86_64
-- [ ] Collect performance data for all syscalls on Framework x86_64
-- [ ] Use helper functions to identify hot paths and slow paths
-- [ ] Analyze profiling data to identify optimization opportunities
-
-#### Phase 4: Performance Analysis (NEXT)
-- [ ] Analyze profiler data to identify optimization opportunities
-- [ ] Profile individual syscall handlers for bottlenecks
-- [ ] Identify common syscall patterns
-- [ ] Document performance characteristics
-
-#### Phase 5: Performance Optimization (NEXT)
-- [ ] Optimize hot path syscalls (reduce overhead)
-- [ ] Optimize slow path syscalls (improve algorithms)
-- [ ] Improve syscall handler efficiency
-- [ ] Reduce syscall overhead (argument validation, routing)
-- [ ] Benchmark performance improvements
-
-#### Phase 5: Scheduler Efficiency Improvements (FUTURE)
-- [ ] Review scheduler implementation (`scheduler.zig`)
-- [ ] Analyze scheduler statistics for bottlenecks
-- [ ] Optimize context switching overhead
-- [ ] Improve time slice management
-- [ ] Optimize process scheduling algorithm
-
-#### Kernel Security Hardening
-- [ ] Additional input validation review
-- [ ] Security audit of syscall handlers
-- [ ] Capability-based access control enhancements
-- [ ] Memory protection improvements
-- [ ] Security testing
-
-#### Additional Syscalls (If Needed)
-- [ ] Design new syscalls (if required)
-- [ ] Implement new syscalls following Grain Style
-- [ ] Add comprehensive tests for new syscalls
-- [ ] Update documentation for new syscalls
-
-#### Test Coverage Enhancement
-- [ ] Additional edge case testing
-- [ ] Performance benchmarking tests
-- [ ] Stress testing
-- [ ] Integration test improvements
-- [ ] Test coverage analysis
-
-#### Documentation Improvements
-- [ ] Syscall API documentation
-- [ ] Kernel architecture documentation
-- [ ] Development guidelines
-- [ ] Performance tuning guides
-- [ ] Code examples and usage patterns
-
-#### Kernel Maintenance
-- [ ] Code quality improvements
-- [ ] Refactoring opportunities
-- [ ] Bug fixes (if any discovered)
-- [ ] Code review and cleanup
-- [ ] Code organization improvements
-
-#### JG Project Kernel Support (As Needed)
-- [ ] Monitor JG project implementation for kernel support needs
-- [ ] Coordinate with Vantage 3 Subcore on new syscall requirements
-- [ ] Optimize kernel performance for JG project workloads
-- [ ] Configure resource limits for JG project processes (if needed)
+**Timeline**: WEEK 1-2 (Step 3)
 
 ---
 
-## Task Categories
+### Phase 3: Profiler Data Collection (READY, BLOCKED ⚠️)
 
-### High Priority (Once Priorities Are Set)
+**Status**: ⚠️ **INFRASTRUCTURE READY, BLOCKED BY EXTERNAL COMPILATION ERRORS**
 
-**Status**: ⏳ **AWAITING PRIORITY GUIDANCE**
+#### Task 3.1: Profiler Test Infrastructure Setup
+- ✅ **COMPLETE**: Added profiler tests to build.zig
+- ✅ **COMPLETE**: Updated test files for module imports
+- ✅ **COMPLETE**: Exported profiler module from basin_kernel.zig
+- ✅ **COMPLETE**: Tests configured and ready
 
-Tasks will be categorized based on Vantage 3 Subcore priorities:
-- Critical kernel features
-- Performance optimizations
-- Security hardening
-- JG project support (as needed)
+#### Task 3.2: Profiler Documentation
+- ✅ **COMPLETE**: Updated data collection guide
+- ✅ **COMPLETE**: Created profiler quick reference
+- ✅ **COMPLETE**: Created profiler analysis report template
 
-### Medium Priority
+#### Task 3.3: Run Profiler Tests
+- ⚠️ **BLOCKED**: External compilation errors preventing test execution
+- ⏳ **PENDING**: Run `tests/143_syscall_performance_profiler_test.zig` once external issues resolved
+- ⏳ **PENDING**: Run `tests/144_syscall_performance_benchmark_test.zig` once external issues resolved
 
-**Status**: ⏳ **AWAITING PRIORITY GUIDANCE**
+#### Task 3.4: Collect Performance Data
+- ⏳ **PENDING**: Enable profiler during typical kernel workloads
+- ⏳ **PENDING**: Collect performance data for representative syscall patterns
+- ⏳ **PENDING**: Use helper functions to identify hot paths
+- ⏳ **PENDING**: Use helper functions to identify slow paths
 
-Tasks will be categorized based on Vantage 3 Subcore priorities:
-- Additional test coverage
-- Documentation improvements
-- Code quality improvements
+#### Task 3.5: Analyze Performance Data
+- ⏳ **PENDING**: Use analysis template to structure findings
+- ⏳ **PENDING**: Cross-reference with code review findings
+- ⏳ **PENDING**: Generate performance optimization recommendations
 
-### Low Priority
+**Timeline**: After external compilation issues resolved
 
-**Status**: ⏳ **AWAITING PRIORITY GUIDANCE**
+---
 
-Tasks will be categorized based on Vantage 3 Subcore priorities:
-- Nice-to-have features
-- Code organization improvements
-- Maintenance tasks
+### Phase 4: Performance Optimization (PENDING)
+
+**Status**: ⏳ **PENDING** (after profiler data collection)
+
+#### Task 4.1: Analyze Profiler Data
+- ⏳ **PENDING**: Analyze hot paths and slow paths
+- ⏳ **PENDING**: Compare with code review predictions
+- ⏳ **PENDING**: Prioritize optimizations based on actual data
+
+#### Task 4.2: Implement High-Priority Optimizations
+- ⏳ **PENDING**: Implement optimizations for confirmed hot paths
+- ⏳ **PENDING**: Implement optimizations for confirmed slow paths
+- ⏳ **PENDING**: Validate improvements with re-profiling
+
+**Timeline**: After Phase 3 (profiler data collection)
+
+---
+
+## Completed Tasks
+
+### Core Kernel Development (Phases 1-8)
+- ✅ All 8 phases complete
+- ✅ Zero technical debt
+- ✅ Production ready
+
+### Quick Optimizations
+- ✅ Handle lookup MRU cache implemented
+- ✅ Process lookup caching implemented
+
+### Code Review
+- ✅ Comprehensive code review complete
+- ✅ Optimization opportunities identified
+- ✅ Code review summary created
+
+### Profiler Infrastructure
+- ✅ Profiler module created and integrated
+- ✅ Helper functions for analysis created
+- ✅ Test infrastructure complete
 
 ---
 
 ## Task Dependencies
 
-### Current Dependencies
+### Critical Path Dependencies
 
-**All tasks depend on**:
-- ⏳ Priority guidance from Vantage 3 Subcore
-- ⏳ Coordination on kernel development priorities
+**Step 1 (COMPLETE ✅)**:
+- ✅ Basin Kernel (3a) → Distribute syscall docs to 3b and 3d
 
-### Future Dependencies
+**Step 2 (IN PROGRESS ⏳)**:
+- ⏳ VM Runtime (3b) → Verify Grain Style compliance + implement x86_64 JIT
+- ⏳ Agent 3a supporting Agent 3b's ECALL implementation
 
-Once priorities are set, task dependencies will be:
-- Architecture decisions from Vantage 3 Subcore
-- Cross-sub-agent coordination (if needed)
-- Integration testing coordination (with System Integration Agent)
+**Step 3 (PENDING ⏳)**:
+- ⏳ Init System (3d) → Fix compilation + complete Phase 3/4 + Basin syscall integration
+- ⏳ Agent 3a supporting Agent 3d's Init System integration
 
----
+**Step 4 (PENDING ⏳)**:
+- ⏳ Grainscript Shell (1e) → Complete testing + integrate with Init System
+- ⏳ Depends on Step 3 completion
 
-## Task Completion Criteria
-
-### For Each Task
-
-- ✅ Code follows Grain Style (10 core principles)
-- ✅ All tests pass (existing and new)
-- ✅ No compiler warnings
-- ✅ Minimum 2 assertions per function
-- ✅ Functions under 70 lines
-- ✅ Lines under 100 characters
-- ✅ Comprehensive test coverage
-- ✅ Documentation updated
-- ✅ Coordination document updated
-
-### For Each Work Session
-
-- ✅ Update coordination document with status, progress, blockers
-- ✅ Update plan document with implementation plan changes
-- ✅ Update tasks document with task completion status
-- ✅ Coordinate with Vantage 3 Subcore if needed
+**Step 5 (PENDING ⏳)**:
+- ⏳ System Integration (3c) → Multi-arch testing framework
+- ⏳ Supporting work, can proceed in parallel
 
 ---
 
-## Coordination Schedule
+## Blockers
 
-### Weekly/Bi-Weekly Check-Ins with Vantage 3 Subcore
+### Current Blockers
 
-**Frequency**: Weekly or bi-weekly
+1. **External Compilation Errors** (MINOR)
+   - **Issue**: External compilation errors in other modules preventing profiler test execution
+   - **Impact**: Profiler data collection blocked
+   - **Status**: ⚠️ **BLOCKED** — Infrastructure ready, waiting for external issues to resolve
+   - **Mitigation**: Profiler tests will run immediately once external issues resolved
 
-**What I'll Report**:
-- Domain-specific implementation progress
-- Technical decisions within kernel domain
-- Testing and validation results
-- Documentation updates
-- Blockers or coordination needs
+### Resolved Blockers
 
-**What I'll Receive**:
-- Overall Basin/Vantage architecture coordination
-- Cross-sub-agent decision making
-- Priority guidance
-- Integration testing coordination
+1. ✅ **Syscall Interface Documentation Distribution** (RESOLVED)
+   - **Issue**: Agents 3b and 3d needed syscall interface documentation
+   - **Resolution**: Documentation created and distributed (2026-01-02-090000-pst)
+   - **Status**: ✅ **RESOLVED**
 
-### As-Needed Coordination
-
-**When to Coordinate Immediately**:
-- Architecture decisions needed that affect other sub-agents
-- Cross-sub-agent coordination needed (kernel/VM interface changes)
-- RISC-V compliance questions
-- System-level testing coordination needed
-- Blockers encountered that prevent progress
-- New syscall requirements identified
+2. ✅ **Integration Planning Documents** (RESOLVED)
+   - **Issue**: Integration planning needed for Agents 3b and 3d
+   - **Resolution**: Vantage 3 Subcore created 3 integration planning documents
+   - **Status**: ✅ **RESOLVED**
 
 ---
 
-## Summary
+## Next Actions
 
-**Status**: ⏳ **FRAMEWORK X86_64 INTEGRATION** — Syscall interface documentation complete, awaiting coordination approval
+### Immediate (This Week)
+1. ⏳ **Support Agent 3b**: Continue supporting Agent 3b's ECALL implementation
+2. ⏳ **Support Agent 3d**: Continue supporting Agent 3d's Init System implementation
+3. ⏳ **Monitor Progress**: Track Step 2 and Step 3 progress
 
-**Completed**:
-- ✅ All initialization tasks complete
-- ✅ Kernel codebase reviewed and understood
-- ✅ Coordination documents reviewed
-- ✅ Plan and tasks files prepared
-- ✅ Priority guidance received from Vantage 3 Subcore (2025-12-29-214643-pst)
-- ✅ Priority guidance received from Core 1 Subcore (2026-01-01-210806-pst)
-- ✅ Priority guidance received from Core 1 Subcore (2026-01-01-233240-pst)
-- ✅ Glow G2 voice multi-agent prompt acknowledged (2026-01-01-235155-pst)
-- ✅ Agent awareness document acknowledged (2026-01-02-002948-pst)
-- ✅ **Profiler infrastructure complete** — Ready for use
-- ✅ **Framework x86_64 environment verified** — x86_64 AMD, Ubuntu 24.04 LTS, Zig 0.15.2
-- ✅ **Syscall interface documentation complete** — All 3 documents created and ready
+### Short-term (Week 1-2)
+1. ⏳ **Profiler Data Collection**: Run profiler tests once external compilation issues resolved
+2. ⏳ **Performance Analysis**: Analyze profiler data using analysis template
+3. ⏳ **Optimization Planning**: Prioritize optimizations based on actual data
 
-**Current Work**:
-- ✅ **Phase 1: Syscall Performance Profiling** (INFRASTRUCTURE COMPLETE):
-  - Profiler module created and integrated
-  - Test suite created (`tests/143_syscall_performance_profiler_test.zig`)
-  - Performance benchmark test created (`tests/144_syscall_performance_benchmark_test.zig`)
-  - Usage documentation created
-  - Performance optimization analysis document created
-  - Helper functions for hot/slow path analysis
-  - Code review completed
-  - Ready for data collection
-- ⏳ **Phase 2: Framework x86_64 Integration** (CURRENT):
-  - ✅ Document syscall interface for Agents 3b and 3d (COMPLETE)
-  - ⏳ Coordinate with Vantage 3 Subcore for documentation review and approval
-  - ⏳ Distribute documentation to Agents 3b and 3d (after approval)
-  - ⏳ Verify syscall interface on Framework x86_64
-  - ⏳ Verify JIT compatibility
-  - ⏳ Coordinate with Agents 3b, 3c, 3d
-- ⏳ **Phase 3: Performance Data Collection** (ONGOING):
-  - Infrastructure complete, benchmark test created, code review done
-  - Ready to run tests on Framework x86_64, enable profiling, collect data
-  - Ready to use helper functions to identify hot paths and slow paths
-- ⏳ **NEXT**: Analyze profiling data, identify optimization opportunities, implement optimizations
-
-**Blockers**: **CRITICAL** — Awaiting Vantage 3 Subcore approval for syscall interface documentation distribution to Agents 3b and 3d. Ready to proceed with Framework x86_64 work once coordination is established.
-
-**Next Action**: Syscall interface documentation complete (2026-01-02-003000-pst). Awaiting Vantage 3 Subcore review and approval for distribution to Agents 3b and 3d. Will coordinate with Vantage 3 Subcore for documentation review.
+### Medium-term (Week 2-4)
+1. ⏳ **Performance Optimization**: Implement high-priority optimizations
+2. ⏳ **Integration Testing**: Coordinate with Agents 3b, 3d, 3c for integration testing
+3. ⏳ **Framework x86_64 Testing**: Complete Framework x86_64 testing coordination
 
 ---
 
-**Note**: This is a detailed task list for the Grain Basin Kernel Agent. For high-level overview and cross-agent coordination, see `docs/tasks.md`.
-
-**Date**: 2026-01-02-003000-pst  
+**Last Updated**: 2026-01-02-092228-pst  
 **Agent**: Grain Basin Kernel Agent (3a)  
-**Parent Agent**: Grain Vantage 3 Subcore Agent (3rd Agent, L1 Subcore)  
-**Status**: ⏳ **FRAMEWORK X86_64 INTEGRATION** — Syscall interface documentation complete, awaiting coordination approval
+**Status**: ✅ **STEP 1 COMPLETE, STEP 2 IN PROGRESS**
