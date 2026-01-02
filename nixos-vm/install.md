@@ -376,7 +376,7 @@ The `configuration.nix` file already has both of these configured. If you're usi
 ## Next Steps After Installation
 
 1. **Reboot the VM**
-2. **Remove ISO from launch script** (on host, edit `launch_nixos_vm.sh`)
+2. **Use post-installation launch script** (on host, use `launch_nixos_vm_post.sh`)
 3. **SSH access**: `ssh -p 2222 xy@localhost` (from host)
 4. **Run post-installation**: `bash ~/post_install.sh`
 5. **Set up development environment** and continue with Grain OS development
