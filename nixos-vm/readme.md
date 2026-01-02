@@ -12,20 +12,24 @@ This directory contains the setup for running NixOS 25.11 in a QEMU/KVM virtual 
 
 ## Quick Start
 
-1. **Launch the VM**:
+1. **Launch VM for Installation**:
    ```bash
-   ./launch_nixos_vm.sh
+   ./launch_nixos_vm_install.sh
    ```
+   This boots from the NixOS ISO for installation.
 
 2. **Install NixOS**:
-   - Boot from the ISO (should happen automatically)
-   - Follow the NixOS installation guide: https://nixos.org/manual/nixos/stable/#sec-installation
-   - Copy `configuration.nix` to `/etc/nixos/configuration.nix` in the VM
-   - Run `nixos-install` and `nixos-rebuild switch`
+   - Follow the installation guide in `install.md`
+   - Copy `configuration.nix` to the VM
+   - Run the installation scripts
 
 3. **After Installation**:
-   - Remove `-cdrom $ISO_FILE` line from `launch_nixos_vm.sh` (or change boot order)
-   - SSH access: `ssh -p 2222 xy@localhost` (after configuration)
+   - Use `./launch_nixos_vm_post.sh` to boot from installed disk
+   - SSH access: `ssh -p 2222 xy@localhost`
+
+**Launch Scripts:**
+- `launch_nixos_vm_install.sh` - Boot from ISO (installation only)
+- `launch_nixos_vm_post.sh` - Boot from disk (normal operation)
 
 ## VM Configuration
 

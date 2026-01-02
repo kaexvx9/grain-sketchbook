@@ -6,7 +6,21 @@ Complete installation guide for NixOS in QEMU/KVM on Framework 16.
 
 ## Quick Start (3 Steps)
 
-### Step 1: Copy Files to VM
+**Launch Scripts:**
+- `launch_nixos_vm_install.sh` - Boot from ISO for installation (use this first)
+- `launch_nixos_vm_post.sh` - Boot from installed disk (use after installation)
+
+### Step 1: Launch VM for Installation
+
+From your host machine:
+```bash
+cd ~/xy-mathematics/nixos-vm
+./launch_nixos_vm_install.sh
+```
+
+This boots the NixOS installer ISO.
+
+### Step 2: Copy Files to VM
 
 **Option A: SCP from Host (Recommended - Easiest)**
 
@@ -66,16 +80,20 @@ The `configuration-base.nix` is a template without these additions - use `config
 
 **Time: ~10-30 minutes**
 
-### Step 3: Reboot
+### Step 4: Reboot and Use Post-Install Script
 
+After installation completes:
 ```bash
 reboot
 ```
 
-After reboot, **remove the ISO** from the launch script:
-- Edit `launch_nixos_vm.sh` on the host
-- Comment out or remove the `-cdrom $ISO_FILE \` line
-- Or change `-boot order=d` to `-boot order=c`
+**Close the VM**, then from your host machine, use the post-installation launch script:
+```bash
+cd ~/xy-mathematics/nixos-vm
+./launch_nixos_vm_post.sh
+```
+
+This boots from the installed disk (no ISO). The install script is only needed for initial installation.
 
 ---
 

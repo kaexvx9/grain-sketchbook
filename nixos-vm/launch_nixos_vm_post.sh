@@ -1,5 +1,7 @@
 #!/bin/bash
-# Launch NixOS VM in QEMU/KVM
+# Launch NixOS VM in QEMU/KVM (Post-Installation)
+# This script boots from installed disk for normal operation
+# Use launch_nixos_vm_install.sh for initial installation
 # Framework 16: x86_64 AMD, 64GB RAM
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -7,13 +9,6 @@ ISO_DIR="$SCRIPT_DIR/iso"
 DISK_DIR="$SCRIPT_DIR/disk"
 ISO_FILE="$ISO_DIR/nixos-minimal-25.11.iso"
 DISK_FILE="$DISK_DIR/nixos-vm.qcow2"
-
-# Check if ISO exists
-if [ ! -f "$ISO_FILE" ]; then
-    echo "Error: ISO file not found at $ISO_FILE"
-    echo "Please download the NixOS ISO first."
-    exit 1
-fi
 
 # Check if disk exists
 if [ ! -f "$DISK_FILE" ]; then
@@ -33,11 +28,10 @@ qemu-system-x86_64 \
     -smp cores=$CORES,threads=1,sockets=1 \
     -m $MEMORY \
     -drive file=$DISK_FILE,format=qcow2 \
-    -cdrom $ISO_FILE \
-    -boot order=d \
+    -boot order=c \
     -netdev user,id=net0,hostfwd=tcp::2222-:22 \
     -device virtio-net,netdev=net0 \
     -vga virtio \
     -display gtk,zoom-to-fit=on,grab-on-hover=on,show-menubar=off \
-    -name "NixOS 25.11"
+    -name "NixOS 25.11 VM"
 
