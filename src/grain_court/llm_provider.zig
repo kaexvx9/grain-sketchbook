@@ -109,6 +109,7 @@ pub fn is_llm_error_retryable(err: LlmProviderError) bool {
     }
 }
 
+
 // Parse Retry-After header value (seconds or HTTP date).
 pub fn parse_retry_after_header(value: []const u8) ?u64 {
     std.debug.assert(value.len > 0);
@@ -341,8 +342,9 @@ pub const ProviderPool = struct {
 
     // Send request with automatic fallback to healthy providers.
     // This function attempts the default provider first, then automatically
-    // falls back to other healthy providers if the request fails. This ensures
-    // resilience when providers encounter temporary issues.
+    // falls back to other healthy providers if the request fails with a
+    // retryable error. This ensures resilience when providers encounter
+    // temporary issues while avoiding unnecessary retries for permanent errors.
     pub fn send_request_with_fallback(
         self: *ProviderPool,
         request: *const LlmRequest,
@@ -360,7 +362,10 @@ pub const ProviderPool = struct {
         return try self.try_fallback(request, allocator, null, LlmProviderError.NoHealthyProvider);
     }
 
-    // Try fallback providers.
+    // Try fallback providers for retryable errors.
+    // This function is only called for retryable errors (Timeout, NetworkError,
+    // RateLimit, ProviderError). It attempts to use other healthy providers
+    // in the pool to complete the request.
     fn try_fallback(
         self: *ProviderPool,
         request: *const LlmRequest,
