@@ -12,7 +12,8 @@
 Silo Agent is a production-ready standalone L1 agent providing database storage and management capabilities for Grain OS. Current focus is on independent, non-conflicting improvements (documentation enhancements) that maintain full backward compatibility and require no coordination with other agents.
 
 **Current Status**: ✅ Production Ready — Independent documentation improvements ongoing  
-**Latest Coordination**: `docs/agent-communications/core_1_subcore_coordination_summary_2026-01-02-083246-pst.md`  
+**Latest Coordination**: `docs/core-coordination/core_1_subcore_coordination_plan_2026-01-02-100345-pst.md`  
+**Latest Summary**: `docs/agent-communications/core_1_subcore_coordination_summary_2026-01-02-100345-pst.md`  
 **Documentation Progress**: `docs/core-coordination/silo_agent_documentation_progress_2026-01-02-085625-pst.md`
 
 ---
@@ -244,7 +245,8 @@ Silo Agent is a production-ready standalone L1 agent providing database storage 
 - `docs/core-coordination/core-coordination_silo.md` - Main coordination document (includes plan and tasks)
 
 ### Latest Coordination
-- `docs/agent-communications/core_1_subcore_coordination_summary_2026-01-02-083246-pst.md` - Latest coordination summary
+- `docs/core-coordination/core_1_subcore_coordination_plan_2026-01-02-100345-pst.md` - Latest coordination plan
+- `docs/agent-communications/core_1_subcore_coordination_summary_2026-01-02-100345-pst.md` - Latest coordination summary
 
 ### Grain Style & Guidelines
 - `docs/grain_style.md` - Grain Style principles

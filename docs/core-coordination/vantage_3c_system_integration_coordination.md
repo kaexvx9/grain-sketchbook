@@ -1,9 +1,9 @@
 # Core Coordination: Grain System Integration Agent
 
-**Last Updated**: 2026-01-02-090817-pst  
+**Last Updated**: 2026-01-02-100345-pst  
 **Agent**: Grain System Integration Agent (3c)  
 **Parent Agent**: Grain Vantage 3 Subcore Agent (Agent 3, L1 Subcore)  
-**Status**: ✅ **DESIGN APPROVED, IMPLEMENTATION READY** — Multi-architecture testing framework design complete and approved. Ready for implementation phase and JIT testing coordination with Agent 3b (Phase 3 complete). Step 5 (SUPPORTING) — Not blocking critical path.
+**Status**: ✅ **DESIGN APPROVED, IMPLEMENTATION READY** — Multi-architecture testing framework design complete and approved. Ready for implementation phase. Step 5 (SUPPORTING) — Not blocking critical path.
 
 ---
 
@@ -12,21 +12,21 @@
 **Goal**: Vantage application running Basin Kernel for Framework Grain OS sevenos x86_64 with Grainscript shell usable for basic commands.
 
 **Critical Path** (strict dependency order):
-1. **Step 1 (BLOCKING)**: Basin Kernel (3a) → Distribute syscall docs to 3b and 3d — **THIS WEEK** — ✅ **APPROVED** (2026-01-02-083246-pst), ⏳ **IN PROGRESS**
-2. **Step 2 (BLOCKING)**: VM Runtime (3b) → Verify Grain Style compliance + implement x86_64 JIT — **WEEK 1-2** — ✅ **PHASE 3 COMPLETE** (2026-01-02-090817-pst) — SLT/SLTU optimizations complete, ECALL fallback implemented, ready for testing
-3. **Step 3 (BLOCKING)**: Init System (3d) → Fix compilation + complete Phase 3/4 + Basin syscall integration — **WEEK 1-2** — ⏳ **WAITING FOR STEP 1**
-4. **Step 4 (END GOAL)**: Grainscript Shell (1e) → Complete testing + integrate with Init System — **WEEK 1-2** — ⏳ **WAITING FOR STEP 3**
+1. **Step 1 (BLOCKING)**: Basin Kernel (3a) → Distribute syscall docs to 3b and 3d — **THIS WEEK** — ⏳ **IN PROGRESS**
+2. **Step 2 (BLOCKING)**: VM Runtime (3b) → Verify Grain Style compliance + implement x86_64 JIT — **WEEK 1-2** — ⏳ **BLOCKED ON STEP 1**
+3. **Step 3 (BLOCKING)**: Init System (3d) → Fix compilation + complete Phase 3/4 + Basin syscall integration — **WEEK 1-2** — ⏳ **BLOCKED ON STEP 1 + COMPILATION FIX**
+4. **Step 4 (END GOAL)**: Grainscript Shell (1e) → Complete testing + integrate with Init System — **WEEK 1-2** — ⏳ **BLOCKED ON STEP 3**
 5. **Step 5 (SUPPORTING)**: System Integration (3c) → Multi-arch testing framework — **WEEK 1-2** — **NOT BLOCKING** — ✅ **DESIGN APPROVED, IMPLEMENTATION READY**
 
 **Agent 3c Position**: Step 5 (SUPPORTING) — Can work independently, not blocking critical path. Design complete and approved, ready for implementation.
 
-**Independent Work Status**: ✅ **DESIGN COMPLETE** — Multi-architecture testing framework design expanded with CPUID-based architecture detection. Syscall interface test patterns design complete. Framework x86_64 test runner design complete. Ready for implementation phase and JIT testing coordination.
+**Independent Work Status**: ✅ **DESIGN COMPLETE** — Multi-architecture testing framework design expanded with CPUID-based architecture detection. Syscall interface test patterns design complete. Framework x86_64 test runner design complete. Ready for implementation phase.
 
 ---
 
 ## Executive Summary for Vantage 3 Subcore
 
-**Current Status**: ✅ **DESIGN APPROVED, IMPLEMENTATION READY** — All design phases complete and approved. Multi-architecture testing framework design expanded with CPUID-based architecture detection. Syscall interface test patterns design complete. Framework x86_64 test runner design complete. Ready for implementation phase and JIT testing coordination with Agent 3b (Phase 3 complete).
+**Current Status**: ✅ **DESIGN APPROVED, IMPLEMENTATION READY** — All design phases complete and approved. Multi-architecture testing framework design expanded with CPUID-based architecture detection. Syscall interface test patterns design complete. Framework x86_64 test runner design complete. Ready for implementation phase.
 
 **Key Accomplishments**:
 - ✅ **RISC-V Compliance Test Suite Created** (2025-12-29-220000-pst) — Comprehensive test suite with 10+ test cases
@@ -41,132 +41,110 @@
 - ✅ **Design Approved by Vantage 3 Subcore** (2026-01-01-233240-pst) — Framework design approach approved, ready for implementation
 - ✅ **Syscall Interface Test Patterns Design Complete** (2026-01-02-083246-pst) — Test patterns using Basin Kernel (3a) syscall interface documentation (independent work, complete)
 
-**Summary**: **44 comprehensive integration tests across 5 test files** — All phases complete. **3 comprehensive design documents** — Multi-architecture testing framework, Framework x86_64 test runner, and Syscall interface test patterns designs complete. **Design approved, implementation ready** — Ready to proceed with implementation phase and JIT testing coordination.
+**Summary**: **44 comprehensive integration tests across 5 test files** — All phases complete. **3 comprehensive design documents** — Multi-architecture testing framework, Framework x86_64 test runner, and Syscall interface test patterns designs complete. **Design approved, implementation ready** — Ready to proceed with implementation phase.
 
 **What Agent 3c Needs from Vantage 3 Subcore**:
 - ✅ **Coordination Plan Acknowledged** (2026-01-01-233240-pst) — Multi-architecture testing framework confirmed as HIGH PRIORITY
 - ✅ **Multi-Architecture Testing Framework Design Approved** (2026-01-01-233240-pst) — Framework design approach approved, ready to proceed
-- ⏳ **VM Runtime (3b) JIT Testing Coordination**: Coordinate JIT compilation testing requirements (IMMEDIATE — Agent 3b Phase 3 complete, ready for testing)
+- ⏳ **VM Runtime (3b) JIT Testing Coordination**: Coordinate JIT compilation testing requirements (after Step 1 complete and Agent 3b JIT implementation ready)
 - ⏳ **Framework x86_64 Test Infrastructure Coordination**: Coordinate test infrastructure setup for Framework Ubuntu x86 (WEEK 1-2)
 - ⏳ **sevenos Init System (3d) Integration Testing Coordination**: Plan integration testing when Init System is available (WEEK 3-4)
 - ⏳ **Basin Kernel (3a) Syscall Interface Testing Coordination**: Plan syscall interface testing for Framework x86_64 (ONGOING)
 
----
-
-## Executive Summary for Core 1 Subcore
-
-**Current Status**: ✅ **DESIGN APPROVED, IMPLEMENTATION READY** — Multi-architecture testing framework design complete and approved. Ready for implementation phase to support Framework Ubuntu x86 development and sevenos integration testing.
-
-**Agent 3c Role**: Step 5 (SUPPORTING) — Multi-architecture testing framework implementation. Not blocking critical path (Steps 1-4), but provides essential testing infrastructure for Framework x86_64 development.
-
-**Key Accomplishments**:
-- ✅ **44 Comprehensive Integration Tests** — All 5 phases complete (37 in build.zig, 7 Phase 5 tests ready to add)
-- ✅ **3 Comprehensive Design Documents** — Multi-architecture testing framework, Framework x86_64 test runner, Syscall interface test patterns
-- ✅ **Design Approved** — Ready for implementation phase
-
-**What Agent 3c Provides**:
-- Multi-architecture testing framework (ARM64, x86_64 AMD, x86_64 Intel)
-- Framework x86_64 test infrastructure
-- Integration testing support for sevenos Init System (3d)
-- Integration testing support for Grainscript Shell (1e)
-- Integration testing support for Core 1 services (1a-1d)
-- JIT compilation testing support for VM Runtime (3b)
-
-**What Core 1 Subcore Can Do**:
-- ✅ **Monitor Implementation Progress** — Track multi-architecture testing framework implementation
-- ✅ **Coordinate Framework x86_64 Requirements** — Provide Framework x86_64 test infrastructure requirements
-- ✅ **Support Cross-Subcore Testing** — Facilitate cross-subcore integration testing coordination (Init System ↔ Grainscript Shell)
-- ⏳ **Coordinate Testing Timeline** — Coordinate testing timeline with critical path (Steps 1-4)
-
----
-
-## Next Steps for Agent 3c: Implementation Phase (HIGH PRIORITY)
-
-### Phase 1: JIT Testing Coordination (IMMEDIATE — WEEK 1)
-
-**Status**: ⏳ **READY TO START** — Agent 3b Phase 3 complete (2026-01-02-090817-pst), ready for coordination
-
-**Context**: Agent 3b has completed Phase 3 with SLT/SLTU optimizations and ECALL fallback implementation. Ready for multi-architecture testing coordination.
-
-**Coordination Tasks**:
-1. **Coordinate with Agent 3b (VM Runtime)**:
-   - Coordinate JIT compilation testing requirements
-   - Coordinate RISC-V → x86_64 JIT testing (HIGH PRIORITY — Phase 3 complete)
+**Next Steps for Vantage 3 Subcore** (related to System Integration):
+1. ✅ **Approve Multi-Architecture Testing Framework Design** — COMPLETE (2026-01-01-233240-pst)
+2. ⏳ **Coordinate VM Runtime (3b) JIT Testing**: Coordinate JIT compilation testing requirements (after Step 1 complete and Agent 3b JIT implementation ready)
+   - Coordinate JIT compilation testing requirements with Agent 3b
+   - Coordinate RISC-V → x86_64 JIT testing (HIGH PRIORITY — after Step 1 complete)
    - Coordinate Framework x86_64 testing requirements
-   - Coordinate ECALL instruction testing (syscall interface docs available from Agent 3a)
-   - Timeline: IMMEDIATE (Agent 3b ready for coordination)
-
-2. **Provide Test Patterns and Framework**:
-   - Provide test patterns for JIT compilation syscall testing (designed)
-   - Provide test helpers for JIT syscall validation (designed)
-   - Provide multi-architecture JIT testing framework (designed)
-   - Provide ECALL instruction testing patterns (using syscall interface docs)
-
-3. **Coordinate Framework x86_64 Testing**:
+   - Timeline: WEEK 1-2 (after Step 1 complete and Agent 3b JIT implementation ready)
+3. ⏳ **Coordinate Framework x86_64 Test Infrastructure**: Set up test runner and infrastructure for Framework Ubuntu x86 (WEEK 1-2)
    - Coordinate test infrastructure requirements
    - Coordinate test execution strategy
-   - Coordinate test result reporting
-
-**What I Can Provide**:
-- ✅ Test patterns for JIT compilation syscall testing (designed)
-- ✅ Test helpers for JIT syscall validation (designed)
-- ✅ Multi-architecture JIT testing framework (designed)
-- ✅ ECALL instruction testing patterns (using syscall interface docs from Agent 3a)
-- ✅ Framework x86_64 test infrastructure coordination
-
-**What I Need from Agent 3b**:
-- JIT implementation details for testing
-- ECALL handling approach (interpreter fallback confirmed — per Agent 3a syscall interface docs)
-- Register mapping documentation
-- Test execution requirements
-- Framework x86_64 testing requirements
-
-**Timeline**: IMMEDIATE (Agent 3b Phase 3 complete, ready for coordination)
-
-**Deliverables**:
-- JIT testing coordination plan
-- Test patterns for JIT compilation syscall testing
-- Test helpers for JIT syscall validation
-- Multi-architecture JIT testing framework integration
+   - Coordinate with Core 1 Subcore on Framework x86_64 requirements
+4. ⏳ **Coordinate sevenos Init System (3d) Integration**: Plan integration testing when Init System is available (WEEK 3-4)
+   - Coordinate Init System integration testing requirements
+   - Coordinate cross-subcore integration testing (Init System ↔ Grainscript Shell)
+   - Coordinate Framework x86_64 Init System testing
+5. ⏳ **Coordinate Basin Kernel (3a) Syscall Interface Testing**: Plan syscall interface testing for Framework x86_64 (ONGOING)
+   - Coordinate syscall interface documentation for testing
+   - Coordinate syscall interface testing requirements
+   - Coordinate Framework x86_64 syscall interface testing
 
 ---
 
-### Phase 2: Framework Implementation (WEEK 1-2)
+## Next Steps for Agent 3c: Implementation Phase
+
+### Context from Core 1 Subcore Coordination Summary (2026-01-02-100345-pst)
+
+**Priority**: HIGH — Enable multi-arch testing on Framework x86_64
+
+**Status**: ✅ **DESIGN APPROVED** — Design phase complete and approved, ready to proceed with implementation
+
+**Immediate Next Steps** (per Core 1 Subcore coordination summary):
+1. Implement multi-architecture testing framework (design approved)
+2. Set up test infrastructure for ARM64 (MacBook Air M2), x86_64 AMD (Framework 16), x86_64 Intel (legacy)
+3. Adapt existing 44 integration tests for multi-arch
+4. Create Framework x86_64 test runner
+5. Design Core 1 services integration tests (coordinate with Core 1 Subcore)
+
+**Requirements**:
+- Support ARM64, x86_64 AMD (Framework), x86_64 Intel (including legacy hardware)
+- Enable Framework Ubuntu x86 integration testing
+- Support sevenos Init System (3d) integration testing
+- Support Grainscript Shell (1e) integration testing
+- Support Core 1 services (1a-1d) integration testing
+- Support VM Runtime (3b) JIT compilation testing (RISC-V → ARM64, RISC-V → x86_64)
+- Support Basin Kernel (3a) syscall interface testing
+
+**Timeline**: Week 1-4 (implementation after design approval, coordination as needed)
+
+**Grain Style**: Follow Grain Style strictly (grain_case, u32/u64, grainwrap-100, validate-70)
+
+**Documentation**: Update plan and tasks documents when multi-arch framework implementation complete
+
+**Integration**: Check in with Core 1 Subcore on Core 1 services integration testing requirements
+
+**Tests**: Ensure all System Integration tests pass, including multi-arch tests
+
+---
+
+### Phase 1: Framework Implementation (WEEK 1-2)
 
 **Status**: ⏳ **READY TO START** — Design approved, ready to begin implementation
 
 **Implementation Tasks**:
-1. **Architecture Abstraction Layer** (`src/test_framework/arch.zig`):
-   - Implement architecture detection (ARM64, x86_64 AMD, x86_64 Intel)
-   - Implement CPUID-based vendor detection (x86_64 AMD vs Intel)
+1. **Architecture Abstraction Layer**:
+   - Implement architecture detection (`src/test_framework/arch.zig`)
    - Implement architecture-specific test configuration
    - Implement architecture compatibility checking
    - **Grain Style**: `grainwrap-100`, `grain validate-70`, explicit `u32`/`u64`
 
-2. **Test Helpers** (`src/test_framework/helpers.zig`):
-   - Implement architecture-agnostic test setup/teardown
+2. **Test Helpers**:
+   - Implement architecture-agnostic test setup/teardown (`src/test_framework/helpers.zig`)
    - Implement cross-architecture test utilities
    - Implement test result aggregation
    - **Grain Style**: `grainwrap-100`, `grain validate-70`, explicit `u32`/`u64`
 
-3. **Test Runner** (`src/test_framework/runner.zig`):
-   - Implement multi-architecture test execution
+3. **Test Runner**:
+   - Implement multi-architecture test execution (`src/test_framework/runner.zig`)
    - Implement test result reporting
    - Implement architecture-specific test filtering
    - **Grain Style**: `grainwrap-100`, `grain validate-70`, explicit `u32`/`u64`
 
-4. **Integration Test Adapter** (`src/test_framework/integration_adapter.zig`):
-   - Implement adapter for existing 44 integration tests
+4. **Integration Test Adapter**:
+   - Implement adapter for existing 44 integration tests (`src/test_framework/integration_adapter.zig`)
    - Implement test execution strategy
    - Implement test failure handling
    - **Grain Style**: `grainwrap-100`, `grain validate-70`, explicit `u32`/`u64`
 
 **Coordination Needs**:
 - ✅ **Vantage 3 Subcore**: Design approved (2026-01-01-233240-pst)
-- ⏳ **VM Runtime Agent (3b)**: Coordinate JIT compilation testing requirements (IMMEDIATE — Agent 3b Phase 3 complete)
+- ⏳ **VM Runtime Agent (3b)**: Coordinate JIT compilation testing requirements (after Step 1 complete and Agent 3b JIT implementation ready)
 - ⏳ **Basin Kernel Agent (3a)**: Coordinate syscall interface testing requirements (ONGOING — syscall interface documentation available)
 - ⏳ **sevenos Init System Agent (3d)**: Coordinate Init System integration testing requirements (WEEK 3-4 — after Init System implementation)
 - ⏳ **Core 1 Subcore**: Coordinate Framework x86_64 test infrastructure requirements (IMMEDIATE)
+- ⏳ **Core 1 Subcore**: Coordinate Core 1 services integration testing requirements (IMMEDIATE)
 
 **Deliverables**:
 - Architecture abstraction layer implementation
@@ -175,197 +153,196 @@
 - Integration test adapter implementation
 - All code following Grain Style (`grainwrap-100`, `grain validate-70`, explicit `u32`/`u64`)
 
-**Timeline**: WEEK 1-2
-
 ---
 
-### Phase 3: Framework x86_64 Test Infrastructure Implementation (WEEK 2-3)
+### Phase 2: Framework x86_64 Test Infrastructure (WEEK 2-3)
 
-**Status**: ⏳ **PENDING** — After Phase 2 completion
+**Status**: ⏳ **PENDING** — After Phase 1 completion
 
-**Implementation Tasks**:
-1. **Framework x86_64 Test Runner** (`tools/test_runner_framework_x86_64.zig`):
-   - Implement architecture detection (x86_64 AMD vs Intel)
-   - Implement test execution orchestration
-   - Implement test result collection and reporting
-   - **Grain Style**: `grainwrap-100`, `grain validate-70`, explicit `u32`/`u64`
-
-2. **Test Execution Script** (`tools/run_tests_framework_x86_64.sh`):
-   - Implement test execution script
-   - Implement test result reporting
-   - Implement test failure handling
-
-3. **Test Result Aggregation**:
-   - Implement test result collection
-   - Implement test result formatting (JSON, human-readable)
-   - Implement test result reporting
-
-**Coordination Needs**:
-- ⏳ **Vantage 3 Subcore**: Coordinate Framework x86_64 test infrastructure requirements
-- ⏳ **Core 1 Subcore**: Coordinate Framework x86_64 test infrastructure requirements
-- ⏳ **VM Runtime Agent (3b)**: Coordinate Framework x86_64 testing requirements
+**Tasks**:
+- Implement Framework x86_64 test runner
+- Implement test execution script
+- Implement test result aggregation
+- Validate test execution on Framework Ubuntu x86
 
 **Deliverables**:
 - Framework x86_64 test runner implementation
 - Test execution script implementation
 - Test result aggregation working
-- Test execution validated on Framework Ubuntu x86
-
-**Timeline**: WEEK 2-3
 
 ---
 
-### Phase 4: sevenos Init System (3d) Integration Testing (WEEK 3-4)
+### Phase 3: Existing Test Adaptation (WEEK 2-3)
+
+**Status**: ⏳ **PENDING** — After Phase 1 completion
+
+**Tasks**:
+- Adapt existing 44 integration tests for multi-architecture
+- Add architecture-specific test validation
+- Add test result reporting
+- Validate test execution across architectures
+
+**Deliverables**:
+- All 44 integration tests adapted for multi-architecture
+- Test execution validated on Framework x86_64
+- Test result reporting working
+
+---
+
+### Phase 4: Core 1 Services Integration Tests (WEEK 3-4)
+
+**Status**: ⏳ **PENDING** — After Phase 1 completion, coordinate with Core 1 Subcore
+
+**Tasks**:
+- Design Core 1 services integration tests (coordinate with Core 1 Subcore)
+- Implement integration tests for Core 1 services (1a-1d)
+- Validate integration tests on Framework x86_64
+
+**Coordination Needs**:
+- ⏳ **Core 1 Subcore**: Coordinate Core 1 services integration testing requirements
+- ⏳ **Core 1 Services (1a-1d)**: Coordinate integration testing requirements
+
+**Deliverables**:
+- Core 1 services integration tests designed
+- Core 1 services integration tests implemented
+- Integration tests validated on Framework x86_64
+
+---
+
+## Current Independent Work (Step 5 - SUPPORTING)
+
+### Status: Independent Work Progressing
+
+**Context**: Agent 3c is in Step 5 (SUPPORTING) of the single-threaded dependency chain. This work does not block the critical path (Steps 1-4).
+
+**Current Work**:
+- ✅ **Syscall Interface Test Patterns Design** (2026-01-02-083246-pst) — Complete
+  - Using Basin Kernel (3a) syscall interface documentation (complete and available)
+  - Test patterns for syscall validation designed
+  - Test helpers for syscall interface testing designed
+  - Prepared test patterns for future coordination with Agents 3b and 3d
+
+- ✅ **Multi-Architecture Testing Framework Design Expanded** (2026-01-02-083246-pst) — Complete
+  - Architecture detection helpers expanded with CPUID-based vendor detection
+  - Detailed implementation for x86_64 AMD vs Intel distinction
+  - Architecture utility functions (name, JIT support, JIT requirements)
+
+**What I'm Doing Independently**:
+1. ✅ Designing syscall argument validation test patterns
+2. ✅ Designing syscall return value validation test patterns
+3. ✅ Designing test helpers for syscall interface testing
+4. ✅ Preparing JIT compilation test patterns (for coordination with Agent 3b — after Step 1 complete)
+5. ✅ Preparing Init System test patterns (for coordination with Agent 3d — WEEK 3-4)
+6. ✅ Designing multi-architecture syscall interface test patterns
+7. ✅ Expanding multi-architecture testing framework design with detailed architecture detection helpers
+
+**What I'm Not Blocking**:
+- ✅ Step 1: Basin Kernel (3a) syscall doc distribution (docs ready, distribution in progress)
+- ✅ Step 2: VM Runtime (3b) JIT implementation (can proceed independently after Step 1)
+- ✅ Step 3: Init System (3d) implementation (can proceed independently after Step 1)
+- ✅ Step 4: Grainscript Shell (1e) integration (can proceed independently after Step 3)
+
+**Independent Work Documents**:
+- `docs/plans/syscall_interface_test_patterns_design.md` — Test patterns using syscall interface docs
+- `docs/plans/multi_architecture_testing_framework_design.md` — Multi-architecture testing framework design (expanded)
+- `docs/plans/framework_x86_64_test_runner_design.md` — Framework x86_64 test runner design
+
+---
+
+## Anticipated Coordination Needs
+
+### With VM Runtime Agent (3b) — When JIT Implementation Ready
+
+**Status**: ⏳ **PENDING** — After Step 1 completion and Agent 3b JIT implementation ready
+
+**When to Coordinate**: Week 1-2 (after Step 1 complete and Agent 3b JIT implementation ready)
+
+**Coordination Points**:
+- JIT compilation syscall testing requirements
+- ECALL instruction handling validation
+- Register mapping validation (RISC-V → x86_64)
+- Return value handling from JIT-compiled code
+- Framework x86_64 testing requirements
+
+**What I Have Ready**:
+- ✅ Test patterns for JIT compilation syscall testing (designed)
+- ✅ Test helpers for JIT syscall validation (designed)
+- ✅ Multi-architecture JIT testing framework (designed)
+- ✅ Syscall interface documentation reference (available from Agent 3a)
+
+**What I Can Provide**:
+- Multi-architecture testing framework for JIT validation
+- Test patterns for RISC-V → x86_64 JIT compilation
+- Framework x86_64 test infrastructure coordination
+- ECALL instruction testing patterns (using syscall interface docs from Agent 3a)
+
+**Timeline**: Week 1-2 (after Step 1 complete and Agent 3b JIT implementation ready)
+
+---
+
+### With sevenos Init System Agent (3d) — When Init System Ready
 
 **Status**: ⏳ **PENDING** — After Step 3 completion (Init System implementation)
 
-**Coordination Tasks**:
-1. **Coordinate with Agent 3d (sevenos Init System)**:
-   - Coordinate Init System integration testing requirements
-   - Coordinate service lifecycle syscall validation
-   - Coordinate process group/session management validation
-   - Coordinate resource management validation
-   - Timeline: WEEK 3-4 (after Init System implementation)
+**When to Coordinate**: Week 3-4 (after Agent 3d completes Init System implementation)
 
-2. **Provide Test Patterns and Framework**:
-   - Provide test patterns for Init System syscall testing (designed)
-   - Provide test helpers for service lifecycle validation (designed)
-   - Provide cross-subcore integration testing patterns (Init System ↔ Grainscript Shell)
+**Coordination Points**:
+- Init System syscall testing requirements
+- Service lifecycle syscall validation
+- Process group/session management validation
+- Resource management validation
 
-3. **Coordinate Framework x86_64 Testing**:
-   - Coordinate Init System testing on Framework x86_64
-   - Coordinate cross-subcore integration testing
-   - Coordinate test result reporting
-
-**What I Can Provide**:
-- ✅ Test patterns for Init System syscall testing (designed)
-- ✅ Test helpers for service lifecycle validation (designed)
-- ✅ Cross-subcore integration testing patterns (Init System ↔ Grainscript Shell)
-- ✅ Framework x86_64 test infrastructure coordination
-
-**What I'll Need from Agent 3d**:
+**What I'll Need**:
 - Init System implementation details for testing
 - Service management patterns
 - Syscall usage patterns in Init System
 - Test execution requirements
 
-**Timeline**: WEEK 3-4 (after Init System implementation)
-
-**Deliverables**:
-- Init System integration testing coordination plan
+**What I'm Preparing**:
 - Test patterns for Init System syscall testing
 - Test helpers for service lifecycle validation
-- Cross-subcore integration testing patterns
+- Cross-subcore integration testing patterns (Init System ↔ Grainscript Shell)
+
+**Timeline**: Week 3-4 (after Init System implementation)
 
 ---
 
-## Next Steps for Vantage 3 Subcore
+### With Basin Kernel Agent (3a) — Ongoing
 
-### Immediate (THIS WEEK)
+**Status**: ✅ **ACTIVE** — Syscall interface documentation available
 
-1. **Monitor Step 1 Completion** (Agent 3a syscall docs distribution):
-   - ⏳ Verify Agent 3a distributes syscall docs to Agents 3b and 3d
-   - ⏳ Confirm Agents 3b and 3d receive documentation
-   - ⏳ Update coordination status when Step 1 completes
+**Coordination Points**:
+- Syscall interface documentation reference (complete and available)
+- Syscall interface testing validation
+- Framework x86_64 syscall interface testing
 
-2. **Coordinate JIT Testing** (Agent 3b ↔ Agent 3c):
-   - ⏳ Facilitate coordination between Agent 3b and Agent 3c for JIT testing
-   - ⏳ Coordinate JIT compilation testing requirements
-   - ⏳ Coordinate Framework x86_64 testing requirements
-   - Timeline: IMMEDIATE (Agent 3b Phase 3 complete, ready for coordination)
+**What I Have**:
+- ✅ Complete syscall interface reference (`docs/kernel/syscall_interface_reference.md`)
+- ✅ JIT-specific interface guide (`docs/kernel/syscall_interface_for_jit.md`)
+- ✅ Init System interface guide (`docs/kernel/syscall_interface_for_init.md`)
 
-3. **Support Agent 3d Compilation Fix**:
-   - ⏳ Monitor Agent 3d progress on compilation fix
-   - ⏳ Support as needed for dependency manager compilation issue
+**What I'm Using**:
+- Syscall interface documentation for test pattern design
+- RISC-V ABI calling convention for test validation
+- Error codes and return value encoding for test validation
 
----
-
-### Week 1-2
-
-4. **Coordinate Framework x86_64 Test Infrastructure**:
-   - ⏳ Coordinate test infrastructure requirements with Agent 3c
-   - ⏳ Coordinate test execution strategy
-   - ⏳ Coordinate with Core 1 Subcore on Framework x86_64 requirements
-
-5. **Monitor Step 2 Progress** (Agent 3b ECALL integration):
-   - ⏳ Monitor Agent 3b ECALL integration progress (after syscall docs received)
-   - ⏳ Support as needed for ECALL integration
-
-6. **Monitor Step 3 Progress** (Agent 3d Init System):
-   - ⏳ Monitor Agent 3d Init System implementation progress
-   - ⏳ Support as needed for Init System completion
+**Timeline**: Ongoing (as needed for testing validation)
 
 ---
 
-### Week 2-3
+### With Core 1 Subcore — Ongoing
 
-7. **Coordinate Init System Integration Testing** (Agent 3c ↔ Agent 3d):
-   - ⏳ Facilitate coordination between Agent 3c and Agent 3d for Init System integration testing
-   - ⏳ Coordinate service lifecycle testing requirements
-   - ⏳ Coordinate Framework x86_64 Init System testing
+**Status**: ✅ **COORDINATION ACTIVE** — As needed for Framework x86_64 requirements
 
-8. **Coordinate Cross-Subcore Integration Testing** (Agent 3d ↔ Agent 1e):
-   - ⏳ Facilitate cross-subcore coordination with Core 1 Subcore
-   - ⏳ Coordinate Init System ↔ Grainscript Shell integration testing
-   - ⏳ Coordinate Framework x86_64 cross-subcore testing
+**Coordination Points**:
+- Framework x86_64 test infrastructure requirements (IMMEDIATE)
+- Core 1 services integration testing requirements (IMMEDIATE)
+- sevenos Init System (3d) integration testing requirements (WEEK 3-4)
+- Grainscript Shell (1e) integration testing requirements (WEEK 3-4)
+- Core 1 services (1a-1d) integration testing requirements (ONGOING)
+- Cross-subcore testing requirements (ONGOING)
 
----
-
-## Next Steps for Core 1 Subcore
-
-### Immediate (THIS WEEK)
-
-1. **Monitor Critical Path Progress**:
-   - ⏳ Monitor Step 1 completion (Agent 3a syscall docs distribution)
-   - ⏳ Monitor Step 2 progress (Agent 3b ECALL integration after syscall docs)
-   - ⏳ Monitor Step 3 progress (Agent 3d Init System implementation)
-
-2. **Coordinate Framework x86_64 Test Infrastructure**:
-   - ⏳ Coordinate Framework x86_64 test infrastructure requirements with Agent 3c
-   - ⏳ Coordinate test execution strategy
-   - ⏳ Provide Framework x86_64 environment guidance
-
----
-
-### Week 1-2
-
-3. **Coordinate Cross-Subcore Integration** (Agent 3d ↔ Agent 1e):
-   - ⏳ Facilitate cross-subcore coordination with Vantage 3 Subcore
-   - ⏳ Coordinate Init System ↔ Grainscript Shell integration testing
-   - ⏳ Coordinate Framework x86_64 cross-subcore testing
-
-4. **Monitor Step 4 Progress** (Agent 1e Grainscript Shell):
-   - ⏳ Monitor Agent 1e Grainscript Shell integration progress
-   - ⏳ Support as needed for shell integration with Init System
-
----
-
-### Week 2-3
-
-5. **Coordinate End-to-End Testing**:
-   - ⏳ Coordinate end-to-end testing for complete system stack
-   - ⏳ Coordinate Framework x86_64 end-to-end testing
-   - ⏳ Coordinate multi-architecture end-to-end testing
-
----
-
-## Integration Planning Support Available
-
-**Documents Created by Vantage 3 Subcore** (available for Agent 3c reference):
-- ✅ `docs/plans/jit_integration_planning.md` — Comprehensive JIT integration planning
-- ✅ `docs/plans/init_system_integration_planning.md` — Comprehensive Init System integration planning
-- ✅ `docs/plans/cross_subcore_shell_init_integration_planning.md` — Cross-subcore integration planning
-- ✅ `docs/framework_16_development_environment_guide.md` — Framework x86_64 development environment guide
-- ✅ `docs/framework_16_testing_environment_guide.md` — Framework x86_64 testing environment guide
-- ✅ `docs/plans/end_to_end_integration_test_scenarios.md` — End-to-end integration test scenarios
-
-**These documents provide**:
-- Integration patterns for JIT compilation syscall testing
-- Integration patterns for Init System syscall testing
-- Cross-subcore integration patterns
-- Framework x86_64 environment details
-- Testing strategies and workflows
-- End-to-end test scenarios
+**Next Check-In**: As needed for Framework x86_64 requirements and Core 1 services integration testing
 
 ---
 
@@ -373,13 +350,41 @@
 
 ### Phase 1: RISC-V Compliance Validation — ✅ **COMPLETE**
 
-**Status**: ✅ **COMPLETE** — All RISC-V compliance validation tasks complete
+#### 1. RISC-V Compliance Test Suite Created (2025-12-29-220000-pst)
 
-**Completed Work**:
-- ✅ RISC-V compliance test suite created (10+ test cases)
-- ✅ AArch64 code removed (all files and build target)
-- ✅ Kernel RISC-V-only validation complete
-- ✅ RISC-V compliance requirements documented
+**File**: `tests/riscv_compliance_validation_test.zig`
+
+**Test Coverage** (10+ test cases):
+- ✅ x0 register hardwired to zero
+- ✅ ADDI, ADD, LUI, JAL, BEQ instructions
+- ✅ Instruction alignment, memory alignment
+- ✅ Calling convention, instruction encoding
+- ✅ Memory model compliance
+
+**Status**: ✅ Complete — Test suite created and added to build.zig
+
+#### 2. AArch64 Code Removed (2025-12-29-225000-pst)
+
+**Files Removed**:
+- ✅ `src/kernel/platform_aarch64.zig`
+- ✅ `src/kernel/main_aarch64.zig`
+- ✅ `src/kernel/entry_aarch64.S`
+- ✅ `src/kernel/linker_aarch64.ld`
+- ✅ `kernel-aarch64` build target
+
+**Status**: ✅ Complete — All AArch64 code removed and verified
+
+#### 3. Kernel RISC-V-Only Validation Complete (2025-12-30-214644-pst)
+
+**Validation Report**: `docs/riscv_compliance_validation_report.md`
+
+**Status**: ✅ Complete — Kernel validated as RISC-V-only
+
+#### 4. RISC-V Compliance Requirements Documented (2025-12-31-001435-pst)
+
+**Document**: `docs/riscv_compliance_requirements.md`
+
+**Status**: ✅ Complete — Comprehensive requirements document created
 
 ---
 
@@ -394,6 +399,8 @@
 - ✅ Phase 4: Error handling tests (8 tests) — **IN BUILD.ZIG**
 - ✅ Phase 5: Performance tests (7 tests) — **NOT YET IN BUILD.ZIG** (created, awaiting integration decision)
 - **Total**: 44 comprehensive integration tests across 5 test files (37 currently in build.zig, 7 Phase 5 tests ready to add)
+
+**Status**: ✅ All phases complete — All test files created and ready for execution validation
 
 ---
 
@@ -437,6 +444,19 @@
 4. **Init System Syscall Testing Patterns** — Prepared for coordination with Agent 3d
 5. **Multi-Architecture Syscall Interface Testing** — Validate consistency across architectures
 
+**Test Helper Functions Designed**:
+- ✅ `create_test_integration_with_syscall_helpers()` — Test setup with syscall helpers
+- ✅ `invoke_syscall()` — Invoke syscall with proper argument encoding
+- ✅ `validate_syscall_pointer()` — Validate pointer arguments
+- ✅ `validate_syscall_handle()` — Validate handle arguments
+- ✅ `validate_syscall_flags()` — Validate flag arguments
+- ✅ `decode_syscall_success()` — Decode success return values
+- ✅ `decode_syscall_error()` — Decode error return values
+- ✅ `encode_syscall_pointer()` — Encode pointer arguments
+- ✅ `encode_syscall_handle()` — Encode handle arguments
+- ✅ `encode_syscall_flags()` — Encode flag arguments
+- ✅ `test_syscall_argument_validation()` — Test argument validation
+
 **Status**: ✅ Complete — All test patterns and helpers designed using Basin Kernel (3a) syscall interface documentation
 
 ---
@@ -467,33 +487,31 @@
 **Status**: ✅ **COORDINATION ACTIVE** — Regular coordination established
 
 **Coordination Points**:
-- ✅ Multi-architecture testing framework design approval (2026-01-01-233240-pst)
-- ⏳ Framework x86_64 test infrastructure coordination (WEEK 1-2)
-- ⏳ JIT testing coordination (IMMEDIATE — Agent 3b Phase 3 complete)
-- ⏳ Init System integration testing coordination (WEEK 3-4)
-- ⏳ Cross-subcore testing coordination (WEEK 3-4)
+- Multi-architecture testing framework design approval
+- Framework x86_64 test infrastructure coordination
+- JIT testing coordination (after Step 1 complete and Agent 3b JIT implementation ready)
+- Init System integration testing coordination
+- Cross-subcore testing coordination
 
-**Next Check-In**: As needed for coordination, especially JIT testing coordination (IMMEDIATE)
+**Next Check-In**: As needed for coordination, especially after Step 1 complete and Agent 3b JIT implementation ready
 
 ---
 
 ### With VM Runtime Agent (3b)
 
-**Status**: ✅ **READY FOR COORDINATION** — Agent 3b Phase 3 complete (2026-01-02-090817-pst)
-
-**Agent 3b Status** (from coordination message):
-- ✅ Phase 3 complete with optimizations
-- ✅ SLT/SLTU optimized with proper SETcc instructions
-- ✅ ECALL fallback to interpreter implemented
-- ✅ Core functionality implemented and ready for testing
-- ✅ Ready for multi-architecture testing coordination with Agent 3c
+**Status**: ⏳ **COORDINATION PENDING** — After Step 1 complete and Agent 3b JIT implementation ready
 
 **Coordination Points**:
-- JIT compilation testing requirements (IMMEDIATE)
-- RISC-V → x86_64 JIT testing (HIGH PRIORITY — Phase 3 complete, ready for testing)
+- JIT compilation testing requirements (after Step 1 complete and Agent 3b JIT implementation ready)
+- RISC-V → x86_64 JIT testing (HIGH PRIORITY — after Step 1 complete)
 - Framework x86_64 testing requirements
 - Performance testing for JIT compilation
 - ECALL instruction testing (syscall interface docs available from Agent 3a)
+
+**Context**: 
+- ⏳ Agent 3b waiting for Step 1 (syscall interface docs from Agent 3a)
+- ⏳ Agent 3b will implement JIT pipeline after receiving syscall interface docs
+- ⏳ Agent 3b ready for multi-architecture testing coordination after JIT implementation
 
 **What I Can Provide**:
 - Multi-architecture testing framework for JIT validation
@@ -501,11 +519,7 @@
 - Framework x86_64 test infrastructure coordination
 - ECALL instruction testing patterns (using syscall interface docs)
 
-**Note**: Agent 3b mentions needing syscall interface docs from Agent 3a for ECALL instruction. These docs are already available:
-- `docs/kernel/syscall_interface_reference.md` (complete)
-- `docs/kernel/syscall_interface_for_jit.md` (JIT-specific guide)
-
-**Next Check-In**: IMMEDIATE — Ready to coordinate JIT testing requirements
+**Next Check-In**: Week 1-2 (after Step 1 complete and Agent 3b JIT implementation ready)
 
 ---
 
@@ -523,28 +537,18 @@
 - ✅ JIT-specific interface guide (`docs/kernel/syscall_interface_for_jit.md`)
 - ✅ Init System interface guide (`docs/kernel/syscall_interface_for_init.md`)
 
-**What I'm Using**:
-- Syscall interface documentation for test pattern design
-- RISC-V ABI calling convention for test validation
-- Error codes and return value encoding for test validation
-
 **Next Check-In**: As needed for syscall interface testing coordination
 
 ---
 
 ### With sevenos Init System Agent (3d)
 
-**Status**: ⏳ **COORDINATION PENDING** — After Step 3 completion (Init System implementation)
+**Status**: ⏳ **COORDINATION PENDING** — After Init System implementation
 
 **Coordination Points**:
 - Init System integration testing requirements
 - Framework x86_64 Init System testing
 - Cross-subcore integration testing (Init System ↔ Grainscript Shell)
-
-**What I'm Preparing**:
-- Test patterns for Init System syscall testing
-- Test helpers for service lifecycle validation
-- Cross-subcore integration testing patterns (Init System ↔ Grainscript Shell)
 
 **Next Check-In**: Week 3-4 (after Init System implementation)
 
@@ -556,18 +560,19 @@
 
 **Coordination Points**:
 - Framework x86_64 test infrastructure requirements (IMMEDIATE)
+- Core 1 services integration testing requirements (IMMEDIATE)
 - sevenos Init System (3d) integration testing requirements (WEEK 3-4)
 - Grainscript Shell (1e) integration testing requirements (WEEK 3-4)
 - Core 1 services (1a-1d) integration testing requirements (ONGOING)
 - Cross-subcore testing requirements (ONGOING)
 
-**Next Check-In**: As needed for Framework x86_64 requirements
+**Next Check-In**: As needed for Framework x86_64 requirements and Core 1 services integration testing
 
 ---
 
 ## Summary
 
-**Status**: ✅ **DESIGN APPROVED, IMPLEMENTATION READY** — All integration test expansion phases complete (44 total tests). Multi-architecture testing framework design expanded with CPUID-based architecture detection. Syscall interface test patterns design complete. Framework x86_64 test runner design complete. Ready for implementation phase and JIT testing coordination with Agent 3b (Phase 3 complete).
+**Status**: ✅ **DESIGN APPROVED, IMPLEMENTATION READY** — All integration test expansion phases complete (44 total tests). Multi-architecture testing framework design expanded with CPUID-based architecture detection. Syscall interface test patterns design complete. Ready for implementation phase.
 
 **What's Complete**:
 - ✅ RISC-V compliance test suite created (10+ test cases)
@@ -592,28 +597,24 @@
 
 **Design Documents**: **3 comprehensive design documents** — Multi-architecture testing framework, Framework x86_64 test runner, and Syscall interface test patterns designs (complete)
 
-**What's Next** (HIGH PRIORITY per Core 1 Subcore coordination plan):
-- ⏳ **JIT TESTING COORDINATION** (IMMEDIATE — WEEK 1):
-  - Coordinate with Agent 3b on JIT compilation testing requirements (Phase 3 complete, ready for testing)
-  - Provide test patterns and framework for JIT validation
-  - Coordinate Framework x86_64 testing requirements
-- ⏳ **MULTI-ARCHITECTURE TESTING FRAMEWORK IMPLEMENTATION** (HIGH PRIORITY — WEEK 1-2):
-  - Phase 1: JIT testing coordination (IMMEDIATE — WEEK 1)
-  - Phase 2: Framework implementation (WEEK 1-2) — Ready to start
-  - Phase 3: Framework x86_64 test infrastructure implementation (WEEK 2-3)
-  - Phase 4: sevenos Init System (3d) integration testing (WEEK 3-4)
+**What's Next** (HIGH PRIORITY per Core 1 Subcore coordination summary 2026-01-02-100345-pst):
+- ⏳ **MULTI-ARCHITECTURE TESTING FRAMEWORK IMPLEMENTATION** (HIGH PRIORITY):
+  - Phase 1: Framework implementation (WEEK 1-2) — Ready to start
+  - Phase 2: Framework x86_64 test infrastructure implementation (WEEK 2-3)
+  - Phase 3: Existing test adaptation (WEEK 2-3)
+  - Phase 4: Core 1 services integration tests (WEEK 3-4) — Coordinate with Core 1 Subcore
 - ⏳ **WAITING**: For Core Agent to resolve compilation errors (Core Agent Priority 2) to unblock test execution
 - ⏳ **READY**: All integration tests ready for execution validation (44 total tests, 37 currently in build.zig)
 
 **What Agent 3c Needs from Vantage 3 Subcore**:
 - ✅ **Multi-Architecture Testing Framework Design Approved** (2026-01-01-233240-pst) — Framework design approach approved, ready to proceed
-- ⏳ **VM Runtime (3b) JIT Testing Coordination**: Coordinate JIT compilation testing requirements (IMMEDIATE — Agent 3b Phase 3 complete, ready for testing)
+- ⏳ **VM Runtime (3b) JIT Testing Coordination**: Coordinate JIT compilation testing requirements (after Step 1 complete and Agent 3b JIT implementation ready)
 - ⏳ **Framework x86_64 Test Infrastructure Coordination**: Coordinate test infrastructure setup (WEEK 1-2)
 - ⏳ **sevenos Init System (3d) Integration Testing Coordination**: Plan integration testing when Init System is available (WEEK 3-4)
 - ⏳ **Basin Kernel (3a) Syscall Interface Testing Coordination**: Plan syscall interface testing for Framework x86_64 (ONGOING)
 
 ---
 
-**Date**: 2026-01-02-090817-pst  
+**Date**: 2026-01-02-100345-pst  
 **Agent**: Grain System Integration Agent (3c)  
-**Status**: ✅ **DESIGN APPROVED, IMPLEMENTATION READY** — Multi-architecture testing framework design complete and approved. Ready for implementation phase and JIT testing coordination with Agent 3b (Phase 3 complete). Step 5 (SUPPORTING) — Not blocking critical path.
+**Status**: ✅ **DESIGN APPROVED, IMPLEMENTATION READY** — Multi-architecture testing framework design complete and approved. Ready for implementation phase. Step 5 (SUPPORTING) — Not blocking critical path.

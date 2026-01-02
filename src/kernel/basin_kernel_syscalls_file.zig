@@ -123,6 +123,9 @@ pub const FileSyscalls = struct {
         file_handle.allocated = true;
         file_handle.owner_process_id = owner_process_id;
         
+        // Update handle hash table for O(1) lookup.
+        self.update_handle_hash_table(handle_id, handle_idx);
+        
         // If truncate flag is set, clear buffer.
         if (open_flags.truncate) {
             file_handle.buffer_size = 0;
@@ -384,6 +387,10 @@ pub const FileSyscalls = struct {
         var file_handle = &self.handles[handle_idx];
         const owner_pid = file_handle.owner_process_id;
         const closed_handle_id = file_handle.id;
+        
+        // Invalidate handle hash table entry before deallocating.
+        self.invalidate_handle_hash_table(closed_handle_id);
+        
         file_handle.allocated = false;
         file_handle.id = 0;
         file_handle.path_len = 0;

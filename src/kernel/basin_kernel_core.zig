@@ -91,6 +91,12 @@ pub const BasinKernel = struct {
     /// Note: 0 if MRU cache is invalid.
     mru_handle_id: u64 = 0,
     
+    /// Handle ID to index hash table (optimization).
+    /// Why: O(1) handle lookup instead of O(n) linear search.
+    /// Grain Style: Static allocation, bounded array size.
+    /// Note: Invalid entries have index = MAX_HANDLES.
+    handle_id_to_index: [MAX_HANDLES]u32 = [_]u32{MAX_HANDLES} ** MAX_HANDLES,
+    
     /// Directory handle table (static allocation).
     /// Why: Track directory handles for opendir/readdir/closedir syscalls.
     /// Grain Style: Static allocation, max 32 entries.
@@ -312,6 +318,11 @@ pub const BasinKernel = struct {
         // Assert: MRU cache must be invalid initially.
         Debug.kassert(kernel.mru_handle_index == MAX_HANDLES, "MRU index not invalid", .{});
         Debug.kassert(kernel.mru_handle_id == 0, "MRU ID not 0", .{});
+        
+        // Assert: Handle hash table must be invalid initially.
+        for (kernel.handle_id_to_index) |idx| {
+            Debug.kassert(idx == MAX_HANDLES, "Hash table entry not invalid", .{});
+        }
         
         // Assert: Current process index cache must be invalid initially.
         Debug.kassert(kernel.current_process_index == MAX_PROCESSES, "Current process index not invalid", .{});
@@ -791,15 +802,36 @@ pub const BasinKernel = struct {
             }
         }
         
-        // Fallback: Linear search through all handles.
+        // Optimization: Hash table lookup (O(1) average case).
+        // Why: Fast handle lookup for read/write/close operations.
+        const hash_idx = @as(u32, @truncate(handle_id % MAX_HANDLES));
+        const cached_idx = self.handle_id_to_index[hash_idx];
+        if (cached_idx < MAX_HANDLES) {
+            const cached_handle = &self.handles[cached_idx];
+            if (cached_handle.allocated and cached_handle.id == handle_id) {
+                // Assert: Cached handle must be valid (postcondition).
+                Debug.kassert(cached_handle.allocated, "Cached handle not allocated", .{});
+                Debug.kassert(cached_handle.id == handle_id, "Cached handle ID mismatch", .{});
+                
+                // Update MRU cache for next lookup.
+                self.mru_handle_index = cached_idx;
+                self.mru_handle_id = handle_id;
+                
+                return cached_idx; // Fast path: Hash table hit
+            }
+        }
+        
+        // Fallback: Linear search through all handles (for robustness).
+        // Why: Handle hash collisions or hash table inconsistencies.
         for (self.handles, 0..) |handle, i| {
             if (handle.allocated and handle.id == handle_id) {
                 // Assert: Handle must be allocated and match ID.
                 Debug.kassert(handle.allocated, "Handle not allocated", .{});
                 Debug.kassert(handle.id == handle_id, "Handle ID mismatch", .{});
                 
-                // Update MRU cache for next lookup.
+                // Update hash table and MRU cache for next lookup.
                 const idx = @as(u32, @intCast(i));
+                self.handle_id_to_index[hash_idx] = idx;
                 self.mru_handle_index = idx;
                 self.mru_handle_id = handle_id;
                 
@@ -825,6 +857,51 @@ pub const BasinKernel = struct {
         // Assert: MRU cache must be invalidated (postcondition).
         Debug.kassert(self.mru_handle_index == MAX_HANDLES, "MRU index not invalidated", .{});
         Debug.kassert(self.mru_handle_id == 0, "MRU ID not invalidated", .{});
+    }
+    
+    /// Update handle hash table when handle is created.
+    /// Why: Maintain O(1) handle lookup performance.
+    /// Contract: handle_id must be valid (non-zero), handle_idx must be < MAX_HANDLES.
+    /// Note: Public function for use by syscall handlers.
+    pub fn update_handle_hash_table(self: *BasinKernel, handle_id: u64, handle_idx: u32) void {
+        // Assert: self pointer must be valid.
+        const self_ptr = @intFromPtr(self);
+        Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
+        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        
+        // Assert: Handle ID must be valid (non-zero).
+        Debug.kassert(handle_id != 0, "Handle ID is 0", .{});
+        
+        // Assert: Handle index must be valid.
+        Debug.kassert(handle_idx < MAX_HANDLES, "Handle index >= MAX_HANDLES", .{});
+        
+        // Update hash table entry.
+        const hash_idx = @as(u32, @truncate(handle_id % MAX_HANDLES));
+        self.handle_id_to_index[hash_idx] = handle_idx;
+        
+        // Assert: Hash table entry must be updated (postcondition).
+        Debug.kassert(self.handle_id_to_index[hash_idx] == handle_idx, "Hash table not updated", .{});
+    }
+    
+    /// Invalidate handle hash table entry when handle is closed.
+    /// Why: Maintain hash table consistency when handles are deallocated.
+    /// Contract: handle_id must be valid (non-zero).
+    /// Note: Public function for use by syscall handlers.
+    pub fn invalidate_handle_hash_table(self: *BasinKernel, handle_id: u64) void {
+        // Assert: self pointer must be valid.
+        const self_ptr = @intFromPtr(self);
+        Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
+        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        
+        // Assert: Handle ID must be valid (non-zero).
+        Debug.kassert(handle_id != 0, "Handle ID is 0", .{});
+        
+        // Invalidate hash table entry.
+        const hash_idx = @as(u32, @truncate(handle_id % MAX_HANDLES));
+        self.handle_id_to_index[hash_idx] = MAX_HANDLES;
+        
+        // Assert: Hash table entry must be invalidated (postcondition).
+        Debug.kassert(self.handle_id_to_index[hash_idx] == MAX_HANDLES, "Hash table not invalidated", .{});
     }
     
     /// Find current process index (with caching optimization).
