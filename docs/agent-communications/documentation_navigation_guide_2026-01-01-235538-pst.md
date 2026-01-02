@@ -61,6 +61,9 @@ This guide helps agents quickly find the coordination and communication document
 - `docs/agent-communications/critical_path_status_update_template_2026-01-02-084613-pst.md` - Status update template for progress reporting
 - `docs/agent-communications/critical_path_coordination_agenda_template_2026-01-02-084613-pst.md` - Coordination meeting agenda template
 
+**Work Session Tools**:
+- `docs/agent-communications/pre_work_session_checklist_2026-01-02-090326-pst.md` - Pre-work session checklist for all agents
+
 **When to Use**: Start here for current priorities and agent-specific instructions. Reference critical path guide for dependency chain understanding. Use blocker tracking when reporting blockers. Use handoff checklist when completing steps.
 
 ### 2. Glow G2 Voice Guidelines
