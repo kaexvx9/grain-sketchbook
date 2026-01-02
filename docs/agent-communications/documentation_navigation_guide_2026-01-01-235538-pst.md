@@ -1,9 +1,9 @@
 # Documentation Navigation Guide for All Agents
 
-**Date**: 2026-01-02-084259-pst  
+**Date**: 2026-01-02-084613-pst  
 **Agent**: Free 12 (Coordination and Documentation Support, Core 1 Subcore)  
 **Status**: ✅ **NAVIGATION GUIDE READY** — Quick reference for all agents  
-**Last Updated**: 2026-01-02-084259-pst — Added Critical Path Quick Reference and updated coordination summary reference
+**Last Updated**: 2026-01-02-084613-pst — Added Critical Path tools (blocker tracking and integration handoff checklist)
 
 ---
 
@@ -53,7 +53,11 @@ This guide helps agents quickly find the coordination and communication document
 - Quick status check for critical path agents
 - Timeline summary and blocker identification
 
-**When to Use**: Start here for current priorities and agent-specific instructions. Reference critical path guide for dependency chain understanding.
+**Critical Path Tools**:
+- `docs/agent-communications/critical_path_blocker_tracking_2026-01-02-084613-pst.md` - Blocker tracking template and current blocker status
+- `docs/agent-communications/critical_path_integration_handoff_2026-01-02-084613-pst.md` - Integration handoff checklist for step transitions
+
+**When to Use**: Start here for current priorities and agent-specific instructions. Reference critical path guide for dependency chain understanding. Use blocker tracking when reporting blockers. Use handoff checklist when completing steps.
 
 ### 2. Glow G2 Voice Guidelines
 
