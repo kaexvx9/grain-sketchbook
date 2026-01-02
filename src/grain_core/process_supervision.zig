@@ -8,7 +8,8 @@
 //! Inspired by: s6 process supervision suite (https://github.com/skarnet/s6)
 //!
 //! Note: This is compositor-level supervision for Grain OS applications.
-//!       For kernel-level system service supervision, see src/userspace/z6.zig (z6 daemon).
+//!       For kernel-level system service supervision (Basin Kernel), see Basin Kernel userspace.
+//!       For Linux init system supervision (sevenos), see grainstore/sevenos/src/lib/supervision.zig.
 
 const std = @import("std");
 

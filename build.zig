@@ -1489,7 +1489,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_stress_tests.step);
     
     // Error Handling Integration Tests (Phase 4)
-    const error_handling_tests = b.addTest(.{
+    const error_handling_integration_tests = b.addTest(.{
         .root_module = b.createModule(.{
             .root_source_file = b.path("tests/152_error_handling_integration_test.zig"),
             .target = target,
@@ -1500,8 +1500,8 @@ pub fn build(b: *std.Build) void {
             },
         }),
     });
-    const run_error_handling_tests = b.addRunArtifact(error_handling_tests);
-    test_step.dependOn(&run_error_handling_tests.step);
+    const run_error_handling_integration_tests = b.addRunArtifact(error_handling_integration_tests);
+    test_step.dependOn(&run_error_handling_integration_tests.step);
     
     const run_outputs_tests = b.addRunArtifact(outputs_tests);
     test_step.dependOn(&run_outputs_tests.step);
@@ -1909,7 +1909,7 @@ pub fn build(b: *std.Build) void {
     const dirty_region_tests_run = b.addRunArtifact(dirty_region_tests);
     test_step.dependOn(&dirty_region_tests_run.step);
 
-    const error_handling_tests = b.addTest(.{
+    const error_handling_unit_tests = b.addTest(.{
         .root_module = b.createModule(.{
             .root_source_file = b.path("tests/016_error_handling_test.zig"),
             .target = target,
@@ -1919,8 +1919,8 @@ pub fn build(b: *std.Build) void {
             },
         }),
     });
-    const error_handling_tests_run = b.addRunArtifact(error_handling_tests);
-    test_step.dependOn(&error_handling_tests_run.step);
+    const error_handling_unit_tests_run = b.addRunArtifact(error_handling_unit_tests);
+    test_step.dependOn(&error_handling_unit_tests_run.step);
 
     const performance_monitoring_tests = b.addTest(.{
         .root_module = b.createModule(.{
