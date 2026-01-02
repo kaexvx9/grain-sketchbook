@@ -125,29 +125,34 @@
 - ✅ **Readiness summary complete** (`docs/agent-communications/core_1d_compositor_phase7_readiness_summary_2026-01-02-090000-pst.md`)
 
 **What's In Progress**:
-- 🔄 **Storage Agent (1c) coordination** - Coordination request sent, awaiting response
-- ⏳ Workspace state serialization format (pending Storage Agent agreement)
-- ⏳ Workspace state saving/loading implementation (pending API contract)
-- ⏳ Workspace restoration on compositor startup (pending API contract)
+- ✅ **Storage Agent (1c) coordination** - API design approved, API contract agreed
+- ✅ Workspace state serialization format (JSON format agreed)
+- ✅ Workspace state saving/loading implementation (API contract agreed)
+- ⏳ Workspace restoration on compositor startup (awaiting Storage Agent API implementation)
 
-**Readiness**: ✅ **100% Ready** - All preparation work complete. Code, design, and test plans ready. Implementation can begin immediately once Storage Agent API contract is agreed.
+**Readiness**: ✅ **100% Ready** - All preparation work complete. Code, design, and test plans ready. API contract agreed. Awaiting Storage Agent API implementation.
 
 **Action Items for Core 1d**:
-1. **Await Storage Agent (1c) response** to coordination request
-2. **Review and agree on API contract** with Storage Agent
-3. **Decide on data format** (JSON, binary, or custom format)
-4. **Decide on storage location/path** (e.g., `~/.grain/compositor/workspaces/`)
-5. **Once API contract agreed**:
-   - Implement workspace state saving using Storage Agent API
-   - Implement workspace state loading using Storage Agent API
+1. ✅ **Storage Agent (1c) API design reviewed and approved**
+2. ✅ **API contract agreed** with Storage Agent
+3. ✅ **Data format decided** (JSON format)
+4. ✅ **Storage location decided** (`~/.grain/compositor/`)
+5. ⏳ **Await Storage Agent API implementation**:
+   - Storage Agent implementing `compositor_workspace_persistence.zig` module
+   - Once ready, integrate workspace state saving using Storage Agent API
+   - Integrate workspace state loading using Storage Agent API
    - Implement workspace restoration on compositor startup
    - Add comprehensive tests for workspace persistence
    - Integration testing with Storage Agent
 
-**Coordination Request Document**: `docs/agent-communications/core_1d_compositor_to_1c_storage_coordination_request_2026-01-01-234000-pst.md`
+**Coordination Documents**:
+- Request: `docs/agent-communications/core_1d_compositor_to_1c_storage_coordination_request_2026-01-01-234000-pst.md`
+- Response: `docs/agent-communications/core_1c_storage_to_1d_compositor_coordination_response_2026-01-02-090144-pst.md`
+- API Design: `docs/core-coordination/core_1c_storage_compositor_workspace_persistence_api_design_2026-01-02-005751-pst.md`
+- Approval: `docs/agent-communications/core_1d_compositor_to_1c_storage_coordination_response_2026-01-02-091500-pst.md`
 
-**Estimated Effort**: Medium (depends on API complexity)  
-**Dependencies**: Storage Agent (1c) persistence API contract agreement
+**Estimated Effort**: Medium (API contract agreed, implementation pending)  
+**Dependencies**: Storage Agent (1c) API implementation (in progress)
 
 ---
 
