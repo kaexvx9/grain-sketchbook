@@ -1,8 +1,8 @@
-# Framework 16: sixos + NixOS 25.10 Minimal Unification Analysis
+# Framework 16: sixos + NixOS 25.11 Minimal Unification Analysis
 
 **Date**: 2026-01-01-181505-pst  
 **Context**: Framework 16 (x86_64 AMD, 64GB RAM) running Ubuntu 24.04 LTS host  
-**Purpose**: Analyze feasibility of unifying sixos (NixOS without systemd) with NixOS 25.10 minimal for first VM
+**Purpose**: Analyze feasibility of unifying sixos (NixOS without systemd) with NixOS 25.11 minimal for first VM
 
 **Repository**: https://codeberg.org/amjoseph/sixos  
 **Reference**: [Adam Joseph's sixos talk at 38C3](https://www.youtube.com/watch?v=gSW3YJ8uyBI&t=2308s)
@@ -11,11 +11,11 @@
 
 ## Executive Summary
 
-**Recommendation**: **EXPLORE sixos + NixOS 25.10 Minimal Unification** — High potential value for Grain Style alignment
+**Recommendation**: **EXPLORE sixos + NixOS 25.11 Minimal Unification** — High potential value for Grain Style alignment
 
 **Rationale**:
 1. **sixos Philosophy**: NixOS without systemd, using S6 supervision suite — aligns with Grain Style minimalism and avoids systemd monoculture
-2. **NixOS 25.10 Minimal**: Latest stable NixOS with minimal base system
+2. **NixOS 25.11 Minimal**: Latest stable NixOS with minimal base system
 3. **Grain Style Alignment**: S6 init system is minimal, simple, explicit — better than systemd for Grain Style principles
 4. **VM Context**: Perfect for first VM on Ubuntu host — establishes minimal, systemd-free foundation
 
@@ -23,12 +23,12 @@
 - ✅ Avoids systemd monoculture (philosophical alignment with Grain Style)
 - ✅ S6 init system is minimal, simple, explicit (Grain Style alignment)
 - ✅ NixOS declarative configuration (reproducible, version-controlled)
-- ✅ NixOS 25.10 minimal base (latest stable, minimal footprint)
+- ✅ NixOS 25.11 minimal base (latest stable, minimal footprint)
 - ✅ VM isolation (doesn't affect Ubuntu host)
 
 **Challenges**:
-- ⚠️ sixos is proof-of-concept (may need adaptation for NixOS 25.10)
-- ⚠️ Integration complexity (unifying sixos approach with NixOS 25.10)
+- ⚠️ sixos is proof-of-concept (may need adaptation for NixOS 25.11)
+- ⚠️ Integration complexity (unifying sixos approach with NixOS 25.11)
 - ⚠️ Service definitions (may need to adapt services for S6)
 - ⚠️ Documentation (less documentation than standard NixOS)
 
@@ -89,11 +89,11 @@
 
 ---
 
-## NixOS 25.10 Minimal
+## NixOS 25.11 Minimal
 
-### What is NixOS 25.10 Minimal?
+### What is NixOS 25.11 Minimal?
 
-**NixOS 25.10** is the latest stable NixOS release (as of 2026-01-01).
+**NixOS 25.11** is the latest stable NixOS release (as of 2026-01-01).
 
 **Minimal Installation**:
 - Minimal base system (no GUI, minimal packages)
@@ -109,7 +109,7 @@
 
 ---
 
-## Unification Analysis: sixos + NixOS 25.10 Minimal
+## Unification Analysis: sixos + NixOS 25.11 Minimal
 
 ### Feasibility Assessment
 
@@ -120,25 +120,25 @@
 4. **VM Context**: VM isolation makes experimentation safe
 
 **⚠️ Challenges**:
-1. **Version Compatibility**: sixos may target older NixOS version — need to adapt for NixOS 25.10
+1. **Version Compatibility**: sixos may target older NixOS version — need to adapt for NixOS 25.11
 2. **Service Migration**: Need to convert systemd services to S6 services
 3. **Module System**: May need to adapt sixos "Infusions" approach or use standard NixOS modules
 4. **Documentation**: Less documentation than standard NixOS
 
 ### Unification Approach
 
-**Option A: Adapt sixos for NixOS 25.10** (Recommended)
+**Option A: Adapt sixos for NixOS 25.11** (Recommended)
 
 **Steps**:
 1. **Clone sixos repository**: `git clone https://codeberg.org/amjoseph/sixos.git`
 2. **Analyze sixos structure**: Understand how it replaces systemd with S6
-3. **Adapt for NixOS 25.10**: Update sixos configuration for NixOS 25.10 minimal
-4. **Create unified configuration**: Combine sixos S6 approach with NixOS 25.10 minimal base
+3. **Adapt for NixOS 25.11**: Update sixos configuration for NixOS 25.11 minimal
+4. **Create unified configuration**: Combine sixos S6 approach with NixOS 25.11 minimal base
 5. **Test in VM**: Build and test in QEMU/KVM VM on Ubuntu host
 
 **Benefits**:
 - Leverages sixos's proven approach (S6 integration)
-- Maintains NixOS 25.10 minimal base
+- Maintains NixOS 25.11 minimal base
 - Can adapt and improve as needed
 
 **Timeline**: 1-2 weeks (depending on complexity)
@@ -148,7 +148,7 @@
 **Option B: Build from scratch using sixos principles** (More work, more control)
 
 **Steps**:
-1. **Start with NixOS 25.10 minimal**: Begin with standard NixOS 25.10 minimal
+1. **Start with NixOS 25.11 minimal**: Begin with standard NixOS 25.11 minimal
 2. **Remove systemd**: Disable systemd in NixOS configuration
 3. **Add S6**: Integrate S6 supervision suite (S6-linux-init, S6-SVC, S6-RC)
 4. **Create service definitions**: Convert systemd services to S6 services
@@ -156,7 +156,7 @@
 
 **Benefits**:
 - Full control over implementation
-- Can adapt specifically for NixOS 25.10
+- Can adapt specifically for NixOS 25.11
 - Learn from sixos but build custom solution
 
 **Timeline**: 2-4 weeks (more work, but more control)
@@ -165,11 +165,11 @@
 
 ## Grain Style Alignment
 
-### Why sixos + NixOS 25.10 Aligns with Grain Style
+### Why sixos + NixOS 25.11 Aligns with Grain Style
 
 **1. Minimalism**:
 - ✅ S6 init system is minimal (smaller than systemd)
-- ✅ NixOS 25.10 minimal base (minimal footprint)
+- ✅ NixOS 25.11 minimal base (minimal footprint)
 - ✅ Avoids systemd monoculture (philosophical alignment)
 
 **2. Simplicity**:
@@ -184,7 +184,7 @@
 
 **4. Minimal Dependencies**:
 - ✅ S6 is minimal (fewer dependencies than systemd)
-- ✅ NixOS 25.10 minimal base (minimal packages)
+- ✅ NixOS 25.11 minimal base (minimal packages)
 - ✅ Avoids systemd dependency (monoculture concern)
 
 **5. Safety**:
@@ -213,13 +213,13 @@
    - Review "Infusions" module system approach
    - Study S6 integration patterns
 
-3. **Review NixOS 25.10 minimal**:
-   - Understand NixOS 25.10 minimal base
+3. **Review NixOS 25.11 minimal**:
+   - Understand NixOS 25.11 minimal base
    - Review systemd services that need conversion
    - Identify dependencies and requirements
 
 4. **Create unification plan**:
-   - Document how to adapt sixos for NixOS 25.10
+   - Document how to adapt sixos for NixOS 25.11
    - Identify services to convert (systemd → S6)
    - Plan configuration structure
 
@@ -234,9 +234,9 @@
 
 **Steps**:
 1. **Create unified configuration**:
-   - Start with NixOS 25.10 minimal base
+   - Start with NixOS 25.11 minimal base
    - Integrate sixos S6 approach
-   - Adapt for NixOS 25.10 compatibility
+   - Adapt for NixOS 25.11 compatibility
 
 2. **Convert services**:
    - Convert essential services from systemd to S6
@@ -244,7 +244,7 @@
    - Test service startup and supervision
 
 3. **Build unified system**:
-   - Build NixOS 25.10 with S6 init system
+   - Build NixOS 25.11 with S6 init system
    - Test in VM environment
    - Fix compatibility issues
 
@@ -254,7 +254,7 @@
    - Document S6 service definitions
 
 **Deliverables**:
-- Unified NixOS 25.10 + S6 configuration
+- Unified NixOS 25.11 + S6 configuration
 - Working VM image
 - Documentation
 
@@ -265,7 +265,7 @@
 **Steps**:
 1. **Create VM on Ubuntu host**:
    - Set up QEMU/KVM VM on Ubuntu 24.04 LTS
-   - Install unified NixOS 25.10 + S6 system
+   - Install unified NixOS 25.11 + S6 system
    - Configure bootloader (EFI Stub or systemd-boot)
 
 2. **Test functionality**:
@@ -292,7 +292,7 @@
 
 ---
 
-## Benefits of sixos + NixOS 25.10 Unification
+## Benefits of sixos + NixOS 25.11 Unification
 
 ### Technical Benefits
 
@@ -318,7 +318,7 @@
 
 ### Grain Style Benefits
 
-1. **Minimalism**: S6 + NixOS 25.10 minimal = minimal footprint
+1. **Minimalism**: S6 + NixOS 25.11 minimal = minimal footprint
 2. **Simplicity**: S6 is simpler than systemd
 3. **Explicit Configuration**: NixOS declarative + S6 explicit
 4. **Minimal Dependencies**: No systemd dependency
@@ -330,11 +330,11 @@
 
 ### Challenge 1: Version Compatibility
 
-**Issue**: sixos may target older NixOS version, need to adapt for NixOS 25.10
+**Issue**: sixos may target older NixOS version, need to adapt for NixOS 25.11
 
 **Mitigation**:
 - Analyze sixos codebase for NixOS version dependencies
-- Adapt sixos configuration for NixOS 25.10
+- Adapt sixos configuration for NixOS 25.11
 - Test compatibility incrementally
 
 ---
@@ -365,7 +365,7 @@
 
 ### Challenge 4: Integration Complexity
 
-**Issue**: Unifying sixos with NixOS 25.10 may be complex
+**Issue**: Unifying sixos with NixOS 25.11 may be complex
 
 **Mitigation**:
 - Start simple (essential services only)
@@ -377,7 +377,7 @@
 
 ## Recommended Approach
 
-### Primary Recommendation: Adapt sixos for NixOS 25.10
+### Primary Recommendation: Adapt sixos for NixOS 25.11
 
 **Why**:
 1. **Leverages Proven Approach**: sixos has already solved S6 integration
@@ -388,7 +388,7 @@
 **Steps**:
 1. Clone sixos repository
 2. Analyze sixos structure and approach
-3. Adapt for NixOS 25.10 minimal
+3. Adapt for NixOS 25.11 minimal
 4. Test in VM on Ubuntu host
 5. Document and iterate
 
@@ -396,11 +396,11 @@
 
 ---
 
-## Alternative: Standard NixOS 25.10 Minimal (Fallback)
+## Alternative: Standard NixOS 25.11 Minimal (Fallback)
 
 **If unification is too complex**:
 
-**Fallback Option**: Use standard NixOS 25.10 minimal with systemd
+**Fallback Option**: Use standard NixOS 25.11 minimal with systemd
 
 **Benefits**:
 - ✅ Well-documented
@@ -419,7 +419,7 @@
 
 ## Conclusion
 
-**Recommendation**: **EXPLORE sixos + NixOS 25.10 Minimal Unification**
+**Recommendation**: **EXPLORE sixos + NixOS 25.11 Minimal Unification**
 
 **Why**:
 1. **Grain Style Alignment**: S6 init system aligns better with Grain Style than systemd
@@ -435,7 +435,7 @@
 - Document and iterate
 
 **Success Criteria**:
-- ✅ Working NixOS 25.10 + S6 VM on Ubuntu host
+- ✅ Working NixOS 25.11 + S6 VM on Ubuntu host
 - ✅ Essential services running (network, SSH, development tools)
 - ✅ Grain Style compliance verified
 - ✅ Documentation complete
