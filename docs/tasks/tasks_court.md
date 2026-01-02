@@ -232,7 +232,7 @@
 
 ---
 
-## Phase 4: Self-Hosted Provider (Cerebras GLM-4.6) — FOUNDATION STARTED ⏳
+## Phase 4: Self-Hosted Provider (Cerebras GLM-4.6) — FOUNDATION COMPLETE ✅
 
 ### Provider Skeleton
 
@@ -241,10 +241,12 @@
 - [x] Add ZON format support
 - [x] Add token parsing
 - [x] Add timeout and error handling
-- [x] Add basic tests
+- [x] Add comprehensive tests (`tests/142_grain_court_self_hosted_test.zig`)
 - [ ] Full API integration (pending API access/funding)
-- [ ] Add comprehensive tests
+- [x] Add comprehensive tests (20+ tests covering all functionality)
 - [x] Add Grain Style compliance
+
+**Status**: Foundation complete with comprehensive test coverage. Ready for API integration when funded.
 
 ---
 
