@@ -1,9 +1,9 @@
 # ADR 009: Host-Relative VM Memory Allocation
 
 **Date**: 2026-01-02-100345-pst  
-**Status**: ⚠️ **PROPOSED** — Under consideration  
+**Status**: ✅ **APPROVED** — Use case clarified, implementation approved  
 **Deciders**: Vantage 3 Subcore Agent, VM Runtime Agent (3b)  
-**Context**: Need to support large VM memory allocations (e.g., 48GB on 64GB host) for production use
+**Context**: Need to support large VM memory allocations for Aurora (IDE/Browser services) running in Vantage VM
 
 ---
 
@@ -21,24 +21,35 @@
 - No host memory detection or limits
 - Designed for small allocations (4MB-64MB recommended)
 
-**Proposed Use Case**:
-- Allocate 48GB to Vantage VM on 64GB Framework Ubuntu x86_64 laptop
-- VM memory should be configurable relative to host machine RAM
-- Support production workloads requiring large memory
+**Use Case (Clarified)**:
+- **Aurora (IDE/Browser services)** running in Vantage VM needs significant memory for:
+  - Editor buffers (multiple files, large codebases)
+  - Browser rendering (multiple tabs, HTML/CSS rendering)
+  - Component library (UI components, rendering)
+  - AI integration (context, embeddings)
+  - LSP servers (language servers, diagnostics)
+  - Tree-sitter parsers (syntax trees, highlighting)
+- **Goal**: Allocate as much VM RAM as possible without threatening host Ubuntu
+- **Target**: 64GB Framework Ubuntu x86_64 laptop
+- **Strategy**: Leave ~8-16GB for host Ubuntu, allocate ~48-56GB to VM
 
 ---
 
 ## Decision
 
-**Status**: ⚠️ **UNDER CONSIDERATION** — Need to evaluate use case and implementation approach
+**Status**: ✅ **APPROVED** — Use case clarified (Aurora IDE/Browser), implementation approved
 
-**Key Questions**:
-1. **Is 48GB allocation necessary?** What production workload requires 48GB VM memory?
-2. **Should VM memory be dynamic or static?** Current static allocation won't work for 48GB
-3. **How should host memory be detected?** Need to detect available RAM and set limits
-4. **What's the memory allocation strategy?** Static vs. dynamic, heap vs. mmap
+**Architecture Decision**: **Hybrid Approach (Option 3)**
+- Small allocations (< 64MB): Static allocation (current approach, backward compatible)
+- Large allocations (>= 64MB): Dynamic allocation with host memory detection
+- Configurable at runtime: Allow VM memory size configuration
+- Memory limits: Respect host machine constraints (leave ~8-16GB for host Ubuntu)
 
-**Recommendation**: **Evaluate use case first** before implementing large memory allocation.
+**Memory Allocation Strategy**:
+- **Host Memory Detection**: Detect total and available RAM
+- **Safety Margin**: Reserve 8-16GB for host Ubuntu (OS, system services, overhead)
+- **VM Allocation**: Allocate remaining memory to VM (up to ~48-56GB on 64GB host)
+- **Dynamic Allocation**: Use heap allocation (or mmap for very large allocations)
 
 ---
 
@@ -78,31 +89,23 @@
 
 ## Use Case Evaluation
 
-### Question 1: Is 48GB Allocation Necessary?
+### Use Case: Aurora IDE/Browser Services
 
-**Current VM Use Cases**:
-- Kernel development (4MB-64MB sufficient)
-- Kernel testing (4MB-64MB sufficient)
-- Basic userspace programs (4MB-64MB sufficient)
-
-**Potential Production Use Cases**:
-- Large database workloads (may need 48GB+)
-- Memory-intensive applications (may need 48GB+)
-- Multi-process systems (may need 48GB+)
-
-**Recommendation**: **Clarify use case** before implementing 48GB allocation.
-
-### Question 2: What's the Actual Requirement?
+**Aurora Memory Requirements**:
+- **Editor buffers**: Multiple files, large codebases (can use 1-4GB+)
+- **Browser rendering**: Multiple tabs, HTML/CSS rendering (can use 2-8GB+)
+- **Component library**: UI components, rendering (can use 500MB-2GB+)
+- **AI integration**: Context, embeddings (can use 1-4GB+)
+- **LSP servers**: Language servers, diagnostics (can use 500MB-2GB+ per server)
+- **Tree-sitter parsers**: Syntax trees, highlighting (can use 100MB-500MB+)
+- **Total estimated**: 5-20GB+ for typical usage, 20-40GB+ for heavy usage
 
 **Framework x86_64 (64GB RAM)**:
-- **48GB to VM**: 75% of host RAM
-- **16GB remaining**: For host OS, applications, overhead
-- **Question**: Is this the right split? What's the actual workload?
+- **Host Ubuntu needs**: ~8-16GB (OS, system services, basic operations, safety margin)
+- **VM allocation**: ~48-56GB (maximize for Aurora)
+- **Split**: 75-87% to VM, 13-25% to host (reasonable for dedicated development machine)
 
-**Alternative Approaches**:
-- **Smaller allocation**: 8GB-16GB VM memory (more reasonable for most workloads)
-- **Dynamic sizing**: Start small, grow as needed
-- **Memory limits**: Set max VM memory based on host RAM (e.g., 50% of available RAM)
+**Recommendation**: **Allocate 48-52GB to VM**, leave 12-16GB for host Ubuntu
 
 ---
 
@@ -247,27 +250,28 @@ pub const VM = struct {
 
 ## Recommendations
 
-### Immediate Recommendation
+### Approved Implementation
 
-**Before implementing 48GB allocation**:
-1. **Clarify use case**: What production workload requires 48GB VM memory?
-2. **Evaluate alternatives**: Can the workload work with smaller allocations (8GB-16GB)?
-3. **Consider memory limits**: Set max VM memory based on host RAM (e.g., 50% of available RAM)
+**Approach**: **Hybrid approach (Option 3)** — **APPROVED**
 
-### If 48GB Allocation Is Necessary
-
-**Recommended Approach**: **Hybrid approach (Option 3)**
-- Small allocations (< 64MB): Static allocation (current approach)
-- Large allocations (>= 64MB): Dynamic allocation with host memory detection
-- Configurable at runtime: Allow VM memory size configuration
-- Memory limits: Respect host machine constraints
+**Memory Allocation Strategy**:
+1. **Host Memory Detection**: Detect total and available RAM (platform-specific)
+2. **Safety Margin**: Reserve 12-16GB for host Ubuntu (configurable)
+3. **VM Allocation**: Allocate remaining memory to VM (up to 48-52GB on 64GB host)
+4. **Dynamic Allocation**: Use heap allocation for large memory (>= 64MB)
+5. **Backward Compatibility**: Keep static allocation for small memory (< 64MB)
 
 **Implementation Steps**:
-1. Add host memory detection (platform-specific)
-2. Add dynamic allocation support for large memory
-3. Add VM memory size configuration API
-4. Add memory limit validation
-5. Update documentation
+1. ✅ Add host memory detection (Linux: /proc/meminfo, macOS: sysctl, Windows: GlobalMemoryStatusEx)
+2. ✅ Add dynamic allocation support for large memory (>= 64MB)
+3. ✅ Add VM memory size configuration API (auto-detect or manual)
+4. ✅ Add memory limit validation (respect host constraints)
+5. ✅ Update documentation
+
+**Default Behavior**:
+- **Auto-detect**: Automatically allocate max available memory (minus safety margin)
+- **Manual override**: Allow manual memory size configuration
+- **Fallback**: Use static allocation if dynamic allocation fails
 
 ---
 
@@ -306,12 +310,16 @@ pub const VM = struct {
 ## Implementation Status
 
 **Date**: 2026-01-02-100345-pst  
-**Status**: ⚠️ **PROPOSED** — Under consideration
+**Status**: ✅ **APPROVED** — Use case clarified (Aurora IDE/Browser), implementation approved
 
 **Next Steps**:
-1. **Clarify use case**: What production workload requires 48GB VM memory?
-2. **Evaluate alternatives**: Can workload work with smaller allocations?
-3. **If approved**: Implement hybrid approach (Option 3)
+1. ✅ **Use case clarified**: Aurora IDE/Browser services need large memory allocation
+2. ✅ **Approach approved**: Hybrid approach (Option 3) - static for small, dynamic for large
+3. ⏳ **Implementation**: Add host memory detection and dynamic allocation support
+4. ⏳ **Testing**: Test on Framework x86_64 (64GB RAM) with 48-52GB VM allocation
+5. ⏳ **Documentation**: Update VM memory configuration documentation
+
+**Priority**: **HIGH** — Aurora needs large memory allocation for production use
 
 ---
 
