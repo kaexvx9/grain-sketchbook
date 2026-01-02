@@ -1,9 +1,9 @@
 # Documentation Navigation Guide for All Agents
 
-**Date**: 2026-01-02-084613-pst  
+**Date**: 2026-01-02-090601-pst  
 **Agent**: Free 12 (Coordination and Documentation Support, Core 1 Subcore)  
 **Status**: ✅ **NAVIGATION GUIDE READY** — Quick reference for all agents  
-**Last Updated**: 2026-01-02-084613-pst — Added Critical Path tools (blocker tracking and integration handoff checklist)
+**Last Updated**: 2026-01-02-090601-pst — Added delegation coordination documents
 
 ---
 
@@ -64,7 +64,14 @@ This guide helps agents quickly find the coordination and communication document
 **Work Session Tools**:
 - `docs/agent-communications/pre_work_session_checklist_2026-01-02-090326-pst.md` - Pre-work session checklist for all agents
 
-**When to Use**: Start here for current priorities and agent-specific instructions. Reference critical path guide for dependency chain understanding. Use blocker tracking when reporting blockers. Use handoff checklist when completing steps.
+**Delegation Coordination**:
+- `docs/core-coordination/core_1_subcore_free_12_delegation_approval_2026-01-02-090304-pst.md` - Delegation approval from Core 1 Subcore
+- `docs/core-coordination/free_12_delegation_acknowledgment_2026-01-02-090601-pst.md` - Free 12's acknowledgment and implementation plan
+- `docs/core-coordination/free_12_to_research_agent_delegation_coordination_2026-01-02-090601-pst.md` - Research Agent delegation coordination
+- `docs/core-coordination/free_12_to_flow_agent_delegation_coordination_2026-01-02-090601-pst.md` - Flow Agent delegation coordination
+- `docs/core-coordination/free_12_to_workspace_agent_delegation_coordination_2026-01-02-090601-pst.md` - Workspace Agent delegation coordination
+
+**When to Use**: Start here for current priorities and agent-specific instructions. Reference critical path guide for dependency chain understanding. Use blocker tracking when reporting blockers. Use handoff checklist when completing steps. Research, Flow, and Workspace agents should review their delegation coordination documents.
 
 ### 2. Glow G2 Voice Guidelines
 
@@ -346,7 +353,7 @@ If you need coordination help:
 
 ---
 
-**Date**: 2026-01-01-235538-pst  
+**Date**: 2026-01-02-090601-pst  
 **Agent**: Free 12 (Coordination and Documentation Support, Core 1 Subcore)  
 **Status**: ✅ **NAVIGATION GUIDE COMPLETE** — Ready for agent use
 
