@@ -54,6 +54,7 @@ This guide helps agents quickly find the coordination and communication document
 - Timeline summary and blocker identification
 
 **Critical Path Tools**:
+- `docs/agent-communications/critical_path_toolkit_summary_2026-01-02-084613-pst.md` - **START HERE** - Toolkit overview and quick start guide
 - `docs/agent-communications/critical_path_quick_reference_2026-01-02-084259-pst.md` - Quick reference for dependency chain
 - `docs/agent-communications/critical_path_blocker_tracking_2026-01-02-084613-pst.md` - Blocker tracking template and current blocker status
 - `docs/agent-communications/critical_path_integration_handoff_2026-01-02-084613-pst.md` - Integration handoff checklist for step transitions
