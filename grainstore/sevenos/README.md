@@ -9,11 +9,16 @@ using S6 supervision suite instead of systemd.
 
 ## Project Structure
 
-- `sixos/` - sixos repository (git submodule)
+- `sixos/` - sixos repository (grainmirror from ~/codeberg/amjoseph/sixos/)
 - `nixpkgs/` - NixOS 25.11 nixpkgs source
 - `config/` - Unified configuration files
 - `services/` - Service definitions (systemd → S6 conversions)
 - `docs/` - Documentation and planning
+
+## Setup
+
+The sixos repository is stored externally at `~/codeberg/amjoseph/sixos/` and 
+grainmirrored into this project to avoid git submodule complexity in the monorepo.
 
 ## Goals
 

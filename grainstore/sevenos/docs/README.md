@@ -6,10 +6,19 @@ Unify sixos (NixOS without systemd) with NixOS 25.11 minimal.
 
 ## References
 
-- [sixos repository](https://codeberg.org/amjoseph/sixos)
+- [sixos repository](https://codeberg.org/amjoseph/sixos) - cloned to `~/codeberg/amjoseph/sixos/`
 - [sixos 38C3 talk](https://media.ccc.de/v/38c3-sixos-a-nix-os-without-systemd)
 - [NixOS 25.11 nixpkgs](https://github.com/NixOS/nixpkgs/archive/refs/tags/25.11.zip)
 - Framework 16 unification analysis document
+
+## Repository Setup
+
+The sixos repository is stored externally and grainmirrored into this project:
+
+- **External Location**: `~/codeberg/amjoseph/sixos/` (separate git repository)
+- **Mirror Location**: `grainstore/sevenos/sixos/` (grainmirror, not git submodule)
+
+This approach avoids git submodule complexity in the xy-mathematics monorepo.
 
 ## Architecture
 
