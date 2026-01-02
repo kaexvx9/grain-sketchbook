@@ -552,9 +552,10 @@
 
 **Current Work** (Single-Threaded Priority Chain Coordination + Parallel Work):
 - ✅ **Step 1 APPROVED** — Basin Kernel (3a) syscall interface distribution approved (2026-01-02-083246-pst)
-- ⏳ **Step 1 COORDINATION** — Coordinate distribution of syscall docs to Agents 3b and 3d (THIS WEEK — IMMEDIATE)
+- ⏳ **Step 1 COORDINATION** — Coordinate distribution of syscall docs to Agents 3b and 3d (THIS WEEK — IMMEDIATE, HIGHEST PRIORITY)
 - ✅ **Step 2 PHASE 3 COMPLETE** — Agent 3b x86_64 JIT backend complete with SLT/SLTU optimizations (2026-01-02-090817-pst)
 - ⏳ **Step 2 ECALL INTEGRATION** — Coordinate Agent 3b ECALL integration after syscall docs received (WEEK 1-2, after Step 1)
+- ⏳ **Step 2 JIT TESTING** — Coordinate JIT testing with Agent 3c (IMMEDIATE — Agent 3b ready for coordination)
 - ⏳ **Step 3 COORDINATION** — Coordinate Agent 3d compilation fix, Phase 3/4 completion, Basin syscall integration (WEEK 1-2, after Step 1)
 - ⏳ **Step 5 COORDINATION** — Support Agent 3c multi-arch testing framework implementation (WEEK 1-2, parallel work)
 - ⏳ **Step 4 COORDINATION** — Coordinate cross-subcore integration (1e ↔ 3d) via Core 1 Subcore (WEEK 1-2, after Step 3)
