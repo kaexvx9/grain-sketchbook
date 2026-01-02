@@ -1,8 +1,9 @@
 # The Words of Don Juan Matus: The Warrior's Way
 
-**Source**: [The Words of Don Juan Matus](https://archive.org/stream/CarlosCastanedaTheWordsOfDonJuanMatus/Carlos%20Castaneda-The%20Words%20Of%20Don%20Juan%20Matus_djvu.txt)  
+**Date**: 2026-01-02-085742-pst  
+**Source**: [Internet Archive - The Words of Don Juan Matus](https://archive.org/stream/CarlosCastanedaTheWordsOfDonJuanMatus/Carlos%20Castaneda-The%20Words%20Of%20Don%20Juan%20Matus_djvu.txt)  
 **Status**: Core Foundation Document — As Important as `grain_style.md`  
-**Purpose**: Integration of warrior's way principles into Grain OS development practice
+**Purpose**: Verbatim collection of Don Juan Matus teachings on the Warrior's Way
 
 ---
 
@@ -36,21 +37,21 @@
 
 "To be a warrior doesn't mean to practice witchcraft, or to work to affect people, or to be possessed by demons. To be a warrior means to reach a level of awareness that makes inconceivable things available. The term 'sorcery' is inadequate to express what warriors do, and so is the term 'shamanism.' The actions of warriors are exclusively in the realm of the abstract, the impersonal. Warriors struggle to reach a goal that has nothing to do with the qu...(159444 chars omitted)...man, seers find themselves immersed in extraneous detail rather than seeing."
 
+"The recommendation for warriors is not to have any material things on which to focus their power, but to focus it on the spirit, on the true flight into the unknown ..." (6,1,27)
+
+"Impeccable men need no one to guide them, that by themselves, through saving their energy, they can do everything that seers do. All they need is a minimal chance, just to be cognizant of the possibilities that seers have unraveled." (7,11,178)
+
 "A man is defeated only when he no longer tries, and abandons himself." (1,3,64)
 
 "Put your trust in yourself, not in me."(2,5,110)
 
 "Our link is with the spirit itself and only incidentally with the man who brings us its message." (9,1,11)
 
-### The Recommendation for Warriors
-
-"The recommendation for warriors is not to have any material things on which to focus their power, but to focus it on the spirit, on the true flight into the unknown ..." (6,1,27)
-
-"Impeccable men need no one to guide them, that by themselves, through saving their energy, they can do everything that seers do. All they need is a minimal chance, just to be cognizant of the possibilities that seers have unraveled." (7,11,178)
-
 ---
 
 ## The Basic Concepts Of The Warrior's Way
+
+**Source**: (8,Introduction,15-16)
 
 1. **The universe is an infinite agglomeration of energy fields, resembling threads of light.**
 
@@ -72,41 +73,55 @@
 
 ---
 
-## Key Principles for Integration
+## Extended Teachings on Warriors and Seers
 
-### The Path with Heart
-- Choose paths that have heart
-- A path without heart will turn against you and destroy you
-- The path with heart makes for a joyful journey and makes you strong
-- Select items deliberately—they are shields that protect you
+### The Nagual and the Warrior's Party
 
-### Personal Power
-- Everything rests on personal power
-- Trust your personal power—that's all you have
-- You can cut anything from your life at any time
-- Denying yourself is an indulgence—don't do it
+The Nagual man and the Nagual woman have two different movements in their luminous bodies. Their right sides wave, while their left sides whirl.
 
-### The Warrior's Choice
-- You choose only once: warrior or ordinary man
-- No second choice exists
-- A warrior reaches a level of awareness that makes inconceivable things available
-- Warriors act in the realm of the abstract, the impersonal
+In terms of personality, the Nagual man is supportive, steady, unchangeable. The Nagual woman is a being at war and yet relaxed, ever aware but without strain. Both of them reflect the four types of their sex, as four ways of behaving.
 
-### Impeccability
-- Impeccable men need no one to guide them
-- Through saving their energy, they can do everything
-- All they need is a minimal chance, just to be cognizant of the possibilities
+The first command that the Eagle gave the Nagual man and Nagual woman was to find, on their own, another set of four female warriors, four directions, who were the exact replicas of the stalkers but who were dreamers.
 
-### The Assemblage Point
-- Perception is assembled at a point
-- The assemblage point can be moved
-- Moving it makes different worlds perceivable
-- Intent is the pervasive force that causes perception
+Dreamers appear to a seer as having an apron of hairlike fibers at their midsections. Stalkers have a similar apronlike feature, but instead if fibers the apron consists of countless small, round protuberances.
 
-### Total Awareness
-- The aim is to reach a state of total awareness
-- To experience all possibilities of perception
-- This state even implies an alternative to dying
+The eight female warriors are divided into two bands, which are called the right and left planets. The right planet is made up of four stalkers, the left of four dreamers. The warriors of each planet were taught by the Eagle the rule of their specific task: stalkers were taught stalking; dreamers were taught dreaming.
+
+The two female warriors of each direction live together. They are so alike that they mirror each other, and only through impeccability can they find solace and challenge in each other's reflection.
+
+The only time when the four dreamers or four stalkers get together is when they have to accomplish a strenuous task; but only under special circumstances should the four of them join hands, for their touch fuses them into one being and should be used only in cases of dire need, or at the moment of leaving this world.
+
+The two female warriors of each direction are attached to one of the males, in any combination that is necessary. Thus they make a set of four households, which are capable of incorporating as many warriors as needed.
+
+The male warriors and the courier can also form an independent unit of four men, or each can function as a solitary being, as dictated by necessity.
+
+Next the Nagual and his party were commanded to find three more couriers. These could be all males or all females or a mixed set, but the male couriers had to be the fourth type of man, the assistant, and the females had to be from the south.
+
+In order to make sure that the first Nagual man would lead his party to freedom and not deviate from that path or become corrupted, the Eagle took the Nagual woman to the other world to serve as a beacon, guiding the party to the opening.
+
+The Nagual and his warriors were then commanded to forget. They were plunged into darkness and were given new tasks: the task of remembering themselves, and the task of remembering the Eagle.
+
+The command to forget was so great that everyone was separated. They did not remember who they were. The Eagle intended that if they were capable of remembering themselves again, they would find the totality of themselves. Only then would they have the strength and forbearance necessary to seek and face their definitive journey.
+
+Their last task, after they had regained the totality of themselves, was to get a new pair of double beings and transform them into a new Nagual man and a new Nagual woman by virtue of revealing the rule to them. And just as the first Nagual man and Nagual woman had been provided with a minimal party, they had to supply the new pair of Naguals with four female warriors who were stalkers, three male warriors, and one male courier.
+
+When the first Nagual and his party were ready to go through the passageway, the first Nagual woman was waiting to guide them. They were ordered then to take the new Nagual woman with them to the other world to serve as a beacon for her people, leaving the new Nagual man to repeat the cycle.
+
+While in the world, the minimal number under a Nagual's leadership is sixteen: eight female warriors, four male warriors, counting the Nagual, and four couriers. At the moment of leaving the world, when the new Nagual woman is with them, the Nagual's number is seventeen. If his personal power permits him to have more warriors, then more must be added in multiples of four.
+
+### The Four Directions and Types
+
+In the male realm, seers find themselves immersed in extraneous detail rather than seeing.
+
+The assistant has no obvious configuration. To seers he appears as a clear glow in a flawless shell of luminosity.
+
+In the female realm, the east is recognized by the almost imperceptible blotches in her luminosity, something like small areas of discoloration.
+
+The north has an overall radiation; she exudes a reddish glow, almost like heat.
+
+The west has a tenuous film enveloping her, a film which makes her appear darker than the others.
+
+The south has an intermittent glow; she shines for a moment and then gets dull, only to shine again.
 
 ---
 
@@ -129,7 +144,7 @@ Quotations from the hardcover editions of Castaneda's books are noted as (Book, 
 
 ---
 
+**Date**: 2026-01-02-085742-pst  
 **Source**: [Internet Archive - The Words of Don Juan Matus](https://archive.org/stream/CarlosCastanedaTheWordsOfDonJuanMatus/Carlos%20Castaneda-The%20Words%20Of%20Don%20Juan%20Matus_djvu.txt)  
-**Status**: Core Foundation Document  
-**Purpose**: Integration of warrior's way principles into Grain OS development practice
-
+**Status**: Core Foundation Document — As Important as `grain_style.md`  
+**Purpose**: Verbatim collection of Don Juan Matus teachings on the Warrior's Way
