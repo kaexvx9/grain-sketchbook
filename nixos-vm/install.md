@@ -263,6 +263,31 @@ mount: /mnt: fsconfig() failed: /dev/disk/by-label/nixos: Can't lookup blockdev.
    sudo nixos-install --no-root-passwd
    ```
 
+### Configuration Errors (Missing filesystems/bootloader)
+
+**Symptom:** Installation fails with errors:
+```
+Failed assertions:
+- The 'fileSystems' option does not specify your root file system.
+- You must set the option 'boot.loader.grub.devices' or 'boot.loader.grub.mirroredBoots'
+```
+
+**Solution:** Make sure you're using `configuration.nix` (complete version) which includes:
+- Import of `hardware-configuration.nix` (contains fileSystems)
+- Bootloader configuration for QEMU VM
+
+The `configuration.nix` file already has both of these configured. If you're using `configuration-base.nix`, you need to add them manually.
+
+**File differences:**
+- `configuration.nix` - Complete working version (USE THIS for installation)
+  - Includes hardware-configuration.nix import
+  - Includes bootloader config (GRUB with EFI for QEMU)
+  - Ready to use
+- `configuration-base.nix` - Base template (reference only)
+  - User settings, packages, kernel 6.18.2
+  - Missing hardware imports and bootloader config
+  - Would need manual additions to work
+
 ### Installation script fails
 
 **Disk not found:**
