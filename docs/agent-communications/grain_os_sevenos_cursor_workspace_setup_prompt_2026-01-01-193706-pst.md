@@ -22,6 +22,8 @@
 
 ### HIGH PRIORITY (Start Immediately)
 
+**Existing Agents (1-12)**:
+
 1. **Vantage 3 Subcore (L1)** - VM Runtime coordination
    - File: `docs/core-coordination/vantage_3_subcore_coordination.md`
    - Focus: RISC-V → x86_64 JIT pipeline, VM Runtime Phase 2 completion, Phase 3 planning
@@ -53,14 +55,16 @@
    - Focus: Coordinate L2 sub-agents, integration testing
    - Framework Impact: Core system services architecture
 
-6. **sevenos Init System Agent (NEW)** - Grain Style init system
+**New Agents (13-14)**:
+
+13. **sevenos Init System Agent (NEW)** - Grain Style init system
    - File: `grainstore/sevenos/src/init/main.zig`
    - Build: `grainstore/sevenos/build.zig`
    - Focus: Implement Grain Style init system in Zig (S6-inspired supervision)
    - Framework Impact: NEW - Core OS component
    - Priority: HIGH - Needed for first Grainscript shell
 
-7. **Grainscript Shell Agent (NEW)** - First shell implementation
+14. **Grainscript Shell Agent (NEW)** - First shell implementation
    - File: `grainstore/sevenos/src/shell/grainscript.zig` (to be created)
    - Focus: Implement first Grainscript shell for Grain OS sevenos
    - Framework Impact: NEW - User interface component
@@ -68,29 +72,46 @@
 
 ### MEDIUM PRIORITY (After HIGH priority agents working)
 
-8. **Core 1a Auth Agent (L2)** - Authentication
+**Existing Agents (6-12)**:
+
+6. **Core 1a Auth Agent (L2)** - Authentication
    - File: `docs/core-coordination/core_1a_auth_coordination.md`
    - Code: `src/core_1a_auth/`
    - Focus: Auth services, API keys, RBAC, audit logging
    - Framework Impact: Core system service
 
-9. **Core 1b Network Agent (L2)** - Network services
+7. **Core 1b Network Agent (L2)** - Network services
    - File: `docs/core-coordination/core_1b_network_coordination.md`
    - Code: `src/core_1b_network/`
    - Focus: HTTP, WebSocket, DNS, TCP/UDP services
    - Framework Impact: Core system service
 
-10. **Core 1c Storage Agent (L2)** - Storage services
-    - File: `docs/core-coordination/core_1c_storage_coordination.md`
-    - Code: `src/core_1c_storage/`
-    - Focus: File system, storage services
-    - Framework Impact: Core system service
+8. **Core 1c Storage Agent (L2)** - Storage services
+   - File: `docs/core-coordination/core_1c_storage_coordination.md`
+   - Code: `src/core_1c_storage/`
+   - Focus: File system, storage services
+   - Framework Impact: Core system service
 
-11. **Core 1d Compositor Agent (L2)** - Window management
-    - File: `docs/core-coordination/core_1d_compositor_coordination.md`
-    - Code: `src/core_1d_compositor/`
-    - Focus: Window management, compositing
-    - Framework Impact: Core system service
+9. **Core 1d Compositor Agent (L2)** - Window management
+   - File: `docs/core-coordination/core_1d_compositor_coordination.md`
+   - Code: `src/core_1d_compositor/`
+   - Focus: Window management, compositing
+   - Framework Impact: Core system service
+
+10. **Aurora 2 Subcore (L1)** - IDE/Browser coordination
+    - File: `docs/core-coordination/aurora_2_subcore_coordination.md`
+    - Focus: IDE and Browser coordination
+    - Framework Impact: Medium priority
+
+11. **Aurora 2a-2c Agents (L2)** - IDE/Browser features
+    - Files: `docs/core-coordination/aurora_2a_*_coordination.md`, etc.
+    - Focus: Editor, Browser, Component Library features
+    - Framework Impact: Medium priority
+
+12. **Other L1 Agents** - Silo, Skate, Bubble, Carry, Workspace, Flow, Research, Court
+    - Files: Various coordination documents
+    - Focus: Domain-specific services
+    - Framework Impact: Medium priority
 
 ## Framework Ubuntu x86 Specific Considerations
 
@@ -166,8 +187,9 @@
 
 ## New Agents to Create
 
-### sevenos Init System Agent
+### Agent 13: sevenos Init System Agent
 
+**Agent Number**: 13  
 **Purpose**: Implement Grain Style init system in Zig
 
 **Responsibilities**:
@@ -196,8 +218,9 @@ grainstore/sevenos/
 - Core 1 Subcore agent coordination
 - Vantage system integration
 
-### Grainscript Shell Agent
+### Agent 14: Grainscript Shell Agent
 
+**Agent Number**: 14  
 **Purpose**: Implement first Grainscript shell for Grain OS sevenos
 
 **Responsibilities**:
