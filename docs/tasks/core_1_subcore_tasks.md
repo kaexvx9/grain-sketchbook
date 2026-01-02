@@ -1,10 +1,11 @@
 # Grain Core 1 Subcore Agent: Task List
 
 **Agent**: Grain Core 1 Subcore Agent (1st Agent, L1 Subcore)  
-**Status**: ✅ **COORDINATION ACTIVE** — Framework Ubuntu x86 adaptation in progress, sevenos/Grainscript Shell integration planning, critical blockers resolution  
-**Last Updated**: 2026-01-02-003948-pst  
+**Status**: ✅ **COORDINATION ACTIVE** — Single-threaded computation priority chain in progress, Framework Ubuntu x86 adaptation, sevenos/Grainscript Shell integration planning  
+**Last Updated**: 2026-01-02-091948-pst  
 **Latest Coordination**: `docs/core-coordination/core_1_subcore_coordination_plan_2026-01-01-233240-pst.md`  
-**System Integration**: `docs/core-coordination/core_1_subcore_system_integration_2026-01-02-003948-pst.md`  
+**Latest Summary**: `docs/agent-communications/core_1_subcore_coordination_summary_2026-01-02-083246-pst.md`  
+**Latest System Integration**: `docs/core-coordination/core_1_subcore_system_integration_coordination_2026-01-02-091946-pst.md`  
 **Complete Agent Awareness**: `docs/agent-communications/complete_agent_awareness_all_agents_2026-01-02-002948-pst.md`
 
 ---
@@ -274,37 +275,40 @@
 
 ---
 
-## Current Work: Phase 1 - Critical Blockers Resolution (This Week) — HIGHEST PRIORITY
+## Current Work: Phase 1 - Critical Path Support (This Week) — HIGHEST PRIORITY
 
-**Priority**: **HIGHEST** — Unblock critical development blockers  
+**Priority**: **HIGHEST** — Support single-threaded computation priority chain  
 **Status**: 🆕 **IN PROGRESS**  
 **Duration**: This week
 
 ### Tasks
 
-1. **Support Agent 1e (Grainscript Shell) - Zig 0.15.2 API Compatibility**:
-   - [ ] Review shell implementation status and API compatibility issues
-   - [ ] Coordinate with Agent 1e on stdio wrapper fixes
-   - [ ] Verify shell compilation after API fixes
-   - [ ] Test basic shell functionality (cd, ls, pwd, echo, exit)
-   - [ ] Document API compatibility solutions for future reference
+1. **Monitor Critical Path Progress**:
+   - [x] ✅ Step 1 COMPLETE: Basin Kernel syscall interface documentation distributed (2026-01-02-090000-pst)
+   - [ ] Track Step 2 progress (VM Runtime JIT pipeline)
+   - [ ] Track Step 3 progress (Init System completion)
+   - [ ] Track Step 4 progress (Grainscript Shell integration)
+   - [ ] Document blockers and coordination needs
+   - [ ] Facilitate cross-subcore coordination as needed
 
-2. **Coordinate with Vantage 3 Subcore on Critical Blockers**:
-   - [ ] Coordinate with Agent 3b on Grain Style compliance (1-5 line overages)
-   - [ ] Coordinate with Agent 3a on syscall interface documentation
-   - [ ] Coordinate with Agent 3c on multi-architecture testing framework
-   - [ ] Coordinate with Agent 3d on service configuration loader
+2. **Support Agent 1e (Grainscript Shell)**:
+   - [x] ✅ Zig 0.15.2 API compatibility fixed (Phase 1 complete)
+   - [ ] Verify basic shell functionality testing completion
+   - [ ] Plan integration with sevenos Init System (3d) — cross-subcore
+   - [ ] Plan integration with Core 1 services (1a-1d)
+   - [ ] Design shell → Core service API contracts
 
-3. **Cross-Subcore Coordination Setup**:
-   - [ ] Establish coordination channel with Vantage 3 Subcore
-   - [ ] Set up weekly cross-subcore coordination meetings
-   - [ ] Document coordination procedures
-   - [ ] Track critical blocker resolution progress
+3. **Coordinate Cross-Subcore Integration**:
+   - [ ] Coordinate with Vantage 3 Subcore on 1e ↔ 3d integration
+   - [ ] Plan service lifecycle management for Core 1 services
+   - [ ] Design Core service → Init System integration points
+   - [ ] Document integration architecture
 
 **Deliverables**:
-- Shell API compatibility resolved
+- Critical path progress tracking
+- Shell integration planning complete
 - Cross-subcore coordination established
-- Critical blockers documented and tracked
+- Integration architecture documented
 
 **Timeline**: This week
 
