@@ -1,9 +1,26 @@
 # Core Coordination: Grain System Integration Agent
 
-**Last Updated**: 2026-01-02-010144-pst  
+**Last Updated**: 2026-01-02-083246-pst  
 **Agent**: Grain System Integration Agent (3c)  
 **Parent Agent**: Grain Vantage 3 Subcore Agent (Agent 3, L1 Subcore)  
-**Status**: ✅ **DESIGN APPROVED** — Multi-architecture testing framework design approved. Ready for implementation phase (HIGH PRIORITY per Core 1 Subcore coordination plan 2026-01-01-233240-pst).
+**Status**: ✅ **STEP 5 (SUPPORTING)** — Independent work progressing. Multi-architecture testing framework design complete. Syscall interface test patterns design in progress. Not blocking critical path (Steps 1-4).
+
+---
+
+## Single-Threaded Dependency Chain Context
+
+**Goal**: Vantage application running Basin Kernel for Framework Grain OS sevenos x86_64 with Grainscript shell usable for basic commands.
+
+**Critical Path** (strict dependency order):
+1. **Step 1 (BLOCKING)**: Basin Kernel (3a) → Distribute syscall docs to 3b and 3d — THIS WEEK — ✅ Docs ready
+2. **Step 2 (BLOCKING)**: VM Runtime (3b) → Verify Grain Style compliance + implement x86_64 JIT — WEEK 1-2
+3. **Step 3 (BLOCKING)**: Init System (3d) → Fix compilation + complete Phase 3/4 + Basin syscall integration — WEEK 1-2
+4. **Step 4 (END GOAL)**: Grainscript Shell (1e) → Complete testing + integrate with Init System — WEEK 1-2
+5. **Step 5 (SUPPORTING)**: System Integration (3c) → Multi-arch testing framework — WEEK 1-2 — **NOT BLOCKING**
+
+**Agent 3c Position**: Step 5 (SUPPORTING) — Can work independently, not blocking critical path.
+
+**Independent Work Status**: ✅ Progressing — Designing syscall interface test patterns using Basin Kernel (3a) syscall interface documentation.
 
 ---
 
@@ -21,6 +38,7 @@
 - ✅ **Multi-Architecture Testing Framework Design Complete** (2026-01-01-233240-pst) — Comprehensive framework design document created
 - ✅ **Framework x86_64 Test Runner Design Complete** (2026-01-01-235155-pst) — Test runner architecture and implementation design created
 - ✅ **Design Approved by Vantage 3 Subcore** (2026-01-01-233240-pst) — Framework design approach approved, ready for implementation
+- ✅ **Syscall Interface Test Patterns Design In Progress** (2026-01-02-083246-pst) — Test patterns using Basin Kernel (3a) syscall interface documentation (independent work)
 
 **Summary**: **44 comprehensive integration tests across 5 test files** — All phases complete. **2 comprehensive design documents** — Multi-architecture testing framework and Framework x86_64 test runner designs complete and approved. Ready for implementation phase.
 
@@ -301,6 +319,111 @@
 - **Multi-architecture testing framework implementation can proceed independently** (does not require test execution)
 
 **Action**: Multi-architecture testing framework implementation work can proceed in parallel while waiting for compilation errors to be resolved. Test execution validation can occur once compilation errors are resolved.
+
+---
+
+## Current Independent Work (Step 5 - SUPPORTING)
+
+### Status: Independent Work Progressing
+
+**Context**: Agent 3c is in Step 5 (SUPPORTING) of the single-threaded dependency chain. This work does not block the critical path (Steps 1-4).
+
+**Current Work**:
+- ✅ **Syscall Interface Test Patterns Design** (2026-01-02-083246-pst) — Complete
+  - Using Basin Kernel (3a) syscall interface documentation (complete and available)
+  - Test patterns for syscall validation designed
+  - Test helpers for syscall interface testing designed
+  - Prepared test patterns for future coordination with Agents 3b and 3d
+
+**What I'm Doing Independently**:
+1. ✅ Designing syscall argument validation test patterns
+2. ✅ Designing syscall return value validation test patterns
+3. ✅ Designing test helpers for syscall interface testing
+4. ✅ Preparing JIT compilation test patterns (for future coordination with Agent 3b)
+5. ✅ Preparing Init System test patterns (for future coordination with Agent 3d)
+6. ✅ Designing multi-architecture syscall interface test patterns
+
+**What I'm Not Blocking**:
+- ✅ Step 1: Basin Kernel (3a) syscall doc distribution (docs ready, distribution in progress)
+- ✅ Step 2: VM Runtime (3b) JIT implementation (can proceed independently)
+- ✅ Step 3: Init System (3d) implementation (can proceed independently)
+- ✅ Step 4: Grainscript Shell (1e) integration (can proceed independently)
+
+**Independent Work Documents**:
+- `docs/plans/syscall_interface_test_patterns_design.md` — Test patterns using syscall interface docs
+
+---
+
+## Anticipated Coordination Needs
+
+### With VM Runtime Agent (3b) — When JIT Implementation Ready
+
+**Status**: ⏳ **PENDING** — After Step 2 completion (JIT implementation)
+
+**When to Coordinate**: Week 1-2 (after Agent 3b completes x86_64 JIT implementation)
+
+**Coordination Points**:
+- JIT compilation syscall testing requirements
+- ECALL instruction handling validation
+- Register mapping validation (RISC-V → x86_64)
+- Return value handling from JIT-compiled code
+
+**What I'll Need**:
+- JIT implementation details for testing
+- ECALL handling approach (interpreter fallback vs JIT-compiled)
+- Register mapping documentation
+- Test execution requirements
+
+**What I'm Preparing**:
+- Test patterns for JIT compilation syscall testing
+- Test helpers for JIT syscall validation
+- Multi-architecture JIT testing framework
+
+---
+
+### With sevenos Init System Agent (3d) — When Init System Ready
+
+**Status**: ⏳ **PENDING** — After Step 3 completion (Init System implementation)
+
+**When to Coordinate**: Week 1-2 (after Agent 3d completes Init System implementation)
+
+**Coordination Points**:
+- Init System syscall testing requirements
+- Service lifecycle syscall validation
+- Process group/session management validation
+- Resource management validation
+
+**What I'll Need**:
+- Init System implementation details for testing
+- Service management patterns
+- Syscall usage patterns in Init System
+- Test execution requirements
+
+**What I'm Preparing**:
+- Test patterns for Init System syscall testing
+- Test helpers for service lifecycle validation
+- Cross-subcore integration testing patterns (Init System ↔ Grainscript Shell)
+
+---
+
+### With Basin Kernel Agent (3a) — Ongoing
+
+**Status**: ✅ **ACTIVE** — Syscall interface documentation available
+
+**Coordination Points**:
+- Syscall interface documentation reference (complete and available)
+- Syscall interface testing validation
+- Framework x86_64 syscall interface testing
+
+**What I Have**:
+- ✅ Complete syscall interface reference (`docs/kernel/syscall_interface_reference.md`)
+- ✅ JIT-specific interface guide (`docs/kernel/syscall_interface_for_jit.md`)
+- ✅ Init System interface guide (`docs/kernel/syscall_interface_for_init.md`)
+
+**What I'm Using**:
+- Syscall interface documentation for test pattern design
+- RISC-V ABI calling convention for test validation
+- Error codes and return value encoding for test validation
 
 ---
 
@@ -739,10 +862,11 @@
 - ✅ **Multi-Architecture Testing Framework Design Complete** (2026-01-01-233240-pst) — `docs/plans/multi_architecture_testing_framework_design.md`
 - ✅ **Framework x86_64 Test Runner Design Complete** (2026-01-01-235155-pst) — `docs/plans/framework_x86_64_test_runner_design.md`
 - ✅ **Design Approved by Vantage 3 Subcore** (2026-01-01-233240-pst)
+- ✅ **Syscall Interface Test Patterns Design Complete** (2026-01-02-083246-pst) — `docs/plans/syscall_interface_test_patterns_design.md` (independent work, complete)
 
 **Total Test Coverage**: **44 comprehensive integration tests across 5 test files** (37 in build.zig, 7 Phase 5 tests ready to add)
 
-**Design Documents**: **2 comprehensive design documents** — Multi-architecture testing framework and Framework x86_64 test runner designs complete and approved
+**Design Documents**: **3 comprehensive design documents** — Multi-architecture testing framework, Framework x86_64 test runner, and Syscall interface test patterns designs (complete)
 
 **What's Next** (HIGH PRIORITY per Core 1 Subcore coordination plan):
 - ⏳ **MULTI-ARCHITECTURE TESTING FRAMEWORK IMPLEMENTATION** (HIGH PRIORITY):
@@ -767,7 +891,7 @@
 
 ---
 
-**Last Updated**: 2026-01-02-010144-pst  
+**Last Updated**: 2026-01-02-083246-pst  
 **Agent**: Grain System Integration Agent (3c)  
 **Parent Agent**: Grain Vantage 3 Subcore Agent (Agent 3, L1 Subcore)  
 **Status**: ✅ **DESIGN APPROVED, IMPLEMENTATION READY** — Multi-architecture testing framework design and Framework x86_64 test runner design complete and approved. Ready for implementation phase (HIGH PRIORITY per Core 1 Subcore coordination plan 2026-01-01-233240-pst).

@@ -45,7 +45,10 @@
 ### Tasks
 
 **Core Services Integration**:
-- [ ] Create integration test framework
+- [x] Create integration test framework — **COMPLETE** (2026-01-02-004000-pst)
+  - Created `tests/integration/core_1_subcore/runner.zig` with test runner and isolation helpers
+  - Created `tests/integration/core_1_subcore/README.md` with framework documentation
+  - Framework ready for L2 sub-agent integration tests
 - [ ] Test Auth + Network integration (authentication middleware)
 - [ ] Test Network + Storage integration (file upload/download)
 - [ ] Test Storage + Auth integration (secure credential storage)
@@ -79,23 +82,42 @@
 ## Current Work: Phase 3 - Architecture Planning and Documentation
 
 **Priority**: **MEDIUM** — Document architecture and best practices  
-**Status**: 🆕 **READY TO BEGIN**  
+**Status**: 🆕 **IN PROGRESS** — Architecture documentation and API design in progress  
 **Duration**: Ongoing
 
 ### Tasks
 
-- [ ] Document overall Core system services architecture
+- [x] Document overall Core system services architecture — **IN PROGRESS** (2026-01-02-005000-pst)
+  - Created architecture overview document
+  - Documented system architecture layers
+  - Documented integration patterns
+  - Documented resource management, security, performance
 - [ ] Document sub-agent responsibilities and boundaries
-- [ ] Document integration patterns
-- [ ] Document API contracts
-- [ ] Design cross-sub-agent API contracts
-- [ ] Design shared resource interfaces
-- [ ] Design error propagation patterns
+- [x] Document integration patterns — **COMPLETE** (2026-01-02-005500-pst)
+  - Created integration best practices guide
+  - Documented all integration patterns
+- [x] Document API contracts — **IN PROGRESS** (2026-01-02-004500-pst)
+  - Created API contract patterns document
+  - Defined 5 core integration patterns
+- [x] Design cross-sub-agent API contracts — **IN PROGRESS** (2026-01-02-004500-pst)
+  - Auth ↔ Network, Network ↔ Storage, Storage ↔ Auth, Compositor ↔ Storage, Shell ↔ Core Services
+- [x] Design shared resource interfaces — **IN PROGRESS** (2026-01-02-010500-pst)
+  - Created shared resource interfaces document
+  - Defined memory pool, file handle pool, connection pool, buffer pool
+  - Defined resource allocation and cleanup patterns
+- [x] Design error propagation patterns — **IN PROGRESS** (2026-01-02-011000-pst)
+  - Created error propagation patterns document
+  - Defined error type hierarchy
+  - Defined 5 error propagation patterns
+  - Defined error recovery patterns
+  - Defined error classification
 - [ ] Design security boundaries
-- [ ] Document integration patterns
-- [ ] Document testing patterns
-- [ ] Document performance optimization patterns
-- [ ] Document security patterns
+- [x] Document testing patterns — **COMPLETE** (2026-01-02-005500-pst)
+  - Documented in integration best practices guide
+- [x] Document performance optimization patterns — **COMPLETE** (2026-01-02-005500-pst)
+  - Documented in integration best practices guide
+- [x] Document security patterns — **COMPLETE** (2026-01-02-005500-pst)
+  - Documented in integration best practices guide
 - [ ] Create architecture decision records
 - [ ] Document trade-offs and rationale
 - [ ] Document alternatives considered
@@ -383,7 +405,9 @@
 - **Needs**: Vantage 3 Subcore coordination, System Integration (3c) coordination
 - **Provides**: Framework x86 coordination, integration planning, cross-subcore coordination
 
-**See**: `docs/core-coordination/core_1_subcore_system_integration_2026-01-02-004200-pst.md` for detailed next steps
+**See**: `docs/core-coordination/core_1_subcore_system_integration_2026-01-02-004200-pst.md` for detailed next steps  
+**Critical Path Tracking**: `docs/core-coordination/core_1_subcore_critical_path_tracking_2026-01-02-084500-pst.md`  
+**Cross-Subcore Integration Architecture**: `docs/core-coordination/core_1_subcore_cross_subcore_integration_architecture_2026-01-02-084500-pst.md`
 
 ---
 

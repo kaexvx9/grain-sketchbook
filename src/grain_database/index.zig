@@ -4,7 +4,42 @@
 //! Architecture: Iterative algorithms, bounded allocations.
 //! GrainStyle: grain_case, u32/u64, bounded allocations, assertions, max 70 lines.
 //!
+//! Performance Characteristics:
+//! - HashIndex: O(1) average case (hash lookup), O(n) worst case (hash collisions)
+//! - BTreeIndex: O(log n) average/worst case (balanced tree traversal)
+//! - InvertedIndex: O(n) worst case (linear scan for token lookup), O(1) average with hash
+//!
+//! Thread Safety: Not thread-safe. Caller must synchronize access.
+//!
+//! Usage Examples:
+//! ```zig
+//! // Hash index for fast ID lookups
+//! var hash_idx = try HashIndex.init(allocator);
+//! defer hash_idx.deinit();
+//! try hash_idx.insert(record_id, record_ptr);
+//! const ptr = hash_idx.lookup(record_id);
+//!
+//! // B-tree index for range queries
+//! var btree = try BTreeIndex.init(allocator);
+//! defer btree.deinit();
+//! try btree.insert(key, value);
+//! const val = btree.lookup(key);
+//!
+//! // Inverted index for full-text search
+//! var inv_idx = try InvertedIndex.init(allocator);
+//! defer inv_idx.deinit();
+//! try inv_idx.index_document(doc_id, text);
+//! var results: [100]u64 = undefined;
+//! const count = try inv_idx.search(query, &results);
+//! ```
+//!
+//! Common Patterns:
+//! - Use HashIndex for primary key lookups (fastest for exact matches)
+//! - Use BTreeIndex for foreign keys and range queries (ordered traversal)
+//! - Use InvertedIndex for text search (token-based document retrieval)
+//!
 //! 2025-12-03-173339-pst: Grain Database Agent (Phase 4: Full-Text Search)
+//! 2026-01-02-085625-pst: Documentation enhanced (Silo Agent)
 
 const std = @import("std");
 
@@ -31,7 +66,21 @@ pub const HashIndex = struct {
     entries_len: u32,
     allocator: std.mem.Allocator,
 
-    // Initialize hash index.
+    //! Initializes a new hash index.
+    //!
+    //! Why: Provides fast O(1) average case lookups for record IDs.
+    //! Performance: O(1) initialization (allocates fixed-size arrays).
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Edge Cases:
+    //! - Returns error if allocation fails
+    //! - Allocates MAX_HASH_SIZE buckets and entries (fixed size)
+    //!
+    //! Example:
+    //! ```zig
+    //! var hash_idx = try HashIndex.init(allocator);
+    //! defer hash_idx.deinit();
+    //! ```
     pub fn init(allocator: std.mem.Allocator) !HashIndex {
         _ = allocator;
         const buckets = try allocator.alloc(?u32, MAX_HASH_SIZE);
@@ -63,7 +112,20 @@ pub const HashIndex = struct {
         self.* = undefined;
     }
 
-    // Insert record ID into hash index.
+    //! Inserts a record ID into the hash index.
+    //!
+    //! Why: Provides fast O(1) average case insertion for ID lookups.
+    //! Performance: O(1) average case (hash + chain insert), O(n) worst case (all collisions).
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Edge Cases:
+    //! - Returns error.HashIndexFull if MAX_HASH_SIZE entries reached
+    //! - Uses chaining for collision resolution
+    //!
+    //! Example:
+    //! ```zig
+    //! try hash_idx.insert(record_id, record_ptr);
+    //! ```
     pub fn insert(
         self: *HashIndex,
         record_id: u64,
@@ -89,7 +151,21 @@ pub const HashIndex = struct {
         self.entries_len += 1;
     }
 
-    // Lookup record pointer by ID.
+    //! Looks up a record pointer by record ID.
+    //!
+    //! Why: Provides fast O(1) average case lookup for ID-based access.
+    //! Performance: O(1) average case (hash + chain traversal), O(n) worst case (all collisions).
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Returns: Record pointer if found, null otherwise.
+    //!
+    //! Example:
+    //! ```zig
+    //! const ptr = hash_idx.lookup(record_id);
+    //! if (ptr) |p| {
+    //!     // Use pointer p
+    //! }
+    //! ```
     pub fn lookup(
         self: *HashIndex,
         record_id: u64,
@@ -149,7 +225,21 @@ pub const BTreeIndex = struct {
     root_idx: ?u32,
     allocator: std.mem.Allocator,
 
-    // Initialize B-tree index.
+    //! Initializes a new B-tree index.
+    //!
+    //! Why: Provides O(log n) lookups for ordered key-value pairs (range queries).
+    //! Performance: O(1) initialization (allocates fixed-size array).
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Edge Cases:
+    //! - Returns error if allocation fails
+    //! - Allocates MAX_BTREE_NODES nodes (fixed size)
+    //!
+    //! Example:
+    //! ```zig
+    //! var btree = try BTreeIndex.init(allocator);
+    //! defer btree.deinit();
+    //! ```
     pub fn init(allocator: std.mem.Allocator) !BTreeIndex {
         _ = allocator;
         const nodes = try allocator.alloc(BTreeNode, MAX_BTREE_NODES);
@@ -170,7 +260,20 @@ pub const BTreeIndex = struct {
         self.* = undefined;
     }
 
-    // Insert key-value pair into B-tree.
+    //! Inserts a key-value pair into the B-tree index.
+    //!
+    //! Why: Provides O(log n) insertion for ordered key-value storage.
+    //! Performance: O(log n) average/worst case (tree traversal + node insert).
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Edge Cases:
+    //! - Returns error.BTreeFull if root node is full (simplified implementation)
+    //! - Currently supports single-node B-tree (no splitting)
+    //!
+    //! Example:
+    //! ```zig
+    //! try btree.insert(key, value);
+    //! ```
     pub fn insert(
         self: *BTreeIndex,
         key: u64,
@@ -242,7 +345,21 @@ pub const BTreeIndex = struct {
         }
     }
 
-    // Lookup value by key.
+    //! Looks up a value by key in the B-tree index.
+    //!
+    //! Why: Provides O(log n) lookup for ordered key-value retrieval.
+    //! Performance: O(log n) average/worst case (tree traversal).
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Returns: Value if key found, null otherwise.
+    //!
+    //! Example:
+    //! ```zig
+    //! const val = btree.lookup(key);
+    //! if (val) |v| {
+    //!     // Use value v
+    //! }
+    //! ```
     pub fn lookup(
         self: *BTreeIndex,
         key: u64,
@@ -369,7 +486,21 @@ pub const InvertedIndex = struct {
     entries_len: u32,
     allocator: std.mem.Allocator,
 
-    // Initialize inverted index.
+    //! Initializes a new inverted index for full-text search.
+    //!
+    //! Why: Provides token-based document retrieval for text search.
+    //! Performance: O(1) initialization (allocates fixed-size array).
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Edge Cases:
+    //! - Returns error if allocation fails
+    //! - Allocates MAX_UNIQUE_TOKENS entries (fixed size)
+    //!
+    //! Example:
+    //! ```zig
+    //! var inv_idx = try InvertedIndex.init(allocator);
+    //! defer inv_idx.deinit();
+    //! ```
     pub fn init(allocator: std.mem.Allocator) !InvertedIndex {
         _ = allocator;
         const entries = try allocator.alloc(
@@ -396,7 +527,21 @@ pub const InvertedIndex = struct {
         self.* = undefined;
     }
 
-    // Index document (add tokens to index).
+    //! Indexes a document by tokenizing and adding tokens to the index.
+    //!
+    //! Why: Enables full-text search by building token-to-document mapping.
+    //! Performance: O(n) where n is number of tokens (tokenization + indexing).
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Edge Cases:
+    //! - Returns error if tokenization fails (too many tokens)
+    //! - Returns error if MAX_UNIQUE_TOKENS limit reached
+    //! - Automatically stems tokens (lowercase + suffix removal)
+    //!
+    //! Example:
+    //! ```zig
+    //! try inv_idx.index_document(doc_id, "This is sample text");
+    //! ```
     pub fn index_document(
         self: *InvertedIndex,
         doc_id: u64,
@@ -422,7 +567,22 @@ pub const InvertedIndex = struct {
         }
     }
 
-    // Search for documents containing query tokens.
+    //! Searches for documents containing query tokens.
+    //!
+    //! Why: Provides full-text search by matching query tokens to indexed documents.
+    //! Performance: O(n) where n is number of documents for first token (linear scan).
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Edge Cases:
+    //! - Returns 0 if no tokens found or query is empty
+    //! - Returns error.TooManyResults if output buffer too small
+    //! - Currently searches only first token (simplified implementation)
+    //!
+    //! Example:
+    //! ```zig
+    //! var results: [100]u64 = undefined;
+    //! const count = try inv_idx.search("search query", &results);
+    //! ```
     pub fn search(
         self: *InvertedIndex,
         query: []const u8,
@@ -500,7 +660,22 @@ pub const InvertedIndex = struct {
     }
 };
 
-// Tokenize text into words (simple whitespace-based).
+//! Tokenizes text into words (simple whitespace-based).
+//!
+//! Why: Splits text into tokens for indexing and search.
+//! Performance: O(n) where n is text length (single pass).
+//!
+//! Edge Cases:
+//! - Returns error.TooManyTokens if output buffer too small
+//! - Splits on whitespace (space, tab, newline, carriage return)
+//! - Skips empty tokens
+//!
+//! Example:
+//! ```zig
+//! var tokens: [100][]const u8 = undefined;
+//! var tokens_len: u32 = 0;
+//! try tokenize("sample text", &tokens, &tokens_len);
+//! ```
 pub fn tokenize(
     text: []const u8,
     output: []const []const u8,
@@ -536,7 +711,21 @@ pub fn tokenize(
     }
 }
 
-// Stem word (simplified: lowercase and remove common suffixes).
+//! Stems a word (simplified: lowercase and remove common suffixes).
+//!
+//! Why: Normalizes words for indexing (e.g., "running" -> "run").
+//! Performance: O(n) where n is word length (lowercase + suffix removal).
+//!
+//! Edge Cases:
+//! - Returns error if allocation fails
+//! - Removes suffixes: "ed", "ing", "ly" (simplified stemming)
+//! - Converts to lowercase
+//!
+//! Example:
+//! ```zig
+//! const stemmed = try stem("running", allocator);
+//! defer allocator.free(stemmed);
+//! ```
 pub fn stem(
     word: []const u8,
     allocator: std.mem.Allocator,

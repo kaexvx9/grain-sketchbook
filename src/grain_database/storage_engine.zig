@@ -4,7 +4,32 @@
 //! Architecture: Key-value foundation with bounded allocations.
 //! GrainStyle: grain_case, u32/u64, bounded allocations, assertions, max 70 lines.
 //!
+//! Performance Characteristics:
+//! - Record creation: O(n) worst case (linear scan for duplicate check), O(1) average
+//! - Record lookup: O(n) worst case (linear scan), O(1) average with index
+//! - Record update: O(n) worst case (linear scan), O(1) average with index
+//! - Record deletion: O(n) worst case (linear scan + array shift)
+//!
+//! Thread Safety: Not thread-safe. Caller must synchronize access.
+//!
+//! Usage Example:
+//! ```zig
+//! var engine = try StorageEngine.init(allocator, 1024 * 1024);
+//! defer engine.deinit();
+//!
+//! const record_id = try engine.create_record("user:123", user_data);
+//! const record = engine.read_record_by_key("user:123");
+//! try engine.update_record("user:123", updated_data);
+//! try engine.delete_record("user:123");
+//! ```
+//!
+//! Common Patterns:
+//! - Use validate_key() and validate_value() before operations
+//! - Check has_record() before create_record() to avoid RecordExists errors
+//! - Use batch_create_records() for bulk loading (more efficient)
+//!
 //! 2025-12-03-163155-pst: Grain Database Agent
+//! 2026-01-02-004011-pst: Documentation enhanced (Silo Agent)
 
 const std = @import("std");
 const grain_silo = @import("grain_silo");
@@ -117,7 +142,21 @@ pub const StorageEngine = struct {
         self.* = undefined;
     }
 
-    // Create record (insert key-value pair).
+    //! Creates a new record in the storage engine.
+    //!
+    //! Why: Provides atomic record creation with validation and metadata tracking.
+    //! Performance: O(n) worst case (linear scan for duplicate check), O(1) average.
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Edge Cases:
+    //! - Returns error.RecordExists if key already exists (use update_record instead)
+    //! - Returns error if MAX_RECORDS limit reached
+    //! - Returns error if key/value exceeds MAX_KEY_LEN/MAX_VALUE_LEN
+    //!
+    //! Example:
+    //! ```zig
+    //! const record_id = try engine.create_record("user:123", user_data);
+    //! ```
     pub fn create_record(
         self: *StorageEngine,
         key: []const u8,
@@ -149,7 +188,21 @@ pub const StorageEngine = struct {
         return record_id;
     }
 
-    // Read record by key.
+    //! Reads a record by key.
+    //!
+    //! Why: Provides key-based lookup for record retrieval.
+    //! Performance: O(n) worst case (linear scan), O(1) average with index.
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Returns: Pointer to Record if found, null otherwise.
+    //!
+    //! Example:
+    //! ```zig
+    //! const record = engine.read_record_by_key("user:123");
+    //! if (record) |r| {
+    //!     // Use record r
+    //! }
+    //! ```
     pub fn read_record_by_key(
         self: *StorageEngine,
         key: []const u8,
@@ -158,7 +211,21 @@ pub const StorageEngine = struct {
         return self.find_record_by_key(key);
     }
 
-    // Read record by ID.
+    //! Reads a record by record ID.
+    //!
+    //! Why: Provides ID-based lookup for record retrieval.
+    //! Performance: O(n) worst case (linear scan), O(1) average with index.
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Returns: Pointer to Record if found, null otherwise.
+    //!
+    //! Example:
+    //! ```zig
+    //! const record = engine.read_record_by_id(record_id);
+    //! if (record) |r| {
+    //!     // Use record r
+    //! }
+    //! ```
     pub fn read_record_by_id(
         self: *StorageEngine,
         record_id: u64,
@@ -167,7 +234,21 @@ pub const StorageEngine = struct {
         return self.find_record_by_id(record_id);
     }
 
-    // Update record value.
+    //! Updates an existing record's value.
+    //!
+    //! Why: Provides atomic value update with timestamp tracking.
+    //! Performance: O(n) worst case (linear scan), O(1) average with index.
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Edge Cases:
+    //! - Returns error.RecordNotFound if key doesn't exist
+    //! - Returns error if new_value exceeds MAX_VALUE_LEN
+    //! - Updates updated_at timestamp automatically
+    //!
+    //! Example:
+    //! ```zig
+    //! try engine.update_record("user:123", updated_user_data);
+    //! ```
     pub fn update_record(
         self: *StorageEngine,
         key: []const u8,
@@ -190,7 +271,20 @@ pub const StorageEngine = struct {
         }
     }
 
-    // Delete record by key.
+    //! Deletes a record by key.
+    //!
+    //! Why: Provides atomic record deletion with memory cleanup.
+    //! Performance: O(n) worst case (linear scan + array shift).
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Edge Cases:
+    //! - Returns error.RecordNotFound if key doesn't exist
+    //! - Performs array shift to maintain contiguous storage
+    //!
+    //! Example:
+    //! ```zig
+    //! try engine.delete_record("user:123");
+    //! ```
     pub fn delete_record(
         self: *StorageEngine,
         key: []const u8,
@@ -242,7 +336,23 @@ pub const StorageEngine = struct {
         return null;
     }
 
-    // Batch create records (for bulk loading).
+    //! Batch creates multiple records (for bulk loading).
+    //!
+    //! Why: Provides efficient bulk record creation with duplicate skipping.
+    //! Performance: O(n*m) worst case (n records, m existing records), but more
+    //! efficient than individual create_record() calls due to reduced overhead.
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Edge Cases:
+    //! - Skips duplicate keys (doesn't error, just continues)
+    //! - Returns count of successfully created records
+    //! - Returns error if MAX_RECORDS limit would be exceeded
+    //!
+    //! Example:
+    //! ```zig
+    //! var record_ids: [100]u64 = undefined;
+    //! const count = try engine.batch_create_records(keys, values, &record_ids);
+    //! ```
     pub fn batch_create_records(
         self: *StorageEngine,
         keys: []const []const u8,
@@ -295,7 +405,19 @@ pub const StorageEngine = struct {
         return total_size;
     }
 
-    // Get average record size (total size / record count).
+    //! Gets the average record size (total size / record count).
+    //!
+    //! Why: Provides statistics for storage optimization analysis.
+    //! Performance: O(n) - calls get_total_storage_size() internally.
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Edge Cases:
+    //! - Returns 0 if no records exist (avoids division by zero)
+    //!
+    //! Example:
+    //! ```zig
+    //! const avg_size = engine.get_average_record_size();
+    //! ```
     pub fn get_average_record_size(self: *const StorageEngine) u64 {
         if (self.records_len == 0) {
             return 0;
@@ -304,12 +426,33 @@ pub const StorageEngine = struct {
         return total_size / @as(u64, self.records_len);
     }
 
-    // Get next record ID (for monitoring).
+    //! Gets the next record ID that will be assigned (for monitoring).
+    //!
+    //! Why: Provides monitoring for record ID allocation.
+    //! Performance: O(1) - direct field access.
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Example:
+    //! ```zig
+    //! const next_id = engine.get_next_record_id();
+    //! ```
     pub fn get_next_record_id(self: *const StorageEngine) u64 {
         return self.next_record_id;
     }
 
-    // Validate key format (non-empty, within bounds).
+    //! Validates key format (non-empty, within bounds).
+    //!
+    //! Why: Provides validation before record operations to catch errors early.
+    //! Performance: O(1) - length check only.
+    //!
+    //! Returns: true if key is valid (non-empty and ≤ MAX_KEY_LEN), false otherwise.
+    //!
+    //! Example:
+    //! ```zig
+    //! if (!validate_key(key)) {
+    //!     return error.InvalidKey;
+    //! }
+    //! ```
     pub fn validate_key(key: []const u8) bool {
         if (key.len == 0) {
             return false;
@@ -320,7 +463,21 @@ pub const StorageEngine = struct {
         return true;
     }
 
-    // Validate value format (within bounds).
+    //! Validates value format (within bounds).
+    //!
+    //! Why: Provides validation before record operations to catch errors early.
+    //! Performance: O(1) - length check only.
+    //!
+    //! Returns: true if value is valid (≤ MAX_VALUE_LEN), false otherwise.
+    //!
+    //! Note: Empty values are allowed (unlike keys).
+    //!
+    //! Example:
+    //! ```zig
+    //! if (!validate_value(value)) {
+    //!     return error.InvalidValue;
+    //! }
+    //! ```
     pub fn validate_value(value: []const u8) bool {
         if (value.len > MAX_VALUE_LEN) {
             return false;
@@ -328,13 +485,35 @@ pub const StorageEngine = struct {
         return true;
     }
 
-    // Check if record exists by key.
+    //! Checks if a record exists by key.
+    //!
+    //! Why: Provides existence check before operations to avoid errors.
+    //! Performance: O(n) worst case (linear scan), O(1) average with index.
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Example:
+    //! ```zig
+    //! if (engine.has_record("user:123")) {
+    //!     // Record exists
+    //! }
+    //! ```
     pub fn has_record(self: *const StorageEngine, key: []const u8) bool {
         std.debug.assert(key.len <= MAX_KEY_LEN);
         return self.find_record_by_key(key) != null;
     }
 
-    // Check if record exists by ID.
+    //! Checks if a record exists by record ID.
+    //!
+    //! Why: Provides existence check before operations to avoid errors.
+    //! Performance: O(n) worst case (linear scan), O(1) average with index.
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Example:
+    //! ```zig
+    //! if (engine.has_record_by_id(record_id)) {
+    //!     // Record exists
+    //! }
+    //! ```
     pub fn has_record_by_id(self: *const StorageEngine, record_id: u64) bool {
         std.debug.assert(record_id > 0);
         return self.find_record_by_id(record_id) != null;

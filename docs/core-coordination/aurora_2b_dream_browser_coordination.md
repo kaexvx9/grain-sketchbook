@@ -1,9 +1,9 @@
 # Core Coordination: Grain Dream Browser Agent (2b)
 
-**Last Updated**: 2026-01-01-092301-pst  
+**Last Updated**: 2026-01-02-090500-pst  
 **Agent**: Grain Dream Browser Agent (2b) — L2 Sub-Agent  
 **Parent Agent**: Grain Aurora 2 Subcore Agent (L1 Subcore Coordinator)  
-**Status**: ⏳ **PHASE 1 IN PROGRESS** ⏳ — Major Progress on WebSocket & Dream Protocol
+**Status**: ⏳ **PHASE 1 IN PROGRESS** ⏳ — Continuing Independent Work on HTML/CSS Parser
 
 **Plan Document**: `docs/plans/aurora_2b_dream_browser_plan.md`  
 **Tasks Document**: `docs/tasks/aurora_2b_dream_browser_tasks.md`
@@ -33,10 +33,26 @@
 - ✅ **Component API Requirements Document Created** (2026-01-01) — **NEW**
   - Browser UI component requirements documented
   - Ready for Component Library Agent (2c) review
-- ⏳ HTML/CSS Parsing In Progress (structure complete, implementation needed)
+- ⏳ **HTML/CSS Parsing In Progress** (2026-01-02) — **NEW**
+  - ✅ Nested tag parsing implemented (iterative approach)
+  - ✅ Attribute parsing improved (quoted, unquoted, boolean attributes)
+  - ✅ Text node parsing implemented
+  - ✅ Self-closing tag support added
+  - ✅ **CSS selector parsing implemented** (2026-01-02) — **NEW**
+    - Class selectors (`.class`)
+    - ID selectors (`#id`)
+    - Tag+class selectors (`div.class`)
+    - Tag+ID selectors (`div#id`)
+    - Pseudo-class selectors (`:hover`, `:focus`) — basic support
+  - ✅ **Style computation implemented** (2026-01-02) — **NEW**
+    - Specificity calculation (id=100, class=10, tag=1)
+    - Cascade algorithm (last property wins)
+    - Selector matching (tag, class, ID, pseudo-class)
 - ⏳ Rendering Engine In Progress (structure complete, implementation needed)
 
 **Ready for**: Component API integration (when Component Library Agent 2c ready), continued Phase 1 implementation, TLS support (future enhancement)
+
+**Current Independent Work**: HTML/CSS Parser implementation (Priority 1, blocks rendering engine). Structure complete, implementing full HTML5/CSS3 parsing logic. No conflicts with Vantage 3 Subcore critical path (Basin Kernel → VM Runtime → Init System → Grainscript Shell).
 
 ---
 
@@ -138,11 +154,18 @@
 - **Files**: `src/dream_websocket.zig`, `src/dream_browser_websocket.zig`
 - **Timeline**: TLS support 2-3 days (when prioritized)
 
-**HTML/CSS Parsing**:
+**HTML/CSS Parsing** (2026-01-02) — **NEARLY COMPLETE**:
 - ✅ Structure complete: HtmlNode, CssRule, Declaration types
-- ⏳ Implementation needed: Full HTML5/CSS3 parser, style computation
+- ✅ Nested tag parsing implemented (iterative, stack-based approach)
+- ✅ Attribute parsing improved (quoted, unquoted, boolean attributes)
+- ✅ Text node parsing implemented
+- ✅ Self-closing tag support added
+- ✅ CSS selector parsing implemented (class `.class`, id `#id`, pseudo-class `:hover`, combinations)
+- ✅ Style computation implemented (cascade algorithm, specificity calculation)
+- ⏳ Testing and edge case handling (malformed HTML recovery, complex selectors)
 - **Files**: `src/dream_browser_parser.zig`
-- **Timeline**: 5-7 days
+- **Timeline**: 1-2 days remaining (was 5-7 days, significant progress made)
+- **Status**: Core functionality complete, ready for testing and refinement
 
 **Rendering Engine**:
 - ✅ Structure complete: Layout engine, Grain Aurora integration
@@ -246,10 +269,15 @@
 - Coordination document: `docs/core-coordination/aurora_2a_2b_coordination_alignment_2026-01-01-085414-pst.md`
 
 **With 2c (Component Library)**: **HIGH PRIORITY**
-- ✅ Browser Component API requirements provided (2026-01-01)
+- ✅ Browser Component API requirements provided (2026-01-01-085600-pst)
+- ✅ Requirements summary created by Aurora 2 Subcore (2026-01-02-084411-pst)
+- ✅ Component Library Agent preparation work complete (2026-01-02-085302-pst)
+- ✅ **Acknowledged**: Component Library Agent preparation work complete, ready for requirements review
 - ⏳ Waiting for Component Library Agent (2c) to review requirements and finalize Component API design
-- Browser UI components blocked on Component API design (Phase 0.5)
+- Browser UI components blocked on Component API design finalization (Phase 0.5 → Phase 1)
 - **Requirements Document**: `docs/core-coordination/aurora_2b_browser_component_requirements_2026-01-01-085600-pst.md`
+- **Requirements Summary**: `docs/agent-communications/aurora_2_subcore_component_api_requirements_summary_2026-01-02-084411-pst.md`
+- **Status**: Browser requirements ready for Component Library Agent review — existing Browser Component API structure confirmed, no major changes needed
 
 ---
 

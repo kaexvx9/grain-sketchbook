@@ -411,3 +411,118 @@ test "lsp client deinitialization cleanup" {
     // Note: Actual leak detection would require valgrind or similar
     // This test verifies deinit doesn't crash
 }
+
+test "lsp client empty document" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
+
+    var client = LspClient.init(allocator);
+    defer client.deinit();
+
+    const uri = "file:///empty.zig";
+    const empty_text = "";
+
+    // Open empty document
+    try client.didOpen(uri, empty_text);
+
+    // Assert: Empty document tracked
+    std.debug.assert(client.snapshots.items.len == 1);
+    std.debug.assert(std.mem.eql(u8, client.snapshots.items[0].text, empty_text));
+    std.debug.assert(client.snapshots.items[0].text.len == 0);
+}
+
+test "lsp client very long document" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
+
+    var client = LspClient.init(allocator);
+    defer client.deinit();
+
+    const uri = "file:///large.zig";
+    // Create a large document (10KB of text)
+    var large_text = std.ArrayList(u8).init(allocator);
+    defer large_text.deinit();
+    
+    const line = "const std = @import(\"std\");\n";
+    var i: u32 = 0;
+    while (i < 500) : (i += 1) {
+        try large_text.appendSlice(line);
+    }
+    const large_text_slice = try large_text.toOwnedSlice();
+    defer allocator.free(large_text_slice);
+
+    // Open large document
+    try client.didOpen(uri, large_text_slice);
+
+    // Assert: Large document tracked
+    std.debug.assert(client.snapshots.items.len == 1);
+    std.debug.assert(client.snapshots.items[0].text.len > 10000);
+    std.debug.assert(std.mem.eql(u8, client.snapshots.items[0].text, large_text_slice));
+}
+
+test "lsp client rapid changes" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
+
+    var client = LspClient.init(allocator);
+    defer client.deinit();
+
+    const uri = "file:///rapid.zig";
+    const initial_text = "const std = @import(\"std\");\n";
+
+    try client.didOpen(uri, initial_text);
+
+    // Apply many rapid changes
+    var change_num: u32 = 0;
+    while (change_num < 50) : (change_num += 1) {
+        const change = LspClient.TextDocumentChange{
+            .range = LspClient.Range{
+                .start = LspClient.Position{ .line = 0, .character = 0 },
+                .end = LspClient.Position{ .line = 0, .character = 0 },
+            },
+            .range_length = 0,
+            .text = "x",
+        };
+        const changes = [_]LspClient.TextDocumentChange{change};
+        try client.didChange(uri, &changes);
+    }
+
+    // Assert: All changes applied
+    std.debug.assert(client.snapshots.items.len == 1);
+    std.debug.assert(client.snapshots.items[0].version == 51); // 1 initial + 50 changes
+}
+
+test "lsp client position at document end" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
+
+    var client = LspClient.init(allocator);
+    defer client.deinit();
+
+    const uri = "file:///test.zig";
+    const text = "line 1\nline 2\nline 3\n";
+
+    try client.didOpen(uri, text);
+
+    // Create change at end of document
+    const change = LspClient.TextDocumentChange{
+        .range = LspClient.Range{
+            .start = LspClient.Position{ .line = 2, .character = 6 },
+            .end = LspClient.Position{ .line = 2, .character = 6 },
+        },
+        .range_length = 0,
+        .text = "appended",
+    };
+
+    const changes = [_]LspClient.TextDocumentChange{change};
+    try client.didChange(uri, &changes);
+
+    // Assert: Change applied at end
+    std.debug.assert(client.snapshots.items.len == 1);
+    const expected_text = "line 1\nline 2\nline 3appended\n";
+    std.debug.assert(std.mem.eql(u8, client.snapshots.items[0].text, expected_text));
+}

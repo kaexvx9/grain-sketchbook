@@ -5,15 +5,14 @@ const GrainBuffer = @import("grain_buffer.zig").GrainBuffer;
 /// ~<~ Glow Airbend: readonly spans protect VCS metadata, hunks remain editable.
 /// ~~~~ Glow Waterbend: VCS state flows from `jj` commands into virtual files.
 pub const VcsClient = struct {
-    allocator: std.mem.Allocator,
-    repo_path: []const u8,
-    
     // Bounded: Max 1000 virtual files
     pub const MAX_VIRTUAL_FILES: u32 = 1000;
-    virtual_files: std.ArrayList(VirtualFile) = undefined,
-    
     // Bounded: Max 100 pending `jj` commands
     pub const MAX_PENDING_COMMANDS: u32 = 100;
+    
+    allocator: std.mem.Allocator,
+    repo_path: []const u8,
+    virtual_files: std.ArrayList(VirtualFile) = undefined,
     pending_commands: std.ArrayList(PendingCommand) = undefined,
     
     pub const VirtualFile = struct {
@@ -338,7 +337,7 @@ pub const VcsClient = struct {
             
             // Assert: Bytes read fits in u32
             std.debug.assert(bytes_read_u64 <= std.math.maxInt(u32));
-            const bytes_read = @intCast(bytes_read_u64);
+            const bytes_read = @as(u32, @intCast(bytes_read_u64));
             
             // Assert: Output size bounded
             std.debug.assert(output.items.len + bytes_read <= 10 * 1024 * 1024); // Max 10MB
@@ -364,7 +363,7 @@ pub const VcsClient = struct {
         
         // Check each virtual file for edits
         for (self.virtual_files.items) |*vf| {
-            const text = vf.buffer.textSlice();
+            _ = vf.buffer.textSlice(); // Buffer text (for future use)
             
             // Detect if file was edited (simplified: check if buffer changed)
             // TODO: Implement proper edit detection with timestamps or hash
@@ -397,7 +396,7 @@ pub const VcsClient = struct {
             const ch = text[i];
             
             if (ch == '\n') {
-                const line = text[line_start..i];
+                _ = text[line_start..i]; // Line text (for future use)
                 const line_start_u32 = line_start;
                 const line_end_u32 = i;
                 

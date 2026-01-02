@@ -123,6 +123,9 @@ pub const resource_cleanup_module = resource_cleanup;
 // Export RawIO for tests to disable hardware access.
 pub const RawIO = @import("raw_io.zig");
 
+// Export syscall_performance_profiler for tests.
+pub const syscall_performance_profiler = @import("syscall_performance_profiler.zig");
+
 // Compile-time assertions for handle table size.
 comptime {
     std.debug.assert(MAX_HANDLES > 0);

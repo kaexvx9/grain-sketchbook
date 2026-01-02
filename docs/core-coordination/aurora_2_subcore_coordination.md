@@ -1,6 +1,6 @@
 # Core Coordination: Grain Aurora 2 Subcore Agent
 
-**Last Updated**: 2026-01-02-010413-pst  
+**Last Updated**: 2026-01-02-083528-pst  
 **Agent**: Grain Aurora 2 Subcore Agent (L1 Subcore Coordinator)  
 **Status**: ✅ **DOCUMENTATION COMPLETE** — All plan and tasks documents created — Coordination Active — Ready for Integration Work
 
@@ -18,8 +18,14 @@
 - ✅ Timestamp specification acknowledged and implemented
 - ✅ Complete agent awareness reviewed and understood
 - ✅ Recursion prompt guidelines acknowledged
+- ✅ Priority reorganization acknowledged (Core 1 Subcore single-threaded critical path)
 
-**Current Focus**: Component API design finalization and Phase 1 implementation, Editor/Browser agent coordination, Bubble Agent coordination (HIGHEST PRIORITY)
+**System Priority Context** (2026-01-02-083246-pst):
+- **Critical Path**: Vantage running Basin Kernel on Framework sevenos x86_64 with working Grainscript shell
+- **Aurora 2 Subcore Status**: ✅ **NOT IN CRITICAL PATH** — Can continue work in parallel without blocking/being blocked
+- **Coordination**: Continue Aurora 2 Subcore priorities while respecting critical path needs
+
+**Current Focus**: Component API design finalization and Phase 1 implementation, Editor/Browser agent coordination, Bubble Agent coordination (HIGHEST PRIORITY for Aurora 2 Subcore)
 
 ---
 
@@ -258,15 +264,19 @@
 
 **Objective**: Finalize Component API design and proceed with Phase 1 implementation to unblock Editor Agent (2a) multi-pane layout and Browser Agent (2b) UI components.
 
+**Status**: ✅ **Requirements Complete** — Requirements summary created for Component Library Agent (2026-01-02-084411-pst)
+
 **Tasks**:
-1. **Facilitate Editor/Browser Requirements Gathering** (This Week):
+1. **Facilitate Editor/Browser Requirements Gathering** (COMPLETE):
    - ✅ Editor Agent requirements provided (2026-01-01-084922-pst)
-   - ✅ Browser Agent coordination request sent (2026-01-01-085546-pst)
-   - ⏳ Finalize requirements with both agents
-   - ⏳ Coordinate Component ID allocation (Editor: 70-99, Browser: 30-69)
+   - ✅ Browser Agent requirements provided (2026-01-01-085600-pst)
+   - ✅ Requirements summary created (2026-01-02-084411-pst)
+   - ✅ Component ID allocation confirmed (Editor: 70-99, Browser: 30-69, no conflicts)
 
 2. **Approve Phase 1 Implementation** (This Week):
-   - ⏳ Review Component API design with Aurora 2 Subcore
+   - ⏳ Component Library Agent (2c) reviews requirements summary
+   - ⏳ Component Library Agent (2c) finalizes Component API design
+   - ⏳ Review Component API design finalization
    - ⏳ Confirm Phase 1 timeline (1-2 weeks estimated)
    - ⏳ Approve Phase 1 Component API Implementation
 
@@ -275,8 +285,9 @@
    - ⏳ Editor Agent (2a) unblocks multi-pane layout work
    - ⏳ Browser Agent (2b) unblocks UI component integration work
 
-**Dependencies**: Editor and Browser agent requirements confirmation  
-**Blocks**: Editor Agent multi-pane layout, Browser Agent UI components
+**Dependencies**: Component Library Agent (2c) design finalization  
+**Blocks**: Editor Agent multi-pane layout, Browser Agent UI components  
+**Document**: `docs/agent-communications/aurora_2_subcore_component_api_requirements_summary_2026-01-02-084411-pst.md`
 
 ---
 
@@ -284,18 +295,20 @@
 
 **Objective**: Coordinate Component API design with Bubble Agent to unblock Bubble Agent JG UI work.
 
-**Status**: ✅ Component API design complete — Ready for Bubble Agent coordination
+**Status**: ✅ Component API design complete — ✅ Coordination document sent to Bubble Agent (2026-01-02-084110-pst)
 
 **Tasks**:
 1. **Coordinate with Bubble Agent** (This Week):
-   - ⏳ Inform Bubble Agent that Component API design is complete
-   - ⏳ Provide Component API design document (`docs/component_api_design.md`)
-   - ⏳ Review existing Bubble Agent integration (`src/grain_bubble/aurora_integration.zig`)
-   - ⏳ Confirm Component API design meets Bubble Agent JG UI requirements
+   - ✅ Inform Bubble Agent that Component API design is complete (2026-01-02-084110-pst)
+   - ✅ Provide Component API design document (`docs/component_api_design.md`)
+   - ✅ Coordination document created: `docs/agent-communications/aurora_2_subcore_to_bubble_component_api_coordination_2026-01-02-084110-pst.md`
+   - ⏳ Wait for Bubble Agent review and feedback
+   - ⏳ Finalize Component API design based on Bubble Agent feedback
    - ⏳ Unblock Bubble Agent Phase 5 work
 
 **Impact**: Unblocks Bubble Agent JG UI work (HIGHEST PRIORITY)  
-**Coordination**: Via Aurora 2 Subcore with Bubble Agent
+**Coordination**: Via Aurora 2 Subcore with Bubble Agent  
+**Status**: ✅ Coordination initiated, waiting for Bubble Agent response
 
 ---
 
@@ -303,21 +316,34 @@
 
 **Objective**: Begin Phase 2 integration testing and validation to ensure cross-sub-agent integration works correctly.
 
+**Status**: 🆕 **READY TO BEGIN** — Can design framework now, implement after Phase 1 Component API
+
 **Tasks**:
-1. **Create Integration Test Framework** (Next 2 Weeks):
-   - ⏳ Create integration test suite structure
+1. **Design Integration Test Framework** (This Week — Can Start Now):
+   - ⏳ Design integration test framework structure (`tests/aurora_integration/`)
+   - ⏳ Design test runner framework (setup/teardown, test isolation)
    - ⏳ Design cross-sub-agent test scenarios
+   - ⏳ Design test data fixtures and helpers
+   - ⏳ Document integration test standards
    - ⏳ Plan Editor + Component Library integration tests
    - ⏳ Plan Browser + Component Library integration tests
    - ⏳ Plan Editor + Browser integration tests
+   - ⏳ Plan shared module integration tests (GrainBuffer, DAG Core)
 
-2. **Begin Integration Testing** (After Phase 1 Component API Complete):
+2. **Implement Integration Test Framework** (After Phase 1 Component API Complete):
+   - ⏳ Create integration test suite structure
+   - ⏳ Implement test runner
+   - ⏳ Implement test scenarios
+   - ⏳ Integrate with build system
+
+3. **Begin Integration Testing** (After Phase 1 Component API Complete):
    - ⏳ Test Editor + Component Library integration
    - ⏳ Test Browser + Component Library integration
    - ⏳ Test shared module integration (GrainBuffer, DAG Core)
 
-**Dependencies**: Phase 1 Component API Implementation complete  
-**Provides**: Integration testing framework and validation
+**Dependencies**: Design phase — none (can start now); Implementation phase — Phase 1 Component API Implementation complete  
+**Provides**: Integration testing framework and validation  
+**Parallel Work Plan**: `docs/core-coordination/aurora_2_subcore_parallel_work_plan_2026-01-02-084411-pst.md`
 
 ---
 
@@ -515,7 +541,27 @@
 
 ---
 
-**Date**: 2026-01-02-010413-pst  
+## System-Wide Priority Context
+
+**Critical Path** (Core 1 Subcore Priority, 2026-01-02-083246-pst):
+- **Goal**: Vantage running Basin Kernel on Framework sevenos x86_64 with working Grainscript shell
+- **Steps**: 1) Basin Kernel (3a) syscall docs → 2) VM Runtime (3b) JIT → 3) Init System (3d) → 4) Grainscript Shell (1e) → 5) System Integration (3c)
+- **Timeline**: THIS WEEK to WEEK 1-2
+
+**Aurora 2 Subcore Position**:
+- ✅ **NOT IN CRITICAL PATH** — Aurora 2 Subcore work does not block or get blocked by critical path
+- ✅ **PARALLEL WORK** — Can continue Component API work, Editor/Browser coordination, Bubble Agent coordination
+- ✅ **COORDINATION** — Continue normal coordination with Core 1 Subcore, no special prioritization needed
+
+**Implications**:
+- Aurora 2 Subcore continues Component API design finalization and Phase 1 implementation
+- Aurora 2 Subcore continues Bubble Agent coordination (HIGHEST PRIORITY for Aurora 2 Subcore domain)
+- Aurora 2 Subcore work proceeds in parallel with critical path, no conflicts expected
+- Framework x86 adaptation continues as needed, but does not block critical path
+
+---
+
+**Date**: 2026-01-02-083528-pst  
 **Agent**: Grain Aurora 2 Subcore Agent (L1 Subcore Coordinator)  
-**Status**: ✅ **DOCUMENTATION COMPLETE** — Coordination Active — Component API Design Finalization Priority  
-**Next Steps**: Facilitate Component API design finalization, coordinate with Bubble Agent (HIGHEST PRIORITY), begin integration testing framework setup
+**Status**: ✅ **DOCUMENTATION COMPLETE** — Coordination Active — Component API Design Finalization Priority — Critical Path Awareness Acknowledged  
+**Next Steps**: Facilitate Component API design finalization, coordinate with Bubble Agent (HIGHEST PRIORITY), begin integration testing framework setup (parallel with critical path)

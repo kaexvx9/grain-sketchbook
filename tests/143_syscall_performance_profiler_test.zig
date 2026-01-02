@@ -6,11 +6,8 @@
 
 const std = @import("std");
 const testing = std.testing;
-// Note: These tests focus on the profiler module in isolation.
-// Kernel integration tests require the full build system (zig build test).
-// For standalone testing, we need to import from the source file directly.
-// In build.zig tests, this would be: @import("syscall_performance_profiler")
-const syscall_performance_profiler = @import("../src/kernel/syscall_performance_profiler.zig");
+const basin_kernel = @import("basin_kernel");
+const syscall_performance_profiler = basin_kernel.syscall_performance_profiler;
 const SyscallPerformanceProfiler = syscall_performance_profiler.SyscallPerformanceProfiler;
 const SyscallMetrics = syscall_performance_profiler.SyscallMetrics;
 

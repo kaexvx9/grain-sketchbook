@@ -6,9 +6,10 @@
 
 const std = @import("std");
 const testing = std.testing;
-const BasinKernel = @import("basin_kernel.zig").BasinKernel;
-const Syscall = @import("basin_kernel.zig").Syscall;
-const BasinError = @import("basin_kernel.zig").BasinError;
+const basin_kernel = @import("basin_kernel");
+const BasinKernel = basin_kernel.BasinKernel;
+const Syscall = basin_kernel.Syscall;
+const BasinError = basin_kernel.BasinError;
 
 // Test: Enable profiling and collect performance data for common syscalls.
 test "syscall performance benchmark" {

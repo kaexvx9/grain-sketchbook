@@ -8,9 +8,123 @@
 
 ---
 
-## Active Tasks
+## Active Tasks (Single-Threaded Dependency Chain)
 
-### Task 1: Support Agent 1e Zig 0.15.2 API Compatibility (HIGHEST PRIORITY)
+### Task 1: Support Step 1 - Basin Kernel Syscall Documentation Distribution (BLOCKING)
+**Priority**: HIGHEST (Step 1 of dependency chain)  
+**Status**: Active  
+**Start Date**: 2026-01-02  
+**Target Completion**: 2026-01-08
+
+**Description**: Support Agent 3a in distributing syscall interface documentation to Agents 3b and 3d.
+
+The syscall documentation is ready—we just need to ensure it's distributed to the agents who need it. This is straightforward coordination work, but it's the first step in the dependency chain.
+
+**Subtasks**:
+- [ ] Verify documentation distribution coordination
+- [ ] Track distribution completion
+- [ ] Ensure 3b and 3d have access to documentation
+- [ ] Coordinate with Agent 3 (Vantage 3 Subcore) on distribution
+
+**Dependencies**: None (first step in chain)  
+**Blockers**: None  
+**Deliverable**: Documentation distributed to 3b and 3d  
+**Progress**: 0%
+
+---
+
+### Task 2: Support Step 2 - VM Runtime Grain Style Compliance + JIT Pipeline (BLOCKING)
+**Priority**: HIGHEST (Step 2 of dependency chain)  
+**Status**: Active (blocked on Task 1)  
+**Start Date**: 2026-01-02  
+**Target Completion**: 2026-01-15
+
+**Description**: Support Agent 3b in verifying Grain Style compliance and implementing x86_64 JIT pipeline.
+
+The compliance verification is straightforward—helper functions have been extracted. Once verified, the JIT pipeline design can proceed using the syscall documentation from Step 1.
+
+**Subtasks**:
+- [ ] Coordinate with Agent 3b on compliance verification
+- [ ] Support JIT pipeline design coordination
+- [ ] Track JIT implementation progress
+- [ ] Coordinate with Agent 3 (Vantage 3 Subcore) on priority support
+
+**Dependencies**: Task 1 (syscall documentation)  
+**Blockers**: Waiting on Task 1  
+**Deliverable**: Compliance verified, JIT pipeline implemented  
+**Progress**: 0%
+
+---
+
+### Task 3: Support Step 3 - sevenos Init System Completion (BLOCKING)
+**Priority**: HIGHEST (Step 3 of dependency chain)  
+**Status**: Active (blocked on Task 1)  
+**Start Date**: 2026-01-02  
+**Target Completion**: 2026-01-15
+
+**Description**: Support Agent 3d in fixing compilation issue, completing Phase 3/4, and integrating with Basin Kernel syscall interface.
+
+The compilation issue is well-defined (ArrayList initialization in Zig 0.15.2). Once fixed, Phase 3 can complete, and Phase 4 can proceed. The Basin syscall integration will use the documentation from Step 1.
+
+**Subtasks**:
+- [ ] Coordinate with Agent 3d on compilation issue resolution
+- [ ] Support Phase 3/4 completion coordination
+- [ ] Facilitate Basin syscall integration planning
+- [ ] Coordinate cross-subcore integration with Agent 1e (Step 4)
+
+**Dependencies**: Task 1 (syscall documentation)  
+**Blockers**: Waiting on Task 1  
+**Deliverable**: Init System complete and integrated with Basin Kernel  
+**Progress**: 0%
+
+---
+
+### Task 4: Support Step 4 - Grainscript Shell Integration (END GOAL)
+**Priority**: HIGHEST (Step 4 of dependency chain - END GOAL)  
+**Status**: Active (blocked on Task 3)  
+**Start Date**: 2026-01-02  
+**Target Completion**: 2026-01-15
+
+**Description**: Support Agent 1e in completing testing and integrating with sevenos Init System.
+
+The shell is already functional—we need to complete testing and integrate with the Init System from Step 3. This is the end goal of the dependency chain.
+
+**Subtasks**:
+- [ ] Support shell testing completion
+- [ ] Facilitate cross-subcore integration with Agent 3d (Step 3)
+- [ ] Coordinate with Agent 1 (Core 1 Subcore) and Agent 3 (Vantage 3 Subcore)
+- [ ] Track integration progress toward end goal
+
+**Dependencies**: Task 3 (Init System completion)  
+**Blockers**: Waiting on Task 3  
+**Deliverable**: Usable Grainscript shell running on Vantage/Basin Kernel Framework x86_64  
+**Progress**: 0%
+
+---
+
+### Task 5: Support Step 5 - System Integration Testing Framework (SUPPORTING)
+**Priority**: HIGH (Step 5 - supporting)  
+**Status**: Active  
+**Start Date**: 2026-01-02  
+**Target Completion**: 2026-01-15
+
+**Description**: Support Agent 3c in implementing multi-architecture testing framework.
+
+The testing framework supports all other steps by enabling verification. This can proceed in parallel with the critical path.
+
+**Subtasks**:
+- [ ] Coordinate with Agent 3c on testing framework design
+- [ ] Support multi-arch testing coordination
+- [ ] Track testing framework implementation
+
+**Dependencies**: None (can proceed in parallel)  
+**Blockers**: None  
+**Deliverable**: Multi-arch testing framework implemented  
+**Progress**: 0%
+
+---
+
+### Task 6: Core 1 Service Architecture Documentation (ONGOING)
 **Priority**: HIGHEST  
 **Status**: Active  
 **Start Date**: 2026-01-02  

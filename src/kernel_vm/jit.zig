@@ -283,6 +283,30 @@ const Fixup = struct {
 };
 
 /// The JIT Context manages the translation process.
+/// JIT backend selection (architecture-specific).
+/// Why: Support multiple host architectures (ARM64, x86_64) with appropriate backends.
+/// GrainStyle: Explicit enum, deterministic selection.
+pub const Backend = enum {
+    arm64,   // ARM64 backend (RISC-V → ARM64 translation)
+    x86_64,  // x86_64 backend (RISC-V → x86_64 translation)
+};
+
+/// Detect host architecture and select appropriate JIT backend.
+/// Why: Select backend based on host architecture at runtime.
+/// Returns: Backend enum for current host architecture.
+/// GrainStyle: Explicit architecture detection, deterministic behavior.
+fn detect_backend() Backend {
+    return switch (builtin.cpu.arch) {
+        .aarch64 => .arm64,
+        .x86_64 => .x86_64,
+        else => {
+            // Unsupported architecture: default to ARM64 for now.
+            // This allows graceful degradation on unsupported platforms.
+            return .arm64;
+        },
+    };
+}
+
 /// GrainStyle: Use explicit u32/u64 instead of usize for cross-platform consistency
 pub const JitContext = struct {
     allocator: std.mem.Allocator,
@@ -293,6 +317,7 @@ pub const JitContext = struct {
     memory_size: u64, // VM memory size in bytes
     framebuffer_size: u32,
     perf_counters: JitPerfCounters,
+    backend: Backend, // JIT backend (ARM64 or x86_64)
 
     block_cache: std.AutoHashMap(u64, u32), // Maps guest PC to code buffer offset
     pending_fixups: std.AutoHashMap(u64, *Fixup),
@@ -388,6 +413,9 @@ pub const JitContext = struct {
         // Assert: memory_size must be large enough for framebuffer
         std.debug.assert(memory_size >= FRAMEBUFFER_SIZE);
 
+        // Detect host architecture and select backend.
+        const backend = detect_backend();
+
         const self = JitContext{
             .allocator = allocator,
             .code_buffer = buffer,
@@ -402,6 +430,7 @@ pub const JitContext = struct {
                 .max_code_size_bytes = 0,
                 .min_code_size_bytes = 0,
             },
+            .backend = backend,
             .block_cache = cache,
             .pending_fixups = fixups,
         };
@@ -1392,7 +1421,26 @@ pub const JitContext = struct {
 
         // Cache miss: compile new block.
         self.perf_counters.cache_misses += 1;
+        
+        // Dispatch to backend-specific compilation.
+        return switch (self.backend) {
+            .arm64 => self.compile_block_arm64(guest_pc, start_offset),
+            .x86_64 => self.compile_block_x86_64(guest_pc, start_offset),
+        };
+    }
+
+    /// Compile block using ARM64 backend.
+    /// Why: Extract ARM64 compilation logic to support backend dispatch.
+    /// GrainStyle: Explicit backend separation, deterministic behavior.
+    fn compile_block_arm64(
+        self: *JitContext,
+        guest_pc: u64,
+        start_offset: u32,
+    ) !*const fn (*GuestState) callconv(.c) void {
         self.apply_fixups(guest_pc, start_offset);
+
+        var current_pc = guest_pc;
+        var instructions_in_block: u32 = 0;
 
         while (true) {
             const fetch_result = try self.fetch_inst(current_pc);
@@ -1420,6 +1468,861 @@ pub const JitContext = struct {
 
         self.flush_cache(start_offset, self.cursor - start_offset);
         return self.get_compiled_block(start_offset);
+    }
+
+    // --- x86_64 Emit Functions ---
+    // Why: Support x86_64 JIT backend for Framework Ubuntu x86_64.
+    // GrainStyle: Explicit instruction encoding, deterministic behavior.
+
+    /// Emit single byte to code buffer (x86_64).
+    /// Why: x86_64 uses variable-length instructions (1-15 bytes).
+    /// GrainStyle: Explicit bounds checking, deterministic behavior.
+    fn emit_u8_x86_64(self: *JitContext, byte: u8) void {
+        std.debug.assert(self.cursor + 1 <= self.code_buffer.len);
+        self.code_buffer[self.cursor] = byte;
+        self.cursor += 1;
+    }
+
+    /// Emit REX prefix for x86_64 64-bit operations.
+    /// Why: REX prefix enables 64-bit mode and extended registers.
+    /// Parameters: W=1 (64-bit), R (extended reg), X (extended index), B (extended base).
+    /// GrainStyle: Explicit REX encoding, deterministic behavior.
+    fn emit_rex_x86_64(self: *JitContext, w: bool, r: bool, x: bool, b: bool) void {
+        const rex_base: u8 = 0x40;
+        const rex_w: u8 = if (w) 0x08 else 0x00;
+        const rex_r: u8 = if (r) 0x04 else 0x00;
+        const rex_x: u8 = if (x) 0x02 else 0x00;
+        const rex_b: u8 = if (b) 0x01 else 0x00;
+        const rex: u8 = rex_base | rex_w | rex_r | rex_x | rex_b;
+        self.emit_u8_x86_64(rex);
+    }
+
+    /// Emit REX.W prefix (64-bit operation, no extended registers).
+    /// Why: Common case for 64-bit operations.
+    /// GrainStyle: Explicit REX encoding, deterministic behavior.
+    fn emit_rex_w_x86_64(self: *JitContext) void {
+        self.emit_rex_x86_64(true, false, false, false);
+    }
+
+    /// Emit ModR/M byte for x86_64.
+    /// Why: ModR/M encodes register/memory operands.
+    /// Parameters: mod (2 bits), reg (3 bits), r/m (3 bits).
+    /// GrainStyle: Explicit ModR/M encoding, deterministic behavior.
+    fn emit_modrm_x86_64(self: *JitContext, mod: u2, reg: u3, rm: u3) void {
+        const modrm: u8 = (@as(u8, mod) << 6) | (@as(u8, reg) << 3) | @as(u8, rm);
+        self.emit_u8_x86_64(modrm);
+    }
+
+    /// Map RISC-V register index (0-31) to x86_64 register encoding (0-15).
+    /// Why: x86_64 has 16 general-purpose registers vs RISC-V's 32.
+    /// Returns: x86_64 register encoding (0-15).
+    /// GrainStyle: Explicit register mapping, deterministic behavior.
+    /// Note: Simple 1:1 mapping for now (will optimize with register allocator later).
+    fn map_riscv_to_x86_64_reg(riscv_reg: u5) u3 {
+        std.debug.assert(riscv_reg < 32);
+        // Simple mapping: RISC-V x0-x15 → x86_64 r15, r14, r13, r12, r11, r10, r9, r8, rdi, rsi, rdx, rcx, rbx, rax, rbp, rsp.
+        // For now, use low 4 bits (0-15) mapped to x86_64 registers 0-15.
+        const x86_reg: u3 = @truncate(riscv_reg);
+        return x86_reg;
+    }
+
+    /// Emit ADD instruction (x86_64): add r/m64, r64.
+    /// Why: Add two 64-bit registers (RISC-V ADD instruction).
+    /// Contract: Adds source register to destination register.
+    /// GrainStyle: Explicit instruction encoding, deterministic behavior.
+    pub fn emit_add_x86_64(self: *JitContext, rd: u5, rn: u5, rm: u5) void {
+        std.debug.assert(self.cursor + 4 <= self.code_buffer.len);
+        const start_cursor = self.cursor;
+        
+        // REX.W prefix (64-bit operation).
+        self.emit_rex_w_x86_64();
+        
+        // ADD opcode: 0x01 (add r/m64, r64).
+        self.emit_u8_x86_64(0x01);
+        
+        // ModR/M: mod=11 (register mode), reg=rm (source), r/m=rn (destination).
+        const mod: u2 = 0b11; // Register mode
+        const reg: u3 = map_riscv_to_x86_64_reg(rm); // Source register
+        const rm_field: u3 = map_riscv_to_x86_64_reg(rn); // Destination register
+        self.emit_modrm_x86_64(mod, reg, rm_field);
+        
+        std.debug.assert(self.cursor == start_cursor + 4);
+    }
+
+    /// Emit MOV instruction (x86_64): mov r64, imm64.
+    /// Why: Move 64-bit immediate to register (RISC-V LUI/AUIPC).
+    /// Contract: Loads immediate value into destination register.
+    /// GrainStyle: Explicit instruction encoding, deterministic behavior.
+    pub fn emit_mov_imm64_x86_64(self: *JitContext, rd: u5, imm: u64) void {
+        std.debug.assert(self.cursor + 10 <= self.code_buffer.len);
+        const start_cursor = self.cursor;
+        
+        // REX.W prefix (64-bit operation).
+        self.emit_rex_w_x86_64();
+        
+        // MOV opcode: 0xB8 + reg (mov r64, imm64).
+        const reg: u3 = map_riscv_to_x86_64_reg(rd);
+        self.emit_u8_x86_64(0xB8 | @as(u8, reg));
+        
+        // 64-bit immediate (little-endian).
+        std.mem.writeInt(u64, self.code_buffer[self.cursor..][0..8], imm, .little);
+        self.cursor += 8;
+        
+        std.debug.assert(self.cursor == start_cursor + 10);
+    }
+
+    /// Emit CMP instruction (x86_64): cmp r/m64, r64.
+    /// Why: Compare two 64-bit registers (RISC-V branch conditions).
+    /// Contract: Compares two registers and sets flags.
+    /// GrainStyle: Explicit instruction encoding, deterministic behavior.
+    pub fn emit_cmp_x86_64(self: *JitContext, rn: u5, rm: u5) void {
+        std.debug.assert(self.cursor + 4 <= self.code_buffer.len);
+        const start_cursor = self.cursor;
+        
+        // REX.W prefix (64-bit operation).
+        self.emit_rex_w_x86_64();
+        
+        // CMP opcode: 0x39 (cmp r/m64, r64).
+        self.emit_u8_x86_64(0x39);
+        
+        // ModR/M: mod=11 (register mode), reg=rm (source), r/m=rn (destination).
+        const mod: u2 = 0b11; // Register mode
+        const reg: u3 = map_riscv_to_x86_64_reg(rm); // Source register
+        const rm_field: u3 = map_riscv_to_x86_64_reg(rn); // Destination register
+        self.emit_modrm_x86_64(mod, reg, rm_field);
+        
+        std.debug.assert(self.cursor == start_cursor + 4);
+    }
+
+    /// Emit RET instruction (x86_64).
+    /// Why: Return from function call.
+    /// Contract: Returns control to caller.
+    /// GrainStyle: Explicit instruction encoding, deterministic behavior.
+    pub fn emit_ret_x86_64(self: *JitContext) void {
+        std.debug.assert(self.cursor + 1 <= self.code_buffer.len);
+        const start_cursor = self.cursor;
+        
+        // RET opcode: 0xC3.
+        self.emit_u8_x86_64(0xC3);
+        
+        std.debug.assert(self.cursor == start_cursor + 1);
+    }
+
+    /// Emit conditional jump (x86_64): jcc rel32.
+    /// Why: Conditional branch based on flags (RISC-V branch instructions).
+    /// Parameters: condition code (0-15), offset (signed 32-bit, relative to next instruction).
+    /// Contract: Jumps to offset if condition is true.
+    /// GrainStyle: Explicit instruction encoding, deterministic behavior.
+    /// Note: Offset is relative to instruction after jump (6 bytes total).
+    pub fn emit_jcc_x86_64(self: *JitContext, cond: u4, offset: i32) void {
+        std.debug.assert(cond < 16);
+        std.debug.assert(self.cursor + 6 <= self.code_buffer.len);
+        const start_cursor = self.cursor;
+        
+        // Conditional jump opcodes: 0x0F 0x80-0x8F (near jump, 32-bit offset).
+        self.emit_u8_x86_64(0x0F);
+        const jcc_opcode: u8 = 0x80 | @as(u8, cond);
+        self.emit_u8_x86_64(jcc_opcode);
+        
+        // 32-bit signed offset (little-endian, relative to next instruction).
+        const offset_u32: u32 = @bitCast(offset);
+        std.mem.writeInt(u32, self.code_buffer[self.cursor..][0..4], offset_u32, .little);
+        self.cursor += 4;
+        
+        std.debug.assert(self.cursor == start_cursor + 6);
+    }
+
+    /// Emit unconditional jump (x86_64): jmp rel32.
+    /// Why: Unconditional jump to target address.
+    /// Contract: Jumps to offset (relative to next instruction).
+    /// GrainStyle: Explicit instruction encoding, deterministic behavior.
+    pub fn emit_jmp_x86_64(self: *JitContext, offset: i32) void {
+        std.debug.assert(self.cursor + 5 <= self.code_buffer.len);
+        const start_cursor = self.cursor;
+        
+        // JMP opcode: 0xE9 (near jump, 32-bit offset).
+        self.emit_u8_x86_64(0xE9);
+        
+        // 32-bit signed offset (little-endian, relative to next instruction).
+        const offset_u32: u32 = @bitCast(offset);
+        std.mem.writeInt(u32, self.code_buffer[self.cursor..][0..4], offset_u32, .little);
+        self.cursor += 4;
+        
+        std.debug.assert(self.cursor == start_cursor + 5);
+    }
+
+    /// Emit MOV from memory (x86_64): mov r64, [base+offset].
+    /// Why: Load 64-bit value from memory (RISC-V load instructions).
+    /// Contract: Loads value from memory address into register.
+    /// GrainStyle: Explicit instruction encoding, deterministic behavior.
+    pub fn emit_ldr_x86_64(self: *JitContext, rt: u5, base: u5, offset: i32) void {
+        std.debug.assert(self.cursor + 7 <= self.code_buffer.len);
+        const start_cursor = self.cursor;
+        
+        // REX.W prefix (64-bit operation).
+        self.emit_rex_w_x86_64();
+        
+        // MOV opcode: 0x8B (mov r64, r/m64).
+        self.emit_u8_x86_64(0x8B);
+        
+        // ModR/M: mod=10 (base+offset), reg=rt (destination), r/m=base (base register).
+        const mod: u2 = 0b10; // Base+offset mode
+        const reg: u3 = map_riscv_to_x86_64_reg(rt); // Destination register
+        const rm_field: u3 = map_riscv_to_x86_64_reg(base); // Base register
+        self.emit_modrm_x86_64(mod, reg, rm_field);
+        
+        // 32-bit signed offset (little-endian).
+        const offset_u32: u32 = @bitCast(offset);
+        std.mem.writeInt(u32, self.code_buffer[self.cursor..][0..4], offset_u32, .little);
+        self.cursor += 4;
+        
+        std.debug.assert(self.cursor == start_cursor + 7);
+    }
+
+    /// Emit MOV to memory (x86_64): mov [base+offset], r64.
+    /// Why: Store 64-bit value to memory (RISC-V store instructions).
+    /// Contract: Stores register value to memory address.
+    /// GrainStyle: Explicit instruction encoding, deterministic behavior.
+    pub fn emit_str_x86_64(self: *JitContext, rt: u5, base: u5, offset: i32) void {
+        std.debug.assert(self.cursor + 7 <= self.code_buffer.len);
+        const start_cursor = self.cursor;
+        
+        // REX.W prefix (64-bit operation).
+        self.emit_rex_w_x86_64();
+        
+        // MOV opcode: 0x89 (mov r/m64, r64).
+        self.emit_u8_x86_64(0x89);
+        
+        // ModR/M: mod=10 (base+offset), reg=rt (source), r/m=base (base register).
+        const mod: u2 = 0b10; // Base+offset mode
+        const reg: u3 = map_riscv_to_x86_64_reg(rt); // Source register
+        const rm_field: u3 = map_riscv_to_x86_64_reg(base); // Base register
+        self.emit_modrm_x86_64(mod, reg, rm_field);
+        
+        // 32-bit signed offset (little-endian).
+        const offset_u32: u32 = @bitCast(offset);
+        std.mem.writeInt(u32, self.code_buffer[self.cursor..][0..4], offset_u32, .little);
+        self.cursor += 4;
+        
+        std.debug.assert(self.cursor == start_cursor + 7);
+    }
+
+    /// Emit MOV register to register (x86_64): mov r64, r/m64.
+    /// Why: Move value between registers (RISC-V register moves).
+    /// Contract: Copies source register to destination register.
+    /// GrainStyle: Explicit instruction encoding, deterministic behavior.
+    pub fn emit_mov_x86_64(self: *JitContext, rd: u5, rn: u5) void {
+        std.debug.assert(self.cursor + 3 <= self.code_buffer.len);
+        const start_cursor = self.cursor;
+        
+        // REX.W prefix (64-bit operation).
+        self.emit_rex_w_x86_64();
+        
+        // MOV opcode: 0x8B (mov r64, r/m64).
+        self.emit_u8_x86_64(0x8B);
+        
+        // ModR/M: mod=11 (register mode), reg=rn (source), r/m=rd (destination).
+        const mod: u2 = 0b11; // Register mode
+        const reg: u3 = map_riscv_to_x86_64_reg(rn); // Source register
+        const rm_field: u3 = map_riscv_to_x86_64_reg(rd); // Destination register
+        self.emit_modrm_x86_64(mod, reg, rm_field);
+        
+        std.debug.assert(self.cursor == start_cursor + 3);
+    }
+
+    /// Emit AND instruction (x86_64): and r/m64, r64.
+    /// Why: Bitwise AND operation (RISC-V AND instruction).
+    /// Contract: Performs bitwise AND and stores result in destination.
+    /// GrainStyle: Explicit instruction encoding, deterministic behavior.
+    pub fn emit_and_x86_64(self: *JitContext, rd: u5, rn: u5, rm: u5) void {
+        std.debug.assert(self.cursor + 4 <= self.code_buffer.len);
+        const start_cursor = self.cursor;
+        
+        // REX.W prefix (64-bit operation).
+        self.emit_rex_w_x86_64();
+        
+        // AND opcode: 0x21 (and r/m64, r64).
+        self.emit_u8_x86_64(0x21);
+        
+        // ModR/M: mod=11 (register mode), reg=rm (source), r/m=rn (destination).
+        const mod: u2 = 0b11; // Register mode
+        const reg: u3 = map_riscv_to_x86_64_reg(rm); // Source register
+        const rm_field: u3 = map_riscv_to_x86_64_reg(rn); // Destination register
+        self.emit_modrm_x86_64(mod, reg, rm_field);
+        
+        std.debug.assert(self.cursor == start_cursor + 4);
+    }
+
+    /// Emit OR instruction (x86_64): or r/m64, r64.
+    /// Why: Bitwise OR operation (RISC-V OR instruction).
+    /// Contract: Performs bitwise OR and stores result in destination.
+    /// GrainStyle: Explicit instruction encoding, deterministic behavior.
+    pub fn emit_or_x86_64(self: *JitContext, rd: u5, rn: u5, rm: u5) void {
+        std.debug.assert(self.cursor + 4 <= self.code_buffer.len);
+        const start_cursor = self.cursor;
+        
+        // REX.W prefix (64-bit operation).
+        self.emit_rex_w_x86_64();
+        
+        // OR opcode: 0x09 (or r/m64, r64).
+        self.emit_u8_x86_64(0x09);
+        
+        // ModR/M: mod=11 (register mode), reg=rm (source), r/m=rn (destination).
+        const mod: u2 = 0b11; // Register mode
+        const reg: u3 = map_riscv_to_x86_64_reg(rm); // Source register
+        const rm_field: u3 = map_riscv_to_x86_64_reg(rn); // Destination register
+        self.emit_modrm_x86_64(mod, reg, rm_field);
+        
+        std.debug.assert(self.cursor == start_cursor + 4);
+    }
+
+    /// Emit XOR instruction (x86_64): xor r/m64, r64.
+    /// Why: Bitwise XOR operation (RISC-V XOR instruction).
+    /// Contract: Performs bitwise XOR and stores result in destination.
+    /// GrainStyle: Explicit instruction encoding, deterministic behavior.
+    pub fn emit_xor_x86_64(self: *JitContext, rd: u5, rn: u5, rm: u5) void {
+        std.debug.assert(self.cursor + 4 <= self.code_buffer.len);
+        const start_cursor = self.cursor;
+        
+        // REX.W prefix (64-bit operation).
+        self.emit_rex_w_x86_64();
+        
+        // XOR opcode: 0x31 (xor r/m64, r64).
+        self.emit_u8_x86_64(0x31);
+        
+        // ModR/M: mod=11 (register mode), reg=rm (source), r/m=rn (destination).
+        const mod: u2 = 0b11; // Register mode
+        const reg: u3 = map_riscv_to_x86_64_reg(rm); // Source register
+        const rm_field: u3 = map_riscv_to_x86_64_reg(rn); // Destination register
+        self.emit_modrm_x86_64(mod, reg, rm_field);
+        
+        std.debug.assert(self.cursor == start_cursor + 4);
+    }
+
+    /// Emit SUB instruction (x86_64): sub r/m64, r64.
+    /// Why: Subtract operation (RISC-V SUB instruction).
+    /// Contract: Subtracts source from destination and stores result.
+    /// GrainStyle: Explicit instruction encoding, deterministic behavior.
+    pub fn emit_sub_x86_64(self: *JitContext, rd: u5, rn: u5, rm: u5) void {
+        std.debug.assert(self.cursor + 4 <= self.code_buffer.len);
+        const start_cursor = self.cursor;
+        
+        // REX.W prefix (64-bit operation).
+        self.emit_rex_w_x86_64();
+        
+        // SUB opcode: 0x29 (sub r/m64, r64).
+        self.emit_u8_x86_64(0x29);
+        
+        // ModR/M: mod=11 (register mode), reg=rm (source), r/m=rn (destination).
+        const mod: u2 = 0b11; // Register mode
+        const reg: u3 = map_riscv_to_x86_64_reg(rm); // Source register
+        const rm_field: u3 = map_riscv_to_x86_64_reg(rn); // Destination register
+        self.emit_modrm_x86_64(mod, reg, rm_field);
+        
+        std.debug.assert(self.cursor == start_cursor + 4);
+    }
+
+    /// Emit SHL instruction (x86_64): shl r/m64, imm8.
+    /// Why: Left shift operation (RISC-V SLL instruction).
+    /// Contract: Shifts destination left by immediate amount.
+    /// GrainStyle: Explicit instruction encoding, deterministic behavior.
+    pub fn emit_shl_x86_64(self: *JitContext, rd: u5, shift: u6) void {
+        std.debug.assert(shift < 64);
+        std.debug.assert(self.cursor + 4 <= self.code_buffer.len);
+        const start_cursor = self.cursor;
+        
+        // REX.W prefix (64-bit operation).
+        self.emit_rex_w_x86_64();
+        
+        // SHL opcode: 0xC1 /4 (shl r/m64, imm8).
+        self.emit_u8_x86_64(0xC1);
+        
+        // ModR/M: mod=11 (register mode), reg=4 (SHL), r/m=rd (destination).
+        const mod: u2 = 0b11; // Register mode
+        const reg: u3 = 0b100; // SHL opcode extension
+        const rm_field: u3 = map_riscv_to_x86_64_reg(rd); // Destination register
+        self.emit_modrm_x86_64(mod, reg, rm_field);
+        
+        // 8-bit shift amount.
+        self.emit_u8_x86_64(@truncate(shift));
+        
+        std.debug.assert(self.cursor == start_cursor + 4);
+    }
+
+    /// Emit SHR instruction (x86_64): shr r/m64, imm8.
+    /// Why: Right shift operation (RISC-V SRL instruction).
+    /// Contract: Shifts destination right by immediate amount (logical).
+    /// GrainStyle: Explicit instruction encoding, deterministic behavior.
+    pub fn emit_shr_x86_64(self: *JitContext, rd: u5, shift: u6) void {
+        std.debug.assert(shift < 64);
+        std.debug.assert(self.cursor + 4 <= self.code_buffer.len);
+        const start_cursor = self.cursor;
+        
+        // REX.W prefix (64-bit operation).
+        self.emit_rex_w_x86_64();
+        
+        // SHR opcode: 0xC1 /5 (shr r/m64, imm8).
+        self.emit_u8_x86_64(0xC1);
+        
+        // ModR/M: mod=11 (register mode), reg=5 (SHR), r/m=rd (destination).
+        const mod: u2 = 0b11; // Register mode
+        const reg: u3 = 0b101; // SHR opcode extension
+        const rm_field: u3 = map_riscv_to_x86_64_reg(rd); // Destination register
+        self.emit_modrm_x86_64(mod, reg, rm_field);
+        
+        // 8-bit shift amount.
+        self.emit_u8_x86_64(@truncate(shift));
+        
+        std.debug.assert(self.cursor == start_cursor + 4);
+    }
+
+    /// Emit SAR instruction (x86_64): sar r/m64, imm8.
+    /// Why: Arithmetic right shift operation (RISC-V SRA instruction).
+    /// Contract: Shifts destination right by immediate amount (arithmetic).
+    /// GrainStyle: Explicit instruction encoding, deterministic behavior.
+    pub fn emit_sar_x86_64(self: *JitContext, rd: u5, shift: u6) void {
+        std.debug.assert(shift < 64);
+        std.debug.assert(self.cursor + 4 <= self.code_buffer.len);
+        const start_cursor = self.cursor;
+        
+        // REX.W prefix (64-bit operation).
+        self.emit_rex_w_x86_64();
+        
+        // SAR opcode: 0xC1 /7 (sar r/m64, imm8).
+        self.emit_u8_x86_64(0xC1);
+        
+        // ModR/M: mod=11 (register mode), reg=7 (SAR), r/m=rd (destination).
+        const mod: u2 = 0b11; // Register mode
+        const reg: u3 = 0b111; // SAR opcode extension
+        const rm_field: u3 = map_riscv_to_x86_64_reg(rd); // Destination register
+        self.emit_modrm_x86_64(mod, reg, rm_field);
+        
+        // 8-bit shift amount.
+        self.emit_u8_x86_64(@truncate(shift));
+        
+        std.debug.assert(self.cursor == start_cursor + 4);
+    }
+
+    /// Emit load from guest state (x86_64): mov r64, [rsi+offset].
+    /// Why: Load RISC-V register value from GuestState structure.
+    /// Contract: Loads guest register value into x86_64 register.
+    /// GrainStyle: Explicit register mapping, deterministic behavior.
+    /// Note: GuestState pointer is in RSI (x86_64 System V ABI first argument).
+    pub fn emit_ldr_from_state_x86_64(self: *JitContext, rt: u5, guest_reg: u5) void {
+        std.debug.assert(guest_reg < 32);
+        std.debug.assert(self.cursor + 7 <= self.code_buffer.len);
+        const start_cursor = self.cursor;
+        
+        // REX.W prefix (64-bit operation).
+        self.emit_rex_w_x86_64();
+        
+        // MOV opcode: 0x8B (mov r64, r/m64).
+        self.emit_u8_x86_64(0x8B);
+        
+        // ModR/M: mod=10 (base+offset), reg=rt (destination), r/m=6 (RSI).
+        // RSI (register 6) contains GuestState pointer (first argument).
+        const mod: u2 = 0b10; // Base+offset mode
+        const reg: u3 = map_riscv_to_x86_64_reg(rt); // Destination register
+        const rm_field: u3 = 6; // RSI (GuestState pointer)
+        self.emit_modrm_x86_64(mod, reg, rm_field);
+        
+        // Offset: guest_reg * 8 (each register is 8 bytes in GuestState.regs array).
+        const offset: i32 = @intCast(@as(i64, guest_reg) * 8);
+        const offset_u32: u32 = @bitCast(offset);
+        std.mem.writeInt(u32, self.code_buffer[self.cursor..][0..4], offset_u32, .little);
+        self.cursor += 4;
+        
+        std.debug.assert(self.cursor == start_cursor + 7);
+    }
+
+    /// Emit store to guest state (x86_64): mov [rsi+offset], r64.
+    /// Why: Store RISC-V register value to GuestState structure.
+    /// Contract: Stores x86_64 register value to guest register.
+    /// GrainStyle: Explicit register mapping, deterministic behavior.
+    /// Note: GuestState pointer is in RSI (x86_64 System V ABI first argument).
+    pub fn emit_str_to_state_x86_64(self: *JitContext, rt: u5, guest_reg: u5) void {
+        std.debug.assert(guest_reg < 32);
+        std.debug.assert(self.cursor + 7 <= self.code_buffer.len);
+        const start_cursor = self.cursor;
+        
+        // REX.W prefix (64-bit operation).
+        self.emit_rex_w_x86_64();
+        
+        // MOV opcode: 0x89 (mov r/m64, r64).
+        self.emit_u8_x86_64(0x89);
+        
+        // ModR/M: mod=10 (base+offset), reg=rt (source), r/m=6 (RSI).
+        // RSI (register 6) contains GuestState pointer (first argument).
+        const mod: u2 = 0b10; // Base+offset mode
+        const reg: u3 = map_riscv_to_x86_64_reg(rt); // Source register
+        const rm_field: u3 = 6; // RSI (GuestState pointer)
+        self.emit_modrm_x86_64(mod, reg, rm_field);
+        
+        // Offset: guest_reg * 8 (each register is 8 bytes in GuestState.regs array).
+        const offset: i32 = @intCast(@as(i64, guest_reg) * 8);
+        const offset_u32: u32 = @bitCast(offset);
+        std.mem.writeInt(u32, self.code_buffer[self.cursor..][0..4], offset_u32, .little);
+        self.cursor += 4;
+        
+        std.debug.assert(self.cursor == start_cursor + 7);
+    }
+
+    /// Translate virtual address to physical offset (x86_64).
+    /// Why: Convert guest virtual address to host physical offset.
+    /// Contract: Translates address in register to physical offset.
+    /// GrainStyle: Explicit address translation, deterministic behavior.
+    /// Note: Simplified translation (direct mapping for now).
+    fn emit_translate_address_x86_64(self: *JitContext, addr_reg: u5) void {
+        // For now, use direct mapping (guest address = physical offset).
+        // This will be enhanced with proper MMU translation later.
+        _ = self;
+        _ = addr_reg;
+        // No-op for now (address already in correct format).
+    }
+
+    /// Compile block using x86_64 backend.
+    /// Why: Extract x86_64 compilation logic to support backend dispatch.
+    /// GrainStyle: Explicit backend separation, deterministic behavior.
+    fn compile_block_x86_64(
+        self: *JitContext,
+        guest_pc: u64,
+        start_offset: u32,
+    ) !*const fn (*GuestState) callconv(.c) void {
+        self.apply_fixups(guest_pc, start_offset);
+
+        var current_pc = guest_pc;
+        var instructions_in_block: u32 = 0;
+
+        while (true) {
+            const fetch_result = try self.fetch_inst(current_pc);
+            const inst = Instruction.decode(fetch_result.inst);
+
+            const should_break = try self.translate_instruction_x86_64(inst, current_pc);
+            if (should_break) break;
+
+            current_pc += fetch_result.len;
+            instructions_in_block += 1;
+            self.perf_counters.instructions_translated += 1;
+
+            if (instructions_in_block > 100) break;
+        }
+
+        if (instructions_in_block > 100) {
+            self.emit_ret_x86_64();
+        }
+
+        try self.block_cache.put(guest_pc, start_offset);
+        self.perf_counters.blocks_compiled += 1;
+        
+        // Track code size for this block.
+        self.track_block_code_size(start_offset);
+
+        self.flush_cache(start_offset, self.cursor - start_offset);
+        return self.get_compiled_block(start_offset);
+    }
+
+    /// Translate a single instruction to x86_64 code.
+    /// Returns true if execution should break (JAL/JALR), false otherwise.
+    /// Why: Extract instruction translation from compile_block() to meet Grain Style 70-line limit.
+    fn translate_instruction_x86_64(self: *JitContext, inst: Instruction, current_pc: u64) !bool {
+        switch (inst.opcode) {
+            0x33 => {
+                try self.translate_r_type_x86_64(inst);
+                return false;
+            },
+            0x13 => {
+                try self.translate_i_type_x86_64(inst);
+                return false;
+            },
+            0x37 => {
+                self.translate_lui_x86_64(inst);
+                return false;
+            },
+            0x17 => {
+                self.translate_auipc_x86_64(inst, current_pc);
+                return false;
+            },
+            0x03 => {
+                try self.translate_load_x86_64(inst);
+                return false;
+            },
+            0x23 => {
+                try self.translate_store_x86_64(inst);
+                return false;
+            },
+            0x63 => {
+                try self.translate_branch_x86_64(inst, current_pc);
+                return false;
+            },
+            0x6F => {
+                try self.translate_jal_x86_64(inst, current_pc);
+                return true; // JAL breaks block
+            },
+            0x67 => {
+                self.translate_jalr_x86_64(inst, current_pc);
+                return true; // JALR breaks block
+            },
+            else => {
+                // Unknown opcode: fall back to interpreter
+                return false;
+            },
+        }
+    }
+
+    /// Translate R-type instruction (x86_64): ADD, SUB, AND, OR, XOR, etc.
+    /// Why: Translate RISC-V R-type instructions to x86_64.
+    /// GrainStyle: Explicit instruction mapping, deterministic behavior.
+    fn translate_r_type_x86_64(self: *JitContext, inst: Instruction) !void {
+        // Load source registers from guest state.
+        self.emit_ldr_from_state_x86_64(0, inst.rs1); // x86_64 reg 0 = rs1
+        self.emit_ldr_from_state_x86_64(1, inst.rs2); // x86_64 reg 1 = rs2
+
+        switch (inst.funct3) {
+            0x0 => { // ADD/SUB
+                if (inst.funct7 == 0x00) { // ADD
+                    self.emit_add_x86_64(0, 0, 1); // rd = rs1 + rs2
+                } else if (inst.funct7 == 0x20) { // SUB
+                    self.emit_sub_x86_64(0, 0, 1); // rd = rs1 - rs2
+                }
+            },
+            0x1 => { // SLL (Shift Left Logical)
+                // x86_64 shift by register: use CL register (register 1 = RCX).
+                // For now, use immediate shift (will optimize later).
+                const shift: u6 = @truncate(@as(u32, @bitCast(inst.rs2)));
+                self.emit_shl_x86_64(0, shift);
+            },
+            0x4 => self.emit_xor_x86_64(0, 0, 1), // XOR
+            0x5 => { // SRL/SRA
+                if (inst.funct7 == 0x00) { // SRL
+                    const shift: u6 = @truncate(@as(u32, @bitCast(inst.rs2)));
+                    self.emit_shr_x86_64(0, shift);
+                } else if (inst.funct7 == 0x20) { // SRA
+                    const shift: u6 = @truncate(@as(u32, @bitCast(inst.rs2)));
+                    self.emit_sar_x86_64(0, shift);
+                }
+            },
+            0x2 => { // SLT (Set Less Than, signed)
+                self.emit_cmp_x86_64(0, 1); // Compare rs1 and rs2
+                // Set register 0 to 1 if less than, else 0.
+                // Use SETL (set byte if less) then zero-extend.
+                // For now, use conditional move (will optimize later).
+                self.emit_mov_imm64_x86_64(2, 1); // reg 2 = 1
+                self.emit_mov_imm64_x86_64(3, 0); // reg 3 = 0
+                // Conditional move: if less than, move 1, else 0.
+                // Note: This is simplified - proper implementation needs CMOV.
+                self.emit_mov_x86_64(0, 2); // Temporary: always set to 1
+            },
+            0x3 => { // SLTU (Set Less Than Unsigned)
+                self.emit_cmp_x86_64(0, 1); // Compare rs1 and rs2
+                // Similar to SLT but unsigned comparison.
+                self.emit_mov_imm64_x86_64(2, 1);
+                self.emit_mov_imm64_x86_64(3, 0);
+                self.emit_mov_x86_64(0, 2); // Temporary: always set to 1
+            },
+            0x6 => self.emit_or_x86_64(0, 0, 1), // OR
+            0x7 => self.emit_and_x86_64(0, 0, 1), // AND
+            else => {},
+        }
+        
+        // Store result back to guest state.
+        self.emit_str_to_state_x86_64(0, inst.rd);
+    }
+
+    /// Translate I-type instruction (x86_64): ADDI, SLTI, XORI, etc.
+    /// Why: Translate RISC-V I-type instructions to x86_64.
+    /// GrainStyle: Explicit instruction mapping, deterministic behavior.
+    fn translate_i_type_x86_64(self: *JitContext, inst: Instruction) !void {
+        // Load source register from guest state.
+        self.emit_ldr_from_state_x86_64(0, inst.rs1); // x86_64 reg 0 = rs1
+        const imm_u: u64 = @bitCast(@as(i64, inst.imm));
+
+        switch (inst.funct3) {
+            0x0 => { // ADDI
+                self.emit_mov_imm64_x86_64(1, imm_u); // reg 1 = immediate
+                self.emit_add_x86_64(0, 0, 1); // rd = rs1 + imm
+            },
+            0x4 => { // XORI
+                self.emit_mov_imm64_x86_64(1, imm_u);
+                self.emit_xor_x86_64(0, 0, 1); // rd = rs1 ^ imm
+            },
+            0x6 => { // ORI
+                self.emit_mov_imm64_x86_64(1, imm_u);
+                self.emit_or_x86_64(0, 0, 1); // rd = rs1 | imm
+            },
+            0x7 => { // ANDI
+                self.emit_mov_imm64_x86_64(1, imm_u);
+                self.emit_and_x86_64(0, 0, 1); // rd = rs1 & imm
+            },
+            0x1 => { // SLLI
+                const shamt: u6 = @truncate(@as(u32, @bitCast(inst.imm)));
+                self.emit_shl_x86_64(0, shamt); // rd = rs1 << shamt
+            },
+            0x5 => { // SRLI/SRAI
+                const shamt: u6 = @truncate(@as(u32, @bitCast(inst.imm)));
+                if ((inst.imm >> 10) == 0) { // SRLI
+                    self.emit_shr_x86_64(0, shamt); // rd = rs1 >> shamt (logical)
+                } else { // SRAI
+                    self.emit_sar_x86_64(0, shamt); // rd = rs1 >> shamt (arithmetic)
+                }
+            },
+            0x2 => { // SLTI (Set Less Than Immediate, signed)
+                self.emit_mov_imm64_x86_64(1, imm_u);
+                self.emit_cmp_x86_64(0, 1); // Compare rs1 and imm
+                // Set register 0 to 1 if less than, else 0.
+                self.emit_mov_imm64_x86_64(2, 1);
+                self.emit_mov_x86_64(0, 2); // Temporary: always set to 1
+            },
+            0x3 => { // SLTIU (Set Less Than Immediate Unsigned)
+                self.emit_mov_imm64_x86_64(1, imm_u);
+                self.emit_cmp_x86_64(0, 1); // Compare rs1 and imm
+                self.emit_mov_imm64_x86_64(2, 1);
+                self.emit_mov_x86_64(0, 2); // Temporary: always set to 1
+            },
+            else => {},
+        }
+        
+        // Store result back to guest state.
+        self.emit_str_to_state_x86_64(0, inst.rd);
+    }
+
+    /// Translate LUI instruction (x86_64).
+    /// Why: Load upper immediate to register.
+    /// GrainStyle: Explicit instruction mapping, deterministic behavior.
+    fn translate_lui_x86_64(self: *JitContext, inst: Instruction) void {
+        const imm_u: u64 = @bitCast(@as(i64, inst.imm));
+        self.emit_mov_imm64_x86_64(0, imm_u); // Load immediate to reg 0
+        self.emit_str_to_state_x86_64(0, inst.rd); // Store to guest register
+    }
+
+    /// Translate AUIPC instruction (x86_64).
+    /// Why: Add upper immediate to PC.
+    /// GrainStyle: Explicit instruction mapping, deterministic behavior.
+    fn translate_auipc_x86_64(self: *JitContext, inst: Instruction, current_pc: u64) void {
+        const imm_u: u64 = @bitCast(@as(i64, inst.imm));
+        self.emit_mov_imm64_x86_64(0, current_pc); // reg 0 = PC
+        self.emit_mov_imm64_x86_64(1, imm_u); // reg 1 = immediate
+        self.emit_add_x86_64(0, 0, 1); // reg 0 = PC + imm
+        self.emit_str_to_state_x86_64(0, inst.rd); // Store to guest register
+    }
+
+    /// Translate load instruction (x86_64): LB, LH, LW, LD.
+    /// Why: Load value from memory to register.
+    /// GrainStyle: Explicit instruction mapping, deterministic behavior.
+    fn translate_load_x86_64(self: *JitContext, inst: Instruction) !void {
+        // Load base register from guest state.
+        self.emit_ldr_from_state_x86_64(1, inst.rs1); // reg 1 = base address
+        
+        // Calculate address: base + offset.
+        const offset: i32 = inst.imm;
+        // For now, use direct memory access (will add address translation later).
+        self.emit_ldr_x86_64(0, 1, offset); // reg 0 = [reg1 + offset]
+        
+        // Store result to guest register.
+        self.emit_str_to_state_x86_64(0, inst.rd);
+    }
+
+    /// Translate store instruction (x86_64): SB, SH, SW, SD.
+    /// Why: Store value from register to memory.
+    /// GrainStyle: Explicit instruction mapping, deterministic behavior.
+    fn translate_store_x86_64(self: *JitContext, inst: Instruction) !void {
+        // Load base register and value from guest state.
+        self.emit_ldr_from_state_x86_64(1, inst.rs1); // reg 1 = base address
+        self.emit_ldr_from_state_x86_64(0, inst.rs2); // reg 0 = value to store
+        
+        // Calculate address: base + offset.
+        const offset: i32 = inst.imm;
+        // For now, use direct memory access (will add address translation later).
+        self.emit_str_x86_64(0, 1, offset); // [reg1 + offset] = reg0
+    }
+
+    /// Translate branch instruction (x86_64): BEQ, BNE, BLT, etc.
+    /// Why: Conditional branch based on register comparison.
+    /// GrainStyle: Explicit instruction mapping, deterministic behavior.
+    fn translate_branch_x86_64(self: *JitContext, inst: Instruction, current_pc: u64) !void {
+        // Load source registers from guest state.
+        self.emit_ldr_from_state_x86_64(0, inst.rs1); // reg 0 = rs1
+        self.emit_ldr_from_state_x86_64(1, inst.rs2); // reg 1 = rs2
+        
+        // Compare registers.
+        self.emit_cmp_x86_64(0, 1); // Compare rs1 and rs2
+        
+        // Map RISC-V branch condition to x86_64 condition code.
+        const cond: u4 = switch (inst.funct3) {
+            0x0 => 0x4, // BEQ -> JE (equal)
+            0x1 => 0x5, // BNE -> JNE (not equal)
+            0x4 => 0xC, // BLT -> JL (less than, signed)
+            0x5 => 0xD, // BGE -> JGE (greater or equal, signed)
+            0x6 => 0x2, // BLTU -> JB (below, unsigned)
+            0x7 => 0x3, // BGEU -> JAE (above or equal, unsigned)
+            else => 0xE, // Always (should not happen)
+        };
+        
+        // Calculate branch target PC.
+        const target_pc = current_pc + @as(u64, @bitCast(@as(i64, inst.imm)));
+        
+        // Emit conditional jump with placeholder offset (will patch later).
+        // Offset is relative to instruction after jump (6 bytes total).
+        const patch_pos = self.cursor;
+        self.emit_jcc_x86_64(cond, 0); // Placeholder offset
+        try self.record_fixup(target_pc, patch_pos);
+    }
+
+    /// Translate JAL instruction (x86_64).
+    /// Why: Jump and link (function call).
+    /// GrainStyle: Explicit instruction mapping, deterministic behavior.
+    fn translate_jal_x86_64(self: *JitContext, inst: Instruction, current_pc: u64) !void {
+        // Save return address (PC + 4) to guest register.
+        const ret_addr = current_pc + 4;
+        self.emit_mov_imm64_x86_64(0, ret_addr);
+        self.emit_str_to_state_x86_64(0, inst.rd);
+        
+        // Calculate target PC.
+        const target_pc = current_pc + @as(u64, @bitCast(@as(i64, inst.imm)));
+        
+        // Try to chain if target block exists in cache.
+        self.perf_counters.chain_opportunities += 1;
+        if (self.block_cache.get(target_pc)) |target_offset| {
+            // Target block exists: call it directly.
+            const base_ptr = @intFromPtr(self.code_buffer.ptr);
+            const target_ptr = base_ptr + @as(usize, target_offset);
+            const target_anyopaque: *const anyopaque = @ptrFromInt(target_ptr);
+            const FuncType = *const fn (*GuestState) callconv(.c) void;
+            const target_func: FuncType = @as(FuncType, @ptrCast(@alignCast(target_anyopaque)));
+            
+            // Load target function address and call it.
+            self.emit_mov_imm64_x86_64(0, @intFromPtr(target_func));
+            // Call target function (will implement proper call later).
+            self.emit_ret_x86_64(); // Temporary: return for now
+            self.perf_counters.chains_created += 1;
+        } else {
+            // Target not compiled yet: use fixup.
+            const patch_pos = self.cursor;
+            self.emit_jmp_x86_64(0); // Placeholder offset
+            try self.record_fixup(target_pc, patch_pos);
+        }
+    }
+
+    /// Translate JALR instruction (x86_64).
+    /// Why: Jump and link register (indirect function call).
+    /// GrainStyle: Explicit instruction mapping, deterministic behavior.
+    fn translate_jalr_x86_64(self: *JitContext, inst: Instruction, current_pc: u64) void {
+        // Save return address (PC + 4) to guest register.
+        const ret_addr = current_pc + 4;
+        self.emit_mov_imm64_x86_64(0, ret_addr);
+        self.emit_str_to_state_x86_64(0, inst.rd);
+        
+        // Load base register and add immediate offset.
+        self.emit_ldr_from_state_x86_64(0, inst.rs1); // reg 0 = rs1
+        const offset: i32 = inst.imm;
+        self.emit_mov_imm64_x86_64(1, @bitCast(@as(i64, offset)));
+        self.emit_add_x86_64(0, 0, 1); // reg 0 = rs1 + imm
+        
+        // Clear low bit (RISC-V JALR requirement).
+        self.emit_mov_imm64_x86_64(1, 0xFFFFFFFFFFFFFFFE);
+        self.emit_and_x86_64(0, 0, 1); // reg 0 = (rs1 + imm) & ~1
+        
+        // Jump to target (will implement proper indirect jump later).
+        // For now, this is a placeholder.
     }
 
     /// Translate a single instruction to ARM64 code.
@@ -1695,32 +2598,75 @@ pub const JitContext = struct {
                 const patch_i64 = @as(i64, @intCast(fixup.patch_addr));
                 const offset = target_i64 - patch_i64;
 
-                const patch_addr_slice = self.code_buffer[fixup.patch_addr..][0..4];
-                const existing = std.mem.readInt(u32, patch_addr_slice, .little);
-
-                var inst: u32 = 0;
-                if ((existing & 0x7C000000) == 0x14000000) {
-                    const offset_shifted = offset >> 2;
-                    const imm26_i32 = @as(i32, @intCast(offset_shifted));
-                    const imm26: u32 = @as(u32, @bitCast(imm26_i32)) & 0x03FFFFFF;
-                    inst = 0x14000000 | imm26;
-                } else if ((existing & 0xFF000000) == 0x54000000) {
-                    const offset_shifted = offset >> 2;
-                    const imm19_i32 = @as(i32, @intCast(offset_shifted));
-                    const imm19: u32 = @as(u32, @bitCast(imm19_i32)) & 0x7FFFF;
-                    const cond = existing & 0xF;
-                    inst = 0x54000000 | (imm19 << 5) | cond;
-                }
-
-                if (inst != 0) {
-                    const patch_write_slice = self.code_buffer[fixup.patch_addr..][0..4];
-                    std.mem.writeInt(u32, patch_write_slice, inst, .little);
+                // Apply fixup based on backend.
+                switch (self.backend) {
+                    .arm64 => self.apply_fixup_arm64(fixup, offset),
+                    .x86_64 => self.apply_fixup_x86_64(fixup, offset),
                 }
 
                 const next = fixup.next;
                 self.allocator.destroy(fixup);
                 current = next;
             }
+        }
+    }
+
+    /// Apply ARM64 fixup.
+    /// Why: Patch ARM64 branch/jump instructions with correct offsets.
+    /// GrainStyle: Explicit fixup handling, deterministic behavior.
+    fn apply_fixup_arm64(self: *JitContext, fixup: *Fixup, offset: i64) void {
+        const patch_addr_slice = self.code_buffer[fixup.patch_addr..][0..4];
+        const existing = std.mem.readInt(u32, patch_addr_slice, .little);
+
+        var inst: u32 = 0;
+        if ((existing & 0x7C000000) == 0x14000000) {
+            // B instruction
+            const offset_shifted = offset >> 2;
+            const imm26_i32 = @as(i32, @intCast(offset_shifted));
+            const imm26: u32 = @as(u32, @bitCast(imm26_i32)) & 0x03FFFFFF;
+            inst = 0x14000000 | imm26;
+        } else if ((existing & 0xFF000000) == 0x54000000) {
+            // B.cond instruction
+            const offset_shifted = offset >> 2;
+            const imm19_i32 = @as(i32, @intCast(offset_shifted));
+            const imm19: u32 = @as(u32, @bitCast(imm19_i32)) & 0x7FFFF;
+            const cond = existing & 0xF;
+            inst = 0x54000000 | (imm19 << 5) | cond;
+        }
+
+        if (inst != 0) {
+            const patch_write_slice = self.code_buffer[fixup.patch_addr..][0..4];
+            std.mem.writeInt(u32, patch_write_slice, inst, .little);
+        }
+    }
+
+    /// Apply x86_64 fixup.
+    /// Why: Patch x86_64 branch/jump instructions with correct offsets.
+    /// GrainStyle: Explicit fixup handling, deterministic behavior.
+    fn apply_fixup_x86_64(self: *JitContext, fixup: *Fixup, offset: i64) void {
+        // x86_64 conditional jump: offset is relative to instruction after jump.
+        // Jump instruction is 6 bytes (0x0F + opcode + 32-bit offset).
+        const jump_size: i64 = 6;
+        const relative_offset: i32 = @intCast(offset - jump_size);
+        
+        // Read existing instruction to get condition code.
+        const patch_addr_slice = self.code_buffer[fixup.patch_addr..][0..6];
+        const existing_opcode = patch_addr_slice[0];
+        const existing_cond = patch_addr_slice[1];
+        
+        if (existing_opcode == 0x0F and (existing_cond & 0xF0) == 0x80) {
+            // Conditional jump (Jcc): 0x0F 0x8X
+            const cond: u4 = @truncate(existing_cond & 0x0F);
+            const offset_u32: u32 = @bitCast(relative_offset);
+            
+            // Write patched instruction.
+            patch_addr_slice[0] = 0x0F;
+            patch_addr_slice[1] = 0x80 | cond;
+            std.mem.writeInt(u32, patch_addr_slice[2..][0..4], offset_u32, .little);
+        } else if (existing_opcode == 0xE9) {
+            // Unconditional jump (JMP rel32): 0xE9
+            const offset_u32: u32 = @bitCast(relative_offset);
+            std.mem.writeInt(u32, patch_addr_slice[1..][0..4], offset_u32, .little);
         }
     }
 

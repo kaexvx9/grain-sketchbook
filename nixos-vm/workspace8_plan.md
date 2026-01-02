@@ -76,10 +76,13 @@
 **Status**: ⏳ **IN PROGRESS**  
 **Duration**: Ongoing
 
-**Updated Priorities** (from coordination plan 2026-01-01-233240-pst):
-- 🆕 **HIGHEST PRIORITY**: Support Agent 1e (Grainscript Shell) - Zig 0.15.2 API compatibility blocker
-- 🆕 **HIGH PRIORITY**: Support Agent 3b (VM Runtime) - Phase 2 Grain Style compliance (1-5 line overages)
-- 🆕 **HIGH PRIORITY**: Coordinate cross-subcore integration (1e ↔ 3d) - Grainscript Shell ↔ sevenos Init System
+**Updated Priorities** (from coordination plan 2026-01-02-083246-pst):
+- **Single-Threaded Dependency Chain**: Vantage running Basin Kernel on Framework sevenos x86_64 with working Grainscript shell
+- **Step 1 (BLOCKING)**: Support Agent 3a (Basin Kernel) - Distribute syscall docs to 3b and 3d (THIS WEEK)
+- **Step 2 (BLOCKING)**: Support Agent 3b (VM Runtime) - Verify Grain Style compliance + implement x86_64 JIT (WEEK 1-2)
+- **Step 3 (BLOCKING)**: Support Agent 3d (Init System) - Fix compilation + complete Phase 3/4 + Basin syscall integration (WEEK 1-2)
+- **Step 4 (END GOAL)**: Support Agent 1e (Grainscript Shell) - Complete testing + integrate with Init System (WEEK 1-2)
+- **Step 5 (SUPPORTING)**: Support Agent 3c (System Integration) - Multi-arch testing framework (WEEK 1-2)
 
 **Objectives**:
 - Support critical blockers (Agent 1e, Agent 3b)

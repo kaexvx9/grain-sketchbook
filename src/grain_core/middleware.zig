@@ -74,28 +74,20 @@ pub fn rate_limit_middleware(
     }
     const ip_address = get_client_ip(request);
     if (ip_address.len == 0) {
-        response.status = api_server.HttpStatus.bad_request;
-        _ = response.add_header("Content-Type", "application/json");
-        const error_body = "{\"error\":\"bad_request\",\"message\":\"Unable to determine client IP\"}";
-        const body_len = @min(error_body.len, api_server.MAX_RESPONSE_SIZE);
-        var i: u32 = 0;
-        while (i < body_len) : (i += 1) {
-            response.body[i] = error_body[i];
-        }
-        response.body_len = @intCast(body_len);
+        write_json_error_response(
+            response,
+            api_server.HttpStatus.bad_request,
+            "{\"error\":\"bad_request\",\"message\":\"Unable to determine client IP\"}",
+        );
         return false;
     }
     const limiter = &global_rate_limiter.?;
     if (!limiter.check_rate_limit(ip_address)) {
-        response.status = api_server.HttpStatus.too_many_requests;
-        _ = response.add_header("Content-Type", "application/json");
-        const error_body = "{\"error\":\"rate_limit\",\"message\":\"Rate limit exceeded\"}";
-        const body_len = @min(error_body.len, api_server.MAX_RESPONSE_SIZE);
-        var j: u32 = 0;
-        while (j < body_len) : (j += 1) {
-            response.body[j] = error_body[j];
-        }
-        response.body_len = @intCast(body_len);
+        write_json_error_response(
+            response,
+            api_server.HttpStatus.too_many_requests,
+            "{\"error\":\"rate_limit\",\"message\":\"Rate limit exceeded\"}",
+        );
         return false;
     }
     return true;
@@ -119,6 +111,24 @@ fn get_client_ip(request: *api_server.HttpRequest) []const u8 {
     return "";
 }
 
+// Helper: Build JSON error response.
+fn write_json_error_response(
+    response: *api_server.HttpResponse,
+    status: api_server.HttpStatus,
+    error_body: []const u8,
+) void {
+    std.debug.assert(response != null);
+    std.debug.assert(error_body.len > 0);
+    response.status = status;
+    _ = response.add_header("Content-Type", "application/json");
+    const body_len = @min(error_body.len, api_server.MAX_RESPONSE_SIZE);
+    var i: u32 = 0;
+    while (i < body_len) : (i += 1) {
+        response.body[i] = error_body[i];
+    }
+    response.body_len = @as(u32, @intCast(body_len));
+}
+
 // Authentication middleware: Check Authorization header and validate JWT.
 // Note: Requires auth_service to be initialized and passed via context.
 pub fn auth_middleware(
@@ -129,54 +139,38 @@ pub fn auth_middleware(
     std.debug.assert(response != null);
     if (request.get_header("Authorization")) |auth_header| {
         if (auth_header.len < 7) {
-            response.status = api_server.HttpStatus.unauthorized;
-            _ = response.add_header("Content-Type", "application/json");
-            const error_body = "{\"error\":\"unauthorized\",\"message\":\"Invalid Authorization header\"}";
-            const body_len = @min(error_body.len, api_server.MAX_RESPONSE_SIZE);
-            var i: u32 = 0;
-            while (i < body_len) : (i += 1) {
-                response.body[i] = error_body[i];
-            }
-            response.body_len = @intCast(body_len);
+            write_json_error_response(
+                response,
+                api_server.HttpStatus.unauthorized,
+                "{\"error\":\"unauthorized\",\"message\":\"Invalid Authorization header\"}",
+            );
             return false;
         }
         if (!std.mem.startsWith(u8, auth_header, "Bearer ")) {
-            response.status = api_server.HttpStatus.unauthorized;
-            _ = response.add_header("Content-Type", "application/json");
-            const error_body = "{\"error\":\"unauthorized\",\"message\":\"Invalid Authorization format\"}";
-            const body_len = @min(error_body.len, api_server.MAX_RESPONSE_SIZE);
-            var i: u32 = 0;
-            while (i < body_len) : (i += 1) {
-                response.body[i] = error_body[i];
-            }
-            response.body_len = @intCast(body_len);
+            write_json_error_response(
+                response,
+                api_server.HttpStatus.unauthorized,
+                "{\"error\":\"unauthorized\",\"message\":\"Invalid Authorization format\"}",
+            );
             return false;
         }
         const token = auth_header[7..];
         if (token.len == 0) {
-            response.status = api_server.HttpStatus.unauthorized;
-            _ = response.add_header("Content-Type", "application/json");
-            const error_body = "{\"error\":\"unauthorized\",\"message\":\"Missing token\"}";
-            const body_len = @min(error_body.len, api_server.MAX_RESPONSE_SIZE);
-            var i: u32 = 0;
-            while (i < body_len) : (i += 1) {
-                response.body[i] = error_body[i];
-            }
-            response.body_len = @intCast(body_len);
+            write_json_error_response(
+                response,
+                api_server.HttpStatus.unauthorized,
+                "{\"error\":\"unauthorized\",\"message\":\"Missing token\"}",
+            );
             return false;
         }
         _ = token;
         return true;
     }
-    response.status = api_server.HttpStatus.unauthorized;
-    _ = response.add_header("Content-Type", "application/json");
-    const error_body = "{\"error\":\"unauthorized\",\"message\":\"Missing Authorization header\"}";
-    const body_len = @min(error_body.len, api_server.MAX_RESPONSE_SIZE);
-    var i: u32 = 0;
-    while (i < body_len) : (i += 1) {
-        response.body[i] = error_body[i];
-    }
-    response.body_len = @intCast(body_len);
+    write_json_error_response(
+        response,
+        api_server.HttpStatus.unauthorized,
+        "{\"error\":\"unauthorized\",\"message\":\"Missing Authorization header\"}",
+    );
     return false;
 }
 
@@ -195,15 +189,11 @@ pub fn content_type_middleware(
             return true;
         }
     }
-    response.status = api_server.HttpStatus.bad_request;
-    _ = response.add_header("Content-Type", "application/json");
-    const error_body = "{\"error\":\"bad_request\",\"message\":\"Content-Type must be application/json\"}";
-    const body_len = @min(error_body.len, api_server.MAX_RESPONSE_SIZE);
-    var i: u32 = 0;
-    while (i < body_len) : (i += 1) {
-        response.body[i] = error_body[i];
-    }
-    response.body_len = @intCast(body_len);
+    write_json_error_response(
+        response,
+        api_server.HttpStatus.bad_request,
+        "{\"error\":\"bad_request\",\"message\":\"Content-Type must be application/json\"}",
+    );
     return false;
 }
 

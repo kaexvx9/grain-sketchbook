@@ -1503,6 +1503,34 @@ pub fn build(b: *std.Build) void {
     const run_error_handling_integration_tests = b.addRunArtifact(error_handling_integration_tests);
     test_step.dependOn(&run_error_handling_integration_tests.step);
     
+    // Syscall Performance Profiler Tests
+    const syscall_performance_profiler_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("tests/143_syscall_performance_profiler_test.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "basin_kernel", .module = basin_kernel_module },
+            },
+        }),
+    });
+    const run_syscall_performance_profiler_tests = b.addRunArtifact(syscall_performance_profiler_tests);
+    test_step.dependOn(&run_syscall_performance_profiler_tests.step);
+    
+    // Syscall Performance Benchmark Tests
+    const syscall_performance_benchmark_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("tests/144_syscall_performance_benchmark_test.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "basin_kernel", .module = basin_kernel_module },
+            },
+        }),
+    });
+    const run_syscall_performance_benchmark_tests = b.addRunArtifact(syscall_performance_benchmark_tests);
+    test_step.dependOn(&run_syscall_performance_benchmark_tests.step);
+    
     const run_outputs_tests = b.addRunArtifact(outputs_tests);
     test_step.dependOn(&run_outputs_tests.step);
     const run_grain_carry_core_validation_tests = b.addRunArtifact(grain_carry_core_validation_tests);

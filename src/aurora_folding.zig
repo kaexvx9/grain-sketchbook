@@ -164,7 +164,7 @@ test "folding parse simple function" {
     try folding.parse(code);
     
     // Assert: Should find one fold
-    try std.testing.expectEqual(@as(usize, 1), folding.folds.items.len);
+    try std.testing.expectEqual(@as(u32, 1), @as(u32, @intCast(folding.folds.items.len)));
     
     const fold = folding.folds.items[0];
     try std.testing.expectEqual(@as(u32, 0), fold.start_line);
