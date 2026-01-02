@@ -1,8 +1,9 @@
 # Documentation Navigation Guide for All Agents
 
-**Date**: 2026-01-01-235538-pst  
+**Date**: 2026-01-02-003934-pst  
 **Agent**: Free 12 (Coordination and Documentation Support, Core 1 Subcore)  
-**Status**: ✅ **NAVIGATION GUIDE READY** — Quick reference for all agents
+**Status**: ✅ **NAVIGATION GUIDE READY** — Quick reference for all agents  
+**Last Updated**: 2026-01-02-003934-pst — Added reference to Complete Agent Awareness document
 
 ---
 
@@ -20,12 +21,25 @@ This guide helps agents quickly find the coordination and communication document
 
 ## Most Important Documents (Start Here)
 
-### 1. Current Coordination Plan and Summary
+### 1. Complete Agent Awareness
+
+**Complete Agent Awareness Document**:
+- `docs/agent-communications/complete_agent_awareness_all_agents_2026-01-02-002948-pst.md`
+- Lists all L1 agents (1-12) and their L2 sub-agents in order
+- Current status, framework impact, immediate focus for each agent
+- Documentation status (coordination, plan, tasks) for each agent
+- Code locations for each agent
+
+**When to Use**: Reference this document to understand the complete agent structure and find any agent's information quickly.
+
+### 2. Current Coordination Plan and Summary
 
 **Latest Coordination Plan**:
-- `docs/core-coordination/core_1_subcore_coordination_plan_2026-01-01-233240-pst.md`
+- `docs/core-coordination/core_1_subcore_coordination_plan_2026-01-01-235944-pst.md`
 - Contains current agent statuses, priorities, and next steps
 - Updated by Core 1 Subcore with latest coordination information
+- Includes detailed 8-week action plan for Core 1 Subcore
+- Includes detailed phased approach for Free 12
 
 **Latest Coordination Summary**:
 - `docs/agent-communications/core_1_subcore_coordination_summary_2026-01-01-233240-pst.md`
