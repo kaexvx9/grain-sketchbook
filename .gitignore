@@ -29,3 +29,8 @@ grainstore/
 nixos-vm/iso/*.iso
 nixos-vm/disk/*.qcow2
 nixos-vm/iso/computed.sha256
+
+# Archive bundles for Arweave upload (excluded from git)
+archive_bundles/*.tar.gz
+archive_bundles/*.zip
+archive_bundles/*.sha256
