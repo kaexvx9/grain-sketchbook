@@ -257,23 +257,29 @@
 
 ### 1e. Grainscript Shell Agent (L2) — NEW
 
-**Status**: ✅ **PHASE 1 COMPLETE** — Zig 0.15.2 API compatibility fixed, basic shell functionality working  
+**Status**: ✅ **PHASE 1 COMPLETE + STEP 4 IMPLEMENTATION READY** — ServiceManager module complete, service command implemented, ready for Supervisor reference  
 **Tasks**: 
 - [x] Create shell directory structure
 - [x] Implement command parser
 - [x] Implement command executor
-- [x] Implement built-in commands (cd, ls, pwd, echo, exit)
+- [x] Implement built-in commands (cd, ls, pwd, echo, exit, env, help)
 - [x] Implement main shell loop
 - [x] Update build.zig
 - [x] Fix Zig 0.15.2 API compatibility (stdio, file I/O) — ✅ **COMPLETE**
-- [x] Test basic shell functionality — ✅ **COMPLETE**
-- [ ] Add Grainscript script execution support — **NEXT PRIORITY**
+- [x] Test basic shell functionality — ✅ **COMPLETE** (15 tests passing)
+- [x] Add script execution support — ✅ **COMPLETE**
+- [x] Create ServiceManager module — ✅ **COMPLETE** (2026-01-03-080432-pst)
+- [x] Implement service command with subcommands — ✅ **COMPLETE** (2026-01-03-080432-pst)
+- [x] Integrate ServiceManager with executor — ✅ **COMPLETE** (2026-01-03-080432-pst)
+- [ ] Coordinate Supervisor reference mechanism with Agent 3d — **NEXT PRIORITY**
+- [ ] Test service management with real Supervisor — **NEXT PRIORITY**
+- [ ] Add Grainscript script execution support (Phase 3) — **FUTURE**
 - [ ] Integrate with Core services (1a-1d) — **FUTURE**
 
 **Coordination**: Weekly/bi-weekly check-ins, coordinate with sevenos Init System (3d) on shell integration, coordinate with Core services (1a-1d) on service integration  
 **Location**: `grainstore/sevenos/src/shell/`  
-**Completed**: Zig 0.15.2 API compatibility, basic built-in commands, external program execution, multi-command input processing, error handling  
-**Next Steps**: See `docs/core-coordination/core_1_subcore_coordination_plan_2026-01-01-235944-pst.md`
+**Completed**: Zig 0.15.2 API compatibility, basic built-in commands, external program execution, multi-command input processing, error handling, script execution, ServiceManager module, service command implementation  
+**Next Steps**: Supervisor reference mechanism coordination, integration testing with Init System
 
 ---
 
@@ -295,8 +301,11 @@
 
 2. **Support Agent 1e (Grainscript Shell)**:
    - [x] ✅ Zig 0.15.2 API compatibility fixed (Phase 1 complete)
-   - [ ] Verify basic shell functionality testing completion
-   - [ ] Plan integration with sevenos Init System (3d) — cross-subcore
+   - [x] ✅ Basic shell functionality testing complete (15 tests passing)
+   - [x] ✅ ServiceManager module created (2026-01-03-080432-pst)
+   - [x] ✅ Service command implemented (2026-01-03-080432-pst)
+   - [ ] Coordinate Supervisor reference mechanism with Agent 3d — **NEXT PRIORITY**
+   - [ ] Plan integration testing with sevenos Init System (3d) — cross-subcore
    - [ ] Plan integration with Core 1 services (1a-1d)
    - [ ] Design shell → Core service API contracts
 
