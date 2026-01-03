@@ -184,7 +184,7 @@ tell them to continue the next phase of implementation and when they're done upd
 
 **Required Actions**:
 1. **Create summary document**:
-   - Filename: `docs/agent-communications/YYYY-MM-DD-HHMMSS-pst_core_1_subcore_coordination_summary.md` (timestamp prefix format)
+   - Filename: `docs/agent-communications/general/coordination/YYYY-MM-DD-HHMMSS-pst_core_1_subcore_coordination_summary.md` (timestamp prefix format)
    - Agent name: "Core 1 Subcore Agent"
    - Timestamp in header
 
@@ -412,17 +412,19 @@ TZ=America/Los_Angeles date +"%Y-%m-%d-%H%M%S-pst"
 
 ### Coordination Summary
 
-**Format**: `docs/agent-communications/YYYY-MM-DD-HHMMSS-pst_core_1_subcore_coordination_summary.md`
+**Format**: `docs/agent-communications/general/coordination/YYYY-MM-DD-HHMMSS-pst_core_1_subcore_coordination_summary.md`
 
-**Example**: `docs/agent-communications/2026-01-01-202549-pst_core_1_subcore_coordination_summary.md`
+**Example**: `docs/agent-communications/general/coordination/2026-01-01-202549-pst_core_1_subcore_coordination_summary.md`
 
 ---
 
 ### All Agent Communication Documents
 
-**Format**: `docs/agent-communications/YYYY-MM-DD-HHMMSS-pst_document_name.md`
+**Format**: `docs/agent-communications/{appropriate_directory}/YYYY-MM-DD-HHMMSS-pst_document_name.md`
 
-**Example**: `docs/agent-communications/2026-01-02-100345-pst_vantage_3_subcore_to_3b_guest_ram_pointer_architecture.md`
+**Example**: `docs/agent-communications/cross-agent/l1_to_l2/2026-01-02-100345-pst_vantage_3_subcore_to_3b_guest_ram_pointer_architecture.md`
+
+**Note**: See `docs/agent-communications/README.md` for directory structure guidance. General coordination summaries go in `general/coordination/`, agent-specific prompts go in `l2-subagents/{parent}/{agent}/prompts/`, cross-agent communications go in `cross-agent/`, etc.
 
 **Rule**: **ALWAYS** use timestamp prefix format for all new documents.
 

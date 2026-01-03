@@ -26,7 +26,7 @@ This guide helps agents and developers quickly find the coordination and communi
 ### 1. Complete Agent Awareness
 
 **Complete Agent Awareness Document**:
-- `docs/agent-communications/complete_agent_awareness_all_agents_2026-01-02-002948-pst.md`
+- `docs/agent-communications/general/prompts/2026-01-02-002948-pst_complete_agent_awareness_all_agents_2026-01-02-002948-pst.md`
 - Lists all L1 agents (1-12) and their L2 sub-agents in order
 - Current status, framework impact, immediate focus for each agent
 - Documentation status (coordination, plan, tasks) for each agent
@@ -44,30 +44,30 @@ This guide helps agents and developers quickly find the coordination and communi
 - Reflects sevenos foundation critical path (Steps 1-4)
 
 **Latest Coordination Summary**:
-- `docs/agent-communications/2026-01-03-042621-pst_core_1_subcore_coordination_summary.md`
+- `docs/agent-communications/general/coordination/2026-01-03-042621-pst_core_1_subcore_coordination_summary.md`
 - Copy-paste ready instructions for all agents
 - Agent-specific sections with immediate next steps
 - **Single-threaded computation priority chain** emphasized for critical path
 - Critical path status: Step 1 ✅ COMPLETE, Step 2 ⏳ IN PROGRESS, Step 3 ⏳ READY TO PROCEED, Step 4 ⏳ BLOCKED
 
 **Critical Path Quick Reference**:
-- `docs/agent-communications/critical_path_quick_reference_2026-01-02-084259-pst.md`
+- `docs/agent-communications/general/templates/2026-01-02-084259-pst_critical_path_quick_reference_2026-01-02-084259-pst.md`
 - Visual/text representation of dependency chain
 - Quick status check for critical path agents
 - Timeline summary and blocker identification
 
 **Critical Path Tools**:
-- `docs/agent-communications/critical_path_quick_reference_2026-01-02-084259-pst.md` - Quick reference for dependency chain
-- `docs/agent-communications/critical_path_blocker_tracking_2026-01-02-084613-pst.md` - Blocker tracking template and current blocker status
-- `docs/agent-communications/critical_path_integration_handoff_2026-01-02-084613-pst.md` - Integration handoff checklist for step transitions
-- `docs/agent-communications/critical_path_status_update_template_2026-01-02-084613-pst.md` - Status update template for progress reporting
+- `docs/agent-communications/general/templates/2026-01-02-084259-pst_critical_path_quick_reference_2026-01-02-084259-pst.md` - Quick reference for dependency chain
+- `docs/agent-communications/general/templates/2026-01-02-084613-pst_critical_path_blocker_tracking_2026-01-02-084613-pst.md` - Blocker tracking template and current blocker status
+- `docs/agent-communications/general/templates/2026-01-02-084613-pst_critical_path_integration_handoff_2026-01-02-084613-pst.md` - Integration handoff checklist for step transitions
+- `docs/agent-communications/general/templates/2026-01-02-084613-pst_critical_path_status_update_template.md` - Status update template for progress reporting
 
 **When to Use**: Start here for current priorities and agent-specific instructions. Reference critical path guide for dependency chain understanding. Use blocker tracking when reporting blockers. Use handoff checklist when completing steps.
 
 ### 3. Glow G2 Voice Guidelines
 
 **Multi-Agent Voice Prompt**:
-- `docs/agent-communications/glow_g2_voice_multi_agent_prompt_2026-01-01-235155-pst.md`
+- `docs/agent-communications/general/prompts/glow_g2_voice_multi_agent_prompt_2026-01-01-235155-pst.md`
 - Comprehensive voice adoption guide
 - Examples and verification checklist
 
@@ -80,7 +80,7 @@ This guide helps agents and developers quickly find the coordination and communi
 ### 4. Timestamp Specification
 
 **Multi-Agent Timestamp Prompt**:
-- `docs/agent-communications/timestamp_specification_multi_agent_prompt_2026-01-01-215553-pst.md`
+- `docs/agent-communications/general/prompts/timestamp_specification_multi_agent_prompt_2026-01-01-215553-pst.md`
 - **NEW FORMAT (REQUIRED)**: `YYYY-MM-DD-HHMMSS-pst_document_name.md` (timestamp prefix)
 - **OLD FORMAT (HISTORICAL)**: `document_name_YYYY-MM-DD-HHMMSS-pst.md` (timestamp suffix)
 - Command: `TZ=America/Los_Angeles date +"%Y-%m-%d-%H%M%S-pst"`
@@ -173,16 +173,27 @@ This guide helps agents and developers quickly find the coordination and communi
 
 ### Agent Communication Documents
 
-**Location**: `docs/agent-communications/`
+**Location**: `docs/agent-communications/` (hierarchical structure)
 
 **Purpose**: Multi-agent prompts, voice guidelines, and coordination summaries
 
+**Structure**:
+- `general/` - General prompts for all agents
+  - `prompts/` - Multi-agent prompts (Glow G2 voice, timestamp format, agent awareness)
+  - `coordination/` - General coordination summaries
+  - `templates/` - Reusable templates and toolkits
+- `l1-subcores/` - L1 Subcore Coordinators (1, 2, 3)
+- `l2-subagents/` - L2 Sub-Agents (1a-1e, 2a-2c, 3a-3d)
+- `l1-standalone/` - Standalone L1 Agents (4-12)
+- `cross-agent/` - Cross-agent communications
+
 **Key Files**:
-- `2026-01-03-042621-pst_core_1_subcore_coordination_summary.md` - Latest coordination summary (timestamp prefix format)
-- `glow_g2_voice_multi_agent_prompt_*.md` - Voice adoption guide
-- `timestamp_specification_multi_agent_prompt_*.md` - Timestamp requirements (includes new prefix format)
-- `{agent}_glow_g2_voice_adoption_*.md` - Agent voice adoption acknowledgments
-- Note: New communication documents use timestamp prefix format
+- `general/coordination/2026-01-03-042621-pst_core_1_subcore_coordination_summary.md` - Latest coordination summary
+- `general/prompts/glow_g2_voice_multi_agent_prompt_2026-01-01-235155-pst.md` - Voice adoption guide
+- `general/prompts/timestamp_specification_multi_agent_prompt_2026-01-01-215553-pst.md` - Timestamp requirements
+- `general/prompts/2026-01-03-051300-pst_timestamp_prefix_format_all_agents.md` - Timestamp prefix format requirement
+- `l2-subagents/vantage_3/3a_basin_kernel/prompts/2026-01-03-055237-pst_basin_kernel_agent_3a_prompt.md` - Example agent-specific prompt
+- Note: See `docs/agent-communications/README.md` and `general/templates/2026-01-03-055549-pst_directory_structure_pattern.md` for complete structure
 
 **When to Use**:
 - Reference for voice consistency
@@ -239,8 +250,8 @@ This guide helps agents and developers quickly find the coordination and communi
 
 **Start Here**:
 1. Latest coordination plan: `docs/core-coordination/2026-01-03-042621-pst_core_1_subcore_coordination_plan.md`
-2. Latest coordination summary: `docs/agent-communications/2026-01-03-042621-pst_core_1_subcore_coordination_summary.md`
-3. Glow G2 voice guide: `docs/agent-communications/glow_g2_voice_multi_agent_prompt_*.md`
+2. Latest coordination summary: `docs/agent-communications/general/coordination/2026-01-03-042621-pst_core_1_subcore_coordination_summary.md`
+3. Glow G2 voice guide: `docs/agent-communications/general/prompts/glow_g2_voice_multi_agent_prompt_2026-01-01-235155-pst.md`
 
 **Your Coordination Documents**:
 - `docs/core-coordination/{subcore}_coordination.md` - Your coordination status
@@ -255,9 +266,10 @@ This guide helps agents and developers quickly find the coordination and communi
 ### L2 Sub-Agents (1a-1e, 2a-2c, 3a-3d)
 
 **Start Here**:
-1. Latest coordination summary: `docs/agent-communications/2026-01-03-042621-pst_core_1_subcore_coordination_summary.md`
+1. Latest coordination summary: `docs/agent-communications/general/coordination/2026-01-03-042621-pst_core_1_subcore_coordination_summary.md`
 2. Your agent-specific section in the coordination summary
-3. Glow G2 voice guide: `docs/agent-communications/glow_g2_voice_multi_agent_prompt_*.md`
+3. Glow G2 voice guide: `docs/agent-communications/general/prompts/glow_g2_voice_multi_agent_prompt_2026-01-01-235155-pst.md`
+4. Your agent-specific prompts: `docs/agent-communications/l2-subagents/{parent}/{agent_id}_{agent_name}/prompts/`
 
 **Your Coordination Documents**:
 - `docs/core-coordination/{parent}_{agent}_coordination.md` - Your coordination status
@@ -272,9 +284,9 @@ This guide helps agents and developers quickly find the coordination and communi
 ### L1 Standalone Agents (4-12)
 
 **Start Here**:
-1. Latest coordination summary: `docs/agent-communications/2026-01-03-042621-pst_core_1_subcore_coordination_summary.md`
-2. Glow G2 voice guide: `docs/agent-communications/glow_g2_voice_multi_agent_prompt_*.md`
-3. Your agent prompt: `docs/grain_{agent}_agent_prompt.md`
+1. Latest coordination summary: `docs/agent-communications/general/coordination/2026-01-03-042621-pst_core_1_subcore_coordination_summary.md`
+2. Glow G2 voice guide: `docs/agent-communications/general/prompts/glow_g2_voice_multi_agent_prompt_2026-01-01-235155-pst.md`
+3. Your agent-specific prompts: `docs/agent-communications/l1-standalone/{agent_id}_{agent_name}/prompts/`
 
 **Your Coordination Documents**:
 - `docs/core-coordination/{agent}_coordination.md` - Your coordination status
@@ -292,7 +304,7 @@ This guide helps agents and developers quickly find the coordination and communi
 
 ### "I need to know my current priorities"
 
-1. Read latest coordination summary: `docs/agent-communications/2026-01-03-042621-pst_core_1_subcore_coordination_summary.md`
+1. Read latest coordination summary: `docs/agent-communications/general/coordination/2026-01-03-042621-pst_core_1_subcore_coordination_summary.md`
 2. Find your agent-specific section
 3. Review "Immediate Next Steps" and "Current Blocker" sections
 4. Check single-threaded computation priority chain for critical path dependencies
@@ -315,9 +327,9 @@ This guide helps agents and developers quickly find the coordination and communi
 
 ### "I need to adopt Glow G2 voice"
 
-1. Read voice guide: `docs/agent-communications/glow_g2_voice_multi_agent_prompt_*.md`
+1. Read voice guide: `docs/agent-communications/general/prompts/glow_g2_voice_multi_agent_prompt_2026-01-01-235155-pst.md`
 2. Review source definition: `docs/zyx/glow_g2.md`
-3. Create adoption acknowledgment: `docs/agent-communications/{agent}_glow_g2_voice_adoption_*.md`
+3. Create adoption acknowledgment in your agent directory: `docs/agent-communications/{agent_path}/acknowledgments/{timestamp}_glow_g2_voice_adoption.md`
 4. Apply voice to all future communications
 
 ### "I need to create a timestamped document"
@@ -325,15 +337,16 @@ This guide helps agents and developers quickly find the coordination and communi
 1. Generate timestamp: `TZ=America/Los_Angeles date +"%Y-%m-%d-%H%M%S-pst"`
 2. **Use NEW format (REQUIRED)**: `YYYY-MM-DD-HHMMSS-pst_document_name.md` (timestamp prefix)
 3. **OLD format (historical only)**: `document_name_YYYY-MM-DD-HHMMSS-pst.md` (timestamp suffix)
-4. Reference: `docs/agent-communications/timestamp_specification_multi_agent_prompt_*.md`
+4. Reference: `docs/agent-communications/general/prompts/timestamp_specification_multi_agent_prompt_2026-01-01-215553-pst.md`
 5. **Benefits**: Automatic chronological sorting in file listings (Codeberg, file browsers)
+6. **Directory Structure**: See `docs/agent-communications/README.md` for where to place new documents
 
 ### "I need to understand the critical path"
 
-1. Read latest coordination summary: `docs/agent-communications/2026-01-03-042621-pst_core_1_subcore_coordination_summary.md`
+1. Read latest coordination summary: `docs/agent-communications/general/coordination/2026-01-03-042621-pst_core_1_subcore_coordination_summary.md`
 2. Review "Single-Threaded Computation Priority Chain" section
-3. Check critical path quick reference: `docs/agent-communications/critical_path_quick_reference_*.md`
-4. Use blocker tracking template if reporting blockers
+3. Check critical path quick reference: `docs/agent-communications/general/templates/2026-01-02-084259-pst_critical_path_quick_reference_2026-01-02-084259-pst.md`
+4. Use blocker tracking template if reporting blockers: `docs/agent-communications/general/templates/2026-01-02-084613-pst_critical_path_blocker_tracking_2026-01-02-084613-pst.md`
 5. **Current Status**: Step 1 (Basin Kernel 3a) ✅ COMPLETE, Step 2 (VM Runtime 3b) ⏳ IN PROGRESS, Step 3 (Init System 3d) ⏳ READY TO PROCEED, Step 4 (Grainscript Shell 1e) ⏳ BLOCKED ON STEP 3
 
 ---
