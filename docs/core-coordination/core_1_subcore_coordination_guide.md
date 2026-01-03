@@ -1,7 +1,16 @@
+> **⚠️ DEPRECATED**: This document is deprecated as of 2026-01-03-052459-pst.
+> 
+> **Replacement**: See `docs/2026-01-03-052459-pst_documentation_unification_plan.md` for unified documentation structure and improved L1<->L2 integration patterns.
+> 
+> **New Location**: This document will be archived to `archaeology/docs/core-coordination/` for historical reference.
+> 
+> **Status**: Archived — Do not use for new work. Refer to replacement document.
+
 # Core 1 Subcore Coordination Guide
 
 **Date**: 2025-12-30-093745-pst  
-**Purpose**: Guide for coordinating between Core 1 Subcore (L1) and L2 Sub-Agents (1a, 1b, 1c, 1d)
+**Purpose**: Guide for coordinating between Core 1 Subcore (L1) and L2 Sub-Agents (1a, 1b, 1c, 1d)  
+**Status**: ⚠️ **DEPRECATED** — See replacement document above
 
 ---
 

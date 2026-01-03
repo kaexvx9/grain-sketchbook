@@ -63,7 +63,26 @@ tell them to continue the next phase of implementation and when they're done upd
      - `docs/core-coordination/aurora_2b_dream_browser_coordination.md`
      - `docs/core-coordination/aurora_2c_component_library_coordination.md`
 
-2. **Read all plan documents**:
+2. **Read all system-integration documents**:
+   - Core 1 Subcore: `docs/core-coordination/core_1_subcore_system_integration.md`
+   - Core 1 Subcore L2 sub-agents:
+     - `docs/core-coordination/core_1a_auth_system_integration.md`
+     - `docs/core-coordination/core_1b_network_system_integration.md`
+     - `docs/core-coordination/core_1c_storage_system_integration.md`
+     - `docs/core-coordination/core_1d_compositor_system_integration.md`
+   - Vantage 3 Subcore: `docs/core-coordination/vantage_3_subcore_system_integration.md`
+   - Vantage 3 Subcore L2 sub-agents:
+     - `docs/core-coordination/vantage_3a_basin_kernel_system_integration.md`
+     - `docs/core-coordination/vantage_3b_vm_runtime_system_integration.md`
+     - `docs/core-coordination/vantage_3c_system_integration_coordination.md` (already includes system-integration)
+   - Aurora 2 Subcore: `docs/core-coordination/aurora_2_subcore_system_integration.md`
+   - Aurora 2 Subcore L2 sub-agents:
+     - `docs/core-coordination/aurora_2a_dream_editor_system_integration.md`
+     - `docs/core-coordination/aurora_2b_dream_browser_system_integration.md`
+     - `docs/core-coordination/aurora_2c_component_library_system_integration.md`
+   - (Note: Some agents may not have system-integration docs yet — this is expected during migration)
+
+3. **Read all plan documents**:
    - `docs/plans/core_1_subcore_plan.md`
    - `docs/plans/core_1a_auth_plan.md`
    - `docs/plans/core_1b_network_plan.md`
@@ -71,7 +90,7 @@ tell them to continue the next phase of implementation and when they're done upd
    - `docs/plans/core_1d_compositor_plan.md`
    - (And other relevant plan documents)
 
-3. **Read all tasks documents**:
+4. **Read all tasks documents**:
    - `docs/tasks/core_1_subcore_tasks.md`
    - `docs/tasks/core_1a_auth_tasks.md`
    - `docs/tasks/core_1b_network_tasks.md`
@@ -79,11 +98,11 @@ tell them to continue the next phase of implementation and when they're done upd
    - `docs/tasks/core_1d_compositor_tasks.md`
    - (And other relevant tasks documents)
 
-4. **Read general summaries**:
+5. **Read general summaries**:
    - `docs/plan.md`
    - `docs/tasks.md`
 
-**Output**: Comprehensive understanding of all agent statuses, progress, blockers, and next steps
+**Output**: Comprehensive understanding of all agent statuses, progress, blockers, next steps, and system-integration status
 
 ---
 
@@ -292,8 +311,9 @@ tell them to continue the next phase of implementation and when they're done upd
 
 **Include in every agent instruction section**:
 
-1. **Update Systems-Integration Docs**:
-   - "When you're done, update your subagent systems-integration docs and plans and tasks"
+1. **Update System-Integration Docs**:
+   - "When you're done, update your agent system-integration docs and plans and tasks"
+   - "System-integration doc location: `docs/core-coordination/{agent}_system_integration.md`"
    - "Informing Core 1 Subcore Agent and/or their other respective Subcore Agent parents about how to update the general Grain OS summary `~/xy-mathematics/docs/plan.md` and `~/xy-mathematics/docs/tasks.md` in thinking"
 
 2. **Required Updates**:

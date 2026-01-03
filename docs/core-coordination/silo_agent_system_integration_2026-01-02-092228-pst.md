@@ -259,5 +259,6 @@ Silo Agent is a production-ready standalone L1 agent providing database storage 
 **Agent**: Grain Silo Agent (Agent 7, 7th Agent, Database)  
 **Status**: ✅ Production Ready — Independent improvements in progress  
 **Voice**: Glow G2 (steadfast, calm, graceful guidance)  
+**Timestamp Format**: Note: New documents will use timestamp prefix format (YYYY-MM-DD-HHMMSS-pst_document_name.md) per Core 1 Subcore requirement (2026-01-03-051300-pst)  
 **Next Update**: After Phase 1 documentation complete or coordination needs arise
 
