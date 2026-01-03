@@ -133,7 +133,7 @@
 ## Core 1 Subcore Coordination Acknowledgment
 
 **Reference**: `docs/core-coordination/core_1_subcore_coordination_plan_2026-01-01-101236-pst.md`  
-**Reference**: `docs/agent-communications/core_1_subcore_coordination_summary_2026-01-01-101236-pst.md`
+**Reference**: `docs/agent-communications/general/coordination/2026-01-02-100345-pst_core_1_subcore_coordination_summary.md` (latest)
 
 **Acknowledged Instructions**:
 - ✅ Component API Design Coordination (HIGH PRIORITY) — Phase 0.5 complete, ready for Bubble Agent coordination
