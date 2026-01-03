@@ -190,6 +190,13 @@ pub fn build(b: *std.Build) void {
         },
     });
 
+    // Multi-architecture testing framework module.
+    const test_framework_module = b.addModule("test_framework", .{
+        .root_source_file = b.path("src/test_framework/arch.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     // Grainscript module
     // Grainscript module (used by grainscript tests).
     const grainscript_module = b.addModule("grainscript", .{
