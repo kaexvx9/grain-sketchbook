@@ -93,7 +93,13 @@ This guide helps agents quickly find the coordination and communication document
 - Format: `yyyy-mm-dd-hhmmss-pst`
 - Command: `TZ=America/Los_Angeles date +"%Y-%m-%d-%H%M%S-pst"`
 
-**When to Use**: When creating documents, filenames, or git commits.
+**Timestamp Prefix Format (REQUIRED for new documents)**:
+- `docs/agent-communications/2026-01-03-051300-pst_timestamp_prefix_format_all_agents.md`
+- **NEW FORMAT**: `YYYY-MM-DD-HHMMSS-pst_document_name.md` (prefix format)
+- **OLD FORMAT**: `document_name_YYYY-MM-DD-HHMMSS-pst.md` (historical only)
+- Benefits: Automatic chronological sorting in file listings
+
+**When to Use**: When creating documents, filenames, or git commits. Use prefix format for all new documents.
 
 ### 4. Recursion Prompt Guidelines
 
@@ -267,8 +273,9 @@ This guide helps agents quickly find the coordination and communication document
 
 1. Generate timestamp: `TZ=America/Los_Angeles date +"%Y-%m-%d-%H%M%S-pst"`
 2. Use format: `yyyy-mm-dd-hhmmss-pst`
-3. Include in filename: `{document_name}_{timestamp}.md`
+3. Include in filename using **prefix format**: `{timestamp}_{document_name}.md` (e.g., `2026-01-03-052111-pst_document_name.md`)
 4. Reference: `docs/agent-communications/timestamp_specification_multi_agent_prompt_*.md`
+5. Reference: `docs/agent-communications/2026-01-03-051300-pst_timestamp_prefix_format_all_agents.md` for prefix format details
 
 ---
 

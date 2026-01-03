@@ -55,10 +55,20 @@ Use this timestamp format for:
 ```
 
 ### Filename
+
+**NEW FORMAT (REQUIRED)**: Timestamp prefix format for automatic chronological sorting
+```
+2026-01-01-215553-pst_core_1_subcore_coordination_plan.md
+2026-01-01-215553-pst_agent_3b_vm_runtime_status_update.md
+```
+
+**OLD FORMAT (HISTORICAL)**: Suffix format (only for existing documents, not for new documents)
 ```
 core_1_subcore_coordination_plan_2026-01-01-215553-pst.md
 agent_3b_vm_runtime_status_update_2026-01-01-215553-pst.md
 ```
+
+**Why Prefix Format?**: Automatic chronological sorting in file listings (Codeberg, file browsers). Easy to find latest documents.
 
 ### Git Commit Message
 ```
@@ -103,10 +113,11 @@ Expected output format: `2026-01-01-215553-pst`
 - Always use `TZ=America/Los_Angeles` when generating timestamps
 
 ### 2. Use in All Documents
-- All new documents must include timestamp in filename
+- All new documents must include timestamp in filename using **prefix format**: `YYYY-MM-DD-HHMMSS-pst_document_name.md`
 - All document headers must include timestamp
 - All coordination documents must include timestamp
 - All status updates must include timestamp
+- **Historical documents with suffix format remain unchanged** (only new documents need prefix format)
 
 ### 3. Use in Git Commits
 - Include timestamp in commit message when relevant
@@ -126,13 +137,15 @@ Expected output format: `2026-01-01-215553-pst`
 3. Using different timestamp formats (e.g., ISO 8601, Unix timestamp)
 4. Forgetting to include timestamp in document filename
 5. Using wrong date format (e.g., MM/DD/YYYY, DD-MM-YYYY)
+6. Using suffix format for new documents (use prefix format: `YYYY-MM-DD-HHMMSS-pst_document_name.md`)
 
 ### ✅ Do This Instead
 1. Always use `TZ=America/Los_Angeles date +"%Y-%m-%d-%H%M%S-pst"`
 2. Always use "pst" in format string
 3. Always use `yyyy-mm-dd-hhmmss-pst` format
-4. Always include timestamp in document filename
+4. Always include timestamp in document filename using **prefix format**: `YYYY-MM-DD-HHMMSS-pst_document_name.md`
 5. Always use YYYY-MM-DD format
+6. Use prefix format for automatic chronological sorting
 
 ## Agent-Specific Instructions
 
@@ -177,9 +190,13 @@ TZ=America/Los_Angeles date +"%Y-%m-%d-%H%M%S-pst"
 
 **Example**: `2026-01-01-215553-pst`
 
+**Filename Format (NEW)**: `YYYY-MM-DD-HHMMSS-pst_document_name.md` (prefix format for automatic sorting)
+
 **Timezone**: America/Los_Angeles (Pacific Time)
 
 **Always Use**: "pst" in format string (even during PDT)
+
+**Reference**: See `docs/agent-communications/2026-01-03-051300-pst_timestamp_prefix_format_all_agents.md` for complete prefix format instructions
 ```
 
 ---
@@ -209,7 +226,9 @@ TZ=America/Los_Angeles date +"%Y-%m-%d-%H%M%S-pst"
 ---
 
 **Date**: 2026-01-01-215553-pst  
-**Status**: ✅ **TIMESTAMP SPECIFICATION PROMPT COMPLETE** — Ready for distribution to all agents  
-**Reference**: `~/xy-mathematics/docs/timestamp_format_reference.md`
+**Last Updated**: 2026-01-03-052111-pst  
+**Status**: ✅ **TIMESTAMP SPECIFICATION PROMPT COMPLETE** — Updated with prefix format requirement  
+**Reference**: `~/xy-mathematics/docs/timestamp_format_reference.md`  
+**Prefix Format Reference**: `docs/agent-communications/2026-01-03-051300-pst_timestamp_prefix_format_all_agents.md`
 
 
