@@ -1,8 +1,25 @@
 //! Grain Court Anthropic Provider: Anthropic API provider implementation.
 //!
-//! Why: Enable agents to use Anthropic API (Claude 3.5) via provider abstraction.
-//! Architecture: Anthropic API client, request encoding, response decoding.
-//! GrainStyle: grain_case, u32/u64, bounded allocations, assertions, max 70 lines.
+//! This module implements the Anthropic API provider for the Grain Court LLM infrastructure,
+//! enabling agents to use Anthropic models (Claude 3.5 Sonnet) through the unified provider
+//! abstraction. The implementation handles Anthropic-specific request formatting, response
+//! parsing, and error handling.
+//!
+//! Architecture: Anthropic API client with JSON request/response handling, token usage
+//! tracking, error translation to unified error types, and integration with the provider pool
+//! abstraction.
+//!
+//! Supported Models:
+//! - Claude 3.5 Sonnet: High-performance model with excellent reasoning capabilities
+//!
+//! API Integration:
+//! - Endpoint: https://api.anthropic.com/v1/messages
+//! - Authentication: x-api-key header with API key
+//! - Request format: JSON with messages array and model specification
+//! - Response format: JSON with content array and usage metadata
+//!
+//! GrainStyle: grain_case function names, explicit u32/u64 types, bounded allocations with
+//! MAX_ constants, minimum 2 assertions per function, max 70 lines per function.
 
 const std = @import("std");
 const llm_provider = @import("llm_provider.zig");

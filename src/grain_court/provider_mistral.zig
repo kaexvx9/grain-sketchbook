@@ -1,8 +1,24 @@
 //! Grain Court Mistral Provider: Mistral API provider implementation.
 //!
-//! Why: Enable agents to use Mistral API via provider abstraction.
-//! Architecture: Mistral API client, request encoding, response decoding.
-//! GrainStyle: grain_case, u32/u64, bounded allocations, assertions, max 70 lines.
+//! This module implements the Mistral API provider for the Grain Court LLM infrastructure,
+//! enabling agents to use Mistral models (Mistral Large) through the unified provider
+//! abstraction. The implementation handles Mistral-specific request formatting, response
+//! parsing, and error handling.
+//!
+//! Architecture: Mistral API client with JSON request/response handling, token usage tracking,
+//! error translation to unified error types, and integration with the provider pool abstraction.
+//!
+//! Supported Models:
+//! - Mistral Large: High-performance model with competitive pricing
+//!
+//! API Integration:
+//! - Endpoint: https://api.mistral.ai/v1/chat/completions
+//! - Authentication: Bearer token via API key
+//! - Request format: JSON with messages array
+//! - Response format: JSON with choices array and usage metadata
+//!
+//! GrainStyle: grain_case function names, explicit u32/u64 types, bounded allocations with
+//! MAX_ constants, minimum 2 assertions per function, max 70 lines per function.
 
 const std = @import("std");
 const llm_provider = @import("llm_provider.zig");

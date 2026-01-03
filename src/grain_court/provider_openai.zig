@@ -1,8 +1,25 @@
 //! Grain Court OpenAI Provider: OpenAI API provider implementation.
 //!
-//! Why: Enable agents to use OpenAI API (GPT-4o, GPT-5-nano) via provider abstraction.
-//! Architecture: OpenAI API client, request encoding, response decoding.
-//! GrainStyle: grain_case, u32/u64, bounded allocations, assertions, max 70 lines.
+//! This module implements the OpenAI API provider for the Grain Court LLM infrastructure,
+//! enabling agents to use OpenAI models (GPT-4o, GPT-5-nano) through the unified provider
+//! abstraction. The implementation handles OpenAI-specific request formatting, response
+//! parsing, and error handling.
+//!
+//! Architecture: OpenAI API client with JSON request/response handling, token usage tracking,
+//! error translation to unified error types, and integration with the provider pool abstraction.
+//!
+//! Supported Models:
+//! - GPT-4o: Latest OpenAI model with multimodal capabilities
+//! - GPT-5-nano: Efficient model for cost-sensitive operations
+//!
+//! API Integration:
+//! - Endpoint: https://api.openai.com/v1/chat/completions
+//! - Authentication: Bearer token via API key
+//! - Request format: JSON with messages array
+//! - Response format: JSON with choices array and usage metadata
+//!
+//! GrainStyle: grain_case function names, explicit u32/u64 types, bounded allocations with
+//! MAX_ constants, minimum 2 assertions per function, max 70 lines per function.
 
 const std = @import("std");
 const llm_provider = @import("llm_provider.zig");

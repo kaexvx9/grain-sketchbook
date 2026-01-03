@@ -1,8 +1,27 @@
 //! Grain Court ZON Format: Token-efficient serialization for LLM communication.
 //!
-//! Why: Enable 35-70% token reduction for LLM communication vs JSON.
-//! Architecture: ZON encoder/decoder, tabular array encoding, nested objects.
-//! GrainStyle: grain_case, u32/u64, bounded allocations, assertions, max 70 lines.
+//! This module provides a compact, token-efficient serialization format designed specifically
+//! for LLM communication. ZON format achieves 35-70% token reduction compared to JSON by using
+//! a simplified syntax with minimal delimiters and efficient encoding of common data types.
+//!
+//! Architecture: ZON encoder/decoder, tabular array encoding, nested objects, round-trip
+//! validation, and performance benchmarking utilities.
+//!
+//! Format Features:
+//! - Boolean values: T/F (single character)
+//! - Numbers: Direct encoding (no quotes)
+//! - Strings: Escaped format with minimal overhead
+//! - Tabular arrays: Compact table encoding with @(count):header format
+//! - Nested objects: {key:value} syntax
+//!
+//! Use Cases:
+//! - LLM request/response serialization (reduces token costs)
+//! - Agent communication (efficient data exchange)
+//! - Cost tracking data (compact storage)
+//! - Performance-critical serialization paths
+//!
+//! GrainStyle: grain_case function names, explicit u32/u64 types, bounded allocations with
+//! MAX_ constants, minimum 2 assertions per function, max 70 lines per function.
 
 const std = @import("std");
 
