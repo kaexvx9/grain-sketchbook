@@ -309,27 +309,32 @@
 
 ---
 
-### Phase 7: Basin Kernel Integration (FUTURE)
+### Phase 8: Basin Kernel Integration (CLARIFIED)
 
-**Goal**: Integrate with Basin Kernel syscalls for Grain OS
+**Goal**: Integrate with Basin Kernel for Grain OS
 
-**Timeline**: TBD  
-**Priority**: LOW (future work)  
-**Status**: Pending
+**Timeline**: Phase 8A complete, Phase 8B TBD  
+**Priority**: Phase 8A complete, Phase 8B TBD  
+**Status**: Phase 8A complete, Phase 8B pending
 
-**Tasks**:
-1. Replace POSIX syscalls with Basin Kernel syscalls
-2. Integrate with VM Runtime (3b) for JIT compilation
-3. Test on Basin Kernel platform
-4. Performance optimization
+**Phase 8A: Init System POSIX (✅ COMPLETE)**:
+- ✅ Init System continues using POSIX syscalls (already implemented)
+- ✅ No changes needed - current POSIX implementation is correct
+- ✅ Init System runs on Linux (Framework Ubuntu x86_64)
+- ✅ Basin Kernel integration patterns clarified by Agent 3a
+
+**Phase 8B: Service VM Integration (⏳ FUTURE)**:
+- ⏳ Init System coordinates with VM Runtime (3b) to spawn services in VMs
+- ⏳ Services run in RISC-V VMs with Basin Kernel
+- ⏳ Requires VM Runtime (3b) VM management API
 
 **Dependencies**: 
-- Basin Kernel (3a) syscall interface (docs received, ready for use)
-- VM Runtime (3b) JIT integration (may be needed)
+- ✅ Basin Kernel (3a): Integration patterns clarified (2026-01-03-060700-pst)
+- ⏳ VM Runtime (3b): VM management API (for Phase 8B)
 
 **Coordination**: 
-- Basin Kernel (3a) — Syscall interface docs received ✅
-- VM Runtime (3b) — May need JIT integration coordination
+- ✅ Basin Kernel (3a) — Integration patterns clarified ✅
+- ⏳ VM Runtime (3b) — VM management API coordination (for Phase 8B)
 
 ---
 
@@ -347,12 +352,14 @@
 - ✅ Configuration loading patterns documented
 
 **Current Status**: 
-- Documentation received and reviewed
-- Ready for use when implementing Basin Kernel integration (Phase 7)
+- ✅ Documentation received and reviewed (2026-01-02-090000-pst)
+- ✅ Integration patterns clarified (2026-01-03-060700-pst)
+- ✅ Phase 8A complete (POSIX implementation is correct)
+- ⏳ Phase 8B requires VM Runtime (3b) coordination
 
 **Next Steps**: 
-- No immediate coordination needed
-- Will coordinate when ready for Basin Kernel integration
+- ✅ Phase 8A complete (no changes needed)
+- ⏳ Phase 8B pending (requires VM Runtime 3b coordination)
 
 ---
 
