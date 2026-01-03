@@ -29,6 +29,7 @@ pub const Editor = struct {
     cursor_char: u32 = 0,
     pending_completion: ?[]const u8 = null, // Ghost text (AI completion)
     ghost_text_buffer: ?[]u8 = null, // Buffer for rendered text with ghost text
+    format_on_save: bool = false, // Format document before saving
     undo_history: std.ArrayList(UndoEntry),
     redo_history: std.ArrayList(UndoEntry),
     
@@ -2030,6 +2031,32 @@ pub const Editor = struct {
         // Assert: File URI must be valid
         std.debug.assert(self.file_uri.len > 0);
         std.debug.assert(self.file_uri.len <= 4096); // Bounded URI length
+        
+        // Format document before save if format_on_save is enabled
+        if (self.format_on_save) {
+            const formatting_options = LspClient.FormattingOptions{
+                .tab_size = 4,
+                .insert_spaces = true,
+            };
+            const format_edits = try self.lsp.requestFormatting(
+                self.file_uri,
+                formatting_options,
+            );
+            defer if (format_edits) |edits| {
+                // Free format edits if they were returned
+                for (edits) |*edit| {
+                    self.allocator.free(edit.new_text);
+                }
+                self.allocator.free(edits);
+            };
+            
+            // Apply format edits if any
+            if (format_edits) |edits| {
+                if (edits.len > 0) {
+                    try self.apply_text_edits(edits);
+                }
+            }
+        }
         
         // Request will save wait until (get text edits before save)
         // Reason: 1 = Manual (user explicitly saved)
