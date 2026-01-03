@@ -52,11 +52,15 @@
 - **Status**: ✅ Already in correct format (kept as-is due to dual purpose)
 - **Last Updated**: 2026-01-02-100345-pst
 
-### Vantage 3 Subcore
-- **Primary Doc**: `docs/core-coordination/vantage_3_subcore_system_integration_coordination.md`
-- **Note**: This document appears to be about Vantage 3b VM Runtime, not the subcore itself
-- **Status**: ⚠️ Needs review - may need to be renamed or split
+### Vantage 3b VM Runtime
+- **Primary Doc**: `docs/core-coordination/vantage_3b_vm_runtime_system_integration.md`
+- **Source**: `vantage_3_subcore_system_integration_coordination.md` (was incorrectly named - about 3b, not subcore)
+- **Status**: ✅ Renamed to correct format
 - **Last Updated**: 2026-01-02-092228-pst
+
+### Vantage 3 Subcore
+- **Primary Doc**: `docs/core-coordination/vantage_3_subcore_system_integration.md`
+- **Status**: ⚠️ Missing - needs to be created
 
 ---
 
