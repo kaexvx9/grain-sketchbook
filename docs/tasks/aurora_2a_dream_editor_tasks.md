@@ -25,10 +25,10 @@
 
 ### Low Priority
 
-- [ ] Code actions (quick fixes, refactorings) — **PLANNED**
-- [ ] Format on save — **PLANNED**
-- [ ] Find references — **PLANNED**
-- [ ] Rename symbol — **PLANNED**
+- [ ] Code actions (quick fixes, refactorings) — **PLANNED** (code actions already implemented, UI integration pending)
+- [x] Format on save — **COMPLETE** (2026-01-03-092842-pst) ✅
+- [x] Find references — **COMPLETE** (already implemented in LSP client) ✅
+- [x] Rename symbol — **COMPLETE** (already implemented in LSP client) ✅
 
 ---
 
