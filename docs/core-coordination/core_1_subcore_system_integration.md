@@ -240,7 +240,7 @@
 - `docs/core-coordination/core_1_subcore_critical_path_tracking_2026-01-02-084500-pst.md` — Critical path tracking
 - `docs/core-coordination/core_1_subcore_critical_path_status_monitor_2026-01-02-090809-pst.md` — Status monitor
 - `docs/core-coordination/core_1_subcore_coordination_plan_2026-01-02-100345-pst.md` — Comprehensive coordination plan
-- `docs/agent-communications/core_1_subcore_coordination_summary_2026-01-02-100345-pst.md` — Coordination summary for distribution
+- `docs/agent-communications/general/coordination/2026-01-02-100345-pst_core_1_subcore_coordination_summary.md` — Coordination summary for distribution
 
 **Status**: Monitoring infrastructure complete, coordination plan and summary ready
 
@@ -875,7 +875,7 @@
 - Focus on solutions ("Let's tackle this next")
 - Remain forward-looking ("Once we fix this, the rest should be straightforward")
 
-**Reference**: `docs/agent-communications/glow_g2_voice_multi_agent_prompt_2026-01-01-235155-pst.md`
+**Reference**: `docs/agent-communications/general/prompts/glow_g2_voice_multi_agent_prompt_2026-01-01-235155-pst.md`
 
 ---
 
@@ -905,8 +905,8 @@
 - **Coordination Plan**: `docs/core-coordination/core_1_subcore_coordination_plan_2026-01-02-100345-pst.md`
 - **Plan**: `docs/plans/core_1_subcore_plan.md`
 - **Tasks**: `docs/tasks/core_1_subcore_tasks.md`
-- **Agent Awareness**: `docs/agent-communications/complete_agent_awareness_all_agents_2026-01-02-002948-pst.md`
-- **Coordination Summary**: `docs/agent-communications/core_1_subcore_coordination_summary_2026-01-02-100345-pst.md`
+- **Agent Awareness**: `docs/agent-communications/general/prompts/2026-01-02-002948-pst_complete_agent_awareness_all_agents_2026-01-02-002948-pst.md`
+- **Coordination Summary**: `docs/agent-communications/general/coordination/2026-01-02-100345-pst_core_1_subcore_coordination_summary.md`
 - **Critical Path Tracking**: `docs/core-coordination/core_1_subcore_critical_path_tracking_2026-01-02-084500-pst.md`
 - **Critical Path Status Monitor**: `docs/core-coordination/core_1_subcore_critical_path_status_monitor_2026-01-02-090809-pst.md`
 - **Independent Work Summary**: `docs/core-coordination/core_1_subcore_independent_work_summary_2026-01-02-011500-pst.md`
