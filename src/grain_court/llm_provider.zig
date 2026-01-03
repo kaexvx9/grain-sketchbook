@@ -111,6 +111,10 @@ pub const LlmErrorContext = struct {
 };
 
 // Check if LLM error is retryable.
+// This function determines whether an error should trigger automatic retry with fallback
+// providers. Retryable errors include timeouts, network issues, rate limits, and provider
+// errors that may be transient. Non-retryable errors (authentication, invalid requests)
+// should not trigger fallback attempts.
 pub fn is_llm_error_retryable(err: LlmProviderError) bool {
     std.debug.assert(@intFromEnum(err) < 15);
     switch (err) {
@@ -132,6 +136,9 @@ pub fn is_llm_error_retryable(err: LlmProviderError) bool {
 }
 
 // Parse Retry-After header value (seconds or HTTP date).
+// Extracts the retry delay from HTTP Retry-After header, converting seconds to milliseconds.
+// Returns null if the header value cannot be parsed. Currently supports numeric seconds
+// format only (HTTP date format support can be added if needed).
 pub fn parse_retry_after_header(value: []const u8) ?u64 {
     std.debug.assert(value.len > 0);
     if (value.len == 0) {
@@ -153,6 +160,9 @@ pub fn parse_retry_after_header(value: []const u8) ?u64 {
 }
 
 // Check HTTP response for rate limiting (429 status).
+// Detects rate limiting responses (HTTP 429) and extracts the retry delay from the
+// Retry-After header. Returns the delay in milliseconds, or a default 60-second delay
+// if no Retry-After header is present. Returns null if the response is not a rate limit.
 pub fn check_rate_limit_response(
     http_resp: *const grain_core.api_server.HttpResponse,
 ) ?u64 {
@@ -174,6 +184,9 @@ pub fn check_rate_limit_response(
 }
 
 // Check if request timed out.
+// Compares elapsed time against the request timeout (or default timeout if not specified).
+// Times are expected to be in nanoseconds. Returns true if the timeout has been exceeded,
+// false otherwise. Used by the provider pool to detect and handle timeout errors.
 pub fn check_request_timeout(
     request: *const LlmRequest,
     start_time: u64,
@@ -426,6 +439,9 @@ pub fn encode_data_to_zon(
 }
 
 // Check if provider supports ZON format.
+// Determines whether a provider natively supports the ZON token-efficient format.
+// Currently, only self-hosted providers support ZON format. Other providers require
+// conversion to JSON. This enables automatic format selection for optimal token usage.
 pub fn provider_supports_zon(provider_type: ProviderType) bool {
     std.debug.assert(@intFromEnum(provider_type) < 4);
     switch (provider_type) {
@@ -437,6 +453,9 @@ pub fn provider_supports_zon(provider_type: ProviderType) bool {
 }
 
 // Convert ZON format to JSON for providers that don't support ZON.
+// Transforms ZON-encoded data to JSON format for providers that require JSON input.
+// This enables using ZON format internally while maintaining compatibility with providers
+// that only accept JSON. The conversion preserves all data types (bool, u32, string, null).
 pub fn convert_zon_to_json(
     zon_data: []const u8,
     allocator: std.mem.Allocator,
@@ -527,6 +546,9 @@ pub fn convert_zon_to_json(
 }
 
 // Automatically encode LLM request data to ZON format if provider supports it.
+// This function intelligently encodes request data to ZON format when the provider
+// supports it, enabling 35-70% token reduction. For providers that don't support ZON,
+// the request remains in standard format. This optimization is transparent to the caller.
 pub fn auto_encode_request_to_zon(
     request: *LlmRequest,
     data: []const struct { key: []const u8, value: zon_format.ZonValue },
