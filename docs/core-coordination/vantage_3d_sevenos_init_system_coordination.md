@@ -358,20 +358,28 @@
 
 ### ⏳ VM Runtime Agent (3b)
 
-**Status**: ⏳ **NOT YET COORDINATED**  
-**Coordination Needed**: Future (Phase 7)
+**Status**: ⏳ **COORDINATION PENDING**  
+**Coordination Needed**: After Phase 5 (testing integration), then Phase 7 (production integration)
 
 **What Needs Coordination**:
-- JIT compilation integration for service binaries
-- VM memory management for service processes
-- Execution environment setup
+- **Testing Integration (After Phase 5)**: Test init system with VM Runtime, verify service execution in VM
+- **Production Integration (Phase 7)**: JIT compilation integration for service binaries, VM memory management, execution environment setup
 
 **Current Status**: 
 - Not blocking current work
-- Will coordinate when ready for Basin Kernel integration
+- Phase 5 (process execution) must complete first (1-2 weeks timeline)
+- Will coordinate when Phase 5 is complete for testing integration
+- Production integration coordination will happen in Phase 7
+
+**Timeline**:
+- ⏳ **After Phase 5 (1-2 weeks)**: Ready for testing integration coordination
+- ⏳ **Phase 7 (Future)**: Ready for production integration coordination
+
+**Status Update for 3b**: See `docs/core-coordination/vantage_3d_sevenos_init_system_status_for_3b_2026-01-02-093500-pst.md` for detailed timeline
 
 **Next Steps**: 
-- Coordinate before Phase 7 (Basin Kernel Integration)
+- Coordinate after Phase 5 complete (1-2 weeks) for testing integration
+- Coordinate before Phase 7 for production integration
 
 ---
 

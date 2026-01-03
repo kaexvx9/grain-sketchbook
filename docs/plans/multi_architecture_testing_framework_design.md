@@ -193,11 +193,13 @@ pub fn requires_jit(arch: TestArchitecture) bool {
    - Architecture-agnostic test setup/teardown
    - Cross-architecture test utilities
    - Test result aggregation
+   - **Design Expanded** (2026-01-02-100345-pst) — Detailed implementation design complete
 
 3. **Test Runner** (`src/test_framework/runner.zig`)
    - Multi-architecture test execution
    - Test result reporting
    - Architecture-specific test filtering
+   - **Design Expanded** (2026-01-02-100345-pst) — Detailed implementation design complete
 
 4. **Integration Test Adapter** (`src/test_framework/integration_adapter.zig`)
    - Adapt existing 44 integration tests for multi-arch
@@ -605,10 +607,10 @@ pub fn detect_test_architecture() TestArchitecture {
 **Tasks**:
 - [x] Create framework design document
 - [x] Design architecture abstraction layer (architecture detection expanded with CPUID-based vendor detection)
-- [ ] Design test helpers
-- [ ] Design test runner
-- [ ] Design integration test adapter
-- [ ] Design test result aggregation
+- [x] Design test helpers (expanded with detailed implementation — `docs/plans/test_helpers_implementation_design.md`)
+- [x] Design test runner (expanded with detailed implementation — `docs/plans/test_runner_implementation_design.md`)
+- [x] Design integration test adapter (expanded with detailed implementation — `docs/plans/integration_test_adapter_implementation_design.md`)
+- [x] Design test result aggregation (included in test runner design)
 
 **Deliverables**:
 - Framework design document (this document)

@@ -97,6 +97,13 @@ pub const BasinKernel = struct {
     /// Note: Invalid entries have index = MAX_HANDLES.
     handle_id_to_index: [MAX_HANDLES]u32 = [_]u32{MAX_HANDLES} ** MAX_HANDLES,
     
+    /// Mapping address to index hash table (optimization).
+    /// Why: O(1) mapping lookup instead of O(n) linear search.
+    /// Grain Style: Static allocation, bounded array size.
+    /// Note: Invalid entries have index = MAX_MAPPINGS.
+    /// Hash function: address % MAX_MAPPINGS (page-aligned addresses provide good distribution).
+    mapping_addr_to_index: [MAX_MAPPINGS]u32 = [_]u32{MAX_MAPPINGS} ** MAX_MAPPINGS,
+    
     /// Directory handle table (static allocation).
     /// Why: Track directory handles for opendir/readdir/closedir syscalls.
     /// Grain Style: Static allocation, max 32 entries.

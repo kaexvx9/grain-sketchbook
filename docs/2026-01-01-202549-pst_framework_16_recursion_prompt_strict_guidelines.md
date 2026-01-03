@@ -132,7 +132,7 @@ tell them to continue the next phase of implementation and when they're done upd
 
 **Required Actions**:
 1. **Create coordination plan document**:
-   - Filename: `docs/core-coordination/YYYY-MM-DD-HHMMSS-pst_core_1_subcore_coordination_plan.md` (timestamp prefix format)
+   - Filename: `docs/core-coordination/core_1_subcore_coordination_plan_YYYY-MM-DD-HHMMSS-pst.md`
    - Include comprehensive status of all agents and sub-agents
    - Include previous next steps verification
    - Include new immediate next steps
@@ -164,7 +164,7 @@ tell them to continue the next phase of implementation and when they're done upd
 
 **Required Actions**:
 1. **Create summary document**:
-   - Filename: `docs/agent-communications/core_1_subcore_coordination_summary_YYYY-MM-DD-HHMMSS-pst.md`
+   - Filename: `docs/agent-communications/YYYY-MM-DD-HHMMSS-pst_core_1_subcore_coordination_summary.md` (timestamp prefix format)
    - Agent name: "Core 1 Subcore Agent"
    - Timestamp in header
 
@@ -413,7 +413,9 @@ TZ=America/Los_Angeles date +"%Y-%m-%d-%H%M%S-pst"
 
 **Format**:
 ```
-agent_name: brief_description_YYYY-MM-DD-HHMMSS-pst
+agent_name: brief_description
+
+YYYY-MM-DD-HHMMSS-pst (timestamp in commit message body, not filename)
 
 previous next steps completed:
 - [list completed items]
@@ -436,7 +438,9 @@ all agents instructed to:
 
 **Example**:
 ```
-core_1_subcore: coordination plan and summary for all agents 2026-01-01-202549-pst
+core_1_subcore: coordination plan and summary for all agents
+
+2026-01-01-202549-pst (timestamp in commit message body)
 
 previous next steps completed:
 - core 1 subcore plan and tasks documents created

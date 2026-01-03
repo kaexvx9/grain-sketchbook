@@ -1727,6 +1727,11 @@ pub const JitContext = struct {
     /// Why: Load 64-bit value from memory (RISC-V load instructions).
     /// Contract: Loads value from memory address into register.
     /// GrainStyle: Explicit instruction encoding, deterministic behavior.
+    /// Emit load from guest RAM (x86_64): mov r64, [r13+offset].
+    /// Why: Load value from guest RAM using R13 base pointer.
+    /// Contract: Loads from [r13 + offset] where r13 = guest_ram base.
+    /// GrainStyle: Explicit instruction encoding, deterministic behavior.
+    /// Note: R13 is set by enter_jit_x86_64() to point to guest_ram.
     pub fn emit_ldr_x86_64(self: *JitContext, rt: u5, base: u5, offset: i32) void {
         std.debug.assert(self.cursor + 7 <= self.code_buffer.len);
         const start_cursor = self.cursor;
@@ -1737,13 +1742,15 @@ pub const JitContext = struct {
         // MOV opcode: 0x8B (mov r64, r/m64).
         self.emit_u8_x86_64(0x8B);
         
-        // ModR/M: mod=10 (base+offset), reg=rt (destination), r/m=base (base register).
+        // ModR/M: mod=10 (base+offset), reg=rt (destination), r/m=5 (R13).
+        // R13 (0b101) is the guest_ram base pointer.
         const mod: u2 = 0b10; // Base+offset mode
         const reg: u3 = map_riscv_to_x86_64_reg(rt); // Destination register
-        const rm_field: u3 = map_riscv_to_x86_64_reg(base); // Base register
+        const rm_field: u3 = 0b101; // R13 (guest_ram base pointer)
         self.emit_modrm_x86_64(mod, reg, rm_field);
         
         // 32-bit signed offset (little-endian).
+        // Offset is the translated physical offset within guest_ram.
         const offset_u32: u32 = @bitCast(offset);
         std.mem.writeInt(u32, self.code_buffer[self.cursor..][0..4], offset_u32, .little);
         self.cursor += 4;
@@ -1751,10 +1758,11 @@ pub const JitContext = struct {
         std.debug.assert(self.cursor == start_cursor + 7);
     }
 
-    /// Emit MOV to memory (x86_64): mov [base+offset], r64.
-    /// Why: Store 64-bit value to memory (RISC-V store instructions).
-    /// Contract: Stores register value to memory address.
+    /// Emit store to guest RAM (x86_64): mov [r13+offset], r64.
+    /// Why: Store value to guest RAM using R13 base pointer.
+    /// Contract: Stores to [r13 + offset] where r13 = guest_ram base.
     /// GrainStyle: Explicit instruction encoding, deterministic behavior.
+    /// Note: R13 is set by enter_jit_x86_64() to point to guest_ram.
     pub fn emit_str_x86_64(self: *JitContext, rt: u5, base: u5, offset: i32) void {
         std.debug.assert(self.cursor + 7 <= self.code_buffer.len);
         const start_cursor = self.cursor;
@@ -1765,18 +1773,87 @@ pub const JitContext = struct {
         // MOV opcode: 0x89 (mov r/m64, r64).
         self.emit_u8_x86_64(0x89);
         
-        // ModR/M: mod=10 (base+offset), reg=rt (source), r/m=base (base register).
+        // ModR/M: mod=10 (base+offset), reg=rt (source), r/m=5 (R13).
+        // R13 (0b101) is the guest_ram base pointer.
         const mod: u2 = 0b10; // Base+offset mode
         const reg: u3 = map_riscv_to_x86_64_reg(rt); // Source register
-        const rm_field: u3 = map_riscv_to_x86_64_reg(base); // Base register
+        const rm_field: u3 = 0b101; // R13 (guest_ram base pointer)
         self.emit_modrm_x86_64(mod, reg, rm_field);
         
         // 32-bit signed offset (little-endian).
+        // Offset is the translated physical offset within guest_ram.
         const offset_u32: u32 = @bitCast(offset);
         std.mem.writeInt(u32, self.code_buffer[self.cursor..][0..4], offset_u32, .little);
         self.cursor += 4;
         
         std.debug.assert(self.cursor == start_cursor + 7);
+    }
+
+    /// Emit load from guest RAM using SIB encoding (x86_64): mov r64, [r13 + offset_reg].
+    /// Why: Load from guest RAM using R13 base + offset register.
+    /// Contract: Loads from [r13 + offset_reg] where r13 = guest_ram base.
+    /// GrainStyle: Explicit SIB encoding, deterministic behavior.
+    /// Note: Uses SIB (Scale-Index-Base) encoding: [r13 + offset_reg*1 + 0].
+    fn emit_ldr_from_guest_ram_x86_64(self: *JitContext, rt: u5, offset_reg: u5) void {
+        std.debug.assert(self.cursor + 8 <= self.code_buffer.len);
+        const start_cursor = self.cursor;
+        
+        // REX.W prefix (64-bit operation).
+        // REX.B=1 if offset_reg >= 8, REX.X=1 if index >= 8, REX.R=1 if rt >= 8.
+        const rex_b: bool = offset_reg >= 8;
+        const rex_r: bool = map_riscv_to_x86_64_reg(rt) >= 8;
+        self.emit_rex_x86_64(true, rex_r, false, rex_b);
+        
+        // MOV opcode: 0x8B (mov r64, r/m64).
+        self.emit_u8_x86_64(0x8B);
+        
+        // ModR/M: mod=00 (no displacement), reg=rt (destination), r/m=100 (SIB required).
+        const mod: u2 = 0b00; // No displacement
+        const reg: u3 = map_riscv_to_x86_64_reg(rt); // Destination register
+        const rm_field: u3 = 0b100; // SIB byte required
+        self.emit_modrm_x86_64(mod, reg, rm_field);
+        
+        // SIB byte: scale=00 (1x), index=offset_reg, base=r13 (0b101).
+        const scale: u2 = 0b00; // 1x scale
+        const index: u3 = map_riscv_to_x86_64_reg(offset_reg); // Index register
+        const base: u3 = 0b101; // R13 (guest_ram base pointer)
+        const sib: u8 = (@as(u8, scale) << 6) | (@as(u8, index) << 3) | @as(u8, base);
+        self.emit_u8_x86_64(sib);
+        
+        std.debug.assert(self.cursor == start_cursor + 8);
+    }
+
+    /// Emit store to guest RAM using SIB encoding (x86_64): mov [r13 + offset_reg], r64.
+    /// Why: Store to guest RAM using R13 base + offset register.
+    /// Contract: Stores to [r13 + offset_reg] where r13 = guest_ram base.
+    /// GrainStyle: Explicit SIB encoding, deterministic behavior.
+    /// Note: Uses SIB (Scale-Index-Base) encoding: [r13 + offset_reg*1 + 0].
+    fn emit_str_to_guest_ram_x86_64(self: *JitContext, rt: u5, offset_reg: u5) void {
+        std.debug.assert(self.cursor + 8 <= self.code_buffer.len);
+        const start_cursor = self.cursor;
+        
+        // REX.W prefix (64-bit operation).
+        const rex_b: bool = offset_reg >= 8;
+        const rex_r: bool = map_riscv_to_x86_64_reg(rt) >= 8;
+        self.emit_rex_x86_64(true, rex_r, false, rex_b);
+        
+        // MOV opcode: 0x89 (mov r/m64, r64).
+        self.emit_u8_x86_64(0x89);
+        
+        // ModR/M: mod=00 (no displacement), reg=rt (source), r/m=100 (SIB required).
+        const mod: u2 = 0b00; // No displacement
+        const reg: u3 = map_riscv_to_x86_64_reg(rt); // Source register
+        const rm_field: u3 = 0b100; // SIB byte required
+        self.emit_modrm_x86_64(mod, reg, rm_field);
+        
+        // SIB byte: scale=00 (1x), index=offset_reg, base=r13 (0b101).
+        const scale: u2 = 0b00; // 1x scale
+        const index: u3 = map_riscv_to_x86_64_reg(offset_reg); // Index register
+        const base: u3 = 0b101; // R13 (guest_ram base pointer)
+        const sib: u8 = (@as(u8, scale) << 6) | (@as(u8, index) << 3) | @as(u8, base);
+        self.emit_u8_x86_64(sib);
+        
+        std.debug.assert(self.cursor == start_cursor + 8);
     }
 
     /// Emit MOV register to register (x86_64): mov r64, r/m64.
@@ -2043,13 +2120,83 @@ pub const JitContext = struct {
     /// Why: Convert guest virtual address to host physical offset.
     /// Contract: Translates address in register to physical offset.
     /// GrainStyle: Explicit address translation, deterministic behavior.
-    /// Note: Simplified translation (direct mapping for now).
+    /// Note: Implements same translation logic as ARM64 version.
     fn emit_translate_address_x86_64(self: *JitContext, addr_reg: u5) void {
-        // For now, use direct mapping (guest address = physical offset).
-        // This will be enhanced with proper MMU translation later.
-        _ = self;
-        _ = addr_reg;
-        // No-op for now (address already in correct format).
+        std.debug.assert(addr_reg < 32);
+        
+        // Use temporary registers (reg 2, 3, 4 for x86_64).
+        const tmp1: u5 = 2;
+        const tmp2: u5 = 3;
+        const tmp3: u5 = 4;
+        
+        const KERNEL_BASE: u64 = 0x80000000;
+        const FRAMEBUFFER_BASE: u64 = 0x90000000;
+        
+        // Check if address >= FRAMEBUFFER_BASE (0x90000000)
+        self.emit_mov_imm64_x86_64(tmp1, FRAMEBUFFER_BASE);
+        self.emit_cmp_x86_64(addr_reg, tmp1); // Compare addr_reg with tmp1
+        
+        // If addr >= 0x90000000, jump to framebuffer translation.
+        // Use JAE (jump if above or equal, unsigned) - condition 0x2.
+        const framebuffer_jump_pos = self.cursor;
+        self.emit_jcc_x86_64(0x2, 0); // JAE (will patch offset later)
+        
+        // Check if address >= KERNEL_BASE (0x80000000)
+        self.emit_mov_imm64_x86_64(tmp1, KERNEL_BASE);
+        self.emit_cmp_x86_64(addr_reg, tmp1);
+        
+        // If addr >= 0x80000000, jump to kernel translation.
+        const kernel_jump_pos = self.cursor;
+        self.emit_jcc_x86_64(0x2, 0); // JAE (will patch offset later)
+        
+        // Low memory: direct mapping (addr_reg already contains offset)
+        const done_jump_pos = self.cursor;
+        self.emit_jmp_x86_64(0); // Will patch offset later
+        
+        // Framebuffer translation: offset = memory_size - framebuffer_size + (addr - 0x90000000)
+        const framebuffer_code_start = self.cursor;
+        // tmp2 = addr - 0x90000000
+        self.emit_mov_imm64_x86_64(tmp1, FRAMEBUFFER_BASE);
+        self.emit_sub_x86_64(tmp2, addr_reg, tmp1);
+        // tmp1 = memory_size - framebuffer_size
+        self.emit_mov_imm64_x86_64(tmp1, self.memory_size);
+        self.emit_mov_imm64_x86_64(tmp3, @as(u64, self.framebuffer_size));
+        self.emit_sub_x86_64(tmp1, tmp1, tmp3);
+        // addr_reg = (memory_size - framebuffer_size) + (addr - 0x90000000)
+        self.emit_add_x86_64(addr_reg, tmp1, tmp2);
+        const framebuffer_done_jump = self.cursor;
+        self.emit_jmp_x86_64(0); // Will patch offset later
+        
+        // Kernel translation: offset = addr - 0x80000000
+        const kernel_code_start = self.cursor;
+        self.emit_mov_imm64_x86_64(tmp1, KERNEL_BASE);
+        self.emit_sub_x86_64(addr_reg, addr_reg, tmp1); // addr_reg = addr - 0x80000000
+        const kernel_done_jump = self.cursor;
+        self.emit_jmp_x86_64(0); // Will patch offset later
+        
+        // Done label
+        const done_code_start = self.cursor;
+        
+        // Patch jump offsets (relative to instruction after jump).
+        // Framebuffer jump: from framebuffer_jump_pos to framebuffer_code_start
+        const fb_offset: i32 = @intCast(@as(i64, framebuffer_code_start) - @as(i64, framebuffer_jump_pos) - 6);
+        self.patch_jcc_x86_64(framebuffer_jump_pos, fb_offset);
+        
+        // Kernel jump: from kernel_jump_pos to kernel_code_start
+        const kernel_offset: i32 = @intCast(@as(i64, kernel_code_start) - @as(i64, kernel_jump_pos) - 6);
+        self.patch_jcc_x86_64(kernel_jump_pos, kernel_offset);
+        
+        // Done jump: from done_jump_pos to done_code_start
+        const done_offset: i32 = @intCast(@as(i64, done_code_start) - @as(i64, done_jump_pos) - 5);
+        self.patch_jmp_x86_64(done_jump_pos, done_offset);
+        
+        // Framebuffer done jump: from framebuffer_done_jump to done_code_start
+        const fb_done_offset: i32 = @intCast(@as(i64, done_code_start) - @as(i64, framebuffer_done_jump) - 5);
+        self.patch_jmp_x86_64(framebuffer_done_jump, fb_done_offset);
+        
+        // Kernel done jump: from kernel_done_jump to done_code_start
+        const kernel_done_offset: i32 = @intCast(@as(i64, done_code_start) - @as(i64, kernel_done_jump) - 5);
+        self.patch_jmp_x86_64(kernel_done_jump, kernel_done_offset);
     }
 
     /// Compile block using x86_64 backend.
@@ -2287,14 +2434,27 @@ pub const JitContext = struct {
     /// Translate load instruction (x86_64): LB, LH, LW, LD.
     /// Why: Load value from memory to register.
     /// GrainStyle: Explicit instruction mapping, deterministic behavior.
+    /// Note: Uses R13 (guest_ram base pointer) set by enter_jit_x86_64().
     fn translate_load_x86_64(self: *JitContext, inst: Instruction) !void {
         // Load base register from guest state.
         self.emit_ldr_from_state_x86_64(1, inst.rs1); // reg 1 = base address
         
         // Calculate address: base + offset.
         const offset: i32 = inst.imm;
-        // For now, use direct memory access (will add address translation later).
-        self.emit_ldr_x86_64(0, 1, offset); // reg 0 = [reg1 + offset]
+        if (offset != 0) {
+            self.emit_mov_imm64_x86_64(2, @bitCast(@as(i64, offset)));
+            self.emit_add_x86_64(1, 1, 2); // reg 1 = base + offset
+        }
+        
+        // Translate virtual address to physical offset.
+        self.emit_translate_address_x86_64(1); // reg 1 = physical offset
+        
+        // Load from guest RAM: reg 0 = [r13 + reg1]
+        // R13 is guest_ram base pointer (set by enter_jit_x86_64()).
+        // Use SIB (Scale-Index-Base) encoding: [r13 + r1*1 + 0]
+        // ModR/M: mod=00 (no displacement), reg=rt (destination), r/m=100 (SIB)
+        // SIB: scale=00 (1x), index=r1, base=r13 (0b101)
+        self.emit_ldr_from_guest_ram_x86_64(0, 1); // reg 0 = [r13 + reg1]
         
         // Store result to guest register.
         self.emit_str_to_state_x86_64(0, inst.rd);
@@ -2303,6 +2463,7 @@ pub const JitContext = struct {
     /// Translate store instruction (x86_64): SB, SH, SW, SD.
     /// Why: Store value from register to memory.
     /// GrainStyle: Explicit instruction mapping, deterministic behavior.
+    /// Note: Address translation implemented, but guest_ram pointer access needs coordination.
     fn translate_store_x86_64(self: *JitContext, inst: Instruction) !void {
         // Load base register and value from guest state.
         self.emit_ldr_from_state_x86_64(1, inst.rs1); // reg 1 = base address
@@ -2310,8 +2471,18 @@ pub const JitContext = struct {
         
         // Calculate address: base + offset.
         const offset: i32 = inst.imm;
-        // For now, use direct memory access (will add address translation later).
-        self.emit_str_x86_64(0, 1, offset); // [reg1 + offset] = reg0
+        if (offset != 0) {
+            self.emit_mov_imm64_x86_64(2, @bitCast(@as(i64, offset)));
+            self.emit_add_x86_64(1, 1, 2); // reg 1 = base + offset
+        }
+        
+        // Translate virtual address to physical offset.
+        self.emit_translate_address_x86_64(1); // reg 1 = physical offset
+        
+        // Store to guest RAM: [r13 + reg1] = reg0
+        // R13 is guest_ram base pointer (set by enter_jit_x86_64()).
+        // Use SIB encoding: [r13 + r1*1 + 0]
+        self.emit_str_to_guest_ram_x86_64(0, 1); // [r13 + reg1] = reg0
     }
 
     /// Translate branch instruction (x86_64): BEQ, BNE, BLT, etc.
@@ -2396,12 +2567,15 @@ pub const JitContext = struct {
         self.emit_mov_imm64_x86_64(1, @bitCast(@as(i64, offset)));
         self.emit_add_x86_64(0, 0, 1); // reg 0 = rs1 + imm
         
-        // Clear low bit (RISC-V JALR requirement).
-        self.emit_mov_imm64_x86_64(1, 0xFFFFFFFFFFFFFFFE);
-        self.emit_and_x86_64(0, 0, 1); // reg 0 = (rs1 + imm) & ~1
+        // Clear low bit (RISC-V JALR requirement: target must be 2-byte aligned).
+        // Note: We clear bottom 2 bits for 4-byte alignment (instruction alignment).
+        self.emit_mov_imm64_x86_64(1, 0xFFFFFFFFFFFFFFFC); // ~3 (clear bottom 2 bits)
+        self.emit_and_x86_64(0, 0, 1); // reg 0 = (rs1 + imm) & ~3
         
-        // Jump to target (will implement proper indirect jump later).
-        // For now, this is a placeholder.
+        // Jump to target using indirect jump.
+        // Note: Target address is computed at runtime, so we can't chain blocks ahead of time.
+        // Future optimization: Could check block cache at runtime and chain if target exists.
+        self.emit_jmp_indirect_x86_64(0); // Jump to address in reg 0
     }
 
     /// Translate a single instruction to ARM64 code.
@@ -2755,6 +2929,10 @@ pub const JitContext = struct {
         try file.writeAll(self.code_buffer[0..self.cursor]);
     }
 
+    /// Enter JIT-compiled code (ARM64).
+    /// Why: Bridge between host and JIT-compiled code for ARM64.
+    /// Contract: Passes GuestState and guest_ram pointer to compiled function.
+    /// GrainStyle: Explicit register allocation, deterministic behavior.
     pub fn enter_jit(code: *const anyopaque, state: *GuestState, mem_base: [*]u8) void {
         asm volatile (
             \\  mov x28, %[state]
@@ -2765,6 +2943,52 @@ pub const JitContext = struct {
               [state] "r" (state),
               [mem_base] "r" (mem_base),
             : .{ .x27 = true, .x28 = true, .x30 = true, .memory = true });
+    }
+
+    /// Enter JIT-compiled code (x86_64).
+    /// Why: Bridge between host and JIT-compiled code for x86_64.
+    /// Contract: Passes GuestState (RDI) and guest_ram pointer (R13) to compiled function.
+    /// GrainStyle: Explicit register allocation, deterministic behavior.
+    /// Note: R13 is callee-saved, matching ARM64's x27 approach.
+    pub fn enter_jit_x86_64(
+        code: *const anyopaque,
+        state: *GuestState,
+        mem_base: [*]u8,
+    ) void {
+        asm volatile (
+            \\  mov %[mem_base], %%r13
+            \\  jmp %[code]
+            :
+            : [code] "r" (code),
+              [state] "{rdi}" (state),
+              [mem_base] "r" (mem_base),
+            : .{ .r13 = true, .memory = true });
+    }
+
+    /// Patch conditional jump instruction (x86_64).
+    /// Why: Patch Jcc instruction with correct offset.
+    /// Contract: Patches offset in Jcc instruction at position.
+    /// GrainStyle: Explicit patch handling, deterministic behavior.
+    fn patch_jcc_x86_64(self: *JitContext, pos: u32, offset: i32) void {
+        std.debug.assert(pos + 6 <= self.code_buffer.len);
+        // Jcc instruction: 0x0F 0x8X (6 bytes total)
+        // Offset is relative to instruction after jump (6 bytes).
+        const relative_offset: i32 = offset;
+        const offset_u32: u32 = @bitCast(relative_offset);
+        std.mem.writeInt(u32, self.code_buffer[pos + 2..][0..4], offset_u32, .little);
+    }
+
+    /// Patch unconditional jump instruction (x86_64).
+    /// Why: Patch JMP instruction with correct offset.
+    /// Contract: Patches offset in JMP instruction at position.
+    /// GrainStyle: Explicit patch handling, deterministic behavior.
+    fn patch_jmp_x86_64(self: *JitContext, pos: u32, offset: i32) void {
+        std.debug.assert(pos + 5 <= self.code_buffer.len);
+        // JMP instruction: 0xE9 (5 bytes total)
+        // Offset is relative to instruction after jump (5 bytes).
+        const relative_offset: i32 = offset;
+        const offset_u32: u32 = @bitCast(relative_offset);
+        std.mem.writeInt(u32, self.code_buffer[pos + 1..][0..4], offset_u32, .little);
     }
 };
 

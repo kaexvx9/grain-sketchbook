@@ -670,7 +670,15 @@ pub const VM = struct {
         
         // Execute JIT code (measure execution time).
         const exec_start = std.time.nanoTimestamp();
-        jit_mod.JitContext.enter_jit(func, &guest_state, &self.memory);
+        // Use architecture-specific enter function.
+        if (builtin.cpu.arch == .x86_64) {
+            jit_mod.JitContext.enter_jit_x86_64(func, &guest_state, self.memory.ptr);
+        } else if (builtin.cpu.arch == .aarch64) {
+            jit_mod.JitContext.enter_jit(func, &guest_state, self.memory.ptr);
+        } else {
+            // Unsupported architecture: fall back to interpreter.
+            return self.step();
+        }
         const exec_end = std.time.nanoTimestamp();
         const exec_time: i64 = exec_end - exec_start;
         if (exec_time > 0) {
