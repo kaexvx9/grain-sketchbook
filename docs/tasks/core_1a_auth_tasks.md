@@ -468,7 +468,7 @@
 #### 1. Attend Middleware API Contract Design Session (MEDIUM PRIORITY)
 - [ ] Await Core 1 Subcore scheduling of middleware API contract design session
 - [ ] Review middleware integration design: `docs/core-coordination/core_1a_auth_middleware_integration_design_2026-01-02-003955-pst.md`
-- [ ] Review middleware readiness response: `docs/agent-communications/core_1a_auth_middleware_readiness_response_2026-01-01-085326-pst.md`
+- [ ] Review middleware readiness response: `docs/agent-communications/l2-subagents/core_1/1a_auth/communications/core_1a_auth_middleware_readiness_response_2026-01-01-085326-pst.md`
 - [ ] Participate in API contract design with Network Agent (1b)
 - [ ] Agree on middleware API contracts
 - [ ] Confirm middleware execution patterns

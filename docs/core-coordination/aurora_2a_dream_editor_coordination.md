@@ -540,7 +540,7 @@ Dream Editor Agent acknowledges the single-threaded dependency chain priority re
 - ✅ **Not block critical path agents** — Work independently
 
 **Coordination Summary Document**:
-- `docs/agent-communications/core_1_subcore_coordination_summary_2026-01-02-083246-pst.md`
+- `docs/agent-communications/general/coordination/2026-01-02-083246-pst_core_1_subcore_coordination_summary_2026-01-02-083246-pst.md`
 
 ---
 
@@ -591,7 +591,7 @@ Dream Editor Agent acknowledges the Framework 16 recursion prompt strict guideli
 Dream Editor Agent acknowledges the complete agent awareness document from Core 1 Subcore. The document provides comprehensive awareness of all 24 agents/sub-agents (12 L1 agents + 12 L2 sub-agents) in the Grain OS ecosystem.
 
 **Agent Awareness Document**:
-- `docs/agent-communications/complete_agent_awareness_all_agents_2026-01-02-002948-pst.md`
+- `docs/agent-communications/general/prompts/2026-01-02-002948-pst_complete_agent_awareness_all_agents_2026-01-02-002948-pst.md`
 
 **Aurora 2a Dream Editor Agent Status** (as documented):
 - **Number**: 2a

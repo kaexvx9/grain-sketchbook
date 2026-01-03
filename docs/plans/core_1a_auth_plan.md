@@ -544,7 +544,7 @@ Grain Auth Agent is responsible for implementing **authentication and authorizat
 
 1. **Facilitate API Contract Design Session** (This Week):
    - [ ] Coordinate meeting between Auth Agent (1a) and Network Agent (1b)
-   - [ ] Review middleware readiness response: `docs/agent-communications/core_1a_auth_middleware_readiness_response_2026-01-01-085326-pst.md`
+   - [ ] Review middleware readiness response: `docs/agent-communications/l2-subagents/core_1/1a_auth/communications/core_1a_auth_middleware_readiness_response_2026-01-01-085326-pst.md`
    - [ ] Facilitate agreement on middleware API contracts
    - [ ] Confirm middleware execution patterns
    - [ ] Confirm request context structure

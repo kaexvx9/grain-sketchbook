@@ -407,10 +407,10 @@ All core phases complete and ready for production use:
 
 **Review Integration Documentation**:
 - Review User Storage Helper (`src/grain_database/user_storage.zig`)
-- Review API contracts (`docs/agent-communications/silo_agent_database_api_contracts_2025-12-21-143409-pst.md`)
-- Review endpoint paths confirmation (`docs/agent-communications/silo_agent_endpoint_paths_confirmation_2025-12-29-044000-pst.md`) (NEW)
+- Review API contracts (`docs/agent-communications/l1-standalone/7_silo/communications/2025-12-21-143409-pst_silo_agent_database_api_contracts.md`)
+- Review endpoint paths confirmation (`docs/agent-communications/l1-standalone/7_silo/communications/2025-12-29-044000-pst_silo_agent_endpoint_paths_confirmation.md`)
 - Review HTTP Client Integration section in API contracts
-- Review error types documentation (`docs/agent-communications/silo_agent_error_types_documentation_2025-12-23-210329-pst.md`)
+- Review error types documentation (`docs/agent-communications/l1-standalone/7_silo/communications/2025-12-23-210329-pst_silo_agent_error_types_documentation.md`)
 - Review circuit breaker pattern guide (`docs/grain_database/circuit_breaker_pattern.md`)
 
 **Check-In Status**: ⏳ **ONGOING** — Carry Agent coordinating on database API integration details
@@ -420,11 +420,11 @@ All core phases complete and ready for production use:
 
 **Key Resources**:
 - User Storage Helper: `src/grain_database/user_storage.zig`
-- API Contracts: `docs/agent-communications/silo_agent_database_api_contracts_2025-12-21-143409-pst.md`
-- Endpoint Paths Confirmation: `docs/agent-communications/silo_agent_endpoint_paths_confirmation_2025-12-29-044000-pst.md` (NEW)
-- Error Types: `docs/agent-communications/silo_agent_error_types_documentation_2025-12-23-210329-pst.md`
+- API Contracts: `docs/agent-communications/l1-standalone/7_silo/communications/2025-12-21-143409-pst_silo_agent_database_api_contracts.md`
+- Endpoint Paths Confirmation: `docs/agent-communications/l1-standalone/7_silo/communications/2025-12-29-044000-pst_silo_agent_endpoint_paths_confirmation.md`
+- Error Types: `docs/agent-communications/l1-standalone/7_silo/communications/2025-12-23-210329-pst_silo_agent_error_types_documentation.md`
 - Circuit Breaker: `docs/grain_database/circuit_breaker_pattern.md`
-- Integration Response: `docs/agent-communications/silo_agent_carry_integration_response_2025-12-23-194454-pst.md`
+- Integration Response: `docs/agent-communications/l1-standalone/7_silo/communications/2025-12-23-194454-pst_silo_agent_carry_integration_response.md`
 - Auth Service: `src/grain_core/auth_service.zig`
 - Async Pattern: `src/grain_core/async_pattern.zig`
 
@@ -1063,16 +1063,14 @@ All core phases complete and ready for production use:
 ## Key Resources
 
 ### Documentation
-- **API Contracts**: `docs/agent-communications/silo_agent_database_api_contracts_2025-12-21-143409-pst.md`
-- **Error Types**: `docs/agent-communications/silo_agent_error_types_documentation_2025-12-23-210329-pst.md`
+- **API Contracts**: `docs/agent-communications/l1-standalone/7_silo/communications/2025-12-21-143409-pst_silo_agent_database_api_contracts.md`
+- **Error Types**: `docs/agent-communications/l1-standalone/7_silo/communications/2025-12-23-210329-pst_silo_agent_error_types_documentation.md`
 - **Circuit Breaker Pattern**: `docs/grain_database/circuit_breaker_pattern.md`
 - **Payment/Vault/Bank Storage Schema**: `docs/grain_database/payment_vault_storage_schema.md`
 - **Payment/Vault/Bank Design**: `docs/zyx/grain_payment_vault_design_2025-12-28-213448-pst.md`
-- **Integration Response (Carry)**: `docs/agent-communications/silo_agent_carry_integration_response_2025-12-23-194454-pst.md`
-- **Endpoint Paths Confirmation (Carry)**: `docs/agent-communications/silo_agent_endpoint_paths_confirmation_2025-12-29-044000-pst.md` (NEW)
-- **Coordination Readiness**: `docs/agent-communications/silo_agent_coordination_readiness_2025-12-29-042000-pst.md`
-- **Core Agent Coordination Plan (JG)**: `docs/agent-communications/core_agent_coordination_plan_2025-12-29-152539-pst.md` (NEW)
-- **Core Agent Summary (JG)**: `docs/agent-communications/core_agent_coordination_summary_2025-12-29-152539-pst.md` (NEW)
+- **Integration Response (Carry)**: `docs/agent-communications/l1-standalone/7_silo/communications/2025-12-23-194454-pst_silo_agent_carry_integration_response.md`
+- **Endpoint Paths Confirmation (Carry)**: `docs/agent-communications/l1-standalone/7_silo/communications/2025-12-29-044000-pst_silo_agent_endpoint_paths_confirmation.md`
+- **Coordination Readiness**: `docs/agent-communications/l1-standalone/7_silo/communications/2025-12-29-042000-pst_silo_agent_coordination_readiness.md`
 - **JG Project Design**: `docs/zyx/grainbank_mmt_job_guarantee_housing_program_2025-12-28-232324-pst.md`
 
 ### Source Code
