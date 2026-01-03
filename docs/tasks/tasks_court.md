@@ -1,3 +1,11 @@
+> **⚠️ DEPRECATED**: This document is deprecated as of 2026-01-03-052745-pst.
+> 
+> **Replacement**: This document should be replaced with a new-format document when the agent creates it.
+> 
+> **New Location**: This document will be archived to `archaeology/docs/tasks/legacy/` once the new-format document is created.
+> 
+> **Status**: Deprecated — Do not use for new work. Agent should create new-format document.
+
 # Grain Court Agent: Tasks
 
 **Agent**: Grain Court Agent (11th Agent)  

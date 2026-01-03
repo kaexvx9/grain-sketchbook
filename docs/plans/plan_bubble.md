@@ -1,3 +1,11 @@
+> **⚠️ DEPRECATED**: This document is deprecated as of 2026-01-03-052745-pst.
+> 
+> **Replacement**: This document should be replaced with `docs/plans/bubble_agent_plan.md` when the Bubble Agent creates it.
+> 
+> **New Location**: This document will be archived to `archaeology/docs/plans/legacy/` once the new-format document is created.
+> 
+> **Status**: Deprecated — Do not use for new work. Agent should create new-format document.
+
 # Grain Bubble Agent: Development Plan
 
 **Agent**: Grain Bubble Agent (5th Agent)  
