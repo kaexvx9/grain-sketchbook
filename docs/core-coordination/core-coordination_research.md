@@ -1020,7 +1020,7 @@ Research Agent is available for:
 
 3. ✅ **Research Agent Extension Complete**: Research Agent has implemented WorkflowMetricsAnalyzer extension (2025-12-29-041147-pst) — Can parse `failures` array with all 9 required fields, ready to begin Phase 1 analysis.
 
-4. ✅ **Coordination Complete**: Research Agent has acknowledged completion (2025-12-29-041147-pst) — See `docs/agent-communications/research_to_flow_failure_data_collection_acknowledgment_2025-12-29-041147-pst.md`.
+4. ✅ **Coordination Complete**: Research Agent has acknowledged completion (2025-12-29-041147-pst) — See `docs/agent-communications/l1-standalone/10_research/acknowledgments/research_to_flow_failure_data_collection_acknowledgment_2025-12-29-041147-pst.md`.
 
 **What Flow Agent Should Do**:
 
