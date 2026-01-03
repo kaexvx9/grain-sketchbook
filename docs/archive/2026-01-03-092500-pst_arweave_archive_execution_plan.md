@@ -94,14 +94,13 @@ Archive the entire `xy-mathematics` repository to Arweave blockchain/distributed
 5. Provide cost breakdown and total estimate
 6. Consider multi-year storage guarantee costs if applicable
 
-**Initial Estimates** (from Research Agent):
-- **Storage cost**: ~$0.01-0.10 per GB (varies with AR token price and network conditions)
-- **Transaction fees**: ~$0.001-0.01 per transaction (minimal, typically <$0.01)
-- **Estimated cost for 250 MB TAR.GZ**: ~$0.025-0.25
-- **Estimated cost for 256 MB ZIP**: ~$0.026-0.26
-- **Total estimated cost (both archives)**: ~$0.05-0.51
-- **Conservative estimate (high end)**: ~$1.00-2.00
-- **Budget recommendation**: $2.00-5.00 (buffer for AR token price volatility and network conditions)
+**Cost Estimation** (Updated 2026-01-03-105500-pst):
+- ✅ **COMPLETE**: See `docs/archive/2026-01-03-105500-pst_arweave_cost_estimation.md` for detailed analysis
+- **Current Arweave pricing**: ~$2-5 per GB (as of 2026 research)
+- **Total data size**: ~0.49 GB (506 MB total, two archives)
+- **Estimated cost**: $1.00-2.50 (base estimate)
+- **Recommended budget**: $2.00-5.00 (conservative, includes buffer for volatility and network conditions)
+- **Transaction fees**: Minimal (~$0.001-0.01 per transaction, typically <$0.01)
 
 **Research Sources**:
 - Arweave documentation: https://docs.arweave.org/
