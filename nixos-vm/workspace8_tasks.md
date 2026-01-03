@@ -442,12 +442,14 @@ The integration testing framework is essential for verifying our integration wor
 - Implementation Plan: `workspace8_plan.md`
 - Glow G2 Voice Adoption: `workspace8_glow_g2_voice_adoption.md`
 - Complete Agent Awareness: `docs/agent-communications/general/prompts/2026-01-02-002948-pst_complete_agent_awareness_all_agents_2026-01-02-002948-pst.md`
-- Core 1 Subcore Coordination Summary: `docs/agent-communications/general/coordination/2026-01-02-100345-pst_core_1_subcore_coordination_summary.md`
+- Core 1 Subcore Coordination Summary: `docs/agent-communications/general/coordination/2026-01-03-091238-pst_core_1_subcore_coordination_summary.md`
+- Core 1 Subcore Coordination Plan: `docs/core-coordination/2026-01-03-091238-pst_core_1_subcore_coordination_plan.md`
 - Glow G2 Voice: `docs/agent-communications/general/prompts/glow_g2_voice_multi_agent_prompt_2026-01-01-235155-pst.md`
 - Timestamp Format: `docs/agent-communications/general/prompts/2026-01-03-051300-pst_timestamp_prefix_format_all_agents.md`
 - Directory Structure: `docs/agent-communications/general/templates/2026-01-03-055549-pst_directory_structure_pattern.md`
 - Subagent Recursion Prompt: `docs/agent-communications/general/templates/2026-01-03-074600-pst_subagent_recursion_prompt_template.md`
-- Coordination Plan: `docs/core-coordination/2026-01-02-100345-pst_core_1_subcore_coordination_plan.md`
+- Core 1 Subcore Self-Update Prompt: `docs/agent-communications/general/templates/2026-01-03-074800-pst_core_1_subcore_self_update_prompt_template.md`
+- Coordination Plan: `docs/core-coordination/2026-01-03-091238-pst_core_1_subcore_coordination_plan.md`
 
 ### Key Contacts
 - **Agent 1**: Core 1 Subcore Coordinator

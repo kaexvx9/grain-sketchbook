@@ -4,8 +4,8 @@
 **Agent**: Workspace 8 (L1 Agent - Coordination & Integration)  
 **Parent Subcore**: Core 1 Subcore (Agent 1)  
 **Status**: Active - Ready for Integration & Coordination  
-**Last Updated**: 2026-01-03-081902-pst  
-**Coordination Plan**: Received coordination plan 2026-01-02-100345-pst from Core 1 Subcore  
+**Last Updated**: 2026-01-03-091238-pst  
+**Coordination Plan**: Received coordination plan 2026-01-03-091238-pst from Core 1 Subcore  
 **Timestamp Format**: Using prefix format (YYYY-MM-DD-HHMMSS-pst_document_name.md) for all new documents per Core 1 Subcore requirement (2026-01-03-051300-pst)  
 **Directory Structure**: Using new hierarchical directory structure for agent-communications references per Core 1 Subcore requirement (2026-01-03-055549-pst)  
 **Agent Awareness**: Complete agent awareness document received 2026-01-02-002948-pst  
@@ -64,14 +64,15 @@ The integration work ahead involves coordinating across 24 total agents (12 L1 a
 
 ---
 
-### ✅ Step 2: VM Runtime Grain Style Compliance + JIT Pipeline (COMPLETE)
+### ✅ Step 2: VM Runtime Grain Style Compliance + ECALL Implementation (COMPLETE)
 **Agent 3b (VM Runtime)** → **Vantage Application**
-- ✅ **COMPLETE**: Phase 2 Grain Style compliance verified (2026-01-02-090817-pst)
-- ✅ **COMPLETE**: RISC-V → x86_64 JIT pipeline designed using Basin syscall docs
-- ✅ **COMPLETE**: x86_64 JIT backend implemented for Framework x86_64
-- ✅ **COMPLETE**: Vantage can now run with x86_64 JIT compilation
+- ✅ **COMPLETE**: Phase 3 complete — x86_64 JIT backend with SLT/SLTU optimizations (2026-01-02-090817-pst)
+- ✅ **COMPLETE**: Guest RAM integration complete — R13 architecture implemented
+- ✅ **COMPLETE**: ECALL fallback implemented — Interpreter fallback for syscalls
+- ✅ **COMPLETE**: ECALL integration complete — Using syscall interface docs
+- ✅ **COMPLETE**: Host memory detection approved — ADR 009 approved (48-52GB allocation on 64GB host for Aurora)
 
-**Workspace 8 Support**: ✅ Completed - Supported compliance verification and JIT pipeline coordination
+**Workspace 8 Support**: ✅ Completed - Supported compliance verification and ECALL implementation coordination
 
 **Status**: Step 2 complete, Vantage running capability achieved
 
@@ -79,14 +80,14 @@ The integration work ahead involves coordinating across 24 total agents (12 L1 a
 
 ### ✅ Step 3: sevenos Init System Completion (COMPLETE)
 **Agent 3d (Init System)** → **Grainscript Shell Integration**
-- ✅ **COMPLETE**: Dependency manager compilation issue fixed (Zig 0.15.2) (2026-01-03-072000-pst)
-- ✅ **COMPLETE**: Phase 3 (dependency manager) complete
-- ✅ **COMPLETE**: Phase 4 (main init loop) implemented
+- ✅ **COMPLETE**: Phases 1-6 complete (2026-01-03-072000-pst)
+- ✅ **COMPLETE**: Phase 8A complete
 - ✅ **COMPLETE**: Basin Kernel syscall interface integrated (spawn, wait, exit, setpgid, setsid)
+- ✅ **COMPLETE**: Step 4 integration docs created — Service configuration template and service integration API documentation
 
-**Workspace 8 Support**: ✅ Completed - Supported compilation fix, Phase 3/4 completion, and Basin syscall integration
+**Workspace 8 Support**: ✅ Completed - Supported compilation fix, Phase completion, and Basin syscall integration
 
-**Status**: Step 3 complete, Step 4 unblocked
+**Status**: Step 3 complete, Step 4 unblocked and ready to proceed
 
 ---
 
@@ -94,7 +95,14 @@ The integration work ahead involves coordinating across 24 total agents (12 L1 a
 **Agent 1e (Grainscript Shell)** → **Usable Shell**
 - ✅ **COMPLETE**: Zig 0.15.2 API compatibility fixed, basic shell functionality working
 - ✅ **COMPLETE**: Basic shell functionality testing complete
-- ⏳ **ACTIVE**: Integrate with sevenos Init System (3d) — **READY TO PROCEED** (unblocked by Step 3)
+- ✅ **COMPLETE**: Integration design complete — Hybrid approach confirmed with Init System (3d)
+- ✅ **COMPLETE**: Step 3 completion acknowledged — Step 4 unblocked
+- ⏳ **ACTIVE**: Shell ↔ Init System integration — **READY TO PROCEED** (~15-20 hours)
+- ⏳ **ACTIVE**: Review service configuration template from 3d
+- ⏳ **ACTIVE**: Review service integration API documentation from 3d
+- ⏳ **ACTIVE**: Design ServiceManager module based on APIs
+- ⏳ **ACTIVE**: Implement service management built-in commands
+- ⏳ **ACTIVE**: Integrate shell as a service
 - ⏳ **ACTIVE**: Verify shell works for basic Grainscript commands on Framework x86_64
 - **END GOAL**: Usable Grainscript shell running on Vantage/Basin Kernel Framework x86_64
 
@@ -105,9 +113,9 @@ The integration work ahead involves coordinating across 24 total agents (12 L1 a
 - [ ] Track integration progress toward end goal
 - [ ] Verify end goal achievement
 
-**Timeline**: Week 1-2 (unblocked, ready to proceed)
+**Timeline**: Week 1-2 (~15-20 hours estimated)
 
-**Approach**: Step 3 is complete, so Step 4 can proceed. The shell is already functional—we need to complete the integration with the Init System from Step 3. This is the end goal of the dependency chain, and we're close.
+**Approach**: Step 3 is complete, so Step 4 can proceed. The shell is already functional, and the integration design is complete. We need to implement the ServiceManager module and integrate the shell with the Init System. This is the end goal of the dependency chain, and we're ready to proceed.
 
 ---
 
@@ -422,8 +430,8 @@ The integration work ahead involves coordinating across 24 total agents (12 L1 a
 ## Source Documents and References
 
 ### Coordination Documents
-- Core 1 Subcore Coordination Plan: `docs/core-coordination/2026-01-02-100345-pst_core_1_subcore_coordination_plan.md`
-- Core 1 Subcore Coordination Summary: `docs/agent-communications/general/coordination/2026-01-02-100345-pst_core_1_subcore_coordination_summary.md`
+- Core 1 Subcore Coordination Plan: `docs/core-coordination/2026-01-03-091238-pst_core_1_subcore_coordination_plan.md`
+- Core 1 Subcore Coordination Summary: `docs/agent-communications/general/coordination/2026-01-03-091238-pst_core_1_subcore_coordination_summary.md`
 - Complete Agent Awareness: `docs/agent-communications/general/prompts/2026-01-02-002948-pst_complete_agent_awareness_all_agents_2026-01-02-002948-pst.md`
 
 ### Voice and Style
@@ -435,12 +443,13 @@ The integration work ahead involves coordinating across 24 total agents (12 L1 a
 ### Templates
 - Subagent Recursion Prompt: `docs/agent-communications/general/templates/2026-01-03-074600-pst_subagent_recursion_prompt_template.md`
 - Core 1 Subcore Recursion Prompt: `docs/agent-communications/general/templates/2026-01-03-074700-pst_core_1_subcore_recursion_prompt_template.md`
+- Core 1 Subcore Self-Update Prompt: `docs/agent-communications/general/templates/2026-01-03-074800-pst_core_1_subcore_self_update_prompt_template.md`
 
 ---
 
 ## Next Review and Update
 
-**Last Updated**: 2026-01-03-081902-pst  
+**Last Updated**: 2026-01-03-091238-pst  
 **Next Review**: 2026-01-08  
 **Review Owner**: Workspace 8  
 **Update Frequency**: Weekly or as needed
