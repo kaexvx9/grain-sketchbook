@@ -3,13 +3,13 @@
 **Last Updated**: 2026-01-03-081702-pst  
 **Agent**: Grain Basin Kernel Agent (3a)  
 **Parent Agent**: Grain Vantage 3 Subcore Agent (3rd Agent, L1 Subcore)  
-**Status**: ✅ **STEP 1 COMPLETE, STEP 2 COMPLETE, STEP 3 SUPPORTING** — Syscall interface documentation distributed, Agent 3b Step 2 complete, Agent 3d Phase 5 support provided
+**Status**: ✅ **STEP 1 COMPLETE, STEP 2 COMPLETE, STEP 3 COMPLETE** — Syscall interface documentation distributed, Agent 3b Step 2 complete, Agent 3d Phases 1-6 and Phase 8A complete
 
 ---
 
 ## Executive Summary
 
-**Agent Status**: ✅ **STEP 1 COMPLETE, STEP 2 COMPLETE, STEP 3 SUPPORTING** — Critical path progressing, Agent 3b Step 2 complete, Agent 3d Phase 5 support provided
+**Agent Status**: ✅ **STEP 1 COMPLETE, STEP 2 COMPLETE, STEP 3 COMPLETE** — Critical path progressing, Agent 3b Step 2 complete, Agent 3d Phases 1-6 and Phase 8A complete
 
 **Parent Agent**: Grain Vantage 3 Subcore Agent (3rd Agent, L1 Subcore)
 
@@ -333,15 +333,15 @@
 
 1. ✅ **Step 1 (COMPLETE)**: Basin Kernel (3a) → Distribute syscall docs to 3b and 3d — **COMPLETE** (2026-01-02-090000-pst)
 2. ✅ **Step 2 (COMPLETE)**: VM Runtime (3b) → Verify Grain Style compliance + implement x86_64 JIT — **COMPLETE** (Agent 3b ECALL implementation complete)
-3. ⏳ **Step 3 (READY)**: Init System (3d) → Complete Phase 5 + Basin syscall integration — **READY** (Phase 5 support provided)
-4. ⏳ **Step 4 (BLOCKED)**: Grainscript Shell (1e) → Complete testing + integrate with Init System — **BLOCKED** (waiting for Step 3)
+3. ✅ **Step 3 (COMPLETE)**: Init System (3d) → Complete Phase 5 + Basin syscall integration — **COMPLETE** (Agent 3d Phases 1-6 and Phase 8A complete)
+4. ⏳ **Step 4 (READY)**: Grainscript Shell (1e) → Complete testing + integrate with Init System — **READY TO PROCEED** (unblocked by Step 3 completion)
 5. ⏳ **Step 5 (SUPPORTING)**: System Integration (3c) → Multi-arch testing framework — **SUPPORTING**
 
 **Current Blocker Status**:
 - ✅ **BLOCKER 1 RESOLVED**: 3a distributed syscall docs (Step 1 complete)
 - ✅ **BLOCKER 2 RESOLVED**: 3b JIT with ECALL complete (Step 2 complete)
-- ⏳ **BLOCKER 3 READY**: 3d ready for Phase 5 (Step 3 ready, support provided)
-- ⏳ **BLOCKER 4 PENDING**: 1e waiting for Step 3 completion (Step 4 blocked)
+- ✅ **BLOCKER 3 RESOLVED**: 3d Phases 1-6 and Phase 8A complete (Step 3 complete)
+- ✅ **BLOCKER 4 RESOLVED**: 1e unblocked, ready to proceed (Step 4 ready)
 
 ---
 
@@ -705,7 +705,7 @@
 
 **Last Updated**: 2026-01-03-081702-pst  
 **Agent**: Grain Basin Kernel Agent (3a)  
-**Status**: ✅ **STEP 1 COMPLETE, STEP 2 COMPLETE, STEP 3 SUPPORTING** — Critical path progressing, Agent 3b Step 2 complete, Agent 3d Phase 5-6 support provided, Phase 8 integration patterns clarified
+**Status**: ✅ **STEP 1 COMPLETE, STEP 2 COMPLETE, STEP 3 COMPLETE** — Critical path progressing, Agent 3b Step 2 complete, Agent 3d Phases 1-6 and Phase 8A complete, Step 4 ready to proceed
 
 ---
 
