@@ -214,7 +214,7 @@ The Grain Compositor Agent is responsible for window management and compositing 
 - ✅ Tests (existing tests verified, persistence tests pending API contract)
 - ✅ Coordination request document prepared
 
-**Coordination Request**: `docs/agent-communications/core_1d_compositor_to_1c_storage_coordination_request_2026-01-01-234000-pst.md`
+**Coordination Request**: `docs/agent-communications/cross-agent/core_1_internal/core_1d_compositor_to_1c_storage_coordination_request_2026-01-01-234000-pst.md`
 
 **Dependencies**: Phase 3 ✅, Storage Agent coordination 🔄
 

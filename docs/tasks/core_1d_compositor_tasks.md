@@ -239,7 +239,7 @@
 - [⏳] **Integration testing with Storage Agent** (once API finalized)
 - [⏳] **Framework x86_64 verification** (once integration complete)
 
-**Coordination Request Document**: `docs/agent-communications/core_1d_compositor_to_1c_storage_coordination_request_2026-01-01-234000-pst.md`
+**Coordination Request Document**: `docs/agent-communications/cross-agent/core_1_internal/core_1d_compositor_to_1c_storage_coordination_request_2026-01-01-234000-pst.md`
 
 ---
 
