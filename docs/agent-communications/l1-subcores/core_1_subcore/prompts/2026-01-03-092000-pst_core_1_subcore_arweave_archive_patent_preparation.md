@@ -178,20 +178,32 @@ This research represents novel intellectual property that we intend to pursue pa
 
 ## Financial Considerations
 
-**Estimated Repository Size**: [TO BE CALCULATED BY CORE 1 SUBCORE]
-- Current repository size: [TBD]
-- Compressed ZIP size: [TBD]
-- Compressed TAR.GZ size: [TBD]
+**Repository Size Analysis** (calculated 2026-01-03-103310-pst):
+- **Total repository size**: ~2.7 GB (includes .git directory)
+- **Repository size (excluding .git)**: ~1.35 GB (actual measured, excludes git history and build artifacts)
+- **Key directories**:
+  - `grainstore/`: ~401 MB (largest component, external repository mirrors)
+  - `docs/`: ~13 MB
+  - `src/`: ~7.2 MB
+  - `tests/`: ~3.5 MB
+- **Files to archive**: ~4,805 files (excluding .git, build artifacts)
+- **Compressed TAR.GZ size**: ~250 MB (0.24 GB, test archive, excludes .git, zig-cache, zig-out)
+- **Compressed ZIP size**: ~256 MB (0.25 GB, test archive, excludes .git, zig-cache, zig-out)
 
-**Arweave Cost Estimate** (based on typical pricing, to be verified):
-- Storage cost: ~$0.01-0.10 per GB (varies with AR token price)
-- Transaction fees: ~$0.001-0.01 per transaction
-- Estimated total: [TO BE CALCULATED]
+**Arweave Cost Estimate** (based on typical pricing, to be verified by Core 1 Subcore):
+- **Storage cost**: ~$0.01-0.10 per GB (varies with AR token price and network conditions)
+- **Transaction fees**: ~$0.001-0.01 per transaction (minimal, typically <$0.01)
+- **Estimated cost for 250 MB TAR.GZ**: ~$0.025-0.25 (assuming $0.01-0.10 per GB)
+- **Estimated cost for 256 MB ZIP**: ~$0.026-0.26 (assuming $0.01-0.10 per GB)
+- **Total estimated cost (both archives)**: ~$0.05-0.51 (two transactions, ~506 MB total)
+- **Conservative estimate (high end)**: ~$1.00-2.00 (accounting for AR price volatility, network fees, and buffer)
 
 **Budget Considerations**:
-- Confirm budget availability for archive costs
-- Consider multi-year storage guarantees if available
-- Factor in AR token price volatility
+- Confirm budget availability for archive costs (estimated $0.50-2.00 total, conservative $2.00)
+- Consider multi-year storage guarantees if available (Arweave provides permanent storage by design)
+- Factor in AR token price volatility (costs may vary with AR/USD exchange rate)
+- Note: Arweave storage is permanent by design (blockchain-backed, pay-once model)
+- **Recommendation**: Budget $2.00-5.00 to account for price volatility and ensure successful uploads
 
 ---
 
