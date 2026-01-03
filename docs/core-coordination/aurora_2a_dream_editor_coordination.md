@@ -475,7 +475,7 @@ Dream Editor Agent has adopted the Glow G2 voice for all communications, code co
 
 ## Timestamp Specification Adoption ✅
 
-**Status**: ✅ **TIMESTAMP SPECIFICATION ADOPTED** (2026-01-02-001621-pst)
+**Status**: ✅ **TIMESTAMP SPECIFICATION ADOPTED** (2026-01-02-001621-pst) — **TIMESTAMP PREFIX FORMAT ADOPTED** (2026-01-03-051300-pst)
 
 Dream Editor Agent has adopted the timestamp specification for all documents, filenames, and git commits. All timestamps use the format `yyyy-mm-dd-hhmmss-pst` and are generated using `TZ=America/Los_Angeles date +"%Y-%m-%d-%H%M%S-pst"`.
 
@@ -485,14 +485,20 @@ Dream Editor Agent has adopted the timestamp specification for all documents, fi
 - Always use "pst" (even during PDT)
 - Always use `TZ=America/Los_Angeles` when generating
 
+**Filename Format** (NEW REQUIREMENT — Effective 2026-01-03):
+- ✅ **NEW (REQUIRED)**: `YYYY-MM-DD-HHMMSS-pst_document_name.md` (timestamp prefix)
+- ❌ **OLD (HISTORICAL)**: `document_name_YYYY-MM-DD-HHMMSS-pst.md` (timestamp suffix — don't use for new documents)
+- **Benefits**: Automatic chronological sorting in file listings (Codeberg, file browsers), easy to find latest documents
+
 **Usage**:
 - ✅ All document headers include timestamp
-- ✅ All new document filenames include timestamp
+- ✅ All new document filenames use timestamp prefix format (effective immediately)
 - ✅ All git commit messages include timestamp (when relevant)
 - ✅ All status updates include timestamp
 
 **Reference Documents**:
 - `docs/agent-communications/timestamp_specification_multi_agent_prompt_2026-01-01-215553-pst.md`
+- `docs/agent-communications/2026-01-03-051300-pst_timestamp_prefix_format_all_agents.md` (NEW — timestamp prefix format requirement)
 - `docs/timestamp_format_reference.md`
 
 ---
