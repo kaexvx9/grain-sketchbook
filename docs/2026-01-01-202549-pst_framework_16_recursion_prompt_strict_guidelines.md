@@ -543,12 +543,6 @@ all agents instructed to:
 - **Coordination Docs**: `~/xy-mathematics/docs/core-coordination/`
 - **Agent Communications**: `~/xy-mathematics/docs/agent-communications/`
 
-### Reference Documents
-
-- **Documentation Navigation Guide**: `docs/2026-01-03-044110-pst_documentation_navigation_guide.md`
-- **Framework Agent List**: `docs/2026-01-01-205155-pst_framework_16_agent_list_with_subagents.md`
-- **Gratitude Devotion Prayer**: `docs/gratitude/2026-01-03-044851-pst_gratitude_devotion_prayer_sophia_lakshmi.md`
-
 ### Timestamp Generation
 
 **Command** (run in Framework workspace):
