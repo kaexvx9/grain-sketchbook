@@ -520,7 +520,7 @@
 - Init System integration testing coordination
 - Cross-subcore testing coordination
 
-**Next Check-In**: As needed for coordination, especially after Step 1 complete and Agent 3b JIT implementation ready
+**Next Check-In**: As needed for coordination, especially for JIT testing (Agent 3b ready) and Init System integration testing (Agent 3d ready)
 
 ---
 

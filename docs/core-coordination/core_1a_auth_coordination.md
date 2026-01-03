@@ -514,7 +514,7 @@ Grain Auth Agent (1a) has successfully completed **6 major implementation phases
 - ⏳ Define API key validation middleware integration (patterns defined)
 
 **Readiness Response**: 
-- ✅ See `docs/agent-communications/core_1a_auth_middleware_readiness_response_2026-01-01-085326-pst.md`
+- ✅ See `docs/agent-communications/l2-subagents/core_1/1a_auth/communications/core_1a_auth_middleware_readiness_response_2026-01-01-085326-pst.md`
 - ✅ **READY NOW** — Can begin API contract design immediately
 - ✅ **HIGH PRIORITY** — Middleware integration is top priority
 - ✅ **100% BANDWIDTH** — Available to focus on middleware work
