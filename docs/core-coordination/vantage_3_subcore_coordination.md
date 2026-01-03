@@ -249,11 +249,11 @@
 
 ## Next Steps for Core Agent (Main Outer Primary L1 Core Coordination)
 
-**Coordination Status**: ✅ **Latest Coordination Plan Received** (2025-12-30-093745-pst)
+**Coordination Status**: ✅ **Latest Coordination Plan Received** (2026-01-03-091238-pst)
 
-**Latest Coordination Plan**: `docs/agent-communications/general/coordination/2025-12-30-093745-pst_core_1_subcore_coordination_plan.md`  
-**Latest Summary Document**: `docs/agent-communications/general/coordination/2025-12-30-093745-pst_core_1_subcore_coordination_summary.md`  
-**Previous Coordination Plan**: `docs/agent-communications/general/coordination/2025-12-29-152539-pst_core_1_subcore_coordination_plan.md` (acknowledged)
+**Latest Coordination Plan**: `docs/core-coordination/2026-01-03-091238-pst_core_1_subcore_coordination_plan.md`  
+**Latest Summary Document**: `docs/agent-communications/general/coordination/2026-01-03-091238-pst_core_1_subcore_coordination_summary.md`  
+**Previous Coordination Plan**: `docs/agent-communications/general/coordination/2025-12-30-093745-pst_core_1_subcore_coordination_plan.md` (acknowledged)
 
 **Key Updates from Core Agent** (2025-12-30-093745-pst):
 - ✅ Architecture evolution acknowledged (Vantage 3 Subcore + L2 sub-agents)
