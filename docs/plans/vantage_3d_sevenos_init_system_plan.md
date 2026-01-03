@@ -219,47 +219,39 @@
    - Continuous integration setup (if applicable)
 
 **Dependencies**: 
-- Phase 5 (Process Execution) — Needed for realistic tests
-- Phase 6 (Sleep Implementation) — Needed for timing tests
+- ✅ Phase 5 (Process Execution) — Complete
+- ✅ Phase 6 (Sleep Implementation) — Complete
 
 **Coordination**: 
 - System Integration (3c) — Testing strategy coordination
 
 ---
 
-### Phase 8: Basin Kernel Integration (FUTURE)
+### Phase 8: Basin Kernel Integration (CLARIFIED)
 
-**Timeline**: TBD  
-**Priority**: LOW (future work)  
-**Status**: Pending
+**Timeline**: Phase 8A complete, Phase 8B TBD  
+**Priority**: Phase 8A complete, Phase 8B LOW (future work)  
+**Status**: Phase 8A complete, Phase 8B pending
 
-**Goal**: Integrate with Basin Kernel syscalls for Grain OS
+**Phase 8A: Init System POSIX (✅ COMPLETE)**:
+- ✅ Init System continues using POSIX syscalls (already implemented)
+- ✅ No changes needed - current POSIX implementation is correct
+- ✅ Init System runs on Linux (Framework Ubuntu x86_64)
+- ✅ Basin Kernel integration patterns clarified by Agent 3a (2026-01-03-060700-pst)
+- ✅ POSIX architectural decision acknowledged (2026-01-03-070214-pst)
 
-**Tasks**:
-
-1. **Syscall Integration**:
-   - Replace POSIX syscalls with Basin Kernel syscalls
-   - Integrate spawn syscall for process creation
-   - Integrate wait syscall for process monitoring
-   - Integrate kill syscall for process termination
-
-2. **VM Runtime Integration**:
-   - Integrate with VM Runtime (3b) for JIT compilation
-   - Service binary execution via JIT
-   - VM memory management for services
-
-3. **Testing**:
-   - Test on Basin Kernel platform
-   - Performance optimization
-   - End-to-end testing
+**Phase 8B: Service VM Integration (⏳ FUTURE)**:
+- ⏳ Init System coordinates with VM Runtime (3b) to spawn services in VMs
+- ⏳ Services run in RISC-V VMs with Basin Kernel
+- ⏳ Requires VM Runtime (3b) VM management API
 
 **Dependencies**: 
-- Basin Kernel (3a) — Syscall interface (docs received ✅)
-- VM Runtime (3b) — JIT integration (may be needed)
+- ✅ Basin Kernel (3a): Integration patterns clarified (2026-01-03-060700-pst)
+- ⏳ VM Runtime (3b): VM management API (for Phase 8B)
 
 **Coordination**: 
-- Basin Kernel (3a) — Syscall interface docs received, ready for use
-- VM Runtime (3b) — May need JIT integration coordination
+- ✅ Basin Kernel (3a) — Integration patterns clarified ✅
+- ⏳ VM Runtime (3b) — VM management API coordination (for Phase 8B)
 
 ---
 
@@ -273,14 +265,14 @@ sevenos-init
 │   ├── init/
 │   │   └── main.zig          (210 lines) - Main init loop
 │   └── lib/
-│       ├── supervision.zig   (438 lines) - Service supervision
+│       ├── supervision.zig   (498 lines) - Service supervision
 │       ├── config/
 │       │   └── loader.zig    (464 lines) - Configuration loading
 │       └── dependency.zig    (413 lines) - Dependency management
 └── build.zig                 - Build configuration
 ```
 
-**Total Code**: ~1,525 lines
+**Total Code**: ~1,585 lines
 
 ### Data Flow
 
@@ -288,7 +280,7 @@ sevenos-init
 2. **Dependency Resolution**: `ServiceConfig[]` → `dependency.zig` → `DependencyGraph` → startup layers
 3. **Service Creation**: `ServiceConfig[]` → `supervision.zig` → `Service[]`
 4. **Supervision**: `Supervisor` → `Service.update()` → process monitoring
-5. **Startup**: Startup layers → `Service.start()` → fork/exec (TODO)
+5. **Startup**: Startup layers → `Service.start()` → fork/exec ✅
 
 ### Integration Points
 
@@ -314,7 +306,7 @@ sevenos-init
 - ✅ **Fail-Fast Error Handling**: Early validation, clear error types
 
 **Code Metrics**:
-- Total lines: ~1,525
+- Total lines: ~1,585 (supervision.zig: 498, loader.zig: 464, dependency.zig: 413, main.zig: 210)
 - All functions under 70 lines
 - All lines under 100 characters
 - All types explicit (u32/u64)

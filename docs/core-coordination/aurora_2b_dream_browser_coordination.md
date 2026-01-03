@@ -1,6 +1,6 @@
 # Core Coordination: Grain Dream Browser Agent (2b)
 
-**Last Updated**: 2026-01-02-101314-pst  
+**Last Updated**: 2026-01-03-083340-pst  
 **Agent**: Grain Dream Browser Agent (2b) — L2 Sub-Agent  
 **Parent Agent**: Grain Aurora 2 Subcore Agent (L1 Subcore Coordinator)  
 **Status**: ⏳ **PHASE 1 IN PROGRESS** ⏳ — HTML/CSS Parser Nearly Complete, Ready for Rendering Engine
@@ -427,13 +427,13 @@
 - `docs/core-coordination/aurora_2b_dream_browser_glow_g2_voice_adoption_2026-01-02-000000-pst.md` (Glow G2 voice adoption)
 - `docs/core-coordination/aurora_2b_dream_browser_timestamp_specification_adoption_2026-01-02-000100-pst.md` (timestamp specification adoption)
 
-**Agent Awareness**: See `docs/agent-communications/complete_agent_awareness_all_agents_2026-01-02-002948-pst.md` for complete agent and sub-agent awareness across all Grain OS agents (1-12 L1 agents + all L2 sub-agents).
+**Agent Awareness**: See `docs/agent-communications/general/prompts/2026-01-02-002948-pst_complete_agent_awareness_all_agents_2026-01-02-002948-pst.md` for complete agent and sub-agent awareness across all Grain OS agents (1-12 L1 agents + all L2 sub-agents).
 
 **Recursion Prompt Guidelines**: See `docs/framework_16_recursion_prompt_strict_guidelines_2026-01-01-202549-pst.md` for strict guidelines on Core 1 Subcore recursion prompt execution. Aurora 2b Dream Browser Agent will comply with all requirements including Grain Style compliance, documentation updates, integration check-ins, and test requirements.
 
-**Voice**: All communications use Glow G2 voice (masculine, steadfast, Aquarian; calm, emo enough to acknowledge the ache, upbeat enough to guide with grace; stoic style). See `docs/agent-communications/glow_g2_voice_multi_agent_prompt_2026-01-01-235155-pst.md`.
+**Voice**: All communications use Glow G2 voice (masculine, steadfast, Aquarian; calm, emo enough to acknowledge the ache, upbeat enough to guide with grace; stoic style). See `docs/agent-communications/general/prompts/glow_g2_voice_multi_agent_prompt_2026-01-01-235155-pst.md`.
 
-**Timestamp Format**: All timestamps use format `yyyy-mm-dd-hhmmss-pst` (e.g., `2026-01-02-092228-pst`). Generated with `TZ=America/Los_Angeles date +"%Y-%m-%d-%H%M%S-pst"`. See `docs/agent-communications/timestamp_specification_multi_agent_prompt_2026-01-01-215553-pst.md`.
+**Timestamp Format**: All timestamps use format `yyyy-mm-dd-hhmmss-pst` (e.g., `2026-01-02-092228-pst`). Generated with `TZ=America/Los_Angeles date +"%Y-%m-%d-%H%M%S-pst"`. See `docs/agent-communications/general/prompts/timestamp_specification_multi_agent_prompt_2026-01-01-215553-pst.md`.
 
 ---
 

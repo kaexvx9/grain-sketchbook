@@ -1,6 +1,7 @@
-# Bubble Agent: System Integration
+# Bubble Agent: System Integration & Coordination Document
+## Comprehensive Next Steps for Bubble Agent and Integration Planning
 
-**Last Updated**: 2026-01-02-092005-pst  
+**Date**: 2026-01-03-081826-pst  
 **Agent**: Grain Bubble Agent (5th Agent, L1 Standalone Agent)  
 **Status**: ✅ **FOUNDATION COMPLETE** — All integrations complete, JG Project assigned, Component API coordination ready
 
@@ -75,7 +76,7 @@
 
 **Timeline**: This week (immediate priority)
 
-**Reference**: `docs/agent-communications/aurora_2_subcore_to_bubble_component_api_coordination_2026-01-02-084110-pst.md`
+**Reference**: `docs/agent-communications/cross-agent/cross_domain/2026-01-02-084110-pst_aurora_2_subcore_to_bubble_component_api_coordination.md`
 
 ---
 
@@ -260,7 +261,7 @@
 - Coordinate JG Project UI component integration approach
 - Plan Component API implementation timeline
 
-**Reference**: `docs/agent-communications/aurora_2_subcore_to_bubble_component_api_coordination_2026-01-02-084110-pst.md`
+**Reference**: `docs/agent-communications/cross-agent/cross_domain/2026-01-02-084110-pst_aurora_2_subcore_to_bubble_component_api_coordination.md`
 
 ---
 
@@ -278,7 +279,7 @@
 - Continue desktop component integration as needed
 - Coordinate visual fold indicators integration when Workspace Agent is ready
 
-**Reference**: `docs/agent-communications/workspace_to_bubble_visual_fold_indicators_coordination_2025-12-31-052000-pst.md`
+**Reference**: See cross-agent communications directory for Workspace coordination documents
 
 ---
 
@@ -453,7 +454,7 @@
 - Focus on solutions ("Let's tackle this next")
 - Remain forward-looking ("Once we fix this, the rest should be straightforward")
 
-**Reference**: `docs/agent-communications/glow_g2_voice_multi_agent_prompt_2026-01-01-235155-pst.md`
+**Reference**: `docs/agent-communications/general/prompts/glow_g2_voice_multi_agent_prompt_2026-01-01-235155-pst.md`
 
 ---
 
@@ -462,7 +463,7 @@
 ### Mandatory Documents
 
 1. **Coordination Document**: `docs/core-coordination/core-coordination_bubble.md` ✅
-2. **System Integration Document**: `docs/core-coordination/bubble_agent_system_integration_2026-01-02-092005-pst.md` ✅ (this document)
+2. **System Integration Document**: `docs/core-coordination/2026-01-03-081826-pst_bubble_agent_system_integration.md` ✅ (this document)
 3. **Plan Document**: To be created if needed
 4. **Tasks Document**: To be created if needed
 
@@ -472,7 +473,7 @@
 - Update plan documents as implementation evolves
 - Update tasks documents as tasks are completed
 - Inform Core 1 Subcore about updates needed for general summary `docs/plan.md` and `docs/tasks.md`
-- Use timestamp format `yyyy-mm-dd-hhmmss-pst` in all document headers
+- Use timestamp prefix format `YYYY-MM-DD-HHMMSS-pst_document_name.md` for all new documents
 
 ---
 
@@ -480,18 +481,22 @@
 
 ### Bubble Agent Documents
 - **Coordination**: `docs/core-coordination/core-coordination_bubble.md`
-- **System Integration**: `docs/core-coordination/bubble_agent_system_integration_2026-01-02-092005-pst.md` (this document)
+- **System Integration**: `docs/core-coordination/2026-01-03-081826-pst_bubble_agent_system_integration.md` (this document)
 - **Code Location**: `src/grain_bubble/`
 
 ### Integration Coordination Documents
-- **Aurora 2 Subcore**: `docs/agent-communications/aurora_2_subcore_to_bubble_component_api_coordination_2026-01-02-084110-pst.md`
-- **Aurora Agent**: `docs/agent-communications/aurora_to_bubble_component_api_coordination_2025-12-30-123545-pst.md`
-- **Workspace Agent**: `docs/agent-communications/workspace_to_bubble_visual_fold_indicators_coordination_2025-12-31-052000-pst.md`
+- **Aurora 2 Subcore**: `docs/agent-communications/cross-agent/cross_domain/2026-01-02-084110-pst_aurora_2_subcore_to_bubble_component_api_coordination.md`
+- **Cross-Agent Communications**: `docs/agent-communications/cross-agent/cross_domain/` (for Aurora and Workspace coordination)
 
 ### Core 1 Subcore Documents
-- **Coordination Plan**: `docs/core-coordination/core_1_subcore_coordination_plan_2026-01-01-233240-pst.md`
-- **Coordination Summary**: `docs/agent-communications/core_1_subcore_coordination_summary_2026-01-02-083246-pst.md`
-- **System Integration**: `docs/core-coordination/core_1_subcore_system_integration_2026-01-02-004200-pst.md`
+- **Coordination Plan**: See latest in `docs/core-coordination/core_1_subcore_coordination_plan_*.md`
+- **Coordination Summary**: See latest in `docs/agent-communications/general/coordination/`
+- **System Integration**: See latest in `docs/core-coordination/`
+
+### General Documents (All Agents)
+- **Glow G2 Voice**: `docs/agent-communications/general/prompts/glow_g2_voice_multi_agent_prompt_2026-01-01-235155-pst.md`
+- **Directory Structure**: `docs/agent-communications/general/templates/2026-01-03-055549-pst_directory_structure_pattern.md`
+- **README**: `docs/agent-communications/README.md`
 
 ### JG Project Documents
 - **JG Project Phase 1 Planning**: To be referenced when available
@@ -515,7 +520,7 @@
 
 ---
 
-**Date**: 2026-01-02-092005-pst  
+**Date**: 2026-01-03-081826-pst  
 **Agent**: Grain Bubble Agent (5th Agent, L1 Standalone Agent)  
 **Status**: ✅ **FOUNDATION COMPLETE** — Component API coordination ready, Framework x86 adaptation in progress
 

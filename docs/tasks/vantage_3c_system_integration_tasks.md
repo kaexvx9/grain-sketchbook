@@ -53,7 +53,7 @@
   - ✅ Vantage 3 Subcore coordination summary received
   - ✅ Finding acknowledged and marked as requiring guidance
 - [x] **Receive AArch64 code removal guidance from Vantage 3 Subcore** — ✅ Complete (2025-12-29-224500-pst)
-  - ✅ Guidance document received: `docs/agent-communications/vantage_3_subcore_aarch64_guidance_2025-12-29-224500-pst.md`
+  - ✅ Guidance document received: `docs/agent-communications/l1-subcores/vantage_3_subcore/prompts/2025-12-29-224500-pst_vantage_3_subcore_aarch64_guidance.md`
   - ✅ Decision: Remove AArch64 code to enforce "RISC-V Only" requirement
 - [x] **Remove AArch64 code files** — ✅ Complete (2025-12-29-225000-pst)
   - ✅ Deleted `src/kernel/platform_aarch64.zig`
@@ -102,7 +102,7 @@
   - **Status**: ✅ Complete (2025-12-31-001435-pst)
 
 - [x] **Coordinate with Basin Kernel Agent (3a)** (HIGH priority, **COMPLETE**)
-  - ✅ Informed 3a of AArch64 code removal: `docs/agent-communications/vantage_3c_to_3a_aarch64_removal_notification_2025-12-31-000443-pst.md` (2025-12-31-001435-pst)
+  - ✅ Informed 3a of AArch64 code removal: `docs/agent-communications/l2-subagents/vantage_3/3c_system_integration/communications/2025-12-31-000443-pst_vantage_3c_to_3a_aarch64_removal_notification.md` (2025-12-31-001435-pst)
   - ✅ Shared relevant findings
   - **Status**: ✅ Complete (2025-12-31-001435-pst)
 

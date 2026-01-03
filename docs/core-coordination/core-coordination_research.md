@@ -29,7 +29,7 @@
 - ✅ **Toroidal ML Synthesis Research**: Complete ✅ (2026-01-03) — Comprehensive research investigation complete, mathematical framework developed, whitepaper created (`docs/research/2026-01-03-075313-pst_toroidal_ml_synthesis_whitepaper.md`)
 - ✅ **Silicon Torus HPC Hardware Research**: Complete ✅ (2026-01-03) — Hardware design proposal complete, field-theoretic architecture whitepaper created (`docs/research/2026-01-03-075500-pst_silicon_torus_hpc_hardware_proposal_whitepaper.md`)
 
-**Current Focus**: **VALIDATION TESTING BLOCKED** ⏳ — Priority 1, HIGH per Core Agent coordination plan. All 17 tests ready, validation testing guide created, but execution blocked by codebase compilation errors. **GRAIN DISPATCH PHASE 2 RESEARCH IN PROGRESS** ⏳ — Phase 2 research 4 of 5 research questions complete (Performance Requirements ✅, Kernel Performance ✅, VM Performance ✅, Optimization Techniques ✅, Integration Complexity ⏳). **HACK CLUB FISCAL SPONSORSHIP RESEARCH COMPLETE** ✅ — Week 1 and Week 2 research complete (analysis, comparison, application strategy, grant opportunities documents created). **FREE 12 DELEGATED TASKS ACCEPTED** ✅ — Research Agent accepts delegated tasks (Process Improvement Research, Best Practices Research, Coordination Pattern Analysis, Week 1-3, pending coordination with Free 12). **JG Project Planning** ✅ — JG project analysis framework plan completed, ready for implementation (Months 6-12).
+**Current Focus**: **VALIDATION TESTING BLOCKED** ⏳ — Priority 1, HIGH per Core Agent coordination plan. All 17 tests ready, validation testing guide created, but execution blocked by codebase compilation errors. **GRAIN DISPATCH PHASE 2 RESEARCH IN PROGRESS** ⏳ — Phase 2 research 4 of 5 research questions complete (Performance Requirements ✅, Kernel Performance ✅, VM Performance ✅, Optimization Techniques ✅, Integration Complexity ⏳). **HACK CLUB FISCAL SPONSORSHIP RESEARCH COMPLETE** ✅ — Week 1 and Week 2 research complete (analysis, comparison, application strategy, grant opportunities documents created). **FREE 12 DELEGATED TASKS ACCEPTED** ✅ — Research Agent accepts delegated tasks (Process Improvement Research, Best Practices Research, Coordination Pattern Analysis, Week 1-3, pending coordination with Free 12). **TOROIDAL ML SYNTHESIS RESEARCH COMPLETE** ✅ — Comprehensive research investigation complete, mathematical framework and whitepaper created. **SILICON TORUS HPC HARDWARE RESEARCH COMPLETE** ✅ — Hardware design proposal complete, field-theoretic architecture whitepaper created. **JG Project Planning** ✅ — JG project analysis framework plan completed, ready for implementation (Months 6-12).
 
 ---
 
@@ -93,7 +93,7 @@ Research Agent has adopted the Glow G2 voice for all communications, code commen
 - Grain Style Alignment: Ensure all output aligns with Grain Style (safety, performance, joy)
 
 **Reference Documents**:
-- `docs/agent-communications/glow_g2_voice_multi_agent_prompt_2026-01-01-235155-pst.md`
+- `docs/agent-communications/general/prompts/glow_g2_voice_multi_agent_prompt_2026-01-01-235155-pst.md`
 - `docs/zyx/glow_g2.md`
 - `docs/research/research_agent_glow_g2_voice_adoption_2026-01-01-235521-pst.md`
 
@@ -120,8 +120,8 @@ Research Agent acknowledges the new coordination plan from Core 1 Subcore. Resea
 - Use explicit `u32`/`u64` types (no `usize`/`isize`)
 
 **Reference Documents**:
-- `docs/core-coordination/core_1_subcore_coordination_plan_2026-01-01-233240-pst.md`
-- `docs/agent-communications/core_1_subcore_coordination_summary_2026-01-01-233240-pst.md`
+- `docs/core-coordination/core_1_subcore_coordination_plan_2026-01-02-100345-pst.md`
+- `docs/agent-communications/general/coordination/2026-01-02-100345-pst_core_1_subcore_coordination_summary.md`
 - `docs/research/coordination_document_rewrite_acknowledgment.md`
 
 ---
@@ -1014,7 +1014,7 @@ Research Agent is available for:
 
 **What Flow Agent Needs to Know**:
 
-1. ✅ **Failure Data Collection Request**: Research Agent requested extended failure metrics export for Failure Pattern Analysis Research Phase 1. Schema requirements detailed in coordination message at `docs/agent-communications/research_to_flow_failure_data_collection_2025-12-28-224000-pst.md`.
+1. ✅ **Failure Data Collection Request**: Research Agent requested extended failure metrics export for Failure Pattern Analysis Research Phase 1. Schema requirements detailed in coordination message at `docs/agent-communications/l1-standalone/10_research/communications/research_to_flow_failure_data_collection_2025-12-28-224000-pst.md`.
 
 2. ✅ **Flow Agent Implementation Complete**: Flow Agent has completed implementation (2025-12-29-041147-pst) — All 5 phases complete, all tests passing, extended export format ready.
 

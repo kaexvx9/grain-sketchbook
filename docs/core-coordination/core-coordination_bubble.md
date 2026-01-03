@@ -1,8 +1,8 @@
 # Grain Bubble Agent: Core Coordination Status
 
 **Agent**: Grain Bubble Agent (5th Agent, L1 Standalone Agent)  
-**Last Updated**: 2026-01-02-092005-pst  
-**Latest System Integration**: `docs/core-coordination/bubble_agent_system_integration_2026-01-02-092005-pst.md`
+**Last Updated**: 2026-01-03-081826-pst  
+**Latest System Integration**: `docs/core-coordination/2026-01-03-081826-pst_bubble_agent_system_integration.md`
 
 ---
 
@@ -153,7 +153,7 @@
   - **Component Variants**: Synchronized with browser theme via `set_theme_all()`
   - **Animation Integration**: Use Bubble Agent's animation utilities for SLC components within `content_area`
   - **Design Patterns**: Synchronize with browser theme, use Bubble Agent's patterns for SLC components
-  - **Coordination Document**: `docs/agent-communications/aurora_to_bubble_component_api_coordination_2025-12-30-123545-pst.md`
+  - **Coordination Document**: See `docs/agent-communications/cross-agent/cross_domain/` for Aurora coordination documents
 - ✅ **Integration complete** (2025-12-31-172210-pst):
   - Integration module created (`aurora_integration.zig`)
   - Design pattern application to Dream Browser components implemented
