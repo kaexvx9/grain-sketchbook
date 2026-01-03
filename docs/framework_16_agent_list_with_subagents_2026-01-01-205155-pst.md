@@ -1,8 +1,9 @@
-# Framework 16: Complete Agent List with Number Indices and Subagents
+# Framework 16: Complete Agent List with Number Indices and Subagents (sevenos Foundation)
 
-**Date**: 2026-01-01-205155-pst  
-**Context**: Framework 16 (x86_64 AMD, 64GB RAM) running Ubuntu 24.04 LTS host  
-**Purpose**: Complete reference for all 12 Grain OS agents with their number indices and L2 sub-agents for Framework Cursor workspace recreation
+**Date**: 2026-01-03-044511-pst  
+**Context**: Framework 16 (x86_64 AMD, 64GB RAM) running Ubuntu 24.04 LTS  
+**Purpose**: Complete reference for all 12 Grain OS agents with their number indices and L2 sub-agents for Framework Cursor workspace recreation  
+**Foundation**: Grain OS sevenos — Basin Kernel syscall → RISC-V → Vantage pipeline for Framework Ubuntu x86
 
 ---
 
@@ -10,10 +11,16 @@
 
 This document provides a complete, authoritative list of all 12 Grain OS agents with their number indices and L2 sub-agents. Use this document when recreating agents in the Framework 16 Cursor workspace.
 
-**Total Agents**: 12 L1 agents + 10 L2 sub-agents = **22 total agents/sub-agents**
+**Total Agents**: 12 L1 agents + 12 L2 sub-agents = **24 total agents/sub-agents**
 
 **L1 Subcore Coordinators**: 3 (Core 1, Aurora 2, Vantage 3)  
 **L1 Standalone Agents**: 9 (Skate, Bubble, Carry, Silo, Workspace, Flow, Research, Court, Free)
+
+**Critical Path Status**:
+- Step 1: Basin Kernel (3a) ✅ COMPLETE — Syscall documentation distributed
+- Step 2: VM Runtime (3b) ⏳ IN PROGRESS — Phase 3 complete, ECALL integration ready
+- Step 3: Init System (3d) ⏳ READY TO PROCEED — Phase 5 and Basin syscall integration
+- Step 4: Grainscript Shell (1e) ⏳ BLOCKED ON STEP 3 — Waiting for Init System completion
 
 ---
 
@@ -29,7 +36,8 @@ This document provides a complete, authoritative list of all 12 Grain OS agents 
 - **Coordination Doc**: `docs/core-coordination/core_1_subcore_coordination.md`
 - **Plan Doc**: `docs/plans/core_1_subcore_plan.md`
 - **Tasks Doc**: `docs/tasks/core_1_subcore_tasks.md`
-- **L2 Sub-Agents**: 4 (1a, 1b, 1c, 1d)
+- **L2 Sub-Agents**: 5 (1a, 1b, 1c, 1d, 1e)
+- **sevenos Context**: Core system services coordination for Grain OS sevenos foundation
 
 #### 2. Grain Aurora 2 Subcore Agent
 - **Number**: 2
@@ -49,7 +57,8 @@ This document provides a complete, authoritative list of all 12 Grain OS agents 
 - **Coordination Doc**: `docs/core-coordination/vantage_3_subcore_coordination.md`
 - **Plan Doc**: `docs/plans/vantage_3_subcore_plan.md`
 - **Tasks Doc**: `docs/tasks/vantage_3_subcore_tasks.md`
-- **L2 Sub-Agents**: 3 (3a, 3b, 3c)
+- **L2 Sub-Agents**: 4 (3a, 3b, 3c, 3d)
+- **sevenos Context**: VM/Kernel architecture coordination for Basin Kernel syscall → RISC-V → Vantage pipeline
 
 #### 4. Grain Skate Agent
 - **Number**: 4
@@ -192,6 +201,18 @@ This document provides a complete, authoritative list of all 12 Grain OS agents 
 - **Tasks Doc**: `docs/tasks/core_1d_compositor_tasks.md`
 - **Status**: ✅ PHASES 1-6, 8 PREVIEW COMPLETE — Phase 7 Ready (awaiting Storage coordination)
 
+#### 1e. Grain Grainscript Shell Agent
+- **Number**: 1e
+- **Parent**: Core 1 Subcore Agent (1)
+- **Type**: L2 Sub-Agent
+- **Responsibilities**: First Grainscript shell for Grain OS sevenos, shell command execution, service management integration
+- **Code Location**: `grainstore/sevenos/src/shell/`
+- **Coordination Doc**: `docs/core-coordination/core_1e_grainscript_shell_coordination.md`
+- **Plan Doc**: `docs/plans/core_1e_grainscript_shell_plan.md`
+- **Tasks Doc**: `docs/tasks/core_1e_grainscript_shell_tasks.md`
+- **Status**: ✅ PHASE 1 COMPLETE — Zig 0.15.2 API compatibility fixed, basic shell functionality working — ⏳ BLOCKED ON STEP 3 (Init System)
+- **Critical Path**: Step 4 — Waiting for Init System (3d) completion
+
 ---
 
 ### Aurora 2 Subcore L2 Sub-Agents
@@ -266,6 +287,18 @@ This document provides a complete, authoritative list of all 12 Grain OS agents 
 - **Tasks Doc**: `docs/tasks/vantage_3c_system_integration_tasks.md`
 - **Status**: ✅ INTEGRATION COMPLETE — Multi-architecture testing framework in progress
 
+#### 3d. Grain sevenos Init System Agent
+- **Number**: 3d
+- **Parent**: Vantage 3 Subcore Agent (3)
+- **Type**: L2 Sub-Agent
+- **Responsibilities**: sevenos init system in Grain Style Zig, S6-inspired supervision, Basin Kernel syscall integration
+- **Code Location**: `grainstore/sevenos/src/lib/supervision.zig`, `grainstore/sevenos/src/init/`
+- **Coordination Doc**: `docs/core-coordination/vantage_3d_sevenos_init_system_coordination.md`
+- **Plan Doc**: `docs/plans/vantage_3d_sevenos_init_system_plan.md`
+- **Tasks Doc**: `docs/tasks/vantage_3d_sevenos_init_system_tasks.md`
+- **Status**: ⏳ READY TO PROCEED — Phase 5 process execution, Basin syscall integration — Step 1 (Basin Kernel docs) ✅ COMPLETE
+- **Critical Path**: Step 3 — Can proceed with Phase 5 and Basin syscall integration
+
 ---
 
 ## Agent Hierarchy Summary
@@ -273,13 +306,16 @@ This document provides a complete, authoritative list of all 12 Grain OS agents 
 ### L1 Subcore Coordinators (3)
 
 1. **Core 1 Subcore Agent** (System Services)
-   - L2 Sub-Agents: 1a (Auth), 1b (Network), 1c (Storage), 1d (Compositor)
+   - L2 Sub-Agents: 1a (Auth), 1b (Network), 1c (Storage), 1d (Compositor), 1e (Grainscript Shell)
+   - **sevenos Context**: Core system services for Grain OS sevenos foundation
 
 2. **Aurora 2 Subcore Agent** (IDE/Browser)
    - L2 Sub-Agents: 2a (Dream Editor), 2b (Dream Browser), 2c (Component Library)
+   - **sevenos Context**: IDE/Browser architecture for Framework Ubuntu x86
 
 3. **Vantage 3 Subcore Agent** (VM/Kernel)
-   - L2 Sub-Agents: 3a (Basin Kernel), 3b (VM Runtime), 3c (System Integration)
+   - L2 Sub-Agents: 3a (Basin Kernel), 3b (VM Runtime), 3c (System Integration), 3d (sevenos Init System)
+   - **sevenos Context**: Basin Kernel syscall → RISC-V VM Runtime (JIT) → Vantage integration → Framework Ubuntu x86
 
 ### L1 Standalone Agents (9)
 
@@ -328,9 +364,9 @@ This document provides a complete, authoritative list of all 12 Grain OS agents 
 
 | Number | Agent Name | Type | L2 Sub-Agents |
 |--------|------------|------|---------------|
-| 1 | Core 1 Subcore | L1 Subcore | 1a, 1b, 1c, 1d |
+| 1 | Core 1 Subcore | L1 Subcore | 1a, 1b, 1c, 1d, 1e |
 | 2 | Aurora 2 Subcore | L1 Subcore | 2a, 2b, 2c |
-| 3 | Vantage 3 Subcore | L1 Subcore | 3a, 3b, 3c |
+| 3 | Vantage 3 Subcore | L1 Subcore | 3a, 3b, 3c, 3d |
 | 4 | Skate | L1 Standalone | None |
 | 5 | Bubble | L1 Standalone | None |
 | 6 | Carry | L1 Standalone | None |
@@ -395,8 +431,9 @@ L2 sub-agents follow the same structure with parent prefix:
 
 ### Environment
 
-- **Host OS**: Ubuntu 24.04 LTS
-- **VM**: NixOS 25.11 minimal Linux kernel 6.18.2 VM (via QEMU/KVM)
+- **Host OS**: Ubuntu 24.04 LTS (Framework Ubuntu x86)
+- **Target**: Framework Ubuntu x86 native development (QEMU/KVM VM approach abandoned)
+- **Foundation**: Grain OS sevenos — Basin Kernel syscall → RISC-V → Vantage pipeline
 - **Workspace**: Framework 16 Cursor workspace
 - **Repository**: `xy-mathematics` (cloned in Framework workspace)
 
@@ -410,31 +447,50 @@ L2 sub-agents follow the same structure with parent prefix:
 
 ### Timestamp Format
 
-**Format**: `yyyy-mm-dd-hhmmss-pst` (America/Los_Angeles)
+**NEW FORMAT (REQUIRED)**: `YYYY-MM-DD-HHMMSS-pst_document_name.md` (timestamp prefix)
+- **Benefits**: Automatic chronological sorting in file listings (Codeberg, file browsers)
+- **Example**: `2026-01-03-042621-pst_core_1_subcore_coordination_plan.md`
+
+**OLD FORMAT (HISTORICAL)**: `document_name_YYYY-MM-DD-HHMMSS-pst.md` (timestamp suffix)
+- **Example**: `core_1_subcore_coordination_plan_2026-01-02-010910-pst.md`
 
 **Command**:
 ```bash
 TZ=America/Los_Angeles date +"%Y-%m-%d-%H%M%S-pst"
 ```
 
+**Note**: All new documents must use timestamp prefix format. Historical documents with suffix format remain unchanged.
+
 ---
 
 ## Summary
 
-**Total Agents**: 12 L1 agents + 10 L2 sub-agents = **22 total agents/sub-agents**
+**Total Agents**: 12 L1 agents + 12 L2 sub-agents = **24 total agents/sub-agents**
 
 **L1 Subcore Coordinators**: 3 (Core 1, Aurora 2, Vantage 3)  
 **L1 Standalone Agents**: 9 (Skate, Bubble, Carry, Silo, Workspace, Flow, Research, Court, Free)
 
 **L2 Sub-Agents**:
-- **Core 1 Subcore**: 4 (1a Auth, 1b Network, 1c Storage, 1d Compositor)
+- **Core 1 Subcore**: 5 (1a Auth, 1b Network, 1c Storage, 1d Compositor, 1e Grainscript Shell)
 - **Aurora 2 Subcore**: 3 (2a Dream Editor, 2b Dream Browser, 2c Component Library)
-- **Vantage 3 Subcore**: 3 (3a Basin Kernel, 3b VM Runtime, 3c System Integration)
+- **Vantage 3 Subcore**: 4 (3a Basin Kernel, 3b VM Runtime, 3c System Integration, 3d sevenos Init System)
+
+**Critical Path Status**:
+- **Step 1**: Basin Kernel (3a) ✅ COMPLETE — Syscall documentation distributed (2026-01-02-090000-pst)
+- **Step 2**: VM Runtime (3b) ⏳ IN PROGRESS — Phase 3 complete, guest RAM integration complete, ECALL integration ready
+- **Step 3**: Init System (3d) ⏳ READY TO PROCEED — Can proceed with Phase 5 and Basin syscall integration
+- **Step 4**: Grainscript Shell (1e) ⏳ BLOCKED ON STEP 3 — Waiting for Init System completion
+
+**sevenos Foundation**:
+- **Architecture**: Basin Kernel syscall → RISC-V VM Runtime (JIT) → Vantage integration → Framework Ubuntu x86
+- **Goal**: Complete Steps 1-4 in sequential order to enable Grain OS sevenos foundation
+- **Impact**: Foundation enables all Grain OS modules, which enable MMT Job Guarantee housing program
 
 **Use this document** when recreating agents in the Framework 16 Cursor workspace to ensure correct numbering, hierarchy, and documentation structure.
 
 ---
 
-**Date**: 2026-01-01-205155-pst  
+**Date**: 2026-01-03-044511-pst  
 **Status**: ✅ **COMPLETE** — Ready for Framework 16 Cursor workspace recreation  
+**Context**: Grain OS sevenos — Basin Kernel syscall → RISC-V → Vantage pipeline for Framework Ubuntu x86  
 **Next Steps**: Use this document as reference when setting up agents in Framework workspace
