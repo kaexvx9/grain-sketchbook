@@ -162,15 +162,70 @@
 **File**: `grainstore/sevenos/src/init/main.zig` (210 lines)
 
 **TODOs for Future Work**:
-- [ ] Process execution implementation (fork/exec pattern) — Currently stubbed
-- [ ] Sleep implementation (replace Thread.yield with proper sleep)
+- ✅ Process execution implementation (fork/exec pattern) — COMPLETE
+- ✅ Sleep implementation (replace Thread.yield with proper sleep) — COMPLETE
 - [ ] SIGHUP reload implementation
+
+---
+
+### ✅ Phase 5: Process Execution Implementation (COMPLETE)
+
+**Date**: 2026-01-02-094000-pst  
+**Status**: ✅ COMPLETE  
+**File**: `grainstore/sevenos/src/lib/supervision.zig`
+
+**Completed Tasks**:
+- [x] **Fork/Exec Pattern Implementation** (COMPLETE)
+  - [x] Implement fork() for child process creation (posix.fork)
+  - [x] Implement exec() family for process execution (C execve syscall)
+  - [x] Handle process spawning errors (execve failures exit process, parent detects via waitpid)
+  - [x] Set up process environment (working directory, environment variables prepared)
+  - [x] Integrate with Service.start() in supervision.zig
+- [x] **prepare_argv() Function** (COMPLETE)
+  - [x] Command array to C string conversion (null-terminated)
+  - [x] Allocator-based string allocation
+- [x] **exec_child() Function** (COMPLETE)
+  - [x] Process execution with working directory setup
+  - [x] Environment variable setup (prepared for future use)
+  - [x] C execve syscall integration
+- [x] **Error Handling** (COMPLETE)
+  - [x] Execve failures exit process, parent detects via waitpid
+  - [x] Process spawning working correctly
+
+**File**: `grainstore/sevenos/src/lib/supervision.zig` (498 lines)
+
+---
+
+### ✅ Phase 6: Sleep Implementation (COMPLETE)
+
+**Date**: 2026-01-02-094500-pst  
+**Status**: ✅ COMPLETE  
+**File**: `grainstore/sevenos/src/lib/supervision.zig`
+
+**Completed Tasks**:
+- [x] **sleep_ns() Helper Function** (COMPLETE)
+  - [x] Nanoseconds sleep function using nanosleep
+  - [x] Nanoseconds to seconds/nanoseconds conversion
+- [x] **Supervision Loop Sleep** (COMPLETE)
+  - [x] nanosleep for supervision loop timing (100ms default)
+  - [x] Replaced Thread.yield() with nanosleep
+- [x] **Service Stabilization Sleep** (COMPLETE)
+  - [x] nanosleep for service stabilization delays (200ms)
+  - [x] Replaced Thread.yield() with nanosleep
+- [x] **Restart Delay Sleep** (COMPLETE)
+  - [x] nanosleep for restart delays (configurable per service)
+  - [x] Replaced Thread.yield() with nanosleep
+- [x] **All Thread.yield() Replaced** (COMPLETE)
+  - [x] All sleep calls use nanosleep
+  - [x] Proper timing for supervision loop, service stabilization, restart delays
+
+**File**: `grainstore/sevenos/src/lib/supervision.zig` (498 lines)
 
 ---
 
 ## Future Work
 
-### Phase 6: Sleep Implementation (HIGH PRIORITY)
+### Phase 7: Testing and Integration (MEDIUM PRIORITY)
 
 **Status**: ⏳ PENDING  
 **Priority**: HIGH  
@@ -208,57 +263,74 @@
   - [ ] Continuous integration setup (if applicable)
 
 **Dependencies**: 
-- Phase 5 (Process Execution) — Needed for realistic tests
-- Phase 6 (Sleep Implementation) — Needed for timing tests
+- ✅ Phase 5 (Process Execution) — Complete
+- ✅ Phase 6 (Sleep Implementation) — Complete
 
 ---
 
-### Phase 8: Basin Kernel Integration (FUTURE)
+### ✅ Phase 8A: Basin Kernel Integration (POSIX) (COMPLETE)
+
+**Date**: 2026-01-03-060700-pst  
+**Status**: ✅ COMPLETE
+
+**Completed Tasks**:
+- [x] **Integration Patterns Clarified** (COMPLETE)
+  - [x] Hybrid model confirmed (Init System POSIX + Services Basin Kernel VMs)
+  - [x] Agent 3a integration patterns clarified
+- [x] **POSIX Implementation Validated** (COMPLETE)
+  - [x] Current POSIX implementation is correct for Init System
+  - [x] No changes needed
+- [x] **Architectural Decision Acknowledged** (COMPLETE)
+  - [x] Non-POSIX design for Basin Kernel aligns with goals
+  - [x] POSIX architectural decision acknowledged (2026-01-03-070214-pst)
+
+**Status**: ✅ Complete — POSIX implementation correct, integration patterns clarified
+
+---
+
+### ⏳ Phase 8B: Service VM Integration (FUTURE)
 
 **Status**: ⏳ PENDING  
 **Priority**: LOW (future work)  
 **Timeline**: TBD
 
 **Tasks**:
-- [ ] Replace POSIX syscalls with Basin Kernel syscalls
-- [ ] Integrate spawn syscall for process creation
-- [ ] Integrate wait syscall for process monitoring
-- [ ] Integrate kill syscall for process termination
-- [ ] Integrate with VM Runtime (3b) for JIT compilation (if needed)
+- [ ] Coordinate with VM Runtime (3b) for VM management API
+- [ ] Implement service VM spawning
+- [ ] Services run in RISC-V VMs with Basin Kernel
 - [ ] Test on Basin Kernel platform
 - [ ] Performance optimization
 
 **Dependencies**: 
-- Basin Kernel (3a) — Syscall interface (docs received ✅)
-- VM Runtime (3b) — JIT integration (may be needed)
+- ✅ Basin Kernel (3a) — Integration patterns clarified
+- ⏳ VM Runtime (3b) — VM management API (for Phase 8B)
 
 ---
 
 ## Task Statistics
 
-**Completed Phases**: 4 (Phases 1-4)  
-**In Progress**: 0  
-**Pending**: 4 (Phases 5-8)
+**Completed Phases**: 7 (Phases 1-6, Phase 8A)  
+**In Progress**: 1 (Step 4 integration support)  
+**Pending**: 2 (Phase 7, Phase 8B)
 
-**Total Tasks Completed**: ~40 tasks  
-**Total Tasks Remaining**: ~25 tasks
+**Total Tasks Completed**: ~65 tasks  
+**Total Tasks Remaining**: ~15 tasks
 
-**Current Focus**: Phase 5 (Process Execution Implementation)
+**Current Focus**: Step 4 (shell ↔ init system integration support)
 
 ---
 
 ## Next Steps Summary
 
-1. **Immediate**: Implement fork/exec pattern for process spawning (Phase 5)
-2. **High Priority**: Implement proper sleep (Phase 6)
-3. **Medium Priority**: Testing and integration (Phase 7)
-4. **Future**: Basin Kernel integration (Phase 8)
+1. **Active**: Step 4 (shell ↔ init system integration support)
+2. **Medium Priority**: Testing (Phase 7)
+3. **Future**: Basin Kernel Service VM integration (Phase 8B)
 
-**Current Status**: ✅ Phases 1-4 complete. Ready for process execution implementation.
+**Current Status**: ✅ Step 3 complete, Phases 1-6 complete, Phase 8A complete. Ready for Step 4 and Phase 7.
 
 ---
 
-**Last Updated**: 2026-01-02-093000-pst  
+**Last Updated**: 2026-01-03-082004-pst  
 **Agent**: Grain sevenos Init System Agent (3d)  
 **Parent Agent**: Grain Vantage 3 Subcore Agent (3rd Agent, L1 Subcore)  
-**Status**: ✅ **Phases 1-4 Complete** — Core infrastructure complete. Ready for process execution implementation.
+**Status**: ✅ **Step 3 Complete, Phases 1-6 Complete, Phase 8A Complete** — Core infrastructure complete. Ready for Step 4 and Phase 7.

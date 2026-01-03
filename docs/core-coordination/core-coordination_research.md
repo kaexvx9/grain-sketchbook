@@ -1420,7 +1420,7 @@ Research Agent is available for:
 
 **Design Document**: `docs/zyx/grainbank_mmt_job_guarantee_housing_program_2025-12-28-232324-pst.md`
 
-**Coordination Plan**: `docs/agent-communications/core_agent_coordination_plan_2025-12-29-152539-pst.md` (latest), `docs/agent-communications/core_agent_coordination_plan_2025-12-29-105655-pst.md` (previous)
+**Coordination Plan**: `docs/core-coordination/core_agent_coordination_plan_2025-12-29-152539-pst.md` (latest), `docs/core-coordination/core_agent_coordination_plan_2025-12-29-105655-pst.md` (previous)
 
 **Framework Plan**: `docs/research/jg_project_analysis_framework_plan_2025-12-29-160113-pst.md` (comprehensive plan for all 3 phases)
 
