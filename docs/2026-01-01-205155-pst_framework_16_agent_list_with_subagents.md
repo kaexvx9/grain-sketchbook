@@ -1,6 +1,7 @@
 # Framework 16: Complete Agent List with Number Indices and Subagents (sevenos Foundation)
 
 **Date**: 2026-01-03-044511-pst  
+**Filename**: `2026-01-01-205155-pst_framework_16_agent_list_with_subagents.md` (timestamp prefix format)  
 **Context**: Framework 16 (x86_64 AMD, 64GB RAM) running Ubuntu 24.04 LTS  
 **Purpose**: Complete reference for all 12 Grain OS agents with their number indices and L2 sub-agents for Framework Cursor workspace recreation  
 **Foundation**: Grain OS sevenos — Basin Kernel syscall → RISC-V → Vantage pipeline for Framework Ubuntu x86
@@ -491,6 +492,7 @@ TZ=America/Los_Angeles date +"%Y-%m-%d-%H%M%S-pst"
 ---
 
 **Date**: 2026-01-03-044511-pst  
+**Filename**: `2026-01-01-205155-pst_framework_16_agent_list_with_subagents.md` (timestamp prefix format)  
 **Status**: ✅ **COMPLETE** — Ready for Framework 16 Cursor workspace recreation  
 **Context**: Grain OS sevenos — Basin Kernel syscall → RISC-V → Vantage pipeline for Framework Ubuntu x86  
 **Next Steps**: Use this document as reference when setting up agents in Framework workspace
