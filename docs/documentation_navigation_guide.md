@@ -1,9 +1,10 @@
 # Documentation Navigation Guide
 
-**Date**: 2026-01-02-085001-pst  
-**Last Updated**: 2026-01-02-085001-pst  
+**Date**: 2026-01-03-044110-pst  
+**Last Updated**: 2026-01-03-044110-pst  
 **Status**: ✅ **NAVIGATION GUIDE READY** — Quick reference for all agents and developers  
-**Purpose**: Comprehensive guide to navigating Grain OS documentation structure
+**Purpose**: Comprehensive guide to navigating Grain OS sevenos documentation structure  
+**Context**: Grain OS sevenos — Basin Kernel syscall → RISC-V → Vantage pipeline for Framework Ubuntu x86
 
 ---
 
@@ -35,16 +36,18 @@ This guide helps agents and developers quickly find the coordination and communi
 ### 2. Current Coordination Plan and Summary
 
 **Latest Coordination Plan**:
-- `docs/core-coordination/core_1_subcore_coordination_plan_2026-01-02-010910-pst.md`
+- `docs/core-coordination/2026-01-03-042621-pst_core_1_subcore_coordination_plan.md`
 - Contains current agent statuses, priorities, and next steps
 - Updated by Core 1 Subcore with latest coordination information
 - Includes comprehensive status for all 24 agents/sub-agents
+- Reflects sevenos foundation critical path (Steps 1-4)
 
 **Latest Coordination Summary**:
-- `docs/agent-communications/core_1_subcore_coordination_summary_2026-01-02-083246-pst.md`
+- `docs/agent-communications/2026-01-03-042621-pst_core_1_subcore_coordination_summary.md`
 - Copy-paste ready instructions for all agents
 - Agent-specific sections with immediate next steps
 - **Single-threaded computation priority chain** emphasized for critical path
+- Critical path status: Step 1 ✅ COMPLETE, Step 2 ⏳ IN PROGRESS, Step 3 ⏳ READY TO PROCEED, Step 4 ⏳ BLOCKED
 
 **Critical Path Quick Reference**:
 - `docs/agent-communications/critical_path_quick_reference_2026-01-02-084259-pst.md`
@@ -77,22 +80,24 @@ This guide helps agents and developers quickly find the coordination and communi
 
 **Multi-Agent Timestamp Prompt**:
 - `docs/agent-communications/timestamp_specification_multi_agent_prompt_2026-01-01-215553-pst.md`
-- Format: `yyyy-mm-dd-hhmmss-pst`
+- **NEW FORMAT (REQUIRED)**: `YYYY-MM-DD-HHMMSS-pst_document_name.md` (timestamp prefix)
+- **OLD FORMAT (HISTORICAL)**: `document_name_YYYY-MM-DD-HHMMSS-pst.md` (timestamp suffix)
 - Command: `TZ=America/Los_Angeles date +"%Y-%m-%d-%H%M%S-pst"`
+- **Benefits**: Automatic chronological sorting in file listings (Codeberg, file browsers)
 
-**When to Use**: When creating documents, filenames, or git commits.
+**When to Use**: When creating documents, filenames, or git commits. **All new documents must use timestamp prefix format.**
 
 ### 5. Recursion Prompt Guidelines
 
 **Framework 16 Recursion Prompt Strict Guidelines**:
-- `docs/framework_16_recursion_prompt_strict_guidelines_2026-01-01-202549-pst.md`
+- `docs/2026-01-01-202549-pst_framework_16_recursion_prompt_strict_guidelines.md` (updated to timestamp prefix format)
 - Strict guidelines for executing Core 1 Subcore recursion prompt
 - Step-by-step execution guidelines (7 steps)
 - Grain Style compliance requirements
-- Documentation update requirements
+- Documentation update requirements (including timestamp prefix format)
 - Integration check-in requirements
 - Test requirements
-- File naming conventions
+- File naming conventions (timestamp prefix format required)
 - Commit message format (Grain Style)
 - Verification checklist
 
@@ -118,6 +123,31 @@ This guide helps agents and developers quickly find the coordination and communi
 
 **When to Use**: Reference for deeper understanding of Grain Style principles and development philosophy.
 
+### 8. Grain OS sevenos Foundation Documents
+
+**Spiritual and Philosophical Foundation**:
+- `docs/zyx/2026-01-03-043704-pst_grain_os_sevenos_spiritual_philosophical_foundation.md`
+- Updated foundation document for sevenos project
+- Integrates Bhakti devotion and Berdyaev's creative freedom
+- Emphasizes service to vegan activists, first responders, mentors, MMT proposers
+- References Basin Kernel, RISC-V VM Runtime, Vantage, Framework Ubuntu x86
+
+**MMT Job Guarantee Housing Program**:
+- `docs/zyx/2026-01-03-043815-pst_grainbank_mmt_job_guarantee_housing_program_sevenos.md`
+- Updated MMT JG program design for sevenos foundation
+- Emphasizes bottom-up sequential development (Steps 1-4)
+- Shows how foundation enables modules, modules enable program
+- Connects to target users and sevenos technical stack
+
+**Project Philosophy Audiobook**:
+- `docs/2026-01-03-042621-pst_grain_os_project_philosophy_audiobook.md`
+- Text-to-speech audiobook-friendly narration
+- Uses only 10000 most common English words
+- Describes project and philosophy from scratch
+- Emphasizes goal to help vegan activists, first responders, mentors, MMT proposers
+
+**When to Use**: Reference for understanding the deeper purpose and vision of Grain OS sevenos, and how the foundation enables the MMT JG program.
+
 ---
 
 ## Documentation Structure by Purpose
@@ -129,10 +159,11 @@ This guide helps agents and developers quickly find the coordination and communi
 **Purpose**: Agent-specific coordination status and integration points
 
 **Key Files**:
-- `core_1_subcore_coordination_plan_*.md` - Latest coordination plan
+- `2026-01-03-042621-pst_core_1_subcore_coordination_plan.md` - Latest coordination plan (timestamp prefix format)
 - `core_1{X}_{agent}_coordination.md` - L2 sub-agent coordination (where X is a/b/c/d/e)
 - `vantage_3{X}_{agent}_coordination.md` - Vantage 3 L2 sub-agent coordination
 - `aurora_2{X}_{agent}_coordination.md` - Aurora 2 L2 sub-agent coordination
+- Note: New coordination documents use timestamp prefix format
 
 **When to Use**: 
 - Update your coordination document after each work session
@@ -146,10 +177,11 @@ This guide helps agents and developers quickly find the coordination and communi
 **Purpose**: Multi-agent prompts, voice guidelines, and coordination summaries
 
 **Key Files**:
-- `core_1_subcore_coordination_summary_*.md` - Latest coordination summary
+- `2026-01-03-042621-pst_core_1_subcore_coordination_summary.md` - Latest coordination summary (timestamp prefix format)
 - `glow_g2_voice_multi_agent_prompt_*.md` - Voice adoption guide
-- `timestamp_specification_multi_agent_prompt_*.md` - Timestamp requirements
+- `timestamp_specification_multi_agent_prompt_*.md` - Timestamp requirements (includes new prefix format)
 - `{agent}_glow_g2_voice_adoption_*.md` - Agent voice adoption acknowledgments
+- Note: New communication documents use timestamp prefix format
 
 **When to Use**:
 - Reference for voice consistency
@@ -205,8 +237,8 @@ This guide helps agents and developers quickly find the coordination and communi
 ### L1 Subcore Coordinators (Agent 1, 2, 3)
 
 **Start Here**:
-1. Latest coordination plan: `docs/core-coordination/core_1_subcore_coordination_plan_*.md`
-2. Latest coordination summary: `docs/agent-communications/core_1_subcore_coordination_summary_*.md`
+1. Latest coordination plan: `docs/core-coordination/2026-01-03-042621-pst_core_1_subcore_coordination_plan.md`
+2. Latest coordination summary: `docs/agent-communications/2026-01-03-042621-pst_core_1_subcore_coordination_summary.md`
 3. Glow G2 voice guide: `docs/agent-communications/glow_g2_voice_multi_agent_prompt_*.md`
 
 **Your Coordination Documents**:
@@ -222,7 +254,7 @@ This guide helps agents and developers quickly find the coordination and communi
 ### L2 Sub-Agents (1a-1e, 2a-2c, 3a-3d)
 
 **Start Here**:
-1. Latest coordination summary: `docs/agent-communications/core_1_subcore_coordination_summary_*.md`
+1. Latest coordination summary: `docs/agent-communications/2026-01-03-042621-pst_core_1_subcore_coordination_summary.md`
 2. Your agent-specific section in the coordination summary
 3. Glow G2 voice guide: `docs/agent-communications/glow_g2_voice_multi_agent_prompt_*.md`
 
@@ -239,7 +271,7 @@ This guide helps agents and developers quickly find the coordination and communi
 ### L1 Standalone Agents (4-12)
 
 **Start Here**:
-1. Latest coordination summary: `docs/agent-communications/core_1_subcore_coordination_summary_*.md`
+1. Latest coordination summary: `docs/agent-communications/2026-01-03-042621-pst_core_1_subcore_coordination_summary.md`
 2. Glow G2 voice guide: `docs/agent-communications/glow_g2_voice_multi_agent_prompt_*.md`
 3. Your agent prompt: `docs/grain_{agent}_agent_prompt.md`
 
@@ -259,17 +291,19 @@ This guide helps agents and developers quickly find the coordination and communi
 
 ### "I need to know my current priorities"
 
-1. Read latest coordination summary: `docs/agent-communications/core_1_subcore_coordination_summary_*.md`
+1. Read latest coordination summary: `docs/agent-communications/2026-01-03-042621-pst_core_1_subcore_coordination_summary.md`
 2. Find your agent-specific section
 3. Review "Immediate Next Steps" and "Current Blocker" sections
 4. Check single-threaded computation priority chain for critical path dependencies
+5. Review critical path status: Step 1 ✅ COMPLETE, Step 2 ⏳ IN PROGRESS, Step 3 ⏳ READY TO PROCEED, Step 4 ⏳ BLOCKED
 
 ### "I need to coordinate with another agent"
 
-1. Check latest coordination plan: `docs/core-coordination/core_1_subcore_coordination_plan_*.md`
+1. Check latest coordination plan: `docs/core-coordination/2026-01-03-042621-pst_core_1_subcore_coordination_plan.md`
 2. Review "Integration Priorities" section
 3. Read the other agent's coordination document: `docs/core-coordination/{agent}_coordination.md`
 4. Check in with Core 1 Subcore (or your parent L1 subcore) before starting integration
+5. Review critical path dependencies if coordinating with Basin Kernel (3a), VM Runtime (3b), Init System (3d), or Grainscript Shell (1e)
 
 ### "I need to update my documentation"
 
@@ -288,16 +322,18 @@ This guide helps agents and developers quickly find the coordination and communi
 ### "I need to create a timestamped document"
 
 1. Generate timestamp: `TZ=America/Los_Angeles date +"%Y-%m-%d-%H%M%S-pst"`
-2. Use format: `yyyy-mm-dd-hhmmss-pst`
-3. Include in filename: `{document_name}_{timestamp}.md`
+2. **Use NEW format (REQUIRED)**: `YYYY-MM-DD-HHMMSS-pst_document_name.md` (timestamp prefix)
+3. **OLD format (historical only)**: `document_name_YYYY-MM-DD-HHMMSS-pst.md` (timestamp suffix)
 4. Reference: `docs/agent-communications/timestamp_specification_multi_agent_prompt_*.md`
+5. **Benefits**: Automatic chronological sorting in file listings (Codeberg, file browsers)
 
 ### "I need to understand the critical path"
 
-1. Read latest coordination summary: `docs/agent-communications/core_1_subcore_coordination_summary_*.md`
+1. Read latest coordination summary: `docs/agent-communications/2026-01-03-042621-pst_core_1_subcore_coordination_summary.md`
 2. Review "Single-Threaded Computation Priority Chain" section
 3. Check critical path quick reference: `docs/agent-communications/critical_path_quick_reference_*.md`
 4. Use blocker tracking template if reporting blockers
+5. **Current Status**: Step 1 (Basin Kernel 3a) ✅ COMPLETE, Step 2 (VM Runtime 3b) ⏳ IN PROGRESS, Step 3 (Init System 3d) ⏳ READY TO PROCEED, Step 4 (Grainscript Shell 1e) ⏳ BLOCKED ON STEP 3
 
 ---
 
@@ -306,9 +342,11 @@ This guide helps agents and developers quickly find the coordination and communi
 ### When Creating Documents
 
 1. **Use Timestamps**: Always include timestamp in filename and header
-2. **Use Glow G2 Voice**: Maintain calm, helpful, solution-focused tone
-3. **Be Succinct**: Complete but concise
-4. **Include Context**: Reference related documents and coordination points
+2. **Use Timestamp Prefix Format**: `YYYY-MM-DD-HHMMSS-pst_document_name.md` (required for all new documents)
+3. **Use Glow G2 Voice**: Maintain calm, helpful, solution-focused tone
+4. **Be Succinct**: Complete but concise
+5. **Include Context**: Reference related documents and coordination points
+6. **Reference sevenos Foundation**: When relevant, reference Basin Kernel, RISC-V VM Runtime, Vantage, Framework Ubuntu x86
 
 ### When Updating Documents
 
@@ -328,15 +366,16 @@ This guide helps agents and developers quickly find the coordination and communi
 
 ## Finding Documents by Timestamp
 
-**Pattern**: Documents are timestamped with format `yyyy-mm-dd-hhmmss-pst`
+**NEW FORMAT (REQUIRED)**: `YYYY-MM-DD-HHMMSS-pst_document_name.md` (timestamp prefix)
+- **Benefits**: Automatic chronological sorting in file listings (Codeberg, file browsers)
+- **Example**: `2026-01-03-042621-pst_core_1_subcore_coordination_plan.md`
 
-**Latest Documents**: Look for highest timestamp value
+**OLD FORMAT (HISTORICAL)**: `document_name_YYYY-MM-DD-HHMMSS-pst.md` (timestamp suffix)
+- **Example**: `core_1_subcore_coordination_plan_2026-01-02-010910-pst.md`
 
-**Example**:
-- `core_1_subcore_coordination_plan_2026-01-02-010910-pst.md` (newer)
-- `core_1_subcore_coordination_plan_2026-01-01-210806-pst.md` (older)
+**Latest Documents**: Look for highest timestamp value (prefix format sorts automatically)
 
-**Quick Find**: Sort files by modification date or search for latest timestamp pattern.
+**Quick Find**: Sort files by modification date or search for latest timestamp pattern. Prefix format files will sort chronologically by default.
 
 ---
 
@@ -369,23 +408,26 @@ If you need coordination help:
 4. Update your coordination documents as you work
 
 **Key Locations**:
-- Coordination: `docs/core-coordination/`
-- Communications: `docs/agent-communications/`
+- Coordination: `docs/core-coordination/` (new documents use timestamp prefix format)
+- Communications: `docs/agent-communications/` (new documents use timestamp prefix format)
 - Plans: `docs/plans/`
 - Tasks: `docs/tasks/`
 - Kernel: `docs/kernel/`
 - Core Guidelines: `docs/grain_style.md`, `docs/don_juan_matus_warriors_way.md`
+- sevenos Foundation: `docs/zyx/` (spiritual foundation, MMT JG program, audiobook narration)
 
 **Remember**:
-- Always use timestamps in document filenames
+- Always use timestamps in document filenames (timestamp prefix format required for new documents)
 - Maintain Glow G2 voice in all communications
 - Follow Grain Style strictly in all code
 - Update coordination documents after work sessions
 - Check in before integration steps
+- Understand critical path dependencies (Steps 1-4: Basin Kernel → VM Runtime → Init System → Shell)
 
 ---
 
-**Date**: 2026-01-02-085001-pst  
-**Last Updated**: 2026-01-02-085001-pst  
-**Status**: ✅ **NAVIGATION GUIDE COMPLETE** — Ready for use by all agents and developers
+**Date**: 2026-01-03-044110-pst  
+**Last Updated**: 2026-01-03-044110-pst  
+**Status**: ✅ **NAVIGATION GUIDE COMPLETE** — Ready for use by all agents and developers  
+**Context**: Grain OS sevenos — Basin Kernel syscall → RISC-V → Vantage pipeline for Framework Ubuntu x86
 
