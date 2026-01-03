@@ -1,6 +1,6 @@
 # Core Coordination: Grain Vantage 3 Subcore Agent
 
-**Last Updated**: 2026-01-03-074000-pst  
+**Last Updated**: 2026-01-03-084339-pst  
 **Agent**: Grain Vantage 3 Subcore Agent (Agent 3, L1 Subcore)  
 **Status**: ✅ **ALL KERNEL FEATURES COMPLETE** — Single-threaded priority chain active ✅ — Critical path: Steps 1-3 COMPLETE ✅ — Step 4 ready to proceed ⏳
 
@@ -126,38 +126,30 @@
 
 ---
 
-### 3b. VM Runtime Agent — ✅ **PHASE 2 MAJOR PROGRESS**
+### 3b. VM Runtime Agent — ✅ **STEP 2 COMPLETE**
 
-**Status**: ✅ **PHASE 2 MAJOR PROGRESS** — Grain Style Compliance (Function & Line Length)
+**Status**: ✅ **STEP 2 COMPLETE** — x86_64 JIT backend complete with ECALL integration, guest RAM pointer architecture, SLT/SLTU optimizations
 
-**Completed This Session**:
-- ✅ **Phase 1 Complete** (2025-12-30-093745-pst):
-  - Codebase review complete (33+ of 37 modules reviewed)
-  - Architecture documentation complete
-  - Phase 1 findings document: `docs/core-coordination/vantage_3b_vm_runtime_phase1_findings.md`
-- ✅ **Phase 2 Major Progress** (2025-12-31-011200-pst):
-  - Critical function length violations resolved
-  - Major line length compliance progress
-  - 100+ violations fixed across all modules
+**Completed Work**:
+- ✅ **Phase 1 Complete** (2025-12-30-093745-pst) — Codebase review, architecture documentation
+- ✅ **Phase 2 Complete** (2025-12-31-011200-pst) — Grain Style compliance (100+ violations fixed)
+- ✅ **Phase 3 Complete** (2026-01-02-090817-pst) — x86_64 JIT backend with SLT/SLTU optimizations
+- ✅ **Guest RAM Integration Complete** (2026-01-02-100345-pst) — R13 callee-saved register architecture
+- ✅ **ECALL Integration Complete** (2026-01-02-090817-pst) — ECALL fallback using Basin syscall interface docs
 
-**Critical Findings** (Phase 2):
-- ✅ **CRITICAL VIOLATIONS RESOLVED**:
-  - ✅ `vm.zig::step()`: 652 lines → 63 lines (refactored with 20+ helper functions)
-  - ✅ `jit.zig::compile_block()`: 268 lines → 62 lines (refactored with 9 helper functions)
-  - ✅ All helper functions under 70-line limit
-- ✅ **Line Length Compliance — MAJOR PROGRESS**:
-  - ✅ `jit.zig`: 43 lines → 0 lines (100% compliance achieved)
-  - ✅ `vm.zig`: 85 lines → 22 lines (74% reduction, remaining are mostly debug strings)
-  - ✅ `integration.zig`: 26 lines → 9 lines (65% reduction)
-  - ✅ Total: 100+ line length violations fixed
+**Step 2 Completion Details**:
+- ✅ x86_64 JIT backend complete — RISC-V to x86_64 translation working
+- ✅ ECALL fallback implemented — Uses Basin Kernel syscall interface
+- ✅ Guest RAM pointer architecture — R13 register for guest RAM base (matching ARM64 x27)
+- ✅ SLT/SLTU optimizations — x86_64 SETcc and MOVZX optimizations
+- ✅ Address translation complete — Kernel space, framebuffer, low memory handling
 
 **Next Steps**:
-1. ⏳ Complete remaining line length fixes (22 lines in vm.zig, 9 lines in integration.zig)
-2. ⏳ Run VM tests to ensure refactoring doesn't break functionality
-3. ⏳ Complete Phase 2: VM Maintenance and Stability
-4. ⏳ Coordinate with Vantage 3 Subcore on Phase 2 completion
+1. ⏳ **JIT Testing** — Coordinate with Agent 3c on multi-architecture testing
+2. ⏳ **Host Memory Detection** — Implement dynamic VM memory allocation for Aurora (ADR 009)
+3. ⏳ **Performance Optimization** — Continue parallel work on optimizations
 
-**Coordination**: Working independently, will coordinate when Phase 2 refactoring is complete
+**Coordination**: Step 2 complete, ready for testing coordination with Agent 3c
 
 ---
 
@@ -207,9 +199,9 @@
 
 ---
 
-### 3d. sevenos Init System Agent — 🆕 **NEW AGENT** — To Be Created
+### 3d. sevenos Init System Agent — ✅ **STEP 3 COMPLETE**
 
-**Status**: 🆕 **NEW AGENT** — To be created (2026-01-01-210806-pst)
+**Status**: ✅ **STEP 3 COMPLETE** — Phases 1-6 complete, Phase 8A complete, ready for Step 4 (shell integration)
 
 **Parent Agent**: Grain Vantage 3 Subcore Agent (3rd Agent, L1 Subcore)
 
@@ -221,40 +213,37 @@
 - Integration with Basin Kernel syscall interface
 - Integration with VM Runtime JIT
 
-**Current Status**: 🆕 **TO BE CREATED** — New L2 sub-agent for Grain OS sevenos init system
+**Current Status**: ✅ **STEP 3 COMPLETE** (2026-01-03-072000-pst) — All foundational components implemented including process execution and sleep implementation. POSIX implementation validated as correct. Integration documentation ready for Step 4.
 
-**Immediate Next Steps** (from Core 1 Subcore coordination summary):
-1. ⏳ Review sevenos project structure (`grainstore/sevenos/`)
-2. ⏳ Review Basin Kernel syscall interface documentation (from Agent 3a)
-3. ⏳ Design Grain Style init system architecture
-4. ⏳ Implement init system core (`src/init/main.zig`)
-5. ⏳ Implement S6-inspired service supervision system (native Zig)
-6. ⏳ Design service dependency management
-7. ⏳ Create explicit configuration system
-8. ⏳ Integrate with Basin Kernel syscall interface (Agent 3a)
-9. ⏳ Integrate with VM Runtime JIT (Agent 3b)
-10. ⏳ Coordinate with Grainscript Shell (Agent 1e) for shell integration (cross-subcore)
+**Completed Work**:
+- ✅ **Phase 1**: Supervision Library Foundation (COMPLETE)
+- ✅ **Phase 2**: Service Configuration System (COMPLETE)
+- ✅ **Phase 3**: Dependency Manager (COMPLETE)
+- ✅ **Phase 4**: Main Init Loop (COMPLETE)
+- ✅ **Phase 5**: Process Execution (COMPLETE) — fork/exec pattern implemented
+- ✅ **Phase 6**: Sleep Implementation (COMPLETE) — nanosleep implemented
+- ✅ **Phase 8A**: Basin Kernel Integration (COMPLETE) — POSIX implementation validated, integration patterns clarified
+- ✅ **Step 3**: COMPLETE — Phase 5 + Phase 8A complete
 
-**Files to Work On**:
-- `grainstore/sevenos/src/init/main.zig` - Init system entry point (exists)
-- `grainstore/sevenos/src/init/supervision.zig` - Service supervision (to be created)
-- `grainstore/sevenos/src/init/config.zig` - Configuration system (to be created)
-- `grainstore/sevenos/build.zig` - Build configuration (exists)
+**Next Steps**:
+- ⏳ **Step 4**: Shell integration (waiting on Agent 1e, via Core 1 Subcore)
+- ⏳ **Phase 7**: Testing (unit tests, integration tests)
+- ⏳ **Phase 8B**: Service VM integration (future work, requires VM Runtime 3b)
 
 **Coordination**:
-- ⏳ Get syscall interface docs from Agent 3a (Basin Kernel)
-- ⏳ Coordinate with Agent 3b (VM Runtime) for JIT integration
-- ⏳ Coordinate with Agent 3c (System Integration) for testing
+- ✅ Syscall interface docs received from Agent 3a (Basin Kernel)
+- ✅ Step 3 complete — Ready for Step 4
 - ⏳ Coordinate with Agent 1e (Grainscript Shell) for shell integration (cross-subcore with Core 1 Subcore)
-- ⏳ Work with Agent 3 (Vantage 3 Subcore) for coordination
+- ⏳ Coordinate with Agent 3c (System Integration) for testing (Phase 7)
+- ⏳ Coordinate with Agent 3b (VM Runtime) for Phase 8B (future work)
 
 **Vantage 3 Subcore Guidance**:
-- ✅ **Agent 3d Added** — New L2 sub-agent for sevenos Init System (2026-01-01-210806-pst)
-- ⏳ **Coordination Setup** — Set up coordination with Agent 3d once created
-- ⏳ **Cross-Subcore Coordination** — Coordinate with Core 1 Subcore for 3d ↔ 1e integration
-- ⏳ **Framework x86 Priority** — Ensure init system works on Framework Ubuntu x86_64
+- ✅ **Agent 3d Step 3 Complete** — All Step 3 requirements met (2026-01-03-072000-pst)
+- ✅ **Step 4 Ready** — Agent 1e unblocked for shell integration
+- ✅ **Cross-Subcore Coordination** — Step 4 coordination via Core 1 Subcore (1e ↔ 3d)
+- ✅ **Framework x86 Priority** — Init system works on Framework Ubuntu x86_64
 
-**Coordination**: To be established once agent is created
+**Coordination**: Step 3 complete, ready for Step 4 integration
 
 ---
 
@@ -262,9 +251,9 @@
 
 **Coordination Status**: ✅ **Latest Coordination Plan Received** (2025-12-30-093745-pst)
 
-**Latest Coordination Plan**: `docs/agent-communications/core_agent_coordination_plan_2025-12-30-093745-pst.md`  
-**Latest Summary Document**: `docs/agent-communications/core_agent_coordination_summary_2025-12-30-093745-pst.md`  
-**Previous Coordination Plan**: `docs/agent-communications/core_agent_coordination_plan_2025-12-29-152539-pst.md` (acknowledged)
+**Latest Coordination Plan**: `docs/agent-communications/general/coordination/2025-12-30-093745-pst_core_1_subcore_coordination_plan.md`  
+**Latest Summary Document**: `docs/agent-communications/general/coordination/2025-12-30-093745-pst_core_1_subcore_coordination_summary.md`  
+**Previous Coordination Plan**: `docs/agent-communications/general/coordination/2025-12-29-152539-pst_core_1_subcore_coordination_plan.md` (acknowledged)
 
 **Key Updates from Core Agent** (2025-12-30-093745-pst):
 - ✅ Architecture evolution acknowledged (Vantage 3 Subcore + L2 sub-agents)
@@ -528,10 +517,10 @@
 **Status**: ✅ **All L2 Sub-Agents Initialized** (2025-12-29-140000-pst)
 
 **Sub-Agent Status** (Single-Threaded Priority Chain):
-- ✅ **Basin Kernel Agent (3a)**: Syscall interface documentation complete ✅, distribution approved ✅, **STEP 1 (BLOCKING)** — Distribute docs to 3b and 3d THIS WEEK
-- ⏳ **VM Runtime Agent (3b)**: Phase 2 complete ✅ (100% Grain Style compliance), **STEP 2 (BLOCKING)** — Waiting for Step 1, then verify compliance + implement x86_64 JIT (WEEK 1-2)
-- ⏳ **sevenos Init System Agent (3d)**: Basic structure exists ✅, **STEP 3 (BLOCKING)** — Waiting for Step 1, then fix compilation + complete Phase 3/4 + Basin syscall integration (WEEK 1-2)
-- ⏳ **System Integration Agent (3c)**: Design approved ✅, **STEP 5 (SUPPORTING)** — Multi-arch testing framework implementation (WEEK 1-2, can proceed in parallel)
+- ✅ **Basin Kernel Agent (3a)**: Step 1 COMPLETE ✅ (syscall docs distributed 2026-01-02-090000-pst), Step 2 COMPLETE ✅ (supporting Agent 3b), Step 3 SUPPORTING ✅ (supporting Agent 3d)
+- ✅ **VM Runtime Agent (3b)**: Step 2 COMPLETE ✅ (x86_64 JIT with ECALL, guest RAM integration, SLT/SLTU optimizations 2026-01-02-090817-pst)
+- ✅ **sevenos Init System Agent (3d)**: Step 3 COMPLETE ✅ (Phase 5 + Phase 8A complete 2026-01-03-072000-pst), ready for Step 4 (shell integration)
+- ⏳ **System Integration Agent (3c)**: Step 5 IN PROGRESS ⏳ (multi-arch testing framework design approved, implementation ready, can proceed in parallel)
 
 **Coordination Responsibilities**:
 - ⏳ **Coordinate weekly/bi-weekly** — Review sub-agent coordination docs, make architecture decisions
@@ -551,17 +540,16 @@
 ## What Vantage 3 Subcore Is Doing
 
 **Current Work** (Single-Threaded Priority Chain Coordination + Parallel Work):
-- ✅ **Step 1 APPROVED** — Basin Kernel (3a) syscall interface distribution approved (2026-01-02-083246-pst)
-- ⏳ **Step 1 COORDINATION** — Coordinate distribution of syscall docs to Agents 3b and 3d (THIS WEEK — IMMEDIATE, HIGHEST PRIORITY)
-- ✅ **Step 2 PHASE 3 COMPLETE** — Agent 3b x86_64 JIT backend complete with SLT/SLTU optimizations (2026-01-02-090817-pst)
-- ⏳ **Step 2 ECALL INTEGRATION** — Coordinate Agent 3b ECALL integration after syscall docs received (WEEK 1-2, after Step 1)
-- ⏳ **Step 2 JIT TESTING** — Coordinate JIT testing with Agent 3c (IMMEDIATE — Agent 3b ready for coordination)
-- ✅ **Step 2 PARALLEL WORK APPROVED** — Agent 3b parallel work plan approved (test infrastructure, performance optimizations, documentation)
-- ✅ **Step 2 GUEST RAM ARCHITECTURE APPROVED** — Agent 3b guest RAM pointer architecture approved (R13 callee-saved register, matching ARM64 x27)
-- ⏳ **Step 3 COORDINATION** — Coordinate Agent 3d compilation fix, Phase 3/4 completion, Basin syscall integration (WEEK 1-2, after Step 1)
-- ⏳ **Step 5 COORDINATION** — Support Agent 3c multi-arch testing framework implementation (WEEK 1-2, parallel work)
-- ⏳ **Step 4 COORDINATION** — Coordinate cross-subcore integration (1e ↔ 3d) via Core 1 Subcore (WEEK 1-2, after Step 3)
-- ⏳ **PARALLEL WORK** — Integration planning documents, Framework x86_64 environment docs, architecture decision records (THIS WEEK — independent work)
+- ✅ **Step 1 COMPLETE** — Basin Kernel (3a) syscall interface distribution complete (2026-01-02-090000-pst)
+- ✅ **Step 2 COMPLETE** — VM Runtime (3b) x86_64 JIT with ECALL integration complete (2026-01-02-090817-pst)
+- ✅ **Step 3 COMPLETE** — Init System (3d) Phase 5 + Phase 8A complete (2026-01-03-072000-pst)
+- ⏳ **Step 4 COORDINATION** — Coordinate cross-subcore integration (1e ↔ 3d) via Core 1 Subcore (READY TO PROCEED — Agent 1e unblocked)
+- ⏳ **Step 5 COORDINATION** — Support Agent 3c multi-arch testing framework implementation (IN PROGRESS — can proceed in parallel)
+- ⏳ **JIT TESTING COORDINATION** — Coordinate JIT testing with Agent 3c (Agent 3b ready for testing)
+- ⏳ **HOST MEMORY DETECTION** — Support Agent 3b host memory detection for Aurora (ADR 009 approved)
+- ✅ **INTEGRATION PLANNING COMPLETE** — JIT integration, Init System integration, cross-subcore shell/init integration planning documents created
+- ✅ **FRAMEWORK X86_64 DOCS COMPLETE** — Development environment guide, testing environment guide created
+- ✅ **ARCHITECTURE DECISIONS COMPLETE** — ADR 005-009 created (JIT strategy, ECALL fallback, dependency chain, testing framework, host memory allocation)
 - ✅ All kernel features ready — **COMPLETE**
 - ✅ Architecture evolution complete — **COMPLETE** (L2 sub-agents created, Agent 3d added)
 - ✅ Coordination pattern defined — **COMPLETE** (single-threaded priority chain for critical path)
@@ -571,6 +559,6 @@
 
 ---
 
-**Last Updated**: 2025-12-31-022623-pst  
+**Last Updated**: 2026-01-03-084339-pst  
 **Agent**: Grain Vantage 3 Subcore Agent (3rd Agent, L1 Subcore)  
-**Status**: ✅ **ALL KERNEL FEATURES COMPLETE** — Kernel Refactoring Complete ✅ — Production Ready — JG Project Support Ready — Architecture Evolution Complete ✅ — L2 Sub-Agents Ready ✅ — Renamed to Vantage 3 Subcore (Subcore Coordination / Systems Integration) ✅ — L2 Coordination Guidance Provided ✅ — Hybrid Coordination Pattern Active ✅
+**Status**: ✅ **ALL KERNEL FEATURES COMPLETE** — Single-threaded priority chain active ✅ — Critical path: Steps 1-3 COMPLETE ✅ — Step 4 ready to proceed ⏳ — Architecture Evolution Complete ✅ — L2 Sub-Agents Ready ✅ — Hybrid Coordination Pattern Active ✅

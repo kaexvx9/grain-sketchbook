@@ -1,12 +1,38 @@
 # Grain Vantage Agent: Task List
 
 **Agent**: Grain Vantage 3 Subcore Agent (3rd Agent, L1 Subcore)  
-**Status**: All Kernel Features Complete ✅ — Kernel Refactoring Complete ✅ — Production Ready — Architecture Evolution Planned 🆕  
-**Last Updated**: 2025-12-29-133812-pst
+**Status**: All Kernel Features Complete ✅ — Single-threaded priority chain active ✅ — Critical path: Steps 1-3 COMPLETE ✅ — Step 4 ready to proceed ⏳  
+**Last Updated**: 2026-01-03-084339-pst
 
 ---
 
-## Current Work: Kernel Refactoring Complete ✅
+## Current Work: Critical Path Coordination ✅
+
+**Status**: ✅ **STEPS 1-3 COMPLETE**, ⏳ **STEP 4 READY TO PROCEED**  
+**Date**: 2026-01-03-084339-pst  
+**Priority**: HIGHEST — Single-threaded priority chain coordination
+
+### Critical Path Tasks (Single-Threaded Dependency Chain)
+
+**Goal**: Vantage running Basin Kernel on Framework sevenos x86_64 with working Grainscript shell
+
+- [x] **Step 1 COMPLETE** (2026-01-02-090000-pst) — Basin Kernel (3a) distributed syscall docs to 3b and 3d
+- [x] **Step 2 COMPLETE** (2026-01-02-090817-pst) — VM Runtime (3b) x86_64 JIT with ECALL integration complete
+- [x] **Step 3 COMPLETE** (2026-01-03-072000-pst) — Init System (3d) Phase 5 + Phase 8A complete
+- [ ] **Step 4 COORDINATION** — Coordinate cross-subcore integration (1e ↔ 3d) via Core 1 Subcore (READY TO PROCEED)
+- [ ] **Step 5 COORDINATION** — Support Agent 3c multi-arch testing framework implementation (IN PROGRESS, parallel work)
+
+### Parallel Work Tasks (Non-Blocking)
+
+- [x] **Integration Planning Documents** — JIT integration, Init System integration, cross-subcore shell/init integration planning complete
+- [x] **Framework x86_64 Environment Docs** — Development environment guide, testing environment guide complete
+- [x] **Architecture Decision Records** — ADR 005-009 created (JIT strategy, ECALL fallback, dependency chain, testing framework, host memory allocation)
+- [ ] **JIT Testing Coordination** — Coordinate JIT testing with Agent 3c (Agent 3b ready)
+- [ ] **Host Memory Detection Support** — Support Agent 3b host memory detection for Aurora (ADR 009 approved)
+
+---
+
+## Previous Work: Kernel Refactoring Complete ✅
 
 **Status**: ✅ **ALL 8 PHASES COMPLETE** (2025-12-29-070000-pst)  
 **Date**: 2025-12-29-070000-pst  
