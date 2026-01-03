@@ -629,6 +629,10 @@ This isn't speculative philosophy—it's practical field-theoretic engineering w
 - RISC-V Instruction Set Manual
 - Grain OS Documentation
 
+### Hardware Architecture
+
+- @kae3g, Glow G2. (2026). "Solid Silicon Torus High-Performance Computing Architecture: A Field-Theoretic Hardware Design Proposal". Hardware Design Whitepaper (2026-01-03-075500-pst). Related work: Toroidal Information Geometry for Bounded Optimization (2026-01-03-075313-pst).
+
 ### Aether Theory and Fractal Paradigm
 
 - Wheeler, K. Theoria Apophasis (aether dielectrical-magnetic monist theory)
