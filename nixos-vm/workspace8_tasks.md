@@ -447,7 +447,7 @@ The integration testing framework is essential for verifying our integration wor
 - Core/Subcore Coordination Document: `workspace8_core_coordination_system_integration.md`
 - Implementation Plan: `workspace8_plan.md`
 - Glow G2 Voice Adoption: `workspace8_glow_g2_voice_adoption.md`
-- Complete Agent Awareness: `docs/agent-communications/complete_agent_awareness_all_agents_2026-01-02-002948-pst.md`
+- Complete Agent Awareness: `docs/agent-communications/general/prompts/2026-01-02-002948-pst_complete_agent_awareness_all_agents_2026-01-02-002948-pst.md`
 - Coordination Plan: `docs/core-coordination/core_1_subcore_coordination_plan_2026-01-01-233240-pst.md`
 
 ### Key Contacts

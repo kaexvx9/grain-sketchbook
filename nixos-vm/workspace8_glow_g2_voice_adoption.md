@@ -77,7 +77,7 @@
 
 **Primary References**:
 - `docs/zyx/glow_g2.md` - Core voice definition
-- `docs/agent-communications/glow_g2_voice_multi_agent_prompt_2026-01-01-235155-pst.md` - Multi-agent prompt
+- `docs/agent-communications/general/prompts/glow_g2_voice_multi_agent_prompt_2026-01-01-235155-pst.md` - Multi-agent prompt
 
 **Supporting Documents**:
 - `docs/grain_style.md` - Grain Style guidelines

@@ -122,7 +122,7 @@
 - ✅ Coordination request sent to Storage Agent (1c)
 - ✅ **Persistence design document complete** (`docs/core-coordination/core_1d_compositor_phase7_persistence_design_2026-01-02-084000-pst.md`)
 - ✅ **Test plan document complete** (`docs/core-coordination/core_1d_compositor_phase7_test_plan_2026-01-02-085000-pst.md`)
-- ✅ **Readiness summary complete** (`docs/agent-communications/core_1d_compositor_phase7_readiness_summary_2026-01-02-090000-pst.md`)
+- ✅ **Readiness summary complete** (`docs/agent-communications/l2-subagents/core_1/1d_compositor/communications/2026-01-02-090000-pst_core_1d_compositor_phase7_readiness_summary_2026-01-02-090000-pst.md`)
 - ✅ **Integration preparation complete** (`docs/core-coordination/core_1d_compositor_phase7_integration_preparation_2026-01-02-092000-pst.md`)
 - ✅ **Storage Agent API design approved** (`docs/core-coordination/core_1c_storage_compositor_workspace_persistence_api_design_2026-01-02-005751-pst.md`)
 - ✅ **API contract agreed** (JSON format, `~/.grain/compositor/` storage location)
@@ -153,10 +153,10 @@
    - Framework x86_64 verification
 
 **Coordination Documents**:
-- Request: `docs/agent-communications/core_1d_compositor_to_1c_storage_coordination_request_2026-01-01-234000-pst.md`
-- Response: `docs/agent-communications/core_1c_storage_to_1d_compositor_coordination_response_2026-01-02-090144-pst.md`
+- Request: `docs/agent-communications/cross-agent/core_1_internal/core_1d_compositor_to_1c_storage_coordination_request_2026-01-01-234000-pst.md`
+- Response: `docs/agent-communications/cross-agent/core_1_internal/2026-01-02-090144-pst_core_1c_storage_to_1d_compositor_coordination_response_2026-01-02-090144-pst.md`
 - API Design: `docs/core-coordination/core_1c_storage_compositor_workspace_persistence_api_design_2026-01-02-005751-pst.md`
-- Approval: `docs/agent-communications/core_1d_compositor_to_1c_storage_coordination_response_2026-01-02-091500-pst.md`
+- Approval: `docs/agent-communications/cross-agent/core_1_internal/2026-01-02-091500-pst_core_1d_compositor_to_1c_storage_coordination_response.md`
 
 **Estimated Effort**: Medium (API contract agreed, integration pending)  
 **Dependencies**: Storage Agent (1c) API implementation finalization (in progress, module exists)
@@ -371,7 +371,7 @@
 - ✅ `docs/core-coordination/core_1d_compositor_phase7_persistence_design_2026-01-02-084000-pst.md`
 - ✅ `docs/core-coordination/core_1d_compositor_phase7_test_plan_2026-01-02-085000-pst.md`
 - ✅ `docs/core-coordination/core_1d_compositor_phase7_integration_preparation_2026-01-02-092000-pst.md`
-- ✅ `docs/agent-communications/core_1d_compositor_phase7_readiness_summary_2026-01-02-090000-pst.md`
+- ✅ `docs/agent-communications/l2-subagents/core_1/1d_compositor/communications/2026-01-02-090000-pst_core_1d_compositor_phase7_readiness_summary_2026-01-02-090000-pst.md`
 
 ---
 
@@ -380,10 +380,10 @@
 **Status**: ✅ **Complete**
 
 **Documents**:
-- ✅ `docs/agent-communications/core_1d_compositor_to_1c_storage_coordination_request_2026-01-01-234000-pst.md`
-- ✅ `docs/agent-communications/core_1c_storage_to_1d_compositor_coordination_response_2026-01-02-090144-pst.md`
-- ✅ `docs/agent-communications/core_1d_compositor_to_1c_storage_coordination_response_2026-01-02-091500-pst.md`
-- ✅ `docs/agent-communications/core_1d_compositor_independent_work_complete_2026-01-02-092500-pst.md`
+- ✅ `docs/agent-communications/cross-agent/core_1_internal/core_1d_compositor_to_1c_storage_coordination_request_2026-01-01-234000-pst.md`
+- ✅ `docs/agent-communications/cross-agent/core_1_internal/2026-01-02-090144-pst_core_1c_storage_to_1d_compositor_coordination_response_2026-01-02-090144-pst.md`
+- ✅ `docs/agent-communications/cross-agent/core_1_internal/2026-01-02-091500-pst_core_1d_compositor_to_1c_storage_coordination_response.md`
+- ✅ `docs/agent-communications/l2-subagents/core_1/1d_compositor/communications/core_1d_compositor_independent_work_complete_2026-01-02-092500-pst.md`
 
 ---
 

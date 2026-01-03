@@ -1,6 +1,6 @@
 # Core Coordination: Grain Basin Kernel Agent
 
-**Last Updated**: 2026-01-03-060255-pst  
+**Last Updated**: 2026-01-03-081702-pst  
 **Agent**: Grain Basin Kernel Agent (3a)  
 **Parent Agent**: Grain Vantage 3 Subcore Agent (3rd Agent, L1 Subcore)  
 **Status**: ✅ **STEP 1 COMPLETE, STEP 2 COMPLETE, STEP 3 SUPPORTING** — Syscall interface documentation distributed, Agent 3b Step 2 complete, Agent 3d Phase 5 support provided
@@ -135,7 +135,7 @@
 **Priority**: HIGH - Support for Step 3 (Init System Phase 5)
 
 **Work Completed**:
-1. **Phase 5 Syscall Guidance Document** (`docs/agent-communications/2026-01-03-055500-pst_vantage_3a_to_3d_phase5_syscall_guidance.md`):
+1. **Phase 5 Syscall Guidance Document** (`docs/agent-communications/l2-subagents/vantage_3/3a_basin_kernel/communications/2026-01-03-055500-pst_vantage_3a_to_3d_phase5_syscall_guidance.md`):
    - Complete `spawn`, `wait`, `exit` syscall patterns
    - POSIX to Basin Kernel transition strategy
    - Service lifecycle pattern examples
@@ -214,7 +214,7 @@
 **Priority**: HIGH - Support Agent 3b's ECALL implementation
 
 **Work Completed**:
-1. **Created ECALL reminder document** (`docs/agent-communications/vantage_3a_to_3b_ecall_reminder_2026-01-02-090000-pst.md`):
+1. **Created ECALL reminder document** (`docs/agent-communications/l2-subagents/vantage_3/3a_basin_kernel/communications/vantage_3a_to_3b_ecall_reminder_2026-01-02-090000-pst.md`):
    - Reminder that syscall interface documentation was already distributed
    - Quick reference to ECALL-specific sections
    - Implementation guidance for Phase 1 (ECALL fallback pattern)

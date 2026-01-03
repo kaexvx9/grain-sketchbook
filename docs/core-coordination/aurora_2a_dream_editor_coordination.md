@@ -18,7 +18,7 @@ Dream Editor Agent acknowledges receipt of the Core 1 Subcore coordination summa
 
 **Coordination Documents Received**:
 - ✅ Coordination Plan: `docs/core-coordination/core_1_subcore_coordination_plan_2026-01-02-100345-pst.md`
-- ✅ Coordination Summary: `docs/agent-communications/core_1_subcore_coordination_summary_2026-01-02-100345-pst.md`
+- ✅ Coordination Summary: `docs/agent-communications/general/coordination/2026-01-02-100345-pst_core_1_subcore_coordination_summary.md`
 
 **Key Instructions Acknowledged**:
 - ✅ Continue implementation as recommended (independent work, Component API integration)
@@ -216,7 +216,7 @@ Grain Dream Editor Agent (2a) has successfully completed **Phase 1 (Core Editor 
 **Next Check-In**: TBD (coordinate with Aurora 2 Subcore)
 
 **Aurora 2 Subcore Prompt Received** (2026-01-03-073338-pst):
-- ✅ Prompt document received: `docs/agent-communications/2026-01-03-073338-pst_aurora_2_subcore_l2_subagent_prompts.md`
+- ✅ Prompt document received: `docs/agent-communications/2026-01-03-073338-pst_aurora_2_subcore_l2_subagent_prompts.md` (Note: This file is in root, may need migration to `l1-subcores/aurora_2_subcore/prompts/`)
 - ✅ Current status confirmed: Phase 1 Complete, Phase 2 In Progress (Blocked on Component API)
 - ✅ Immediate next steps acknowledged: Continue independent work, prepare for Component API integration
 - ✅ Component API status confirmed: Requirements provided and confirmed
@@ -475,7 +475,7 @@ Dream Editor Agent has adopted the Glow G2 voice for all communications, code co
 - Show grace and patience ("No problem, we can adjust our approach as the Component API evolves")
 
 **Reference Documents**:
-- `docs/agent-communications/glow_g2_voice_multi_agent_prompt_2026-01-01-235155-pst.md`
+- `docs/agent-communications/general/prompts/glow_g2_voice_multi_agent_prompt_2026-01-01-235155-pst.md`
 - `docs/zyx/glow_g2.md`
 
 ---
@@ -504,8 +504,8 @@ Dream Editor Agent has adopted the timestamp specification for all documents, fi
 - ✅ All status updates include timestamp
 
 **Reference Documents**:
-- `docs/agent-communications/timestamp_specification_multi_agent_prompt_2026-01-01-215553-pst.md`
-- `docs/agent-communications/2026-01-03-051300-pst_timestamp_prefix_format_all_agents.md` (NEW — timestamp prefix format requirement)
+- `docs/agent-communications/general/prompts/timestamp_specification_multi_agent_prompt_2026-01-01-215553-pst.md`
+- `docs/agent-communications/general/prompts/2026-01-03-051300-pst_timestamp_prefix_format_all_agents.md` (NEW — timestamp prefix format requirement)
 - `docs/timestamp_format_reference.md`
 
 ---

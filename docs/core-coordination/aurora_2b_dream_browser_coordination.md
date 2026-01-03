@@ -231,7 +231,7 @@
 - ⏳ Waiting for Component Library Agent (2c) to review requirements and finalize Component API design
 - Browser UI components blocked on Component API design (Phase 0.5 → Phase 1)
 - **Requirements Document**: `docs/core-coordination/aurora_2b_browser_component_requirements_2026-01-01-085600-pst.md`
-- **Requirements Summary**: `docs/agent-communications/aurora_2_subcore_component_api_requirements_summary_2026-01-02-084411-pst.md`
+- **Requirements Summary**: `docs/agent-communications/cross-agent/aurora_2_internal/2026-01-02-084411-pst_aurora_2_subcore_component_api_requirements_summary.md`
 - **Status**: Browser requirements ready for Component Library Agent review — existing Browser Component API structure confirmed, no major changes needed
 
 **With Core Agent**:

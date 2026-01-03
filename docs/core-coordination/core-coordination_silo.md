@@ -1,9 +1,9 @@
 # Grain Silo Agent: Coordination Status
 
-**Last Updated**: 2026-01-02-092228-pst  
+**Last Updated**: 2026-01-03-081847-pst  
 **Agent**: Grain Silo Agent (Agent 7, 7th Agent, Database)  
 **Status**: **PRODUCTION READY** ✅ — **INDEPENDENT IMPROVEMENTS IN PROGRESS** ✅ — **DOCUMENTATION ENHANCEMENTS ONGOING** ✅  
-**System Integration**: `docs/core-coordination/silo_agent_system_integration_2026-01-02-092228-pst.md`  
+**Latest Coordination**: `docs/core-coordination/core_1_subcore_coordination_plan_2026-01-02-100345-pst.md`  
 **Documentation Progress**: `docs/core-coordination/silo_agent_documentation_progress_2026-01-02-085625-pst.md`
 
 ---
@@ -127,7 +127,7 @@ All core phases complete and ready for production use:
 - Async pattern enables event-driven HTTP/WebSocket operations
 
 **Key Resources**:
-- API Contracts: `docs/agent-communications/silo_agent_database_api_contracts_2025-12-21-143409-pst.md` (HTTP Client Integration section)
+- API Contracts: `docs/agent-communications/l1-standalone/7_silo/communications/2025-12-21-143409-pst_silo_agent_database_api_contracts.md` (HTTP Client Integration section)
 - Core Agent HTTP Client: `src/grain_core/http_client.zig`
 - Core Agent Error Types: `src/grain_core/http_errors.zig`
 - Core Agent Auth Service: `src/grain_core/auth_service.zig`
@@ -218,9 +218,8 @@ All core phases complete and ready for production use:
 
 **Key Resources**:
 - **JG Storage Schema Preliminary Design**: `docs/grain_database/jg_storage_schema_preliminary_notes.md` (NEW - 2025-12-30-100000-pst)
-- Core Agent Coordination Plan: `docs/agent-communications/core_agent_coordination_plan_2025-12-30-093745-pst.md` (NEW - Latest)
-- Core Agent Summary: `docs/agent-communications/core_agent_coordination_summary_2025-12-30-093745-pst.md` (NEW - Latest)
-- Previous Coordination Plan: `docs/agent-communications/core_agent_coordination_plan_2025-12-29-152539-pst.md`
+- Core Agent Coordination Plan: `docs/agent-communications/general/coordination/2025-12-30-093745-pst_core_agent_coordination_plan.md` (migrated to new structure)
+- Core Agent Summary: `docs/agent-communications/general/coordination/2025-12-30-093745-pst_core_agent_coordination_summary.md` (migrated to new structure)
 - JG Project Design: `docs/zyx/grainbank_mmt_job_guarantee_housing_program_2025-12-28-232324-pst.md`
 - Skate Agent Knowledge Graph: `docs/grain_skate/jg_knowledge_graph_structure.md`
 - Payment/Vault/Bank Storage Schema (reference pattern): `docs/grain_database/payment_vault_storage_schema.md`
@@ -294,7 +293,7 @@ All core phases complete and ready for production use:
 - Storage Schema Design: `docs/grain_database/payment_vault_storage_schema.md`
 - Payment/Vault/Bank Design: `docs/zyx/grain_payment_vault_design_2025-12-28-213448-pst.md`
 - SLC Integration Helpers (reference): `src/grain_database/slc_integration.zig`
-- Core Agent Coordination Plan: `docs/agent-communications/core_1_subcore_coordination_plan_2026-01-01-101236-pst.md` (LATEST)
+- Core Agent Coordination Plan: `docs/agent-communications/general/coordination/2026-01-01-101236-pst_core_1_subcore_coordination_plan.md` (migrated to new structure)
 
 **Check-In Status**: ✅ **RESOLVED** — Schema approved, implementation in progress
 
@@ -377,7 +376,7 @@ All core phases complete and ready for production use:
 **Immediate Next Steps**:
 
 1. **Review Endpoint Paths Confirmation** (READY NOW ✅):
-   - Review endpoint paths confirmation document (`docs/agent-communications/silo_agent_endpoint_paths_confirmation_2025-12-29-044000-pst.md`)
+   - Review endpoint paths confirmation document (`docs/agent-communications/l1-standalone/7_silo/communications/2025-12-29-044000-pst_silo_agent_endpoint_paths_confirmation.md`)
    - Confirm endpoint paths match expectations (`/api/v1/records`, `/api/v1/health`, `/api/v1/search`)
    - Confirm key format pattern (`user:{user_id}`)
    - Can proceed with integration testing using confirmed paths

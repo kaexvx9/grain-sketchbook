@@ -4,8 +4,8 @@
 **Parent Agent**: Grain Vantage 3 Subcore Agent (3rd Agent, L1 Subcore)  
 **Last Updated**: 2026-01-01-230000-pst  
 **Status**: ⚠️ **PHASE 2 NEAR COMPLETE** — Minor Adjustments Needed (1-5 Lines Over Limit) — Framework Ubuntu x86 Priorities Received  
-**Coordination Plan**: `docs/agent-communications/vantage_3_subcore_coordination_plan_2025-12-29-223949-pst.md`  
-**Coordination Summary**: `docs/agent-communications/vantage_3_subcore_coordination_summary_2025-12-29-223949-pst.md`
+**Coordination Plan**: `docs/agent-communications/l1-subcores/vantage_3_subcore/coordination/vantage_3_subcore_coordination_plan_2026-01-01-094036-pst.md`  
+**Coordination Summary**: `docs/agent-communications/general/coordination/vantage_3_subcore_coordination_summary_2026-01-01-123530-pst.md`
 
 ---
 

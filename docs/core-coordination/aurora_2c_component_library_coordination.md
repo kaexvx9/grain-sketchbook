@@ -1,6 +1,6 @@
 # Core Coordination: Grain Component Library Agent (2c)
 
-**Last Updated**: 2026-01-02-091441-pst  
+**Last Updated**: 2026-01-03-081658-pst  
 **Agent**: Grain Component Library Agent (2c) — L2 Sub-Agent  
 **Parent Agent**: Grain Aurora 2 Subcore Agent (L1 Subcore Coordinator)  
 **Status**: ✅ **PHASE 0.5 COMPLETE** — Component API Design Finalized — Ready for Phase 1 Implementation
@@ -119,8 +119,8 @@
 - `docs/component_library_phase_0.5_design_finalization_2026-01-02-091441-pst.md` - Phase 0.5 design finalization
 
 **Coordination Documents Created**:
-- `docs/agent-communications/component_library_to_editor_coordination_response_2026-01-01.md` - Editor coordination response
-- `docs/agent-communications/component_library_to_browser_coordination_request_2026-01-01-085546-pst.md` - Browser coordination request
+- `docs/agent-communications/cross-agent/cross_domain/component_library_to_editor_coordination_response_2026-01-01.md` - Editor coordination response
+- `docs/agent-communications/cross-agent/cross_domain/component_library_to_browser_coordination_request_2026-01-01-085546-pst.md` - Browser coordination request
 
 **Code Files** (to be created in Phase 1):
 - `src/dream_editor_components.zig` (Editor component API)
@@ -156,7 +156,7 @@
 ### Core 1 Subcore Coordination Update Acknowledgment
 
 **Reference**: `docs/core-coordination/core_1_subcore_coordination_plan_2026-01-01-101236-pst.md`  
-**Reference**: `docs/agent-communications/core_1_subcore_coordination_summary_2026-01-01-101236-pst.md`
+**Reference**: `docs/agent-communications/general/coordination/2026-01-02-100345-pst_core_1_subcore_coordination_summary.md` (latest)
 
 **Acknowledged Instructions**:
 - ✅ Component API Design Coordination (HIGH PRIORITY) — Phase 0.5 complete, ready for Bubble Agent coordination
@@ -261,7 +261,7 @@
 **Reference Documents**:
 - Component API Design: `docs/component_api_design.md`
 - Existing Bubble Integration: `src/grain_bubble/aurora_integration.zig`
-- Previous Coordination: `docs/agent-communications/aurora_to_bubble_component_api_coordination_2025-12-30-123545-pst.md`
+- Previous Coordination: `docs/agent-communications/cross-agent/cross_domain/2026-01-02-084110-pst_aurora_2_subcore_to_bubble_component_api_coordination.md`
 
 **Impact**: Unblocks Bubble Agent JG UI work (HIGHEST PRIORITY) — Component API design ready for review
 
@@ -323,9 +323,11 @@
 - `src/grain_bubble/aurora_integration.zig` - Bubble Agent integration (existing, may update in Phase 3)
 
 **Coordination Documents**:
-- `docs/agent-communications/component_library_to_editor_coordination_response_2026-01-01.md` - Editor coordination response
-- `docs/agent-communications/component_library_to_browser_coordination_request_2026-01-01-085546-pst.md` - Browser coordination request
+- `docs/agent-communications/cross-agent/cross_domain/component_library_to_editor_coordination_response_2026-01-01.md` - Editor coordination response
+- `docs/agent-communications/cross-agent/cross_domain/component_library_to_browser_coordination_request_2026-01-01-085546-pst.md` - Browser coordination request
 - `docs/component_api_design.md` - Component API design document (ready for Bubble Agent review)
+- `docs/core-coordination/2026-01-03-052100-pst_aurora_2c_timestamp_prefix_format_acknowledgment.md` - Timestamp prefix format acknowledgment
+- `docs/core-coordination/2026-01-03-073819-pst_aurora_2c_l2_subagent_prompt_acknowledgment.md` - L2 sub-agent prompt acknowledgment
 
 ---
 
