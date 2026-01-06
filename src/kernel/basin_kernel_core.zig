@@ -652,6 +652,20 @@ pub const BasinKernel = struct {
         // Assert: Address must be page-aligned.
         Debug.kassert(addr % 4096 == 0, "Address {x} not aligned", .{addr});
         
+        // Optimization: Hash table lookup (O(1) average case).
+        const hash_idx = @as(u32, @truncate((addr / 4096) % MAX_MAPPINGS));
+        const cached_idx = self.mapping_addr_to_index[hash_idx];
+        if (cached_idx < MAX_MAPPINGS) {
+            const cached_mapping = &self.mappings[cached_idx];
+            if (cached_mapping.allocated and cached_mapping.address == addr) {
+                // Assert: Cached mapping must be valid (postcondition).
+                Debug.kassert(cached_mapping.allocated, "Cached mapping not allocated", .{});
+                Debug.kassert(cached_mapping.address == addr, "Cached mapping addr mismatch", .{});
+                return cached_idx; // Fast path: Hash table hit
+            }
+        }
+        
+        // Fallback: Linear search through all mappings.
         var found_index: ?u32 = null;
         var match_count: u32 = 0;
         
@@ -672,7 +686,51 @@ pub const BasinKernel = struct {
         // Assert: Address must be unique (no duplicate mappings).
         Debug.kassert(match_count <= 1, "Duplicate mappings found", .{});
         
+        // Update hash table for next lookup (if found).
+        if (found_index) |idx| {
+            self.mapping_addr_to_index[hash_idx] = idx;
+        }
+        
         return found_index;
+    }
+    
+    /// Add mapping to hash table.
+    /// Why: Maintain hash table when new mappings are allocated.
+    pub fn add_mapping_to_hash_table(self: *BasinKernel, addr: u64, mapping_idx: u32) void {
+        // Assert: self pointer must be valid.
+        const self_ptr = @intFromPtr(self);
+        Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
+        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        
+        // Assert: Address must be page-aligned.
+        Debug.kassert(addr % 4096 == 0, "Address {x} not aligned", .{addr});
+        
+        // Assert: mapping_idx must be valid.
+        Debug.kassert(mapping_idx < MAX_MAPPINGS, "Mapping index out of bounds", .{});
+        
+        const hash_idx = @as(u32, @truncate((addr / 4096) % MAX_MAPPINGS));
+        self.mapping_addr_to_index[hash_idx] = mapping_idx;
+        
+        // Assert: Hash table entry updated.
+        Debug.kassert(self.mapping_addr_to_index[hash_idx] == mapping_idx, "Hash table update failed", .{});
+    }
+    
+    /// Remove mapping from hash table.
+    /// Why: Maintain hash table when mappings are deallocated.
+    pub fn remove_mapping_from_hash_table(self: *BasinKernel, addr: u64) void {
+        // Assert: self pointer must be valid.
+        const self_ptr = @intFromPtr(self);
+        Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
+        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        
+        // Assert: Address must be page-aligned.
+        Debug.kassert(addr % 4096 == 0, "Address {x} not aligned", .{addr});
+        
+        const hash_idx = @as(u32, @truncate((addr / 4096) % MAX_MAPPINGS));
+        self.mapping_addr_to_index[hash_idx] = MAX_MAPPINGS; // Invalidate entry
+        
+        // Assert: Hash table entry invalidated.
+        Debug.kassert(self.mapping_addr_to_index[hash_idx] == MAX_MAPPINGS, "Hash table invalidation failed", .{});
     }
     
     /// Check memory permissions for an address.
