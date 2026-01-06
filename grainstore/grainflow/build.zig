@@ -18,21 +18,24 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    // TODO: Add zigimg module when available
     // Zigimg module (for image format support)
-    const zigimg_mod = b.addModule("zigimg", .{
-        .root_source_file = b.path("../../grainstore/github/zigimg/zigimg/zigimg.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
+    // const zigimg_path = b.path("../../grainstore/github/zigimg/zigimg/zigimg.zig");
+    // const zigimg_mod = b.addModule("zigimg", .{
+    //     .root_source_file = zigimg_path,
+    //     .target = target,
+    //     .optimize = optimize,
+    // });
 
     // Media engine module
     const media_engine_mod = b.addModule("grainflow_media", .{
         .root_source_file = b.path("src/lib/media/engine.zig"),
         .target = target,
         .optimize = optimize,
-        .imports = &.{
-            .{ .name = "zigimg", .module = zigimg_mod },
-        },
+        // TODO: Add zigimg import when available
+        // .imports = &.{
+        //     .{ .name = "zigimg", .module = zigimg_mod },
+        // },
     });
 
     // DAG synthesis module
@@ -94,9 +97,10 @@ pub fn build(b: *std.Build) void {
             .root_source_file = b.path("src/lib/media/engine.zig"),
             .target = target,
             .optimize = optimize,
-            .imports = &.{
-                .{ .name = "zigimg", .module = zigimg_mod },
-            },
+            // TODO: Add zigimg import when available
+            // .imports = &.{
+            //     .{ .name = "zigimg", .module = zigimg_mod },
+            // },
         }),
     });
     const run_media_tests = b.addRunArtifact(media_tests);
