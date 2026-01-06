@@ -62,33 +62,40 @@ This document outlines the preparation plan for continuing Vantage Basin work (G
 
 ---
 
-## RISC-V Environment Setup
+## RISC-V Environment Setup (Grain Style - No QEMU)
 
 ### Development Environment
 
 **Target Environment**:
 - Framework Ubuntu x86_64 (host)
-- QEMU/KVM RISC-V VM (target)
+- Vantage VM Runtime (JIT: RISC-V64 → x86_64)
 - Basin Kernel (RISC-V64)
 - sevenos Init System
 - Grainscript Shell
 
+**Architecture**: RISC-V64 build → Vantage VM Runtime (JIT) → Framework Ubuntu x86_64
+
 **Setup Steps**:
-1. **QEMU/KVM RISC-V VM**:
-   - Set up RISC-V64 VM with Basin Kernel
-   - Configure network and storage
-   - Enable development tools
+1. **RISC-V64 Build Configuration**:
+   - Configure Zig build for RISC-V64 target
+   - Build binaries for RISC-V64
+   - Test via Vantage VM Runtime
 
 2. **Build System**:
    - Zig 0.15.2 cross-compilation
    - RISC-V64 target configuration
-   - Build scripts for VM deployment
+   - Build scripts for RISC-V64
 
-3. **Development Workflow**:
+3. **Vantage VM Runtime**:
+   - JIT compilation: RISC-V64 → x86_64
+   - Execution on Framework Ubuntu x86_64
+   - No QEMU dependency (pure Grain Style)
+
+4. **Development Workflow**:
    - Code in Cursor (host)
    - Build for RISC-V64
-   - Deploy to VM
-   - Test in RISC-V environment
+   - Run via Vantage VM Runtime
+   - Test on Framework Ubuntu x86_64
    - Iterate
 
 ### Integration Points
