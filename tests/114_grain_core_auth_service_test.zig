@@ -1200,3 +1200,39 @@ test "auth_service_cleanup_all_expired_resources" {
     std.debug.assert(service.otp_count == 0);
 }
 
+test "auth_service_validate_secret_strength_valid" {
+    const valid_secret = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()";
+    const validation = auth_service.validate_secret_strength(valid_secret);
+    std.debug.assert(validation.is_valid == true);
+    std.debug.assert(validation.error_message.len == 0);
+}
+
+test "auth_service_validate_secret_strength_too_short" {
+    const short_secret = "short";
+    const validation = auth_service.validate_secret_strength(short_secret);
+    std.debug.assert(validation.is_valid == false);
+    std.debug.assert(validation.error_message.len > 0);
+}
+
+test "auth_service_validate_secret_strength_low_entropy" {
+    const low_entropy_secret = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    const validation = auth_service.validate_secret_strength(low_entropy_secret);
+    std.debug.assert(validation.is_valid == false);
+    std.debug.assert(validation.error_message.len > 0);
+}
+
+test "auth_service_init_with_validation_valid" {
+    const valid_secret = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()";
+    const service = auth_service.init_with_validation(valid_secret) catch |err| {
+        std.debug.panic("Unexpected error: {}", .{err});
+    };
+    std.debug.assert(service.secret_len > 0);
+    std.debug.assert(service.session_count == 0);
+}
+
+test "auth_service_init_with_validation_invalid" {
+    const invalid_secret = "short";
+    const result = auth_service.init_with_validation(invalid_secret);
+    std.debug.assert(result == error.InvalidSecret);
+}
+

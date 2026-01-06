@@ -7,9 +7,15 @@
 const std = @import("std");
 const api_server = @import("api_server.zig");
 
+// Secret validation errors
+pub const SecretError = error{
+    InvalidSecret,
+};
+
 // Constants
 pub const MAX_JWT_LEN: u32 = 2048;
 pub const MAX_SECRET_LEN: u32 = 256;
+pub const MIN_SECRET_LEN: u32 = 32; // Minimum secret length (256 bits)
 pub const MAX_USER_ID_LEN: u32 = 64;
 pub const MAX_SESSION_ID_LEN: u32 = 64;
 pub const MAX_OTP_CODE_LEN: u32 = 8;
@@ -2600,5 +2606,65 @@ pub fn cleanup_all_expired_resources(
         .sessions_cleaned = sessions_cleaned,
         .otps_cleaned = otps_cleaned,
     };
+}
+
+// ============================================================================
+// Secret Management Hardening (Production Hardening)
+// ============================================================================
+
+// Secret validation result
+pub const SecretValidationResult = struct {
+    is_valid: bool,
+    error_message: []const u8,
+};
+
+// Validate secret strength (minimum length and basic entropy check)
+pub fn validate_secret_strength(secret: []const u8) SecretValidationResult {
+    std.debug.assert(secret.len > 0);
+    if (secret.len < MIN_SECRET_LEN) {
+        return SecretValidationResult{
+            .is_valid = false,
+            .error_message = "Secret too short (minimum 32 bytes required)",
+        };
+    }
+    if (secret.len > MAX_SECRET_LEN) {
+        return SecretValidationResult{
+            .is_valid = false,
+            .error_message = "Secret too long (maximum 256 bytes allowed)",
+        };
+    }
+    // Basic entropy check: count unique byte values
+    var byte_counts: [256]u32 = [_]u32{0} ** 256;
+    var unique_bytes: u32 = 0;
+    var i: u32 = 0;
+    while (i < secret.len) : (i += 1) {
+        const byte_val = @as(u32, secret[i]);
+        if (byte_counts[byte_val] == 0) {
+            unique_bytes += 1;
+        }
+        byte_counts[byte_val] += 1;
+    }
+    // Require at least 16 unique byte values for basic entropy
+    const min_unique_bytes: u32 = 16;
+    if (unique_bytes < min_unique_bytes) {
+        return SecretValidationResult{
+            .is_valid = false,
+            .error_message = "Secret lacks sufficient entropy (too repetitive)",
+        };
+    }
+    return SecretValidationResult{
+        .is_valid = true,
+        .error_message = "",
+    };
+}
+
+// Initialize authentication service with secret validation
+pub fn init_with_validation(secret: []const u8) SecretError!AuthService {
+    std.debug.assert(secret.len > 0);
+    const validation = validate_secret_strength(secret);
+    if (!validation.is_valid) {
+        return error.InvalidSecret;
+    }
+    return init(secret);
 }
 
