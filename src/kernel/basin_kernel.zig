@@ -432,6 +432,9 @@ pub fn handle_syscall(
         mapping.allocated = true;
         mapping.owner_process_id = owner_process_id;
         
+        // Add mapping to hash table (optimization).
+        self.add_mapping_to_hash_table(mapping_addr, mapping_idx);
+        
         // Update page table (map pages with permissions).
         // Convert MapFlags to PageFlags (same structure).
         const page_flags = page_table.PageFlags{
@@ -530,6 +533,10 @@ pub fn handle_syscall(
         var mapping = &self.mappings[mapping_idx];
         const mapping_size = mapping.size;
         const owner_process_id = mapping.owner_process_id;
+        
+        // Remove mapping from hash table (optimization).
+        self.remove_mapping_from_hash_table(region);
+        
         mapping.allocated = false;
         mapping.address = 0;
         mapping.size = 0;
