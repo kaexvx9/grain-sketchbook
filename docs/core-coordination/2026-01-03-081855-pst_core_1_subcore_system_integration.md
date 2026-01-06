@@ -913,6 +913,8 @@
 - **Parallelization Plan**: `docs/core-coordination/2026-01-05-212701-pst_parallelization_coordination_plan_all_24_agents.md`
 - **Autonomous Progress Integration**: `docs/core-coordination/2026-01-05-213025-pst_autonomous_progress_parallelization_integration.md`
 - **Integration Test Scenarios**: `docs/core-coordination/2026-01-06-093148-pst_core_1_subcore_integration_test_scenarios.md`
+- **Coordination Checklist Template**: `docs/core-coordination/2026-01-06-095549-pst_core_1_subcore_coordination_checklist_template.md`
+- **Cross-Subcore Integration Architecture**: `docs/core-coordination/2026-01-06-100000-pst_core_1_subcore_cross_subcore_integration_architecture.md`
 - **Plan**: `docs/plans/core_1_subcore_plan.md`
 - **Tasks**: `docs/tasks/core_1_subcore_tasks.md`
 - **Coordination Summary**: `docs/agent-communications/general/coordination/YYYY-MM-DD-HHMMSS-pst_core_1_subcore_coordination_summary.md`
