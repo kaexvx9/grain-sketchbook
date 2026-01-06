@@ -219,6 +219,34 @@
 
 **Status**: ✅ **COMPLETE** — Status summary provided for Core 1 Subcore
 
+### ✅ Mapping Lookup Hash Table Optimization (COMPLETE)
+
+**Date**: 2026-01-06-100000-pst  
+**Priority**: MEDIUM - Performance optimization for mapping operations
+
+**Work Completed**:
+1. **Implemented hash table for mapping lookup**:
+   - Updated `find_mapping_by_address()` with hash table lookup (O(1) average case)
+   - Three-tier lookup strategy: Hash table → Linear search fallback
+   - Added `add_mapping_to_hash_table()` and `remove_mapping_from_hash_table()` functions
+
+2. **Hash table maintenance**:
+   - Integrated into `syscall_map()` (add mapping to hash table)
+   - Integrated into `syscall_unmap()` (remove mapping from hash table)
+
+3. **Performance impact**:
+   - Expected improvement: 2-5x faster for mapping lookup operations
+   - Medium impact if map/unmap are slow paths
+   - Minimal overhead for hash table maintenance
+
+**Files Modified**:
+- `src/kernel/basin_kernel_core.zig` - Hash table implementation
+- `src/kernel/basin_kernel.zig` - Hash table maintenance integration
+
+**Documentation**: `docs/kernel/mapping_lookup_hash_table_optimization.md`
+
+**Status**: ✅ **COMPLETE** — Mapping lookup hash table optimization implemented, ready for profiler validation
+
 ### ✅ Handle Lookup Hash Table Optimization (COMPLETE)
 
 **Date**: 2026-01-02-100345-pst  
