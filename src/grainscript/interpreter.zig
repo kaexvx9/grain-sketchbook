@@ -326,10 +326,10 @@ pub const Interpreter = struct {
         try self.register_string_functions();
         // Register math functions
         try self.register_math_functions();
-        // Register type conversion functions
-        try self.register_type_conversion_functions();
-        // Register type checking functions
-        try self.register_type_checking_functions();
+        // Register type conversion functions (TODO: implement if needed)
+        // try self.register_type_conversion_functions();
+        // Register type checking functions (TODO: implement if needed)
+        // try self.register_type_checking_functions();
         // Register string utility functions
         try self.register_string_utility_functions();
     }
@@ -709,7 +709,7 @@ pub const Interpreter = struct {
 
     /// Built-in len function: Get string length.
     // 2025-11-24-184000-pst: Active function
-    fn builtin_len(interpreter: *Interpreter, args: []const Value) Error!Value {
+    fn builtin_len(_: *Interpreter, args: []const Value) Error!Value {
         if (args.len != 1) {
             return Error.invalid_argument;
         }
@@ -758,7 +758,7 @@ pub const Interpreter = struct {
         var start: u32 = 0;
         while (start < str.len and (str[start] == ' ' or str[start] == '\t' or str[start] == '\n' or str[start] == '\r')) : (start += 1) {}
         // Find end (skip whitespace from end)
-        var end: u32 = str.len;
+        var end: u32 = @intCast(str.len);
         while (end > start and (str[end - 1] == ' ' or str[end - 1] == '\t' or str[end - 1] == '\n' or str[end - 1] == '\r')) : (end -= 1) {}
         const trimmed = str[start..end];
         return try Value.from_string(interpreter.allocator, trimmed);
@@ -788,7 +788,7 @@ pub const Interpreter = struct {
         }
         const a = args[0];
         const b = args[1];
-        if (a != b) {
+        if (@as(ValueType, a) != @as(ValueType, b)) {
             return Error.type_mismatch;
         }
         return switch (a) {
@@ -813,7 +813,7 @@ pub const Interpreter = struct {
         }
         const a = args[0];
         const b = args[1];
-        if (a != b) {
+        if (@as(ValueType, a) != @as(ValueType, b)) {
             return Error.type_mismatch;
         }
         return switch (a) {
@@ -2317,7 +2317,7 @@ pub const Interpreter = struct {
             };
         } else {
             // Single statement body (could be return statement)
-            _ = self.execute_statement(body_node) catch |err| {
+            _ = self.execute_statement_or_declaration(body_node) catch |err| {
                 self.cleanup_call_frame(frame_start);
                 self.scope_depth = old_scope_depth;
                 return err;
