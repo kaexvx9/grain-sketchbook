@@ -25,7 +25,6 @@ pub const WorkspacePersistenceError = error{
 pub fn is_workspace_persistence_error_retryable(
     err: WorkspacePersistenceError,
 ) bool {
-    std.debug.assert(err != null);
     return switch (err) {
         .disk_full => true,
         .permission_denied => true,
@@ -44,7 +43,6 @@ pub fn is_workspace_persistence_error_retryable(
 pub fn get_workspace_persistence_error_message(
     err: WorkspacePersistenceError,
 ) []const u8 {
-    std.debug.assert(err != null);
     return switch (err) {
         .file_not_found => "Workspace persistence file not found",
         .permission_denied => "Permission denied for workspace persistence operation",
