@@ -2,8 +2,26 @@
 
 **Date**: 2026-01-05-154800-pst  
 **Purpose**: Multi-agent project prompt for background generator and ffmpeg rewrite  
-**Agents**: Aurora 2 Subcore, Bubble Agent, Workspace Agent, Court Agent  
-**Status**: 🆕 **PROJECT PROPOSAL** — Ready for coordination
+**Agents**: **Flow Agent (9th Agent)** — **PRIMARY RESPONSIBILITY** | Aurora 2 Subcore, Bubble Agent, Workspace Agent, Court Agent — **INTEGRATION PARTNERS**  
+**Status**: ✅ **ASSIGNED TO FLOW AGENT** — See `docs/agent-communications/l1-standalone/9_flow/prompts/2026-01-05-160800-pst_flow_agent_grainflow_fullstack_framework_assignment.md`
+
+---
+
+## ⚠️ **UPDATE**: Project Reassigned to Flow Agent
+
+**As of 2026-01-05-160800-pst**, this project has been **reassigned to Flow Agent (9th Agent)** as a **full-stack framework layer** responsibility.
+
+**See**: `docs/agent-communications/l1-standalone/9_flow/prompts/2026-01-05-160800-pst_flow_agent_grainflow_fullstack_framework_assignment.md`
+
+**Key Changes**:
+- **Flow Agent** takes **full responsibility** for Grainflow Media Engine
+- **Full-stack framework layer**: Media + DAG UI Synthesis + Grainscript REPL
+- **Development coordinated through Core 1 Subcore** (single-threaded execution)
+- **Bidirectional integration** with Aurora, Bubble, Workspace, Court, Init System, Shell
+
+**This document** remains as the original project proposal for reference, but **Flow Agent assignment document** is the authoritative source.
+
+---
 
 ---
 
