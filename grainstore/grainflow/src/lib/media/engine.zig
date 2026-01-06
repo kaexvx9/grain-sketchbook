@@ -133,16 +133,18 @@ pub const GrainflowEngine = struct {
         // const pixels = try self.allocator.alloc(u8, pixel_buffer_size);
         //
         // try convert_to_rgba(zigimg_image, pixels, width, height);
+        //
+        // return Image{
+        //     .width = width,
+        //     .height = height,
+        //     .format = format,
+        //     .pixels = pixels,
+        //     .allocator = self.allocator,
+        // };
         
+        // TODO: Implement when zigimg is available
+        _ = format;
         return error.ZigimgNotAvailable;
-
-        return Image{
-            .width = width,
-            .height = height,
-            .format = format,
-            .pixels = pixels,
-            .allocator = self.allocator,
-        };
     }
 
     /// Save image to file path.
@@ -232,16 +234,21 @@ pub const GrainflowEngine = struct {
         std.debug.assert(height > 0);
         std.debug.assert(width <= MAX_IMAGE_WIDTH);
         std.debug.assert(height <= MAX_IMAGE_HEIGHT);
+        std.debug.assert(image.width > 0);
+        std.debug.assert(image.height > 0);
 
         // TODO: Implement image resizing
         // For now, return error (placeholder)
         _ = self;
+        _ = image;
+        _ = width;
+        _ = height;
         return error.NotImplemented;
     }
 };
 
 /// Detect image format from magic bytes.
-pub fn detect_format(data: []const u8) ImageFormat {
+pub fn detect_format(data: []const u8) GrainflowEngine.ImageFormat {
     // Assert: Data must be non-empty
     std.debug.assert(data.len > 0);
 

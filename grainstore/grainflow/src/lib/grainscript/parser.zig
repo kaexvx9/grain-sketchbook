@@ -59,7 +59,8 @@ pub const MediaWorkflowParser = struct {
 
         // TODO: Implement Grainscript parser
         // For now, return empty array (placeholder)
-        _ = source; // Will be used for parsing
+        // Source will be parsed in future implementation
+        // Source is validated in assertions above
         const nodes = try self.allocator.alloc(WorkflowNode, 0);
         return nodes;
     }

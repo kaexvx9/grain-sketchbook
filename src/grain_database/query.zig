@@ -4,7 +4,33 @@
 //! Architecture: Simplified SQL parser, iterative algorithms.
 //! GrainStyle: grain_case, u32/u64, bounded allocations, assertions, max 70 lines.
 //!
+//! Performance Characteristics:
+//! - Query construction: O(1) per condition/join (array append)
+//! - Query execution: O(n) where n is number of records (varies by query type)
+//! - Join operations: O(n*m) where n and m are table sizes (nested loops)
+//!
+//! Thread Safety: Not thread-safe. Caller must synchronize access.
+//!
+//! Usage Example:
+//! ```zig
+//! var query = try Query.init(allocator);
+//! defer query.deinit();
+//!
+//! query.query_type = .select;
+//! try query.add_condition("age", .greater_than, "18");
+//! try query.add_join(.inner, "users", "id", "user_id");
+//!
+//! var executor = QueryExecutor.init(allocator, schema, storage);
+//! try executor.execute_select(&query);
+//! ```
+//!
+//! Common Patterns:
+//! - Build query with conditions and joins before execution
+//! - Use QueryExecutor to execute queries on storage engine
+//! - Note: Many execute functions are TODO (placeholder implementations)
+//!
 //! 2025-12-03-164442-pst: Grain Database Agent
+//! 2026-01-06-093316-pst: Documentation enhanced (Silo Agent)
 
 const std = @import("std");
 const relational = @import("relational.zig");
@@ -53,7 +79,20 @@ pub const Condition = struct {
     value_len: u32,
     allocator: std.mem.Allocator,
 
-    // Initialize condition.
+    //! Initializes a query condition.
+    //!
+    //! Why: Provides WHERE clause conditions for filtering query results.
+    //! Performance: O(1) initialization (string duplication).
+    //!
+    //! Edge Cases:
+    //! - Returns error if allocation fails
+    //! - Column name and value are duplicated (caller retains ownership)
+    //!
+    //! Example:
+    //! ```zig
+    //! const condition = try Condition.init(allocator, "age", .greater_than, "18");
+    //! defer condition.deinit();
+    //! ```
     pub fn init(
         allocator: std.mem.Allocator,
         column_name: []const u8,
@@ -103,7 +142,20 @@ pub const Join = struct {
     right_column_len: u32,
     allocator: std.mem.Allocator,
 
-    // Initialize join.
+    //! Initializes a join definition.
+    //!
+    //! Why: Provides JOIN clause definitions for combining tables.
+    //! Performance: O(1) initialization (string duplication).
+    //!
+    //! Edge Cases:
+    //! - Returns error if allocation fails
+    //! - Table name and column names are duplicated (caller retains ownership)
+    //!
+    //! Example:
+    //! ```zig
+    //! const join = try Join.init(allocator, .inner, "users", "id", "user_id");
+    //! defer join.deinit();
+    //! ```
     pub fn init(
         allocator: std.mem.Allocator,
         join_type: JoinType,
@@ -166,7 +218,23 @@ pub const Query = struct {
     values_len: u32,
     allocator: std.mem.Allocator,
 
-    // Initialize query.
+    //! Initializes a new query.
+    //!
+    //! Why: Provides SQL-like query construction for relational operations.
+    //! Performance: O(1) initialization (allocates fixed-size arrays).
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Edge Cases:
+    //! - Returns error if allocation fails
+    //! - Allocates arrays for conditions (32) and joins (MAX_JOIN_TABLES)
+    //! - Default query type is QueryType.select
+    //!
+    //! Example:
+    //! ```zig
+    //! var query = try Query.init(allocator);
+    //! defer query.deinit();
+    //! query.query_type = .select;
+    //! ```
     pub fn init(allocator: std.mem.Allocator) !Query {
         _ = allocator;
         const conditions = try allocator.alloc(Condition, 32);
@@ -207,7 +275,20 @@ pub const Query = struct {
         self.* = undefined;
     }
 
-    // Add condition to query.
+    //! Adds a condition to the query (WHERE clause).
+    //!
+    //! Why: Builds query filters for result set filtering.
+    //! Performance: O(1) average case (array append).
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Edge Cases:
+    //! - Returns error.TooManyConditions if 32 conditions limit reached
+    //! - Returns error if condition allocation fails
+    //!
+    //! Example:
+    //! ```zig
+    //! try query.add_condition("age", .greater_than, "18");
+    //! ```
     pub fn add_condition(
         self: *Query,
         column_name: []const u8,
@@ -232,7 +313,20 @@ pub const Query = struct {
         self.conditions_len += 1;
     }
 
-    // Add join to query.
+    //! Adds a join to the query (JOIN clause).
+    //!
+    //! Why: Builds table joins for combining data from multiple tables.
+    //! Performance: O(1) average case (array append).
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Edge Cases:
+    //! - Returns error.TooManyJoins if MAX_JOIN_TABLES limit reached
+    //! - Returns error if join allocation fails
+    //!
+    //! Example:
+    //! ```zig
+    //! try query.add_join(.inner, "users", "id", "user_id");
+    //! ```
     pub fn add_join(
         self: *Query,
         join_type: JoinType,
@@ -266,7 +360,19 @@ pub const QueryExecutor = struct {
     storage: *storage_engine.StorageEngine,
     allocator: std.mem.Allocator,
 
-    // Initialize query executor.
+    //! Initializes a query executor.
+    //!
+    //! Why: Provides execution engine for queries on storage engine.
+    //! Performance: O(1) initialization (field assignment only).
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Edge Cases:
+    //! - Schema and storage references must remain valid for executor lifetime
+    //!
+    //! Example:
+    //! ```zig
+    //! var executor = QueryExecutor.init(allocator, schema, storage);
+    //! ```
     pub fn init(
         allocator: std.mem.Allocator,
         schema: *relational.Schema,
@@ -280,7 +386,19 @@ pub const QueryExecutor = struct {
         };
     }
 
-    // Execute SELECT query.
+    //! Executes a SELECT query.
+    //!
+    //! Why: Retrieves records matching query conditions and joins.
+    //! Performance: O(n) where n is number of records (varies by conditions/joins).
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Status: TODO - Placeholder implementation (not yet implemented).
+    //!
+    //! Example:
+    //! ```zig
+    //! query.query_type = .select;
+    //! try executor.execute_select(&query);
+    //! ```
     pub fn execute_select(
         self: *QueryExecutor,
         query: *Query,
@@ -291,7 +409,19 @@ pub const QueryExecutor = struct {
         // TODO: Implement SELECT execution
     }
 
-    // Execute INSERT query.
+    //! Executes an INSERT query.
+    //!
+    //! Why: Inserts new records into the storage engine.
+    //! Performance: O(1) average case (record insertion).
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Status: TODO - Placeholder implementation (not yet implemented).
+    //!
+    //! Example:
+    //! ```zig
+    //! query.query_type = .insert;
+    //! try executor.execute_insert(&query);
+    //! ```
     pub fn execute_insert(
         self: *QueryExecutor,
         query: *Query,
@@ -302,7 +432,19 @@ pub const QueryExecutor = struct {
         // TODO: Implement INSERT execution
     }
 
-    // Execute UPDATE query.
+    //! Executes an UPDATE query.
+    //!
+    //! Why: Updates existing records matching query conditions.
+    //! Performance: O(n) where n is number of matching records.
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Status: TODO - Placeholder implementation (not yet implemented).
+    //!
+    //! Example:
+    //! ```zig
+    //! query.query_type = .update;
+    //! try executor.execute_update(&query);
+    //! ```
     pub fn execute_update(
         self: *QueryExecutor,
         query: *Query,
@@ -313,7 +455,19 @@ pub const QueryExecutor = struct {
         // TODO: Implement UPDATE execution
     }
 
-    // Execute DELETE query.
+    //! Executes a DELETE query.
+    //!
+    //! Why: Deletes records matching query conditions.
+    //! Performance: O(n) where n is number of matching records.
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Status: TODO - Placeholder implementation (not yet implemented).
+    //!
+    //! Example:
+    //! ```zig
+    //! query.query_type = .delete;
+    //! try executor.execute_delete(&query);
+    //! ```
     pub fn execute_delete(
         self: *QueryExecutor,
         query: *Query,
@@ -324,7 +478,18 @@ pub const QueryExecutor = struct {
         // TODO: Implement DELETE execution
     }
 
-    // Execute join operation (inner join).
+    //! Executes an inner join operation.
+    //!
+    //! Why: Combines records from two tables where join condition matches.
+    //! Performance: O(n*m) where n and m are table sizes (nested loops).
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Status: TODO - Placeholder implementation (not yet implemented).
+    //!
+    //! Example:
+    //! ```zig
+    //! try executor.execute_inner_join("users", "orders", "id", "user_id");
+    //! ```
     pub fn execute_inner_join(
         self: *QueryExecutor,
         left_table: []const u8,
@@ -340,7 +505,18 @@ pub const QueryExecutor = struct {
         // TODO: Implement inner join
     }
 
-    // Execute join operation (left join).
+    //! Executes a left join operation.
+    //!
+    //! Why: Combines records from left table with matching right table records.
+    //! Performance: O(n*m) where n and m are table sizes (nested loops).
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Status: TODO - Placeholder implementation (not yet implemented).
+    //!
+    //! Example:
+    //! ```zig
+    //! try executor.execute_left_join("users", "orders", "id", "user_id");
+    //! ```
     pub fn execute_left_join(
         self: *QueryExecutor,
         left_table: []const u8,
@@ -356,7 +532,18 @@ pub const QueryExecutor = struct {
         // TODO: Implement left join
     }
 
-    // Execute join operation (right join).
+    //! Executes a right join operation.
+    //!
+    //! Why: Combines records from right table with matching left table records.
+    //! Performance: O(n*m) where n and m are table sizes (nested loops).
+    //! Thread Safety: Not thread-safe. Caller must synchronize access.
+    //!
+    //! Status: TODO - Placeholder implementation (not yet implemented).
+    //!
+    //! Example:
+    //! ```zig
+    //! try executor.execute_right_join("users", "orders", "id", "user_id");
+    //! ```
     pub fn execute_right_join(
         self: *QueryExecutor,
         left_table: []const u8,

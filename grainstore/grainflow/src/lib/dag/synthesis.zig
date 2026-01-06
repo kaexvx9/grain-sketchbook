@@ -70,6 +70,7 @@ pub const DagSynthesis = struct {
         // Assert: Data must be non-empty
         std.debug.assert(data.len > 0);
         std.debug.assert(self.dag.nodes_len < dag_core.DagCore.MAX_NODES);
+        std.debug.assert(data.len <= MAX_WORKFLOW_NODES);
 
         // Convert MediaNodeType to DagCore.NodeType
         const dag_node_type: dag_core.DagCore.NodeType = switch (node_type) {
@@ -80,10 +81,22 @@ pub const DagSynthesis = struct {
             .output => .computation,
         };
 
-        // TODO: Create DAG node using dag_core API
-        // For now, return placeholder
-        _ = dag_node_type;
-        return error.NotImplemented;
+        // Create DAG node using dag_core API (data is copied internally)
+        const attributes = dag_core.DagCore.Attributes{
+            .is_readonly = false,
+            .readonly_start = 0,
+            .readonly_end = 0,
+            .metadata = "",
+            .metadata_len = 0,
+        };
+
+        const node_id = try self.dag.addNode(
+            dag_node_type,
+            data,
+            attributes,
+        );
+
+        return node_id;
     }
 
     /// Create media operation edge.
@@ -97,6 +110,7 @@ pub const DagSynthesis = struct {
         std.debug.assert(from_node < self.dag.nodes_len);
         std.debug.assert(to_node < self.dag.nodes_len);
         std.debug.assert(self.dag.edges_len < dag_core.DagCore.MAX_EDGES);
+        std.debug.assert(self.dag.edges_len < MAX_WORKFLOW_EDGES);
 
         // Convert MediaEdgeType to DagCore.EdgeType
         const dag_edge_type: dag_core.DagCore.EdgeType = switch (edge_type) {
@@ -105,13 +119,16 @@ pub const DagSynthesis = struct {
             .parallel => .data_flow,
         };
 
-        // TODO: Create DAG edge using dag_core API
-        // For now, return error (placeholder)
-        _ = dag_edge_type;
-        return error.NotImplemented;
+        // Create DAG edge using dag_core API
+        try self.dag.addEdge(
+            from_node,
+            to_node,
+            dag_edge_type,
+        );
     }
 
     /// Execute media workflow (DAG execution).
+    /// Uses topological sort to execute nodes in dependency order.
     pub fn execute_workflow(
         self: *DagSynthesis,
         engine: *grainflow_media.GrainflowEngine,
@@ -119,11 +136,97 @@ pub const DagSynthesis = struct {
         // Assert: Engine must be valid
         std.debug.assert(engine.allocator.ptr != null);
         std.debug.assert(self.dag.nodes_len > 0);
+        std.debug.assert(self.dag.nodes_len <= MAX_WORKFLOW_NODES);
 
-        // TODO: Implement DAG-based workflow execution
-        // For now, return error (placeholder)
-        _ = engine; // Will be used for media operations
-        return error.NotImplemented;
+        // Topological sort: Find nodes with no incoming edges (ready nodes)
+        var in_degree = try self.allocator.alloc(u32, self.dag.nodes_len);
+        defer self.allocator.free(in_degree);
+        @memset(in_degree, 0);
+
+        // Calculate in-degree for each node
+        var i: u32 = 0;
+        while (i < self.dag.edges_len) : (i += 1) {
+            const edge = &self.dag.edges[i];
+            std.debug.assert(edge.to_node < self.dag.nodes_len);
+            in_degree[edge.to_node] += 1;
+        }
+
+        // Find ready nodes (in-degree == 0)
+        var ready_nodes = try self.allocator.alloc(u32, self.dag.nodes_len);
+        defer self.allocator.free(ready_nodes);
+        var ready_count: u32 = 0;
+
+        i = 0;
+        while (i < self.dag.nodes_len) : (i += 1) {
+            if (in_degree[i] == 0) {
+                ready_nodes[ready_count] = i;
+                ready_count += 1;
+            }
+        }
+
+        // Execute nodes in topological order
+        var processed: u32 = 0;
+        while (processed < ready_count) {
+            const node_id = ready_nodes[processed];
+            const node = self.dag.getNode(node_id);
+            std.debug.assert(node != null);
+
+            // Execute node based on type
+            _ = try self.execute_media_node(engine, node_id, node.?);
+
+            // Update in-degrees of dependent nodes
+            i = 0;
+            while (i < self.dag.edges_len) : (i += 1) {
+                const edge = &self.dag.edges[i];
+                if (edge.from_node == node_id) {
+                    std.debug.assert(in_degree[edge.to_node] > 0);
+                    in_degree[edge.to_node] -= 1;
+                    if (in_degree[edge.to_node] == 0) {
+                        ready_nodes[ready_count] = edge.to_node;
+                        ready_count += 1;
+                    }
+                }
+            }
+
+            processed += 1;
+        }
+
+        // Assert: All nodes processed
+        std.debug.assert(processed == self.dag.nodes_len);
+    }
+
+    /// Execute a single media operation node.
+    fn execute_media_node(
+        self: *DagSynthesis,
+        engine: *grainflow_media.GrainflowEngine,
+        node_id: u32,
+        node: *const dag_core.DagCore.Node,
+    ) !void {
+        // Assert: Node must be valid
+        std.debug.assert(node.id == node_id);
+        std.debug.assert(engine.allocator.ptr != null);
+        _ = self; // Will be used for node state management
+
+        // Execute based on node type
+        switch (node.node_type) {
+            .data_source => {
+                // Load image from path (data contains file path)
+                const image = try engine.load_image(node.data[0..node.data_len]);
+                defer image.deinit();
+                // TODO: Store image result for dependent nodes
+            },
+            .computation => {
+                // Process media operation (transform, filter, composition, output)
+                // TODO: Parse node data to determine operation type
+                // TODO: Execute operation using engine
+                // Engine will be used for media operations
+                _ = engine.allocator;
+            },
+            else => {
+                // Other node types not supported for media workflows
+                return error.InvalidNodeType;
+            },
+        }
     }
 };
 

@@ -460,7 +460,7 @@ pub const DreamBrowserParser = struct {
         try rules.ensureTotalCapacity(self.allocator, @min(MAX_CSS_RULES, 50)); // Pre-allocate for common case
         
         // Find first rule
-        var pos: usize = 0;
+        var pos: u32 = 0;
         while (pos < css.len) {
             // Skip whitespace
             while (pos < css.len and (css[pos] == ' ' or css[pos] == '\n' or css[pos] == '\t')) {
@@ -492,7 +492,7 @@ pub const DreamBrowserParser = struct {
             defer declarations.deinit(self.allocator);
             try declarations.ensureTotalCapacity(self.allocator, 10); // Pre-allocate for common case
             
-            var decl_pos: usize = 0;
+            var decl_pos: u32 = 0;
             while (decl_pos < decl_str.len) {
                 // Skip whitespace
                 while (decl_pos < decl_str.len and (decl_str[decl_pos] == ' ' or decl_str[decl_pos] == '\n' or decl_str[decl_pos] == '\t')) {
@@ -817,7 +817,7 @@ pub const DreamBrowserParser = struct {
         return try reversed.toOwnedSlice();
     }
     
-    /// Convert HTML node to BrowserDagIntegration.DomNode (for DAG integration).
+    /// Convert HTML node to BrowserDagIntegration.DomNode (for DAG integration) - iterative.
     pub fn toDomNode(
         self: *DreamBrowserParser,
         html_node: *const HtmlNode,
@@ -825,33 +825,110 @@ pub const DreamBrowserParser = struct {
         // Assert: HTML node must be valid
         std.debug.assert(html_node.tag_name.len > 0);
         
-        // Convert attributes
-        var attributes = std.ArrayList(BrowserDagIntegration.DomNode.Attribute).init(self.allocator);
-        defer attributes.deinit();
-        
-        for (html_node.attributes) |attr| {
-            try attributes.append(BrowserDagIntegration.DomNode.Attribute{
-                .name = attr.name,
-                .value = attr.value,
-            });
-        }
-        
-        // Convert children (recursive)
-        var children = std.ArrayList(BrowserDagIntegration.DomNode).init(self.allocator);
-        defer children.deinit();
-        
-        for (html_node.children) |child| {
-            const child_dom = try self.toDomNode(&child);
-            try children.append(child_dom);
-        }
-        
-        return BrowserDagIntegration.DomNode{
-            .tag_name = html_node.tag_name,
-            .attributes = try attributes.toOwnedSlice(),
-            .children = try children.toOwnedSlice(),
-            .text_content = html_node.text_content,
-            .parent_id = null, // Will be set by DAG integration
+        // Iterative stack-based conversion (replaces recursion)
+        // Stack frame for node conversion
+        const ConversionFrame = struct {
+            html_node: *const HtmlNode,
+            dom_node: ?BrowserDagIntegration.DomNode = null,
+            children_processed: u32 = 0,
         };
+        
+        var stack = std.ArrayList(ConversionFrame){ .items = &.{}, .capacity = 0 };
+        defer stack.deinit(self.allocator);
+        try stack.ensureTotalCapacity(self.allocator, @min(MAX_TREE_DEPTH, 50));
+        
+        // Result storage (built bottom-up)
+        var result_nodes = std.ArrayList(BrowserDagIntegration.DomNode){ .items = &.{}, .capacity = 0 };
+        defer result_nodes.deinit(self.allocator);
+        try result_nodes.ensureTotalCapacity(self.allocator, @min(MAX_DOM_NODES, 100));
+        
+        // Push root node
+        try stack.append(ConversionFrame{
+            .html_node = html_node,
+        });
+        
+        // Process stack iteratively
+        while (stack.items.len > 0) {
+            // Assert: Stack depth must be within bounds
+            std.debug.assert(stack.items.len <= MAX_TREE_DEPTH);
+            
+            var frame = &stack.items[stack.items.len - 1];
+            const current_node = frame.html_node;
+            
+            // Convert attributes
+            if (frame.dom_node == null) {
+                var attributes = std.ArrayList(BrowserDagIntegration.DomNode.Attribute).init(self.allocator);
+                defer attributes.deinit();
+                
+                for (current_node.attributes) |attr| {
+                    try attributes.append(BrowserDagIntegration.DomNode.Attribute{
+                        .name = attr.name,
+                        .value = attr.value,
+                    });
+                }
+                
+                // Initialize dom_node (children will be added later)
+                frame.dom_node = BrowserDagIntegration.DomNode{
+                    .tag_name = current_node.tag_name,
+                    .attributes = try attributes.toOwnedSlice(),
+                    .children = &.{}, // Will be set after children processed
+                    .text_content = current_node.text_content,
+                    .parent_id = null,
+                };
+            }
+            
+            // Process children
+            if (frame.children_processed < current_node.children.len) {
+                // Push next child onto stack
+                const child_idx = frame.children_processed;
+                frame.children_processed += 1;
+                try stack.append(ConversionFrame{
+                    .html_node = &current_node.children[child_idx],
+                });
+                continue;
+            }
+            
+            // All children processed - collect them
+            var children = std.ArrayList(BrowserDagIntegration.DomNode).init(self.allocator);
+            defer children.deinit(self.allocator);
+            
+            // Find children in result_nodes (they were added in reverse order)
+            const child_count = current_node.children.len;
+            if (child_count > 0) {
+                try children.ensureTotalCapacity(self.allocator, child_count);
+                var child_idx: u32 = 0;
+                while (child_idx < child_count) {
+                    // Children were added in reverse order, so read in reverse
+                    const result_idx = result_nodes.items.len - child_count + child_idx;
+                    if (result_idx < result_nodes.items.len) {
+                        try children.append(result_nodes.items[result_idx]);
+                    }
+                    child_idx += 1;
+                }
+                // Remove children from result_nodes (they're now in children list)
+                result_nodes.shrinkRetainingCapacity(result_nodes.items.len - child_count);
+            }
+            
+            // Update dom_node with children
+            const dom_node_with_children = BrowserDagIntegration.DomNode{
+                .tag_name = frame.dom_node.?.tag_name,
+                .attributes = frame.dom_node.?.attributes,
+                .children = try children.toOwnedSlice(),
+                .text_content = frame.dom_node.?.text_content,
+                .parent_id = null,
+            };
+            
+            // Pop frame
+            _ = stack.pop();
+            
+            // Add to result_nodes
+            try result_nodes.append(dom_node_with_children);
+        }
+        
+        // Assert: Should have exactly one result (root node)
+        std.debug.assert(result_nodes.items.len == 1);
+        
+        return result_nodes.items[0];
     }
 };
 
