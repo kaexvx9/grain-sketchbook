@@ -251,7 +251,7 @@
 - [x] Documentation updates (coordination, plan, tasks documents) ✅
 - [x] GrainStyle validation (all functions < 70 lines, max 2 assertions) ✅
 - [ ] Run tests on Framework x86_64 — **PLANNED**
-- [ ] Add more edge case tests (invalid URI, out-of-bounds positions) — **PLANNED**
+- [x] Add more edge case tests (URI boundary, large position values) — **COMPLETE** (2026-01-06-095333-pst) ✅
 - **Files**: `tests/`, `docs/`
 
 ---
