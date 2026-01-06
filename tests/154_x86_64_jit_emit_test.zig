@@ -20,7 +20,7 @@ test "x86_64 JIT emit functions" {
         .regs = [_]u64{0} ** 32,
         .pc = 0x80000000,
     };
-    var guest_ram = try allocator.alloc(u8, 1024 * 1024);
+    const guest_ram = try allocator.alloc(u8, 1024 * 1024);
     defer allocator.free(guest_ram);
     
     // Initialize JIT context.
@@ -66,7 +66,7 @@ test "x86_64 JIT ADD instruction encoding" {
         .regs = [_]u64{0} ** 32,
         .pc = 0x80000000,
     };
-    var guest_ram = try allocator.alloc(u8, 1024 * 1024);
+    const guest_ram = try allocator.alloc(u8, 1024 * 1024);
     defer allocator.free(guest_ram);
     
     var jit_ctx = try jit_mod.JitContext.init(
@@ -84,7 +84,7 @@ test "x86_64 JIT ADD instruction encoding" {
     
     // Verify instruction structure: REX.W (1 byte) + opcode (1 byte) + ModR/M (1 byte).
     // Total: 3 bytes (but we expect 4, let me check the actual implementation).
-    _ = cursor_before; // Used in assertion
+    // cursor_before used in assertion below
 }
 
 test "x86_64 JIT CMP instruction encoding" {
@@ -99,7 +99,7 @@ test "x86_64 JIT CMP instruction encoding" {
         .regs = [_]u64{0} ** 32,
         .pc = 0x80000000,
     };
-    var guest_ram = try allocator.alloc(u8, 1024 * 1024);
+    const guest_ram = try allocator.alloc(u8, 1024 * 1024);
     defer allocator.free(guest_ram);
     
     var jit_ctx = try jit_mod.JitContext.init(
@@ -128,7 +128,7 @@ test "x86_64 JIT SETcc instruction encoding" {
         .regs = [_]u64{0} ** 32,
         .pc = 0x80000000,
     };
-    var guest_ram = try allocator.alloc(u8, 1024 * 1024);
+    const guest_ram = try allocator.alloc(u8, 1024 * 1024);
     defer allocator.free(guest_ram);
     
     var jit_ctx = try jit_mod.JitContext.init(
@@ -161,7 +161,7 @@ test "x86_64 JIT indirect jump encoding" {
         .regs = [_]u64{0} ** 32,
         .pc = 0x80000000,
     };
-    var guest_ram = try allocator.alloc(u8, 1024 * 1024);
+    const guest_ram = try allocator.alloc(u8, 1024 * 1024);
     defer allocator.free(guest_ram);
     
     var jit_ctx = try jit_mod.JitContext.init(

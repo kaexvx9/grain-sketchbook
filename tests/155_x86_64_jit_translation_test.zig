@@ -3,7 +3,8 @@
 
 const std = @import("std");
 const testing = std.testing;
-const vm_mod = @import("kernel_vm/vm.zig");
+const kernel_vm = @import("kernel_vm");
+const VM = kernel_vm.VM;
 const builtin = @import("builtin");
 
 test "x86_64 JIT R-type instruction translation" {
@@ -19,7 +20,7 @@ test "x86_64 JIT R-type instruction translation" {
         0x33, 0x81, 0x31, 0x00, // ADD x1, x2, x3 (R-type)
     };
     
-    var vm: vm_mod.VM = undefined;
+    var vm: VM = undefined;
     try vm.init_with_jit(allocator, &program, 0x80000000);
     defer vm.deinit_jit(allocator);
     
@@ -49,7 +50,7 @@ test "x86_64 JIT I-type instruction translation" {
         0x93, 0x00, 0xA0, 0x02, // ADDI x1, x0, 42
     };
     
-    var vm: vm_mod.VM = undefined;
+    var vm: VM = undefined;
     try vm.init_with_jit(allocator, &program, 0x80000000);
     defer vm.deinit_jit(allocator);
     
@@ -78,7 +79,7 @@ test "x86_64 JIT branch instruction translation" {
         0x93, 0x00, 0x20, 0x00, // ADDI x2, x0, 2 (target)
     };
     
-    var vm: vm_mod.VM = undefined;
+    var vm: VM = undefined;
     try vm.init_with_jit(allocator, &program, 0x80000000);
     defer vm.deinit_jit(allocator);
     
@@ -109,7 +110,7 @@ test "x86_64 JIT ECALL fallback to interpreter" {
         0x73, 0x00, 0x00, 0x00, // ECALL
     };
     
-    var vm: vm_mod.VM = undefined;
+    var vm: VM = undefined;
     try vm.init_with_jit(allocator, &program, 0x80000000);
     defer vm.deinit_jit(allocator);
     
