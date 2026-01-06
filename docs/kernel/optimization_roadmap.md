@@ -87,18 +87,27 @@ These optimizations should be implemented if profiling data confirms these sysca
 3. Alternative: Use fast timer if available (hardware timer register)
 
 #### 3. Mapping Lookup Optimization
-- **Current**: Linear search O(n) through MAX_MAPPINGS=256
+- **Status**: ✅ **COMPLETE** (2026-01-06-100000-pst)
+- **Current**: ~~Linear search O(n) through MAX_MAPPINGS=256~~ → **Hash table O(1) lookup**
 - **Affected Syscalls**: `map`, `unmap`
-- **Optimization**: Hash table or sorted list
-- **Impact**: Medium (if map/unmap are slow paths)
-- **Implementation Complexity**: Medium
-- **Estimated Improvement**: 2-5x for mapping lookup
+- **Optimization**: Hash table O(1) lookup with linear search fallback
+- **Impact**: Medium (if map/unmap are slow paths) - **IMPLEMENTED**
+- **Implementation Complexity**: Medium - **COMPLETE**
+- **Estimated Improvement**: 2-5x for mapping lookup - **READY FOR VALIDATION**
 
-**Implementation Plan**:
-1. Create hash table for mapping lookup (address → index mapping)
-2. Maintain hash table when mappings are created/destroyed
-3. Replace linear search with hash table lookup
-4. Keep sorted list for overlap checking (if needed)
+**Implementation Complete**:
+1. ✅ Created hash table structure for mapping lookup (address → index mapping)
+2. ✅ Maintain hash table when mappings are created/destroyed
+3. ✅ Replaced `find_mapping_by_address()` with hash table lookup (three-tier: hash table, linear search fallback)
+4. ✅ Integrated hash table maintenance in `syscall_map()` and `syscall_unmap()`
+
+**Grain Style Compliance**:
+- ✅ Static allocation (bounded hash table size)
+- ✅ No dynamic allocation
+- ✅ Maintains deterministic behavior
+- ✅ Comprehensive assertions
+
+**Documentation**: `docs/kernel/mapping_lookup_hash_table_optimization.md`
 
 #### 4. Overlap Checking Optimization
 - **Current**: Iterates through all mappings
