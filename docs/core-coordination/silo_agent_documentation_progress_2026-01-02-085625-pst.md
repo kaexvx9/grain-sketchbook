@@ -147,7 +147,8 @@ Silo Agent is proceeding with independent, non-conflicting improvements focused 
 - ✅ `storage_engine.zig` - COMPLETE (module + all public functions)
 - ✅ `index.zig` - COMPLETE (module + HashIndex, BTreeIndex, InvertedIndex, utilities)
 - ✅ `transaction.zig` - COMPLETE (module + Transaction lifecycle functions)
-- ⏳ `wal.zig` - NEXT (write-ahead log documentation)
+- ⏳ `wal.zig` - NEXT (write-ahead log documentation - user reverted changes, will revisit)
+- ✅ `query.zig` - COMPLETE (module + Query, Condition, Join, QueryExecutor functions)
 
 ### Estimated Timeline
 - **Week 1**: Complete documentation for core modules (storage_engine, index, transaction, wal)

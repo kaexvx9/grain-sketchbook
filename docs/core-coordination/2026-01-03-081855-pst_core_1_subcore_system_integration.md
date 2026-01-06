@@ -912,6 +912,7 @@
 - **Coordination Plan**: `docs/core-coordination/2026-01-03-042621-pst_core_1_subcore_coordination_plan.md`
 - **Parallelization Plan**: `docs/core-coordination/2026-01-05-212701-pst_parallelization_coordination_plan_all_24_agents.md`
 - **Autonomous Progress Integration**: `docs/core-coordination/2026-01-05-213025-pst_autonomous_progress_parallelization_integration.md`
+- **Integration Test Scenarios**: `docs/core-coordination/2026-01-06-093148-pst_core_1_subcore_integration_test_scenarios.md`
 - **Plan**: `docs/plans/core_1_subcore_plan.md`
 - **Tasks**: `docs/tasks/core_1_subcore_tasks.md`
 - **Coordination Summary**: `docs/agent-communications/general/coordination/YYYY-MM-DD-HHMMSS-pst_core_1_subcore_coordination_summary.md`
@@ -966,6 +967,8 @@
 - ✅ Architecture documentation
 - ✅ Critical path monitoring infrastructure
 - ✅ Coordination plan and summary
+- ✅ Parallelization coordination plan (8 work streams)
+- ✅ Integration test scenarios (8 categories, comprehensive coverage)
 - ✅ Step 4 implementation complete (Shell ServiceManager, service command, executor)
 
 **Next Update**: After critical path progress or blocker resolution
