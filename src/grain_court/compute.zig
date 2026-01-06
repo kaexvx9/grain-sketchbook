@@ -1,21 +1,32 @@
 const std = @import("std");
 
-/// Grain Court: WSE-wafer-scale SRAM spatial computing abstraction for self-hostable LLM backend.
-/// ~<~ Glow Airbend: explicit compute state, bounded core management.
-/// ~~~~ Glow Waterbend: deterministic spatial computing, iterative algorithms.
-///
-/// Represents the WSE compute layer: 44GB+ on-wafer SRAM, 900k cores,
-/// court topology (2D grid with wrap-around) for parallel execution.
-/// Target: Cerebras GLM4.6 API for WSE hardware.
-///
-/// GrainStyle/TigerStyle compliance:
-/// - grain_case function names
-/// - u32/u64 types (not usize)
-/// - MAX_ constants for bounded allocations
-/// - Assertions for preconditions/postconditions
-/// - No recursion (iterative algorithms, stack-based)
-///
-/// 2025-12-05-145359-pst: Renamed from Grain Field to Grain Court
+//! Grain Court Compute: WSE-wafer-scale SRAM spatial computing abstraction for self-hostable LLM backend.
+//!
+//! This module provides an abstraction layer for Cerebras WSE (Wafer-Scale Engine) hardware,
+//! enabling efficient spatial computing for LLM inference and related operations. The abstraction
+//! models the WSE architecture with 44GB+ on-wafer SRAM, 900k cores, and a toroidal (2D grid
+//! with wrap-around) topology for parallel execution.
+//!
+//! Architecture: Court-based compute abstraction with core management, SRAM allocation, parallel
+//! operation execution, and spatial computing patterns. Designed for deterministic, iterative
+//! algorithms that leverage the massive parallelism of WSE hardware.
+//!
+//! Key Features:
+//! - Toroidal topology: 2D grid with wrap-around connections for efficient data movement
+//! - SRAM management: On-wafer SRAM allocation and tracking for high-bandwidth operations
+//! - Parallel operations: Vector search, full-text search, matrix multiplication, LLM inference
+//! - Core state management: Idle, active, waiting, error states for operation tracking
+//!
+//! Target Hardware: Cerebras WSE for GLM-4.6 API integration
+//!
+//! Design Principles:
+//! - ~<~ Glow Airbend: Explicit compute state, bounded core management
+//! - ~~~~ Glow Waterbend: Deterministic spatial computing, iterative algorithms
+//!
+//! GrainStyle: grain_case function names, explicit u32/u64 types, bounded allocations with
+//! MAX_ constants, minimum 2 assertions per function, max 70 lines per function, no recursion.
+//!
+//! 2025-12-05-145359-pst: Renamed from Grain Field to Grain Court
 pub const Compute = struct {
     // Bounded: Max cores per court (explicit limit)
     // 2025-12-05-145359-pst: Active constant

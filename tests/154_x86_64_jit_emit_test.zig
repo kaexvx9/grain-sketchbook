@@ -3,7 +3,8 @@
 
 const std = @import("std");
 const testing = std.testing;
-const jit_mod = @import("kernel_vm/jit.zig");
+const kernel_vm = @import("kernel_vm");
+const jit_mod = kernel_vm.jit;
 const builtin = @import("builtin");
 
 test "x86_64 JIT emit functions" {
@@ -61,14 +62,14 @@ test "x86_64 JIT ADD instruction encoding" {
     
     const allocator = testing.allocator;
     
-    var guest_state = kernel_vm_mod.GuestState{
+    var guest_state = jit_mod.GuestState{
         .regs = [_]u64{0} ** 32,
         .pc = 0x80000000,
     };
     var guest_ram = try allocator.alloc(u8, 1024 * 1024);
     defer allocator.free(guest_ram);
     
-    var jit_ctx = try kernel_vm_mod.JitContext.init(
+    var jit_ctx = try jit_mod.JitContext.init(
         allocator,
         &guest_state,
         guest_ram,
@@ -94,14 +95,14 @@ test "x86_64 JIT CMP instruction encoding" {
     
     const allocator = testing.allocator;
     
-    var guest_state = kernel_vm_mod.GuestState{
+    var guest_state = jit_mod.GuestState{
         .regs = [_]u64{0} ** 32,
         .pc = 0x80000000,
     };
     var guest_ram = try allocator.alloc(u8, 1024 * 1024);
     defer allocator.free(guest_ram);
     
-    var jit_ctx = try kernel_vm_mod.JitContext.init(
+    var jit_ctx = try jit_mod.JitContext.init(
         allocator,
         &guest_state,
         guest_ram,
@@ -123,14 +124,14 @@ test "x86_64 JIT SETcc instruction encoding" {
     
     const allocator = testing.allocator;
     
-    var guest_state = kernel_vm_mod.GuestState{
+    var guest_state = jit_mod.GuestState{
         .regs = [_]u64{0} ** 32,
         .pc = 0x80000000,
     };
     var guest_ram = try allocator.alloc(u8, 1024 * 1024);
     defer allocator.free(guest_ram);
     
-    var jit_ctx = try kernel_vm_mod.JitContext.init(
+    var jit_ctx = try jit_mod.JitContext.init(
         allocator,
         &guest_state,
         guest_ram,
@@ -156,14 +157,14 @@ test "x86_64 JIT indirect jump encoding" {
     
     const allocator = testing.allocator;
     
-    var guest_state = kernel_vm_mod.GuestState{
+    var guest_state = jit_mod.GuestState{
         .regs = [_]u64{0} ** 32,
         .pc = 0x80000000,
     };
     var guest_ram = try allocator.alloc(u8, 1024 * 1024);
     defer allocator.free(guest_ram);
     
-    var jit_ctx = try kernel_vm_mod.JitContext.init(
+    var jit_ctx = try jit_mod.JitContext.init(
         allocator,
         &guest_state,
         guest_ram,
