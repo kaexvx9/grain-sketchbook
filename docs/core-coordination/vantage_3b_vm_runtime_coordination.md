@@ -49,6 +49,12 @@
 
 **Ready for**: Testing on Framework x86_64, coordination with Agent 3c for JIT testing framework (IMMEDIATE priority per Core 1 Subcore coordination)
 
+**Advanced Features** (Parallel Work Available):
+- ✅ **Optimization Opportunities Documented** (2026-01-06-095818-pst) — Register allocation, instruction scheduling, code generation optimizations identified
+- ⏳ **Register Allocator**: High priority optimization (10-20% performance improvement potential)
+- ⏳ **Peephole Optimizations**: High priority optimization (5-10% code size reduction potential)
+- ⏳ **Instruction Selection**: High priority optimization (3-8% performance improvement potential)
+
 **Latest Accomplishment** (2026-01-02-153000-pst):
 - ✅ **Guest RAM Pointer Integration Complete**: All 5 steps from architecture document implemented
   - Step 1: `enter_jit_x86_64()` function created (R13 = guest_ram base)
