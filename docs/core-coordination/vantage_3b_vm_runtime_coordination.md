@@ -246,7 +246,8 @@
 - ⏳ Multi-architecture testing framework coordination needed
 - ⏳ Framework x86_64 testing coordination needed
 - ✅ x86_64 JIT backend implementation complete — Ready for testing
-- ✅ Test infrastructure created (`tests/154_x86_64_jit_emit_test.zig`, `tests/155_x86_64_jit_translation_test.zig`)
+- ✅ Test infrastructure created (`tests/154_x86_64_jit_emit_test.zig`, `tests/155_x86_64_jit_translation_test.zig`) — Import fixes applied (2026-01-06-092504-pst)
+- ⚠️ **Note**: Tests must be run through build system (`zig build test`) — kernel_vm module defined in build.zig
 
 **Coordination Document Sent**:
 - ✅ `docs/agent-communications/l2-subagents/vantage_3/3b_vm_runtime/communications/2026-01-03-092836-pst_vantage_3b_jit_testing_requirements_for_3c.md`
