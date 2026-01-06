@@ -240,7 +240,14 @@ Grain Dream Editor Agent (2a) has successfully completed **Phase 1 (Core Editor 
 ### Weekly/Bi-Weekly Check-Ins
 
 **Last Check-In**: 2026-01-03-073338-pst (Aurora 2 Subcore prompt received)  
-**Next Check-In**: TBD (coordinate with Aurora 2 Subcore)
+**Next Check-In**: Wednesday (Aurora Stack Coordination — per parallelization plan)
+
+**Parallelization Plan Integration** (2026-01-05-212701-pst):
+- ✅ **Stream 2: Aurora IDE/Browser Stack** — Weekly coordination on Wednesdays
+- ✅ **Participants**: Aurora 2 Subcore, 2a (Dream Editor), 2b (Dream Browser), 2c (Component Library)
+- ✅ **Purpose**: Coordinate IDE/Browser stack work, component library integration
+- ✅ **Duration**: 30 minutes
+- ✅ **Output**: Aurora stack status update, integration plan
 
 **Aurora 2 Subcore Prompt Received** (2026-01-03-073338-pst):
 - ✅ Prompt document received: `docs/agent-communications/2026-01-03-073338-pst_aurora_2_subcore_l2_subagent_prompts.md` (Note: This file is in root, may need migration to `l1-subcores/aurora_2_subcore/prompts/`)
