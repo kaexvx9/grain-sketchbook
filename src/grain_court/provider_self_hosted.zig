@@ -1,11 +1,27 @@
 //! Grain Court Self-Hosted Provider: Cerebras GLM-4.6 API provider implementation.
 //!
-//! Why: Enable agents to use self-hosted Cerebras GLM-4.6 API via provider abstraction.
-//! Architecture: Cerebras API client, request encoding, response decoding, ZON format support.
-//! GrainStyle: grain_case, u32/u64, bounded allocations, assertions, max 70 lines.
+//! This module implements the self-hosted Cerebras API provider for the Grain Court LLM
+//! infrastructure, enabling agents to use Cerebras GLM-4.6 models through the unified provider
+//! abstraction. This provider is unique in supporting the ZON token-efficient format, enabling
+//! 35-70% token reduction compared to JSON-based providers.
 //!
-//! Note: This provider supports ZON format for token-efficient communication.
-//! Cerebras API endpoint: https://api.cerebras.ai/v1 (OpenAI-compatible)
+//! Architecture: Cerebras API client with JSON/ZON request/response handling, token usage
+//! tracking, error translation to unified error types, and integration with the provider pool
+//! abstraction. Supports both JSON (OpenAI-compatible) and ZON formats for maximum flexibility.
+//!
+//! Supported Models:
+//! - GLM-4.6: High-performance model optimized for self-hosted deployment
+//! - Developer tier pricing: ~25% cheaper than standard cloud providers
+//!
+//! API Integration:
+//! - Endpoint: https://api.cerebras.ai/v1 (OpenAI-compatible API)
+//! - Authentication: Bearer token via API key
+//! - Request format: JSON (OpenAI-compatible) or ZON (token-efficient)
+//! - Response format: JSON with choices array and usage metadata
+//! - ZON Support: Native ZON format support for reduced token costs
+//!
+//! GrainStyle: grain_case function names, explicit u32/u64 types, bounded allocations with
+//! MAX_ constants, minimum 2 assertions per function, max 70 lines per function.
 
 const std = @import("std");
 const llm_provider = @import("llm_provider.zig");
