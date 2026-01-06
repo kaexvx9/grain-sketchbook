@@ -191,6 +191,9 @@ pub const Compute = struct {
         }
 
         /// Allocate SRAM for core.
+        // Allocates a contiguous block of on-wafer SRAM for a specific core. Returns the
+        // SRAM offset where the allocation begins. This enables high-bandwidth data access
+        // for parallel operations. Returns error.OutOfSRAM if insufficient capacity remains.
         pub fn allocate_sram(self: *CourtCompute, core_id: u32, size: u64) !u64 {
             // Assert: Core ID must be valid
             std.debug.assert(core_id < self.cores_len);
@@ -215,6 +218,10 @@ pub const Compute = struct {
         }
 
         /// Execute parallel operation on court.
+        // Schedules a parallel operation across multiple cores. The operation is queued and
+        // cores are marked as active. Returns an operation ID for status tracking. Supports
+        // vector search, full-text search, matrix multiplication, data transformation, and
+        // LLM inference operations. Returns error.TooManyParallelOps if operation limit reached.
         // 2025-12-05-145359-pst: Active function
         pub fn execute_parallel(self: *CourtCompute, op_type: OpType, core_ids: []const u32, data_offset: u64, data_size: u64) !u32 {
             // Assert: Core IDs must be valid
@@ -256,6 +263,9 @@ pub const Compute = struct {
         }
 
         /// Get operation status.
+        // Retrieves the current status of a parallel operation (pending, executing, completed,
+        // or error_state). Returns null if the operation ID is invalid. Use this to poll for
+        // operation completion or check for errors.
         pub fn get_op_status(self: *CourtCompute, op_id: u32) ?OpStatus {
             if (op_id >= self.parallel_ops_len) {
                 return null;
@@ -264,6 +274,9 @@ pub const Compute = struct {
         }
 
         /// Get core by ID.
+        // Retrieves a reference to a core by its ID. Returns null if the core ID is invalid.
+        // Use this to inspect core state, SRAM allocation, or neighbor topology for a
+        // specific core in the court.
         pub fn get_core(self: *CourtCompute, core_id: u32) ?*Core {
             if (core_id >= self.cores_len) {
                 return null;
