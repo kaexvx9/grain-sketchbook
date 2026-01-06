@@ -54,6 +54,7 @@ fn start_repl(
 ) !void {
     // Assert: Engine must be valid
     std.debug.assert(engine.allocator.ptr != null);
+    _ = allocator; // Will be used for REPL state management
 
     const stdout = std.io.getStdOut().writer();
     const stdin = std.io.getStdIn().reader();

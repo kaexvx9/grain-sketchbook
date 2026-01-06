@@ -122,7 +122,7 @@ pub const DagSynthesis = struct {
 
         // TODO: Implement DAG-based workflow execution
         // For now, return error (placeholder)
-        _ = self;
+        _ = engine; // Will be used for media operations
         return error.NotImplemented;
     }
 };
