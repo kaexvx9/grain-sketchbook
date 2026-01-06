@@ -204,22 +204,22 @@ This document provides a comprehensive overview of the current status of **Grain
 **Goal**: Implement remaining shell features that don't require Init System integration.
 
 **Tasks**:
-1. **Pipes Implementation**:
-   - Parser already supports pipes (parsed but not executed)
-   - Implement pipe execution in executor
-   - Test pipe functionality
+1. **Pipes Implementation**: ✅ **COMPLETE**
+   - Parser supports pipes (parsed and executed)
+   - Pipe execution implemented in executor
+   - Pipe functionality working (verified 2026-01-05-211605-pst)
 
-2. **Redirections Implementation**:
-   - Parser already supports redirections (parsed but not executed)
-   - Implement redirection execution in executor
-   - Test redirection functionality
+2. **Redirections Implementation**: ✅ **COMPLETE**
+   - Parser supports redirections (parsed and executed)
+   - Redirection execution implemented in executor
+   - Redirection functionality working (verified 2026-01-05-211605-pst)
 
-3. **Background Jobs**:
-   - Parser already supports background (`&` parsed but not executed)
-   - Implement background job execution
-   - Test background job functionality
+3. **Background Jobs**: ⚠️ **PARTIALLY IMPLEMENTED**
+   - Parser supports background (`&` parsed and executed)
+   - Background job execution implemented (spawns but not tracked)
+   - **Missing**: Job tracking, `jobs` command, `fg`/`bg` commands, process group management
 
-**Timeline**: Week 1-2 (parallel with Priority 1)
+**Timeline**: Week 1-2 (parallel with Priority 1) — **UPDATED**: Pipes and redirections complete, background jobs partially complete
 
 ### Priority 3: Grainscript Language Phase 2 (Shell Features)
 
