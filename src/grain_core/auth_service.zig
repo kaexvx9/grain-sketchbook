@@ -2312,6 +2312,54 @@ pub fn cleanup_expired_rate_limits(self: *AuthService, current_time: u64) void {
     std.debug.assert(self.rate_limit_count <= MAX_RATE_LIMIT_ENTRIES);
 }
 
+// Cleanup expired sessions (remove inactive and expired sessions)
+pub fn cleanup_expired_sessions(self: *AuthService, current_time: u64) u32 {
+    std.debug.assert(current_time > 0);
+    var i: u32 = 0;
+    var write_idx: u32 = 0;
+    var cleaned_count: u32 = 0;
+    while (i < self.session_count) : (i += 1) {
+        const session = &self.sessions[i];
+        const is_expired = session.expires_at < current_time;
+        const is_inactive = !session.is_active;
+        if (!is_expired and !is_inactive) {
+            if (write_idx != i) {
+                self.sessions[write_idx] = self.sessions[i];
+            }
+            write_idx += 1;
+        } else {
+            cleaned_count += 1;
+        }
+    }
+    self.session_count = write_idx;
+    std.debug.assert(self.session_count <= 100);
+    return cleaned_count;
+}
+
+// Cleanup expired OTPs (remove expired and used OTPs)
+pub fn cleanup_expired_otps(self: *AuthService, current_time: u64) u32 {
+    std.debug.assert(current_time > 0);
+    var i: u32 = 0;
+    var write_idx: u32 = 0;
+    var cleaned_count: u32 = 0;
+    while (i < self.otp_count) : (i += 1) {
+        const otp = &self.otps[i];
+        const is_expired = otp.expires_at < current_time;
+        const is_used = otp.is_used;
+        if (!is_expired and !is_used) {
+            if (write_idx != i) {
+                self.otps[write_idx] = self.otps[i];
+            }
+            write_idx += 1;
+        } else {
+            cleaned_count += 1;
+        }
+    }
+    self.otp_count = write_idx;
+    std.debug.assert(self.otp_count <= 50);
+    return cleaned_count;
+}
+
 // ============================================================================
 // Security Audit Logging (Phase 6.2)
 // ============================================================================
@@ -2530,5 +2578,27 @@ pub fn cleanup_old_audit_logs(self: *AuthService, current_time: u64) void {
     }
     self.audit_log_count = write_idx;
     std.debug.assert(self.audit_log_count <= MAX_AUDIT_LOG_ENTRIES);
+}
+
+// Cleanup all expired resources (unified cleanup function)
+pub const CleanupStats = struct {
+    sessions_cleaned: u32,
+    otps_cleaned: u32,
+};
+
+pub fn cleanup_all_expired_resources(
+    self: *AuthService,
+    current_time: u64,
+) CleanupStats {
+    std.debug.assert(current_time > 0);
+    const sessions_cleaned = cleanup_expired_sessions(self, current_time);
+    const otps_cleaned = cleanup_expired_otps(self, current_time);
+    cleanup_expired_csrf_tokens(self, current_time);
+    cleanup_expired_rate_limits(self, current_time);
+    cleanup_old_audit_logs(self, current_time);
+    return CleanupStats{
+        .sessions_cleaned = sessions_cleaned,
+        .otps_cleaned = otps_cleaned,
+    };
 }
 

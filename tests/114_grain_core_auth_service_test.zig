@@ -1110,3 +1110,93 @@ test "auth_service_audit_log_all_event_types" {
     std.debug.assert(service.audit_logs[3].event_type == auth_service.AuditEventType.api_key_usage);
 }
 
+test "auth_service_cleanup_expired_sessions" {
+    const secret = "test_secret_key_for_jwt_signing";
+    var service = auth_service.AuthService.init(secret);
+    const current_time: u64 = 1000000;
+    const expired_time = current_time - 100000;
+    const user_id = "user123";
+    var session: auth_service.Session = undefined;
+    _ = service.create_session(user_id, current_time, &session);
+    std.debug.assert(service.session_count == 1);
+    var expired_session: auth_service.Session = undefined;
+    expired_session = session;
+    expired_session.expires_at = expired_time;
+    expired_session.is_active = true;
+    service.sessions[1] = expired_session;
+    service.session_count = 2;
+    const cleaned = service.cleanup_expired_sessions(current_time);
+    std.debug.assert(cleaned == 1);
+    std.debug.assert(service.session_count == 1);
+}
+
+test "auth_service_cleanup_expired_sessions_inactive" {
+    const secret = "test_secret_key_for_jwt_signing";
+    var service = auth_service.AuthService.init(secret);
+    const current_time: u64 = 1000000;
+    const user_id = "user123";
+    var session: auth_service.Session = undefined;
+    _ = service.create_session(user_id, current_time, &session);
+    std.debug.assert(service.session_count == 1);
+    service.sessions[0].is_active = false;
+    const cleaned = service.cleanup_expired_sessions(current_time);
+    std.debug.assert(cleaned == 1);
+    std.debug.assert(service.session_count == 0);
+}
+
+test "auth_service_cleanup_expired_otps" {
+    const secret = "test_secret_key_for_jwt_signing";
+    var service = auth_service.AuthService.init(secret);
+    const current_time: u64 = 1000000;
+    const expired_time = current_time - 100000;
+    const email = "test@example.com";
+    var otp: auth_service.Otp = undefined;
+    _ = service.generate_otp(email, current_time, &otp);
+    std.debug.assert(service.otp_count == 1);
+    var expired_otp: auth_service.Otp = undefined;
+    expired_otp = otp;
+    expired_otp.expires_at = expired_time;
+    expired_otp.is_used = false;
+    service.otps[1] = expired_otp;
+    service.otp_count = 2;
+    const cleaned = service.cleanup_expired_otps(current_time);
+    std.debug.assert(cleaned == 1);
+    std.debug.assert(service.otp_count == 1);
+}
+
+test "auth_service_cleanup_expired_otps_used" {
+    const secret = "test_secret_key_for_jwt_signing";
+    var service = auth_service.AuthService.init(secret);
+    const current_time: u64 = 1000000;
+    const email = "test@example.com";
+    var otp: auth_service.Otp = undefined;
+    _ = service.generate_otp(email, current_time, &otp);
+    std.debug.assert(service.otp_count == 1);
+    service.otps[0].is_used = true;
+    const cleaned = service.cleanup_expired_otps(current_time);
+    std.debug.assert(cleaned == 1);
+    std.debug.assert(service.otp_count == 0);
+}
+
+test "auth_service_cleanup_all_expired_resources" {
+    const secret = "test_secret_key_for_jwt_signing";
+    var service = auth_service.AuthService.init(secret);
+    const current_time: u64 = 1000000;
+    const expired_time = current_time - 100000;
+    const user_id = "user123";
+    const email = "test@example.com";
+    var session: auth_service.Session = undefined;
+    _ = service.create_session(user_id, current_time, &session);
+    service.sessions[0].expires_at = expired_time;
+    var otp: auth_service.Otp = undefined;
+    _ = service.generate_otp(email, current_time, &otp);
+    service.otps[0].expires_at = expired_time;
+    std.debug.assert(service.session_count == 1);
+    std.debug.assert(service.otp_count == 1);
+    const stats = service.cleanup_all_expired_resources(current_time);
+    std.debug.assert(stats.sessions_cleaned == 1);
+    std.debug.assert(stats.otps_cleaned == 1);
+    std.debug.assert(service.session_count == 0);
+    std.debug.assert(service.otp_count == 0);
+}
+
