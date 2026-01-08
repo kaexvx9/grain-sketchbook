@@ -387,7 +387,7 @@ pub const MediaWorkflowParser = struct {
         self: *MediaWorkflowParser,
         dag: *grainflow_dag.DagSynthesis,
         operations: []const ParsedOperation,
-        var_to_node: *std.HashMap([]const u8, u32, std.hash_map.StringContext, std.hash_map.defaultMaxLoadPercentage),
+        var_to_node: *std.StringHashMapUnmanaged(u32),
     ) !void {
         // Assert: DAG and operations must be valid
         std.debug.assert(dag.dag.nodes_len <= grainflow_dag.DagSynthesis.MAX_WORKFLOW_NODES);

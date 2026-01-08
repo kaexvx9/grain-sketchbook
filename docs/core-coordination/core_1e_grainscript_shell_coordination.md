@@ -136,15 +136,20 @@
 
 ## Test Results Summary
 
-**Unit Tests**: ✅ All passing
-- Parser tests: 4/4 passing
-- Builtin tests: 2/2 passing
+**Unit Tests**: ✅ All passing (19 tests)
+- Parser tests: 8/8 passing (simple command, multiple args, empty line, comment, quoted args, background, whitespace handling, etc.)
+- Builtin tests: 11/11 passing (cd, pwd, echo, ls, env, help, cd valid path, cd invalid path, ls with path, etc.)
+
+**Integration Tests**: ✅ All passing (5 tests)
+- ServiceManager tests: 3/3 passing (get status, service not found, list services)
+- JobManager tests: 2/2 passing (add and list, remove done jobs)
 
 **Manual Tests**: ✅ All functional
-- Built-in commands: All working
+- Built-in commands: All working (cd, ls, pwd, echo, exit, env, help, service)
 - External programs: Working
-- Error handling: Working
+- Error handling: Working (with improved error messages)
 - Multi-command input: Working
+- Background job tracking: Working (jobs, fg, bg commands)
 
 **Known Limitations**:
 - Pipeline/redirection integration tests: Temporarily disabled (requires deeper investigation of pipe handling)
