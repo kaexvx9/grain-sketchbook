@@ -438,6 +438,22 @@ pub fn build(b: *std.Build) void {
     const run_zon_phase4_validation_run = b.addRunArtifact(run_zon_phase4_validation_exe);
     run_zon_phase4_validation_step.dependOn(&run_zon_phase4_validation_run.step);
 
+    // Framework x86_64 test runner (for multi-architecture testing).
+    const framework_x86_64_test_runner = b.addExecutable(.{
+        .name = "test_runner_framework_x86_64",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("tools/test_runner_framework_x86_64.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "test_framework", .module = test_framework_module },
+            },
+        }),
+    });
+    b.installArtifact(framework_x86_64_test_runner);
+    const framework_test_runner_step = b.step("test_runner_framework_x86_64", "Build Framework x86_64 test runner");
+    framework_test_runner_step.dependOn(&b.addInstallArtifact(framework_x86_64_test_runner, .{}).step);
+
     const ray_tests = b.addTest(.{
         .root_module = b.createModule(.{
             .root_source_file = b.path("src/ray.zig"),

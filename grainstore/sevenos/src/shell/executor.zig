@@ -430,39 +430,22 @@ pub const Executor = struct {
             var process = std.process.Child.init(args_list.items, self.allocator);
 
             // Handle stdin (from previous pipe or file redirection)
-            if (cmd.input_file) |input_file| {
-                const input_fd = try std.fs.cwd().openFile(input_file, .{});
-                defer input_fd.close();
+            var stdin_needs_setup = false;
+            if (cmd.input_file) |_| {
                 process.stdin_behavior = .Pipe;
-                // Copy file to stdin pipe
-                if (process.stdin) |stdin_pipe| {
-                    var buf: [4096]u8 = undefined;
-                    while (true) {
-                        const bytes_read = try input_fd.read(&buf);
-                        if (bytes_read == 0) break;
-                        _ = try stdin_pipe.write(buf[0..bytes_read]);
-                    }
-                    // Don't close stdin_pipe here - process.wait() will handle it
-                }
-            } else if (prev_stdout) |prev_file| {
+                stdin_needs_setup = true;
+            } else if (prev_stdout) |_| {
                 process.stdin_behavior = .Pipe;
-                // Copy previous stdout to stdin pipe
-                if (process.stdin) |stdin_pipe| {
-                    try prev_file.seekTo(0); // Reset to beginning
-                    var buf: [4096]u8 = undefined;
-                    while (true) {
-                        const bytes_read = try prev_file.read(&buf);
-                        if (bytes_read == 0) break;
-                        _ = try stdin_pipe.write(buf[0..bytes_read]);
-                    }
-                    // Don't close stdin_pipe here - process.wait() will handle it
-                }
+                stdin_needs_setup = true;
             } else {
                 process.stdin_behavior = .Inherit;
             }
 
             // Handle stdout (to next pipe or file redirection)
             const is_last = (i == pipeline.commands_len - 1);
+            var process_waited = false; // Track if we've already waited for this process
+            
+            // Spawn process first, then handle stdin/stdout
             if (cmd.output_file) |output_file| {
                 var output_fd: std.fs.File = undefined;
                 if (cmd.append_output) {
@@ -494,7 +477,21 @@ pub const Executor = struct {
                         if (bytes_read == 0) break;
                         _ = try output_fd.write(buf[0..bytes_read]);
                     }
-                    // Don't close stdout_pipe here - process.wait() will handle it
+                    // Don't close stdout_pipe manually - wait() will handle it
+                }
+                // Wait for process after reading all output
+                if (!cmd.background) {
+                    const term = try process.wait();
+                    exit_code = switch (term) {
+                        .Exited => |code| @intCast(code),
+                        .Signal => |sig| @intCast(128 + sig),
+                        .Stopped => |sig| @intCast(128 + sig),
+                        .Unknown => |code| @intCast(code),
+                    };
+                    process_waited = true;
+                } else {
+                    exit_code = 0; // Background process, don't wait
+                    process_waited = true; // Mark as handled
                 }
             } else if (!is_last) {
                 // Not last command - capture stdout for next command
@@ -510,11 +507,17 @@ pub const Executor = struct {
                         if (bytes_read == 0) break;
                         _ = try temp_file.write(buf[0..bytes_read]);
                     }
-                    // Don't close stdout_pipe here - process.wait() will handle it
+                    // Don't close stdout_pipe manually - wait() will handle it
                 }
-                // Wait for process before moving to next command
-                const term = try process.wait();
-                _ = term; // Discard term for now
+                // Wait for process after reading all output
+                if (!cmd.background) {
+                    const term = try process.wait();
+                    // Store exit code but only use last command's exit code
+                    _ = term; // Discard term for now
+                    process_waited = true;
+                } else {
+                    process_waited = true; // Mark as handled
+                }
                 if (prev_stdout) |file| file.close();
                 prev_stdout = temp_file;
             } else {
@@ -525,17 +528,45 @@ pub const Executor = struct {
 
             process.stderr_behavior = .Inherit;
 
-            // Wait for process (non-blocking for background processes)
-            if (cmd.background) {
-                exit_code = 0; // Background process, don't wait
-            } else {
-                const term = try process.wait();
-                exit_code = switch (term) {
-                    .Exited => |code| @intCast(code),
-                    .Signal => |sig| @intCast(128 + sig),
-                    .Stopped => |sig| @intCast(128 + sig),
-                    .Unknown => |code| @intCast(code),
-                };
+            // Write to stdin if needed (AFTER spawning)
+            if (stdin_needs_setup) {
+                if (process.stdin) |stdin_pipe| {
+                    if (cmd.input_file) |input_file| {
+                        const input_fd = try std.fs.cwd().openFile(input_file, .{});
+                        defer input_fd.close();
+                        var buf: [4096]u8 = undefined;
+                        while (true) {
+                            const bytes_read = try input_fd.read(&buf);
+                            if (bytes_read == 0) break;
+                            _ = try stdin_pipe.write(buf[0..bytes_read]);
+                        }
+                    } else if (prev_stdout) |prev_file| {
+                        try prev_file.seekTo(0); // Reset to beginning
+                        var buf: [4096]u8 = undefined;
+                        while (true) {
+                            const bytes_read = try prev_file.read(&buf);
+                            if (bytes_read == 0) break;
+                            _ = try stdin_pipe.write(buf[0..bytes_read]);
+                        }
+                    }
+                    // Close stdin pipe write end so process knows input is done
+                    stdin_pipe.close();
+                }
+            }
+
+            // Wait for process if we haven't already (for last command without file redirection)
+            if (!process_waited) {
+                if (cmd.background) {
+                    exit_code = 0; // Background process, don't wait
+                } else {
+                    const term = try process.wait();
+                    exit_code = switch (term) {
+                        .Exited => |code| @intCast(code),
+                        .Signal => |sig| @intCast(128 + sig),
+                        .Stopped => |sig| @intCast(128 + sig),
+                        .Unknown => |code| @intCast(code),
+                    };
+                }
             }
         }
 

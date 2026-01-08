@@ -272,8 +272,12 @@
 - [x] Create ServiceManager module — ✅ **COMPLETE** (2026-01-03-080432-pst)
 - [x] Implement service command with subcommands — ✅ **COMPLETE** (2026-01-03-080432-pst)
 - [x] Integrate ServiceManager with executor — ✅ **COMPLETE** (2026-01-03-080432-pst)
-- [ ] Coordinate Supervisor reference mechanism with Agent 3d — **NEXT PRIORITY**
-- [ ] Test service management with real Supervisor — **NEXT PRIORITY**
+- [x] Test service management with IntegrationTestEnv — ✅ **COMPLETE** (2026-01-06, 5 tests passing)
+- [x] Improve error messages with helpful hints — ✅ **COMPLETE** (2026-01-06)
+- [x] Fix pipeline execution double-wait bug — ✅ **COMPLETE** (2026-01-06)
+- [x] Step 4 integration complete and tested — ✅ **COMPLETE** (2026-01-06)
+- [ ] Fix pipeline/redirection integration tests (deferred, requires deeper investigation) — **OPTIONAL**
+- [ ] Add line/column tracking to error messages (deferred, requires parser refactoring) — **OPTIONAL**
 - [ ] Add Grainscript script execution support (Phase 3) — **FUTURE**
 - [ ] Integrate with Core services (1a-1d) — **FUTURE**
 

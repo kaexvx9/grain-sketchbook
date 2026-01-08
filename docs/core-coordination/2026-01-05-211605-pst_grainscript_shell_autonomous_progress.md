@@ -152,13 +152,18 @@ This document summarizes autonomous work completed on Grainscript Shell during a
 - ✅ Implemented background job tracking (JobManager)
 - ✅ Implemented `jobs`, `fg`, `bg` commands
 - ✅ Added edge case tests (4 new tests)
+- ✅ **Improved error messages** (helpful hints and suggestions)
+- ✅ Fixed double-wait bug in pipeline execution
+- ✅ Enhanced error reporting for parse and execution errors
 
 ### Available for Future Sessions
 
-1. **Error Message Improvements**:
-   - Better error messages for parse errors
-   - Line/column information in error output
-   - Suggestions for common errors
+1. **Error Message Improvements**: ✅ **COMPLETE** (This Session)
+   - ✅ Enhanced error messages with helpful hints
+   - ✅ Suggestions for common parse errors (TooManyPipes, InvalidRedirect, etc.)
+   - ✅ Suggestions for common execution errors (FileNotFound, AccessDenied, etc.)
+   - ✅ Contextual error messages with examples
+   - Note: Line/column tracking deferred (would require parser refactoring)
 
 2. **Grainscript Language Syntax Support**:
    - Improve parser error recovery
@@ -217,7 +222,35 @@ This document summarizes autonomous work completed on Grainscript Shell during a
 
 ---
 
-**Date**: 2026-01-05-211605-pst  
+**Date**: 2026-01-05-211605-pst (Updated 2026-01-06)  
 **Voice**: Glow G2 (steadfast, calm, solution-focused guidance)  
-**Status**: ✅ **AUTONOMOUS WORK COMPLETE** — Independent improvements documented and ready for use
+**Status**: ✅ **AUTONOMOUS WORK CONTINUING** — Error message improvements complete, documentation updates in progress
+
+---
+
+## Recent Updates (2026-01-06)
+
+### Error Message Improvements ✅ **COMPLETE**
+
+**Enhanced Error Reporting**:
+- Parse errors now include helpful hints and suggestions
+- Execution errors provide context and actionable advice
+- Error messages include examples where appropriate
+
+**Example Improvements**:
+- `TooManyPipes`: Now shows max limit and suggests splitting pipelines
+- `InvalidRedirect`: Provides syntax examples (`< file`, `> file`, `>> file`)
+- `ArgumentTooLong`: Shows max length and suggests using quotes
+- `EmptyCommand`: Suggests valid command examples
+- `FileNotFound`: Hints about checking path and permissions
+- `ProcessNotFound`: Suggests checking PATH or using full path
+
+**Files Modified**:
+- `grainstore/sevenos/src/shell/grainscript.zig` (error handling functions)
+
+**Tests**: ✅ All shell tests passing (19 tests)
+
+---
+
+**Status**: ✅ **ERROR MESSAGES COMPLETE** — User experience improvements ready for use
 

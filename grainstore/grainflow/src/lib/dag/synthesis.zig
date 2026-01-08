@@ -12,11 +12,14 @@
 const std = @import("std");
 const dag_core = @import("dag_core");
 const grainflow_media = @import("grainflow_media");
+const streaming = @import("streaming.zig");
 
 /// DAG UI Synthesis: Media workflow engine using DAG architecture.
 pub const DagSynthesis = struct {
     allocator: std.mem.Allocator,
     dag: dag_core.DagCore,
+    streaming_updates: ?streaming.StreamingUpdates,
+    node_results: std.HashMapUnmanaged(u32, grainflow_media.GrainflowEngine.Image, std.hash_map.getAutoHashFn(u32), std.hash_map.getAutoEqlFn(u32)),
 
     // Bounded: Max workflow nodes (explicit limit)
     pub const MAX_WORKFLOW_NODES: u32 = 1000;
@@ -47,18 +50,17 @@ pub const DagSynthesis = struct {
 
         const dag = try dag_core.DagCore.init(allocator);
 
+        // Initialize streaming updates (optional, can be enabled later)
+        const streaming_updates = try streaming.StreamingUpdates.init(allocator, &dag);
+
+        const node_results = std.HashMapUnmanaged(u32, grainflow_media.GrainflowEngine.Image, std.hash_map.getAutoHashFn(u32), std.hash_map.getAutoEqlFn(u32)){};
+
         return DagSynthesis{
             .allocator = allocator,
             .dag = dag,
+            .streaming_updates = streaming_updates,
+            .node_results = node_results,
         };
-    }
-
-    /// Deinitialize DAG synthesis engine.
-    pub fn deinit(self: *DagSynthesis) void {
-        // Assert: DAG must be valid
-        std.debug.assert(self.dag.allocator.ptr != null);
-
-        self.dag.deinit();
     }
 
     /// Create media operation node.
@@ -193,6 +195,11 @@ pub const DagSynthesis = struct {
 
         // Assert: All nodes processed
         std.debug.assert(processed == self.dag.nodes_len);
+
+        // Process streaming updates (Hyperfiddle-style deterministic propagation)
+        if (self.streaming_updates) |*updates| {
+            try updates.process_pending_updates();
+        }
     }
 
     /// Execute a single media operation node.
@@ -205,27 +212,104 @@ pub const DagSynthesis = struct {
         // Assert: Node must be valid
         std.debug.assert(node.id == node_id);
         std.debug.assert(engine.allocator.ptr != null);
-        _ = self; // Will be used for node state management
 
         // Execute based on node type
         switch (node.node_type) {
             .data_source => {
                 // Load image from path (data contains file path)
                 const image = try engine.load_image(node.data[0..node.data_len]);
-                defer image.deinit();
-                // TODO: Store image result for dependent nodes
+
+                // Store image result for dependent nodes
+                try self.node_results.put(self.allocator, node_id, image);
+
+                // Notify streaming updates (Hyperfiddle-style)
+                if (self.streaming_updates) |*updates| {
+                    const update = try updates.create_update(
+                        node_id,
+                        .data_loaded,
+                        node.data[0..node.data_len],
+                    );
+                    try updates.propagate_update(update);
+                }
             },
             .computation => {
+                // Get input images from parent nodes (data flow edges)
+                const incoming_edges = self.dag.getEdges(node_id, true);
+                var input_images = std.ArrayList(grainflow_media.GrainflowEngine.Image).init(self.allocator);
+                defer {
+                    // Defer cleanup of input images (will be freed after computation)
+                    for (input_images.items) |*img| {
+                        img.deinit();
+                    }
+                    input_images.deinit();
+                }
+
+                // Collect input images from parent nodes
+                for (incoming_edges) |edge| {
+                    if (edge.edge_type == .data_flow) {
+                        if (self.node_results.get(edge.from_node)) |parent_image| {
+                            // Clone image for computation (to avoid ownership issues)
+                            const cloned_pixels = try self.allocator.alloc(u8, parent_image.pixels.len);
+                            @memcpy(cloned_pixels, parent_image.pixels);
+
+                            const cloned_image = grainflow_media.GrainflowEngine.Image{
+                                .width = parent_image.width,
+                                .height = parent_image.height,
+                                .format = parent_image.format,
+                                .pixels = cloned_pixels,
+                                .allocator = self.allocator,
+                            };
+                            try input_images.append(cloned_image);
+                        }
+                    }
+                }
+
                 // Process media operation (transform, filter, composition, output)
                 // TODO: Parse node data to determine operation type
-                // TODO: Execute operation using engine
-                // Engine will be used for media operations
-                _ = engine.allocator;
+                // TODO: Execute operation using engine with input_images
+                // For now, use first input image as output (placeholder)
+                if (input_images.items.len > 0) {
+                    const output_image = input_images.items[0];
+                    // Store result for dependent nodes (ownership transferred)
+                    try self.node_results.put(self.allocator, node_id, output_image);
+                    _ = input_images.swapRemove(0); // Remove from cleanup list
+                }
+
+                // Notify streaming updates (Hyperfiddle-style)
+                if (self.streaming_updates) |*updates| {
+                    const update = try updates.create_update(
+                        node_id,
+                        .node_ready,
+                        node.data[0..node.data_len],
+                    );
+                    try updates.propagate_update(update);
+                }
             },
             else => {
                 // Other node types not supported for media workflows
                 return error.InvalidNodeType;
             },
+        }
+    }
+
+    /// Deinitialize DAG synthesis and free all resources.
+    pub fn deinit(self: *DagSynthesis) void {
+        // Assert: DAG must be valid
+        std.debug.assert(self.dag.nodes_len <= MAX_WORKFLOW_NODES);
+
+        // Free stored node results
+        var result_iter = self.node_results.iterator();
+        while (result_iter.next()) |entry| {
+            entry.value_ptr.deinit();
+        }
+        self.node_results.deinit(self.allocator);
+
+        // Deinitialize DAG
+        self.dag.deinit();
+
+        // Deinitialize streaming updates (if initialized)
+        if (self.streaming_updates) |*updates| {
+            updates.deinit();
         }
     }
 };

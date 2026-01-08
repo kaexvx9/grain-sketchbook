@@ -268,24 +268,59 @@ fn parse_and_execute_line(
     return ExecuteResult{ .should_exit = false };
 }
 
-/// Handle parse error.
+/// Handle parse error with improved error messages.
 fn handle_parse_error(err: anyerror, stderr_file: *const std.fs.File) !void {
-    var err_buf: [256]u8 = undefined;
-    const err_msg = std.fmt.bufPrint(&err_buf, "Parse error: {s}\n", .{@errorName(err)}) catch {
-        try stderr_file.writeAll("Parse error\n");
+    var err_buf: [512]u8 = undefined;
+    const err_msg = format_parse_error(err, &err_buf) catch |buf_err| {
+        _ = buf_err;
+        // Fallback to simple error name if formatting fails
+        const fallback_msg = std.fmt.bufPrint(&err_buf, "Parse error: {s}\n", .{@errorName(err)}) catch {
+            try stderr_file.writeAll("Parse error\n");
+            return;
+        };
+        try stderr_file.writeAll(fallback_msg);
         return;
     };
     try stderr_file.writeAll(err_msg);
 }
 
-/// Handle execution error.
+/// Format parse error with helpful suggestions.
+fn format_parse_error(err: anyerror, buf: []u8) ![]const u8 {
+    return switch (err) {
+        error.TooManyPipes => std.fmt.bufPrint(buf, "Parse error: Too many pipes (max {d})\nHint: Split complex pipelines into multiple commands or reduce pipe count\n", .{parser.CommandParser.MAX_PIPELINE}),
+        error.InvalidRedirect => std.fmt.bufPrint(buf, "Parse error: Invalid redirection syntax\nHint: Use '< file' for input, '> file' for output, '>> file' for append\nExample: 'cat < input.txt > output.txt'\n", .{}),
+        error.ArgumentTooLong => std.fmt.bufPrint(buf, "Parse error: Argument too long (max {d} characters)\nHint: Use quotes for arguments with spaces, or split into multiple commands\n", .{parser.CommandParser.MAX_ARG_LEN}),
+        error.EmptyCommand => std.fmt.bufPrint(buf, "Parse error: Empty command\nHint: Enter a command name (e.g., 'ls', 'pwd', 'echo hello')\n", .{}),
+        error.OutOfMemory => std.fmt.bufPrint(buf, "Parse error: Out of memory\nHint: Command may be too complex, try splitting into simpler commands\n", .{}),
+        else => std.fmt.bufPrint(buf, "Parse error: {s}\n", .{@errorName(err)}),
+    };
+}
+
+/// Handle execution error with improved error messages.
 fn handle_exec_error(err: anyerror, stderr_file: *const std.fs.File) !void {
-    var err_buf: [256]u8 = undefined;
-    const err_msg = std.fmt.bufPrint(&err_buf, "Execution error: {s}\n", .{@errorName(err)}) catch {
-        try stderr_file.writeAll("Execution error\n");
+    var err_buf: [512]u8 = undefined;
+    const err_msg = format_exec_error(err, &err_buf) catch |buf_err| {
+        _ = buf_err;
+        // Fallback to simple error name if formatting fails
+        const fallback_msg = std.fmt.bufPrint(&err_buf, "Execution error: {s}\n", .{@errorName(err)}) catch {
+            try stderr_file.writeAll("Execution error\n");
+            return;
+        };
+        try stderr_file.writeAll(fallback_msg);
         return;
     };
     try stderr_file.writeAll(err_msg);
+}
+
+/// Format execution error with helpful suggestions.
+fn format_exec_error(err: anyerror, buf: []u8) ![]const u8 {
+    return switch (err) {
+        error.FileNotFound => std.fmt.bufPrint(buf, "Execution error: File not found\nHint: Check the file path and permissions\n", .{}),
+        error.AccessDenied => std.fmt.bufPrint(buf, "Execution error: Access denied\nHint: Check file permissions or try with different user\n", .{}),
+        error.ProcessNotFound => std.fmt.bufPrint(buf, "Execution error: Process not found\nHint: Command may not be in PATH, check spelling or use full path\n", .{}),
+        error.OutOfMemory => std.fmt.bufPrint(buf, "Execution error: Out of memory\nHint: System may be low on memory, try closing other programs\n", .{}),
+        else => std.fmt.bufPrint(buf, "Execution error: {s}\n", .{@errorName(err)}),
+    };
 }
 
 /// Execute a script file.
@@ -349,12 +384,7 @@ fn execute_grainscript_file(allocator: std.mem.Allocator, script_path: []const u
     
     // Parse source into AST
     grainscript_parser_instance.parse() catch |err| {
-        var err_buf: [256]u8 = undefined;
-        const err_msg = std.fmt.bufPrint(&err_buf, "Parse error: {s}\n", .{@errorName(err)}) catch {
-            try stderr_file.writeAll("Parse error\n");
-            return;
-        };
-        try stderr_file.writeAll(err_msg);
+        handle_parse_error(err, &stderr_file) catch {};
         return;
     };
     
@@ -364,12 +394,7 @@ fn execute_grainscript_file(allocator: std.mem.Allocator, script_path: []const u
     
     // Execute program
     interpreter.execute() catch |err| {
-        var err_buf: [256]u8 = undefined;
-        const err_msg = std.fmt.bufPrint(&err_buf, "Execution error: {s}\n", .{@errorName(err)}) catch {
-            try stderr_file.writeAll("Execution error\n");
-            return;
-        };
-        try stderr_file.writeAll(err_msg);
+        handle_exec_error(err, &stderr_file) catch {};
         return;
     };
 }
