@@ -164,10 +164,13 @@
 - `docs/core-coordination/core_1e_grainscript_shell_test_results_2026-01-02.md`
 - `docs/core-coordination/core_1e_grainscript_shell_integration_design_2026-01-02.md`
 - `docs/core-coordination/core_1e_grainscript_shell_coordination.md` (this document)
+- `docs/core-coordination/2026-01-05-211605-pst_grainscript_shell_autonomous_progress.md`
+- `docs/core-coordination/2026-01-06-095800-pst_grainscript_shell_step4_completion_handoff.md`
 
-**To Be Created**:
-- Plan document (when needed)
-- Tasks document (when needed)
+**Recent Updates**:
+- Step 4 completion documented (2026-01-06)
+- Error message improvements documented (2026-01-06)
+- Pipeline execution bug fixes documented (2026-01-06)
 
 ---
 
