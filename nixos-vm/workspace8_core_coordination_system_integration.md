@@ -423,6 +423,28 @@ The integration work involves coordinating across 24 total agents (12 L1 agents 
 
 ---
 
+## Integration Readiness Assessment Framework
+
+**Overview**: Skate Agent (4) has created a comprehensive Integration Readiness Assessment Guide that standardizes readiness assessment across all agents. This framework helps identify integration opportunities and track readiness progress.
+
+**Key Components**:
+1. **6-Category Framework**: Core Implementation, Integration Design, Testing, Documentation, Security, Performance
+2. **Readiness Levels (0-5)**: Not Started → Integration Complete
+3. **Self-Assessment Templates**: Ready-to-use templates for each integration point
+4. **Integration Opportunities Matrix**: Pre-populated with Core 1 sub-agents
+5. **Readiness Improvement Plans**: Specific guidance for each readiness level
+6. **4-Step Process**: Self-Assessment → Coordination Review → Integration Planning → Implementation
+
+**Workspace 8 Support**:
+- Facilitate readiness assessment coordination
+- Track integration readiness across agents
+- Support integration planning based on readiness levels
+- Coordinate readiness alignment between agents
+
+**Reference**: See `docs/core-coordination/2026-01-06-101000-pst_core_1_subcore_integration_readiness_assessment_guide.md` for complete framework.
+
+---
+
 ## Parallel Work Stream Coordination
 
 ### Stream Coordination Checklist
@@ -524,6 +546,32 @@ The integration work involves coordinating across 24 total agents (12 L1 agents 
 
 ---
 
+### Integration Readiness Assessment Support
+
+**Use this checklist when supporting integration readiness assessments:**
+
+#### Pre-Assessment Support
+- [ ] Verify agent has access to Integration Readiness Assessment Guide
+- [ ] Review agent's current integration points
+- [ ] Identify integration opportunities
+- [ ] Coordinate readiness assessment timeline
+
+#### During Assessment Support
+- [ ] Support agent in completing self-assessment
+- [ ] Review readiness levels for each integration point
+- [ ] Identify blockers and dependencies
+- [ ] Coordinate readiness alignment between agents
+- [ ] Document readiness status in coordination docs
+
+#### Post-Assessment Support
+- [ ] Review readiness assessments
+- [ ] Identify integration opportunities
+- [ ] Plan integration implementation
+- [ ] Coordinate readiness improvement plans
+- [ ] Track integration progress
+
+---
+
 ### Integration Point Tracking
 
 **Use this template when tracking integration points between parallel streams:**
@@ -596,6 +644,7 @@ Coordination Notes:
 - Integration pattern documentation (ongoing, non-blocking, all streams)
 - Coordination workflow improvements (ongoing, non-blocking, parallelization support)
 - Parallel work stream coordination tools (ongoing, non-blocking)
+- Integration readiness assessment support (ongoing, non-blocking, all agents)
 
 ### Anticipated Coordination Needs
 
@@ -630,6 +679,8 @@ Coordination Notes:
 ✅ Ready to support parallel work streams (8 streams, 18-20 agents)  
 ✅ Ready to facilitate weekly coordination meetings  
 ✅ Ready to track integration points across streams  
+✅ Ready to support integration readiness assessments (6-category framework)  
+✅ Ready to coordinate readiness alignment between agents  
 ✅ No blockers on my side
 
 ---
@@ -643,6 +694,8 @@ Coordination Notes:
 - Autonomous Progress Integration: `docs/core-coordination/2026-01-05-213025-pst_autonomous_progress_parallelization_integration.md`
 - Grainscript Shell Autonomous Progress: `docs/core-coordination/2026-01-05-211605-pst_grainscript_shell_autonomous_progress.md`
 - Step 4 Completion Handoff: `docs/core-coordination/2026-01-06-095800-pst_grainscript_shell_step4_completion_handoff.md`
+- Integration Readiness Assessment Guide: `docs/core-coordination/2026-01-06-101000-pst_core_1_subcore_integration_readiness_assessment_guide.md`
+- Integration Readiness Guide Acknowledgment: `docs/core-coordination/2026-01-07-181902-pst_integration_readiness_guide_acknowledgment.md`
 - Complete Agent Awareness: `docs/agent-communications/general/prompts/2026-01-02-002948-pst_complete_agent_awareness_all_agents_2026-01-02-002948-pst.md`
 
 ### Voice and Style
