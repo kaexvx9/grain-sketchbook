@@ -609,15 +609,17 @@
 - **Core 1 Coordination Summary Acknowledgment**: `docs/core-coordination/2026-01-03-091859-pst_aurora_2_subcore_core_1_coordination_summary_acknowledgment.md`
 - **Parallelization Coordination Plan**: `docs/core-coordination/2026-01-05-212701-pst_parallelization_coordination_plan_all_24_agents.md`
 - **Parallelization Plan Acknowledgment**: `docs/core-coordination/2026-01-06-092433-pst_aurora_2_subcore_parallelization_plan_acknowledgment.md`
+- **Step 4 Completion Acknowledgment**: `docs/core-coordination/2026-01-07-175133-pst_aurora_2_subcore_step_4_completion_acknowledgment.md`
 
 ---
 
 ## System-Wide Priority Context
 
-**Critical Path** (Core 1 Subcore Priority, 2026-01-02-083246-pst):
+**Critical Path** (Core 1 Subcore Priority, updated 2026-01-06-095800-pst):
 - **Goal**: Vantage running Basin Kernel on Framework sevenos x86_64 with working Grainscript shell
-- **Steps**: 1) Basin Kernel (3a) syscall docs → 2) VM Runtime (3b) JIT → 3) Init System (3d) → 4) Grainscript Shell (1e) → 5) System Integration (3c)
-- **Timeline**: THIS WEEK to WEEK 1-2
+- **Steps**: 1) Basin Kernel (3a) syscall docs → 2) VM Runtime (3b) JIT → 3) Init System (3d) → 4) Grainscript Shell (1e) ✅ COMPLETE → 5) System Integration (3c)
+- **Status**: Step 4 COMPLETE — ServiceManager integration complete, tested, verified (5 tests passing)
+- **Timeline**: Step 4 complete, remaining steps in progress
 
 **Aurora 2 Subcore Position**:
 - ✅ **NOT IN CRITICAL PATH** — Aurora 2 Subcore work does not block or get blocked by critical path
