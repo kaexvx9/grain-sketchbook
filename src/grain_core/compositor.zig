@@ -62,6 +62,9 @@ const desktop_shell = @import("desktop_shell.zig");
 const runtime_config = @import("runtime_config.zig");
 const application = @import("application.zig");
 const tiling_config = @import("tiling_config.zig");
+const integrated_file_storage = @import("integrated_file_storage.zig");
+const integrated_file_io = @import("integrated_file_io.zig");
+const compositor_workspace_persistence = @import("compositor_workspace_persistence.zig");
 
 // Bounded: Max number of windows.
 pub const MAX_WINDOWS: u32 = 256;
@@ -77,6 +80,11 @@ pub const BORDER_WIDTH: u32 = 2;
 
 // Bounded: Resize handle size.
 pub const RESIZE_HANDLE_SIZE: u32 = 8;
+
+// Get current time in nanoseconds (for Storage Agent initialization).
+fn get_current_time_nanos() u64 {
+    return @as(u64, @intCast(std.time.nanoTimestamp()));
+}
 
 // Window drag state.
 pub const DragState = struct {
@@ -262,6 +270,11 @@ pub const Compositor = struct {
     api_server: api_server.ApiServer,
     border_width: u32, // Configurable border width
     title_bar_height: u32, // Configurable title bar height
+    // Storage Agent integration for Phase 7 workspace persistence
+    storage_manager: integrated_file_storage.IntegratedFileStorageManager,
+    file_io: integrated_file_io.IntegratedFileIO,
+    current_user_id: u32,
+    current_group_id: u32,
 
     // Initialize window array with empty windows.
     fn init_windows(windows: *[MAX_WINDOWS]Window) void {
@@ -269,6 +282,26 @@ pub const Compositor = struct {
         while (i < MAX_WINDOWS) : (i += 1) {
             windows[i] = Window.init(0, 0, 0, 0, 0, 0);
         }
+    }
+
+    // Get current time in nanoseconds (for Storage Agent).
+    fn get_current_time_nanos(self: *const Compositor) u64 {
+        _ = self;
+        return @as(u64, @intCast(std.time.nanoTimestamp()));
+    }
+
+    // Get current user ID (for Storage Agent).
+    fn get_current_user_id_value() u32 {
+        // TODO: Get from system when available
+        // For now, use default value for testing
+        return 1000;
+    }
+
+    // Get current group ID (for Storage Agent).
+    fn get_current_group_id_value() u32 {
+        // TODO: Get from system when available
+        // For now, use default value for testing
+        return 100;
     }
 
     pub fn init(allocator: std.mem.Allocator) Compositor {
@@ -334,7 +367,20 @@ pub const Compositor = struct {
             .api_server = api_server.ApiServer.init(8080),
             .border_width = BORDER_WIDTH, // Default border width
             .title_bar_height = TITLE_BAR_HEIGHT, // Default title bar height
+            // Initialize Storage Agent components (Phase 7 workspace persistence)
+            // Note: storage_manager and file_io must be initialized separately due to pointer dependency
+            .storage_manager = undefined, // Will be initialized after struct creation
+            .file_io = undefined, // Will be initialized after storage_manager
+            .current_user_id = get_current_user_id_value(),
+            .current_group_id = get_current_group_id_value(),
         };
+        // Initialize Storage Agent components (Phase 7 workspace persistence)
+        // Step 1: Initialize IntegratedFileStorageManager
+        comp.storage_manager = integrated_file_storage.IntegratedFileStorageManager.init(
+            get_current_time_nanos,
+        );
+        // Step 2: Initialize IntegratedFileIO (requires pointer to storage_manager)
+        comp.file_io = integrated_file_io.IntegratedFileIO.init(&comp.storage_manager);
         init_windows(&comp.windows);
         finish_compositor_init(&comp);
         std.debug.assert(comp.windows_len == 0);
