@@ -929,3 +929,87 @@ test "parser compute style with tag class selector" {
     std.debug.assert(found_padding);
 }
 
+test "parser and renderer integration" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
+
+    var parser = DreamBrowserParser.init(allocator);
+    defer parser.deinit();
+
+    // Parse HTML with nested structure
+    const html = "<div class=\"container\"><p>Hello, <span>World</span>!</p></div>";
+    const root = try parser.parseHtml(html);
+    defer {
+        // Free parser resources (recursive cleanup)
+        var cleanup_stack = std.ArrayList(*const DreamBrowserParser.HtmlNode){ .items = &.{}, .capacity = 0 };
+        defer cleanup_stack.deinit(allocator);
+        try cleanup_stack.append(allocator, &root);
+        
+        while (cleanup_stack.items.len > 0) {
+            const node = cleanup_stack.pop();
+            allocator.free(node.tag_name);
+            allocator.free(node.text_content);
+            for (node.attributes) |attr| {
+                allocator.free(attr.name);
+                allocator.free(attr.value);
+            }
+            allocator.free(node.attributes);
+            for (node.children) |child| {
+                try cleanup_stack.append(allocator, &child);
+            }
+            allocator.free(node.children);
+        }
+    }
+
+    // Parse CSS
+    const css = ".container { padding: 20px; } p { color: blue; }";
+    const css_rules = try parser.parseCss(css);
+    defer {
+        for (css_rules) |rule| {
+            allocator.free(rule.selector);
+            for (rule.declarations) |decl| {
+                allocator.free(decl.property);
+                allocator.free(decl.value);
+            }
+            allocator.free(rule.declarations);
+        }
+        allocator.free(css_rules);
+    }
+
+    // Assert: HTML parsed correctly
+    try testing.expectEqualStrings("div", root.tag_name);
+    try testing.expect(root.children.len > 0);
+
+    // Assert: CSS parsed correctly
+    try testing.expect(css_rules.len > 0);
+
+    // Compute styles for root node
+    const styles = try parser.computeStyles(&root, css_rules);
+    defer {
+        for (styles) |decl| {
+            allocator.free(decl.property);
+            allocator.free(decl.value);
+        }
+        allocator.free(styles);
+    }
+
+    // Assert: Styles computed (should match .container selector)
+    try testing.expect(styles.len > 0);
+
+    // Test renderer integration (layout)
+    const DreamBrowserRenderer = @import("dream_browser_renderer").DreamBrowserRenderer;
+    var renderer = DreamBrowserRenderer.init(allocator);
+    defer renderer.deinit();
+
+    const layout_boxes = try renderer.layout(&root, 800, 600);
+    defer allocator.free(layout_boxes);
+
+    // Assert: Layout boxes created
+    try testing.expect(layout_boxes.len > 0);
+
+    // Assert: Root box has correct dimensions
+    try testing.expect(layout_boxes[0].width > 0);
+    try testing.expect(layout_boxes[0].height >= 0);
+}
+

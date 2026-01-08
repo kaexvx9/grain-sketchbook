@@ -394,7 +394,7 @@ pub const FileTransferHandlers = struct {
         while (i < content_len) : (i += 1) {
             response.body[i] = file_data[i];
         }
-        response.body_len = @intCast(content_len);
+        response.body_len = @as(u32, @intCast(content_len));
         _ = response.add_header("Content-Type", mime_type);
         var length_buf: [32]u8 = undefined;
         const length_str = std.fmt.bufPrint(&length_buf, "{}", .{content_len}) catch return false;
@@ -424,7 +424,7 @@ pub const FileTransferHandlers = struct {
         while (i < json_len) : (i += 1) {
             response.body[i] = json_str[i];
         }
-        response.body_len = @intCast(json_len);
+        response.body_len = @as(u32, @intCast(json_len));
     }
 
     // Helper: Write upload success response JSON with file_id.
@@ -453,7 +453,7 @@ pub const FileTransferHandlers = struct {
         while (i < json_len) : (i += 1) {
             response.body[i] = json_str[i];
         }
-        response.body_len = @intCast(json_len);
+        response.body_len = @as(u32, @intCast(json_len));
     }
 
     // Helper: Escape JSON string (simple implementation - returns input as-is for now).
@@ -484,6 +484,6 @@ pub const FileTransferHandlers = struct {
         while (i < json_len) : (i += 1) {
             response.body[i] = json_str[i];
         }
-        response.body_len = @intCast(json_len);
+        response.body_len = @as(u32, @intCast(json_len));
     }
 };

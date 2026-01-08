@@ -71,7 +71,7 @@ pub const PooledConnection = struct {
         while (i < hostname_len) : (i += 1) {
             conn.hostname[i] = hostname[i];
         }
-        conn.hostname_len = @intCast(hostname_len);
+        conn.hostname_len = @as(u32, @intCast(hostname_len));
         std.debug.assert(conn.socket_id > 0);
         std.debug.assert(conn.hostname_len > 0);
         return conn;
