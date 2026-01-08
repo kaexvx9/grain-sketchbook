@@ -13,14 +13,14 @@
 
 **Critical Path** (strict dependency order):
 1. **Step 1 (BLOCKING)**: Basin Kernel (3a) → Distribute syscall docs to 3b and 3d — ✅ **COMPLETE** (2026-01-02-090000-pst)
-2. **Step 2 (BLOCKING)**: VM Runtime (3b) → Verify Grain Style compliance + implement x86_64 JIT — ✅ **COMPLETE** (2026-01-02-090817-pst)
-3. **Step 3 (BLOCKING)**: Init System (3d) → Fix compilation + complete Phase 3/4 + Basin syscall integration — ✅ **COMPLETE** (2026-01-03-072000-pst)
-4. **Step 4 (END GOAL)**: Grainscript Shell (1e) → Complete testing + integrate with Init System — ⏳ **READY TO PROCEED** (unblocked, via Core 1 Subcore)
-5. **Step 5 (SUPPORTING)**: System Integration (3c) → Multi-arch testing framework — ⏳ **IN PROGRESS** (can proceed in parallel) — ✅ **DESIGN APPROVED, IMPLEMENTATION READY**
+2. **Step 2 (BLOCKING)**: VM Runtime (3b) → Verify Grain Style compliance + implement x86_64 JIT — ⏳ **IN PROGRESS** (Phase 3 complete, ECALL ready)
+3. **Step 3 (BLOCKING)**: Init System (3d) → Fix compilation + complete Phase 3/4 + Basin syscall integration — ⏳ **READY TO PROCEED** (no blockers)
+4. **Step 4 (END GOAL)**: Grainscript Shell (1e) → Complete testing + integrate with Init System — ✅ **COMPLETE** (2026-01-06-095800-pst)
+5. **Step 5 (SUPPORTING)**: System Integration (3c) → Multi-arch testing framework — ⏳ **IN PROGRESS** (Phases 1-4 complete, can proceed in parallel)
 
-**Agent 3c Position**: Step 5 (SUPPORTING) — Can work independently, not blocking critical path. Design complete and approved, ready for implementation.
+**Agent 3c Position**: Step 5 (SUPPORTING) — Can work independently, not blocking critical path. Core framework implementation complete (Phases 1-4), ready for test adaptation and coordination.
 
-**Independent Work Status**: ✅ **DESIGN COMPLETE** — Multi-architecture testing framework design expanded with CPUID-based architecture detection. Syscall interface test patterns design complete. Framework x86_64 test runner design complete. Ready for implementation phase.
+**Independent Work Status**: ✅ **PHASES 1-4 COMPLETE** — Multi-architecture testing framework core implementation complete. Architecture detection, test helpers, test runner, and integration adapter all implemented. Ready for test adaptation and coordination with Agents 3b and 3d.
 
 ---
 
