@@ -290,6 +290,79 @@
 
 ---
 
+## Integration Readiness Assessment
+
+### Framework
+
+**Guide**: `docs/core-coordination/2026-01-06-101000-pst_core_1_subcore_integration_readiness_assessment_guide.md`
+
+**Assessment Date**: 2026-01-07-182000-pst
+
+**Readiness Levels**: 0 (Not Started) → 5 (Integration Complete)
+
+---
+
+### Phase 7: Workspace Persistence with Storage Agent (1c)
+
+**Integration Point**: Core 1d Compositor ↔ Core 1c Storage
+
+**Overall Readiness**: ✅ **Level 5 (Integration Complete)**
+
+**Category Assessments**:
+- **Core Implementation**: Level 5 (Integration Complete)
+  - ✅ Storage Agent API integrated
+  - ✅ Helper functions implemented (7 functions)
+  - ✅ Persistence hooks added (4 integration points)
+  - ✅ Error handling implemented (graceful degradation)
+
+- **Integration Design**: Level 5 (Integration Complete)
+  - ✅ API contract agreed (JSON format, `~/.grain/compositor/` storage location)
+  - ✅ Data structures defined (WorkspaceConfig, WindowStateEntry)
+  - ✅ Integration points identified (switch, create, save, shutdown)
+  - ✅ Error handling strategy defined (graceful degradation)
+
+- **Testing**: Level 5 (Integration Complete)
+  - ✅ Comprehensive tests created (12 tests)
+  - ✅ Unit tests for helper functions
+  - ✅ Integration tests for persistence
+  - ✅ Edge case tests
+  - ✅ Error handling tests
+
+- **Documentation**: Level 5 (Integration Complete)
+  - ✅ Persistence design document complete
+  - ✅ Integration guide complete
+  - ✅ Edge case analysis complete
+  - ✅ Error handling guide complete
+  - ✅ Completion summary complete
+
+- **Security**: Level 4 (Security Considerations Addressed)
+  - ✅ Path resolution via Storage Agent (automatic)
+  - ✅ Permissions checking via Storage Agent (automatic)
+  - ✅ Audit logging via Storage Agent (automatic)
+  - ✅ Error handling prevents information leakage
+  - ⏳ Encryption optional (can be enabled if needed)
+
+- **Performance**: Level 4 (Performance Considerations Addressed)
+  - ✅ Graceful degradation (persistence failures don't block compositor)
+  - ✅ Error handling prevents blocking operations
+  - ✅ Atomic save operations (via Storage Agent)
+  - ✅ Efficient serialization (JSON format)
+  - ⏳ Performance testing (pending Framework x86_64 verification)
+
+**Status**: ✅ **INTEGRATION COMPLETE** — Ready for Framework x86_64 verification
+
+---
+
+### Future Integration: Terminal Window UI with Grainscript Shell (1e)
+
+**Integration Point**: Core 1d Compositor ↔ Core 1e Grainscript Shell
+
+**Overall Readiness**: ⏳ **Level 0 (Not Started)**
+
+**Status**: Future work. Agent 1e Step 4 is complete, so coordination can proceed when prioritized.
+
+---
+
 ## Coordination Status
 
 ### With Storage Agent (1c) - PHASE 7 COMPLETE
