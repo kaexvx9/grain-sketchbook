@@ -923,6 +923,7 @@
 - **Coordination Checklist Template**: `docs/core-coordination/2026-01-06-095549-pst_core_1_subcore_coordination_checklist_template.md`
 - **Cross-Subcore Integration Architecture**: `docs/core-coordination/2026-01-06-100000-pst_core_1_subcore_cross_subcore_integration_architecture.md`
 - **Step 4 Completion Handoff**: `docs/core-coordination/2026-01-06-095800-pst_grainscript_shell_step4_completion_handoff.md`
+- **Integration Readiness Assessment Guide**: `docs/core-coordination/2026-01-06-101000-pst_core_1_subcore_integration_readiness_assessment_guide.md`
 - **Plan**: `docs/plans/core_1_subcore_plan.md`
 - **Tasks**: `docs/tasks/core_1_subcore_tasks.md`
 - **Coordination Summary**: `docs/agent-communications/general/coordination/YYYY-MM-DD-HHMMSS-pst_core_1_subcore_coordination_summary.md`
