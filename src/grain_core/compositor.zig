@@ -604,16 +604,310 @@ pub const Compositor = struct {
 
     pub fn switch_workspace(self: *Compositor, workspace_id: u32) bool {
         std.debug.assert(workspace_id > 0);
-        return self.workspace_manager.switch_workspace(workspace_id);
+        const success = self.workspace_manager.switch_workspace(workspace_id);
+        if (success) {
+            // Save workspace state after switch (Phase 7 persistence)
+            self.save_workspace_state_persistent_safe();
+        }
+        return success;
     }
 
     pub fn get_current_workspace_id(self: *const Compositor) u32 {
         return self.workspace_manager.current_workspace_id;
     }
 
+    // Phase 7 workspace persistence helper functions
+
+    // Serialize workspace manager state for persistence.
+    // Why: Convert in-memory workspace state to Storage Agent format.
+    // Contract: Returns array of WorkspaceConfig, caller must free.
+    fn serialize_workspace_state(
+        self: *const Compositor,
+        allocator: std.mem.Allocator,
+    ) ![]compositor_workspace_persistence.WorkspaceConfig {
+        std.debug.assert(@intFromPtr(self) != 0);
+        var configs: [workspace.MAX_WORKSPACES]compositor_workspace_persistence.WorkspaceConfig = undefined;
+        var configs_len: u32 = 0;
+        
+        var i: u32 = 0;
+        while (i < self.workspace_manager.workspaces_len) : (i += 1) {
+            const ws = &self.workspace_manager.workspaces[i];
+            configs[configs_len] = compositor_workspace_persistence.WorkspaceConfig{
+                .id = ws.id,
+                .name = ws.name,
+                .name_len = ws.name_len,
+                .window_ids = ws.window_ids,
+                .window_ids_len = ws.window_ids_len,
+                .focused_window_id = ws.focused_window_id,
+                .visible = ws.visible,
+            };
+            configs_len += 1;
+        }
+        
+        const result = try allocator.alloc(compositor_workspace_persistence.WorkspaceConfig, configs_len);
+        @memcpy(result[0..configs_len], configs[0..configs_len]);
+        std.debug.assert(result.len == configs_len);
+        return result;
+    }
+
+    // Restore workspace manager from loaded state.
+    // Why: Restore in-memory workspace state from Storage Agent format.
+    // Contract: Validates loaded state before restoring.
+    fn restore_workspaces_from_config(
+        self: *Compositor,
+        configs: []const compositor_workspace_persistence.WorkspaceConfig,
+        current_workspace_id: u32,
+    ) void {
+        std.debug.assert(@intFromPtr(self) != 0);
+        std.debug.assert(configs.len <= workspace.MAX_WORKSPACES);
+        std.debug.assert(current_workspace_id > 0);
+        std.debug.assert(current_workspace_id <= workspace.MAX_WORKSPACES);
+        
+        // Clear existing workspaces (keep structure)
+        self.workspace_manager.workspaces_len = 0;
+        
+        // Restore workspaces from configs
+        var i: u32 = 0;
+        while (i < configs.len) : (i += 1) {
+            const config = &configs[i];
+            // Validate config
+            if (config.id == 0 or config.id > workspace.MAX_WORKSPACES) {
+                continue; // Skip invalid workspace
+            }
+            if (config.window_ids_len > workspace.MAX_WORKSPACE_WINDOWS) {
+                continue; // Skip workspace with too many windows
+            }
+            
+            // Create workspace from config
+            var ws = workspace.Workspace.init(config.id, config.name[0..config.name_len]);
+            ws.focused_window_id = config.focused_window_id;
+            ws.visible = config.visible;
+            
+            // Restore window assignments
+            var j: u32 = 0;
+            while (j < config.window_ids_len) : (j += 1) {
+                const window_id = config.window_ids[j];
+                if (window_id > 0 and window_id <= MAX_WINDOWS) {
+                    _ = ws.add_window(window_id);
+                }
+            }
+            
+            self.workspace_manager.workspaces[self.workspace_manager.workspaces_len] = ws;
+            self.workspace_manager.workspaces_len += 1;
+        }
+        
+        // Set current workspace
+        if (self.workspace_manager.get_workspace(current_workspace_id)) |current_ws| {
+            // Hide all workspaces first
+            var k: u32 = 0;
+            while (k < self.workspace_manager.workspaces_len) : (k += 1) {
+                self.workspace_manager.workspaces[k].visible = false;
+            }
+            // Show current workspace
+            current_ws.visible = true;
+            self.workspace_manager.current_workspace_id = current_workspace_id;
+        } else {
+            // Current workspace not found, use first workspace
+            if (self.workspace_manager.workspaces_len > 0) {
+                self.workspace_manager.workspaces[0].visible = true;
+                self.workspace_manager.current_workspace_id = self.workspace_manager.workspaces[0].id;
+            }
+        }
+        
+        std.debug.assert(self.workspace_manager.current_workspace_id > 0);
+    }
+
+    // Convert compositor window state to Storage Agent format.
+    // Why: Convert in-memory window state to Storage Agent format.
+    // Contract: Returns WindowStateEntry, caller must validate window exists.
+    fn convert_window_state_to_entry(
+        self: *const Compositor,
+        window_id: u32,
+        workspace_id: u32,
+    ) ?compositor_workspace_persistence.WindowStateEntry {
+        std.debug.assert(@intFromPtr(self) != 0);
+        std.debug.assert(window_id > 0);
+        std.debug.assert(workspace_id > 0);
+        
+        // Get window from compositor
+        const window = self.get_window(window_id) orelse return null;
+        
+        // Get window state from state manager
+        const state = self.state_manager.get_window_state(window_id) orelse {
+            // No saved state, use current window state
+            return compositor_workspace_persistence.WindowStateEntry{
+                .window_id = window_id,
+                .workspace_id = workspace_id,
+                .x = window.x,
+                .y = window.y,
+                .width = window.width,
+                .height = window.height,
+                .minimized = window.minimized,
+                .maximized = window.maximized,
+                .title = window.title,
+                .title_len = window.title_len,
+            };
+        };
+        
+        // Use saved state
+        return compositor_workspace_persistence.WindowStateEntry{
+            .window_id = window_id,
+            .workspace_id = workspace_id,
+            .x = state.x,
+            .y = state.y,
+            .width = state.width,
+            .height = state.height,
+            .minimized = state.minimized,
+            .maximized = state.maximized,
+            .title = state.title,
+            .title_len = state.title_len,
+        };
+    }
+
+    // Save workspace state with error handling (graceful degradation).
+    // Why: Persistence failures should not break compositor functionality.
+    // Contract: Logs errors but continues operation.
+    fn save_workspace_state_persistent_safe(self: *Compositor) void {
+        std.debug.assert(@intFromPtr(self) != 0);
+        self.save_workspace_state_persistent_impl() catch |err| {
+            // Log error but continue
+            // In-memory state still works
+            // TODO: Integrate with logging system
+            _ = err;
+            // Compositor continues functioning normally
+        };
+    }
+
+    // Implementation helper (private).
+    fn save_workspace_state_persistent_impl(self: *Compositor) !void {
+        std.debug.assert(@intFromPtr(self) != 0);
+        std.debug.assert(self.current_user_id > 0);
+        
+        const current_time = self.get_current_time_nanos();
+        
+        // Serialize workspace state
+        const configs = try self.serialize_workspace_state(self.allocator);
+        defer self.allocator.free(configs);
+        
+        // Save to persistent storage
+        try compositor_workspace_persistence.save_all_workspaces(
+            &self.file_io,
+            configs,
+            self.workspace_manager.current_workspace_id,
+            current_time,
+            self.current_user_id,
+            self.current_group_id,
+            self.allocator,
+        );
+    }
+
+    // Save window state to persistent storage with error handling.
+    // Why: Persist window state across sessions.
+    // Contract: Logs errors but continues operation.
+    fn save_window_state_persistent_safe(self: *Compositor, window_id: u32) void {
+        std.debug.assert(@intFromPtr(self) != 0);
+        std.debug.assert(window_id > 0);
+        
+        // Get window workspace
+        const workspace_id = self.workspace_manager.get_window_workspace(window_id) orelse {
+            return; // Window not in any workspace
+        };
+        
+        // Convert window state to entry
+        if (self.convert_window_state_to_entry(window_id, workspace_id)) |entry| {
+            const current_time = self.get_current_time_nanos();
+            
+            compositor_workspace_persistence.save_window_state(
+                &self.file_io,
+                &entry,
+                current_time,
+                self.current_user_id,
+                self.current_group_id,
+                self.allocator,
+            ) catch |err| {
+                // Log error but continue
+                // In-memory state still works
+                // TODO: Integrate with logging system
+                _ = err;
+            };
+        }
+    }
+
+    // Restore workspace state from persistent storage on startup.
+    // Why: Restore workspace state across compositor sessions.
+    // Contract: Uses default workspace if restoration fails.
+    pub fn restore_workspace_state_persistent(
+        self: *Compositor,
+    ) void {
+        std.debug.assert(@intFromPtr(self) != 0);
+        
+        self.restore_workspace_state_persistent_impl() catch |err| {
+            // Log error but continue with default workspace
+            // Compositor still works without persistence
+            // TODO: Integrate with logging system
+            _ = err;
+            // Default workspace already initialized in WorkspaceManager.init()
+        };
+    }
+
+    // Implementation helper (private).
+    fn restore_workspace_state_persistent_impl(self: *Compositor) !void {
+        std.debug.assert(@intFromPtr(self) != 0);
+        std.debug.assert(self.current_user_id > 0);
+        
+        const current_time = self.get_current_time_nanos();
+        
+        // Load all workspaces
+        var loaded_workspaces: [workspace.MAX_WORKSPACES]compositor_workspace_persistence.WorkspaceConfig = undefined;
+        var current_workspace_id: u32 = 0;
+        const workspaces_len = try compositor_workspace_persistence.load_all_workspaces(
+            &self.file_io,
+            &loaded_workspaces,
+            &current_workspace_id,
+            current_time,
+            self.current_user_id,
+            self.current_group_id,
+            self.allocator,
+        );
+        
+        if (workspaces_len == 0) {
+            // No saved state, use default workspace
+            return;
+        }
+        
+        // Restore workspaces
+        self.restore_workspaces_from_config(loaded_workspaces[0..workspaces_len], current_workspace_id);
+        
+        // Load window states (if list_saved_window_ids is implemented)
+        // For now, window states are loaded on-demand when windows are created
+        // TODO: Load all window states if list_saved_window_ids is implemented
+    }
+
+    // Save all workspace and window states before shutdown.
+    // Why: Persist state across compositor sessions.
+    // Contract: Logs errors but continues shutdown.
+    pub fn save_all_states_on_shutdown(self: *Compositor) void {
+        std.debug.assert(@intFromPtr(self) != 0);
+        
+        // Save workspace state
+        self.save_workspace_state_persistent_safe();
+        
+        // Save all window states
+        var i: u32 = 0;
+        while (i < self.windows_len) : (i += 1) {
+            const window_id = self.windows[i].id;
+            self.save_window_state_persistent_safe(window_id);
+        }
+    }
+
     pub fn create_workspace(self: *Compositor, name: []const u8) ?u32 {
         std.debug.assert(name.len <= 32);
-        return self.workspace_manager.create_workspace(name);
+        const workspace_id = self.workspace_manager.create_workspace(name);
+        if (workspace_id) |id| {
+            // Save workspace state after creation (Phase 7 persistence)
+            self.save_workspace_state_persistent_safe();
+        }
+        return workspace_id;
     }
 
     pub fn assign_window_to_workspace(
@@ -1198,7 +1492,7 @@ pub const Compositor = struct {
             else
                 self.workspace_manager.current_workspace_id;
             const title_slice = win.title[0..win.title_len];
-            return self.state_manager.save_window(
+            const in_memory_success = self.state_manager.save_window(
                 window_id,
                 win.x,
                 win.y,
@@ -1209,6 +1503,11 @@ pub const Compositor = struct {
                 workspace_id,
                 title_slice,
             );
+            if (in_memory_success) {
+                // Also save to persistent storage (Phase 7 persistence)
+                self.save_window_state_persistent_safe(window_id);
+            }
+            return in_memory_success;
         }
         return false;
     }
@@ -2044,6 +2343,8 @@ pub const Compositor = struct {
 
     // Shutdown system.
     pub fn shutdown_system(self: *Compositor) bool {
+        // Save all workspace and window states before shutdown (Phase 7 persistence)
+        self.save_all_states_on_shutdown();
         return self.power_manager.shutdown_system();
     }
 
