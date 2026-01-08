@@ -417,7 +417,7 @@ pub const MediaWorkflowParser = struct {
 
             // Store variable mapping if result is stored
             if (op.result_var) |var_name| {
-                try var_to_node.put(var_name, node_id);
+                try var_to_node.put(self.allocator, var_name, node_id);
             }
 
             // Create edges from variable references
