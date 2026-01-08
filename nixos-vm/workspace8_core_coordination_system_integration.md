@@ -572,6 +572,56 @@ The integration work involves coordinating across 24 total agents (12 L1 agents 
 
 ---
 
+### Readiness Assessment Coordination Template
+
+**Use this template when coordinating readiness assessments between agents:**
+
+```
+Integration Readiness Assessment: [Agent A] ↔ [Agent B]
+
+Assessment Date: YYYY-MM-DD-HHMMSS-pst
+Coordinator: Workspace 8
+
+Agent A Readiness:
+- Core Implementation: Level [0-5] - [Notes]
+- Integration Design: Level [0-5] - [Notes]
+- Testing: Level [0-5] - [Notes]
+- Documentation: Level [0-5] - [Notes]
+- Security: Level [0-5] - [Notes]
+- Performance: Level [0-5] - [Notes]
+- Overall Readiness: Level [0-5]
+
+Agent B Readiness:
+- Core Implementation: Level [0-5] - [Notes]
+- Integration Design: Level [0-5] - [Notes]
+- Testing: Level [0-5] - [Notes]
+- Documentation: Level [0-5] - [Notes]
+- Security: Level [0-5] - [Notes]
+- Performance: Level [0-5] - [Notes]
+- Overall Readiness: Level [0-5]
+
+Integration Readiness Analysis:
+- Both Agents Ready: Yes / No / Partial
+- Readiness Gap: [Describe any readiness gaps]
+- Blockers: [List blockers]
+- Dependencies: [List dependencies]
+
+Readiness Improvement Plan:
+- Agent A Actions: [List specific actions]
+- Agent B Actions: [List specific actions]
+- Coordination Actions: [List coordination actions]
+- Timeline: [Estimated timeline]
+
+Next Steps:
+- [ ] [Action item 1]
+- [ ] [Action item 2]
+- [ ] [Action item 3]
+
+Follow-up Date: YYYY-MM-DD
+```
+
+---
+
 ### Integration Point Tracking
 
 **Use this template when tracking integration points between parallel streams:**
