@@ -3,8 +3,8 @@
 
 const std = @import("std");
 const testing = std.testing;
-const kernel_vm = @import("kernel_vm");
-const VM = kernel_vm.VM;
+const vm_mod = @import("src/kernel_vm/vm.zig");
+const VM = vm_mod.VM;
 const builtin = @import("builtin");
 
 test "x86_64 JIT R-type instruction translation" {

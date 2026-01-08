@@ -3,8 +3,7 @@
 
 const std = @import("std");
 const testing = std.testing;
-const kernel_vm = @import("kernel_vm");
-const jit_mod = kernel_vm.jit;
+const jit_mod = @import("src/kernel_vm/jit.zig");
 const builtin = @import("builtin");
 
 test "x86_64 JIT emit functions" {

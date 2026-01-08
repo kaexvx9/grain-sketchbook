@@ -1480,6 +1480,34 @@ pub fn build(b: *std.Build) void {
     const run_edge_case_tests = b.addRunArtifact(edge_case_tests);
     test_step.dependOn(&run_edge_case_tests.step);
     
+    // x86_64 JIT Emit Tests
+    const x86_64_jit_emit_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("tests/154_x86_64_jit_emit_test.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "kernel_vm", .module = kernel_vm_module },
+            },
+        }),
+    });
+    const run_x86_64_jit_emit_tests = b.addRunArtifact(x86_64_jit_emit_tests);
+    test_step.dependOn(&run_x86_64_jit_emit_tests.step);
+    
+    // x86_64 JIT Translation Tests
+    const x86_64_jit_translation_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("tests/155_x86_64_jit_translation_test.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "kernel_vm", .module = kernel_vm_module },
+            },
+        }),
+    });
+    const run_x86_64_jit_translation_tests = b.addRunArtifact(x86_64_jit_translation_tests);
+    test_step.dependOn(&run_x86_64_jit_translation_tests.step);
+    
     // Stress Integration Tests (Phase 3)
     const stress_tests = b.addTest(.{
         .root_module = b.createModule(.{
