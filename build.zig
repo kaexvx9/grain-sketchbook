@@ -192,7 +192,7 @@ pub fn build(b: *std.Build) void {
 
     // Multi-architecture testing framework module.
     const test_framework_module = b.addModule("test_framework", .{
-        .root_source_file = b.path("src/test_framework/arch.zig"),
+        .root_source_file = b.path("src/test_framework/root.zig"),
         .target = target,
         .optimize = optimize,
     });
