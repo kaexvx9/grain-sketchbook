@@ -15,13 +15,13 @@
 - ✅ **Critical path monitoring infrastructure**: Status monitor, distribution checklist, integration plan
 - ✅ **Coordination infrastructure**: Comprehensive coordination plan and summary for all 24 agents/sub-agents
 - ✅ **Parallelization coordination plan**: 8 parallel work streams identified, coordination patterns established (2026-01-05-212701-pst)
-- ✅ **Step 4 implementation complete**: Grainscript Shell (1e) ServiceManager module, service command, executor integration complete (2026-01-03-080439-pst)
-- ⏳ **Critical path in progress**: Steps 2-3 toward usable Grainscript shell on Framework x86_64
+- ✅ **Step 4 COMPLETE**: Grainscript Shell (1e) Step 4 complete, tested, and verified (2026-01-06-095800-pst)
+- ✅ **Critical path Steps 1-4**: Step 1 COMPLETE, Step 2 IN PROGRESS, Step 3 READY, Step 4 COMPLETE
 
 **Current Focus**:
-- Monitor critical path progress (Steps 2-3: 3b → 3d)
+- ✅ **Step 4 COMPLETE** — Monitor remaining critical path (Steps 2-3: 3b → 3d)
 - Coordinate Core 1 L2 sub-agents (1a-1e) for Framework x86 adaptation
-- Coordinate cross-subcore integration with Vantage 3 Subcore (Shell ↔ Init System)
+- Coordinate cross-subcore integration with Vantage 3 Subcore (Shell ↔ Init System) — Step 4 complete, integration ready
 - Plan system integration between Core services and sevenos
 - Coordinate with System Integration Agent (3c) for multi-architecture testing
 - Coordinate with Grain Core Agent (parent) on system-wide integration
@@ -153,24 +153,31 @@
 #### Step 4: Grainscript Shell Integration ✅ COMPLETE
 
 **Agent**: 1e (Grainscript Shell)  
-**Status**: ✅ **COMPLETE** — ServiceManager module, service command, executor integration complete (2026-01-03-080439-pst)
+**Status**: ✅ **COMPLETE** — ServiceManager module, service command, executor integration complete, tested and verified (2026-01-06-095800-pst)
 
 **Completed**:
 - ✅ ServiceManager module implementation complete
-- ✅ Service command implementation complete
+- ✅ Service command implementation complete (start, stop, restart, list, status)
 - ✅ Executor integration complete
 - ✅ Basic shell functionality working
 - ✅ Zig 0.15.2 API compatibility fixed (Phase 1 complete)
+- ✅ Pipes and redirections implemented and working
+- ✅ Background job tracking implemented (jobs, fg, bg commands)
+- ✅ Integration tests passing (5 tests verified)
+- ✅ Integration verified with IntegrationTestEnv from Agent 3d
 
 **Current State**:
-- ✅ Step 4 implementation complete
-- ⏳ Waiting on Step 3 (Init System must be ready) for full integration
-- ⏳ Core services integration pending
+- ✅ Step 4 COMPLETE and verified
+- ✅ All core functionality implemented and tested
+- ✅ No blockers for other agents
+- ⏳ Optional polish work remaining (non-blocking)
+
+**Handoff**: ✅ **COMPLETE** — Other agents can proceed. Agent 1e's remaining work is optional polish.
 
 **Next Actions**:
-1. Agent 1e: Complete testing and prepare for Init System integration
-2. Core 1 Subcore: Coordinate shell ↔ Init System integration (cross-subcore)
-3. Core 1 Subcore: Coordinate shell ↔ Core services integration
+1. ✅ Step 4 complete — Handoff to other agents
+2. Core 1 Subcore: Coordinate shell ↔ Core services integration (optional, non-blocking)
+3. Agent 1e: Optional improvements (error messages, documentation, test coverage)
 
 ---
 
@@ -915,6 +922,7 @@
 - **Integration Test Scenarios**: `docs/core-coordination/2026-01-06-093148-pst_core_1_subcore_integration_test_scenarios.md`
 - **Coordination Checklist Template**: `docs/core-coordination/2026-01-06-095549-pst_core_1_subcore_coordination_checklist_template.md`
 - **Cross-Subcore Integration Architecture**: `docs/core-coordination/2026-01-06-100000-pst_core_1_subcore_cross_subcore_integration_architecture.md`
+- **Step 4 Completion Handoff**: `docs/core-coordination/2026-01-06-095800-pst_grainscript_shell_step4_completion_handoff.md`
 - **Plan**: `docs/plans/core_1_subcore_plan.md`
 - **Tasks**: `docs/tasks/core_1_subcore_tasks.md`
 - **Coordination Summary**: `docs/agent-communications/general/coordination/YYYY-MM-DD-HHMMSS-pst_core_1_subcore_coordination_summary.md`
