@@ -1,10 +1,14 @@
-//! Background Job Manager
-//! Why: Track and manage background processes in Grainscript Shell.
-//! Grain Style: Explicit error handling, bounded allocations, u32/u64 over usize/isize.
+//! Job Manager for Background Process Tracking
+//! Why: Track background jobs in the shell (jobs, fg, bg commands).
+//! Grain Style: Explicit error handling, bounded allocations, minimal dependencies.
 
 const std = @import("std");
+const posix = std.posix;
 
-/// Background job status.
+/// Maximum number of jobs to track.
+const MAX_JOBS = 256;
+
+/// Job status.
 pub const JobStatus = enum {
     running,
     stopped,
@@ -13,15 +17,16 @@ pub const JobStatus = enum {
 
 /// Background job information.
 pub const Job = struct {
-    job_id: u32, // Job number (1, 2, 3, ...)
-    pid: std.posix.pid_t, // Process ID
-    command: []const u8, // Command string (owned by caller)
-    status: JobStatus, // Current status
-    exit_code: ?u8 = null, // Exit code (if done)
+    job_id: u32,
+    pid: posix.pid_t,
+    command: [256]u8, // Command string for display
+    command_len: u32,
+    status: JobStatus,
+    exit_code: ?u8,
 
-    /// Check if job is still running.
-    pub fn is_running(self: *const Job) bool {
-        return self.status == .running;
+    /// Check if job is done.
+    pub fn is_done(self: *const Job) bool {
+        return self.status == .done;
     }
 
     /// Check if job is stopped.
@@ -29,73 +34,86 @@ pub const Job = struct {
         return self.status == .stopped;
     }
 
-    /// Check if job is done.
-    pub fn is_done(self: *const Job) bool {
-        return self.status == .done;
-    }
-
-    /// Update job status by checking process.
+    /// Update job status by checking process state.
     pub fn update_status(self: *Job) !void {
-        if (self.status == .done) {
-            return; // Already done, no need to check
-        }
-
-        // Check if process is still running using kill(pid, 0)
-        // Signal 0 doesn't actually send a signal, just checks if process exists
-        std.posix.kill(self.pid, 0) catch |err| {
-            // Process doesn't exist or we can't access it - assume it's done
-            if (err == error.ProcessNotFound or err == error.PermissionDenied) {
-                self.status = .done;
-                self.exit_code = 0; // Default exit code (we don't know the actual code)
+        // Check if process is still running using kill(pid, 0) (non-destructive check)
+        posix.kill(self.pid, 0) catch |err| {
+            switch (err) {
+                error.ProcessNotFound => {
+                    // Process doesn't exist (has terminated)
+                    self.status = .done;
+                // Try to get exit code via waitpid (non-blocking)
+                const result = posix.waitpid(self.pid, posix.W.NOHANG);
+                if (result.pid == self.pid) {
+                    // result.status is already the exit code (u32)
+                    // Convert to u8 for exit_code field
+                    self.exit_code = @intCast(result.status);
+                }
+                    return;
+                },
+                else => {
+                    // Other error (PermissionDenied, etc.) - assume still running
+                    return;
+                },
             }
-            return; // Other errors - keep current status
         };
-
-        // Process exists - check if it's stopped (this is a simplified check)
-        // In a full implementation, we'd use waitpid to get more detailed status
-        self.status = .running;
+        // Process exists - check if it's stopped
+        // For now, assume running (stopped detection requires more complex handling)
+        if (self.status == .stopped) {
+            // Keep stopped status unless explicitly resumed
+        } else {
+            self.status = .running;
+        }
     }
 };
 
 /// Job manager for tracking background processes.
 pub const JobManager = struct {
-    allocator: std.mem.Allocator,
-    jobs: std.ArrayListUnmanaged(Job),
+    jobs: std.ArrayList(Job),
     next_job_id: u32,
+    allocator: std.mem.Allocator,
 
     /// Initialize job manager.
     pub fn init(allocator: std.mem.Allocator) JobManager {
+        const jobs = std.ArrayList(Job).initCapacity(allocator, MAX_JOBS) catch std.ArrayList(Job).initCapacity(allocator, 16) catch @panic("Out of memory");
         return JobManager{
-            .allocator = allocator,
-            .jobs = .{},
+            .jobs = jobs,
             .next_job_id = 1,
+            .allocator = allocator,
         };
     }
 
     /// Deinitialize job manager.
     pub fn deinit(self: *JobManager) void {
-        // Free command strings (if owned)
-        for (self.jobs.items) |*job| {
-            // Command strings are owned by caller, so we don't free them here
-            _ = job;
-        }
         self.jobs.deinit(self.allocator);
     }
 
     /// Add a new background job.
-    pub fn add_job(self: *JobManager, pid: std.posix.pid_t, command: []const u8) !u32 {
-        const job_id = self.next_job_id;
-        self.next_job_id += 1;
+    pub fn add_job(self: *JobManager, pid: posix.pid_t, command: []const u8) !u32 {
+        if (self.jobs.items.len >= MAX_JOBS) {
+            return error.TooManyJobs;
+        }
 
-        const job = Job{
-            .job_id = job_id,
+        var job = Job{
+            .job_id = self.next_job_id,
             .pid = pid,
-            .command = command,
+            .command = undefined,
+            .command_len = 0,
             .status = .running,
             .exit_code = null,
         };
 
+        // Copy command string (bounded)
+        const cmd_len = @min(command.len, job.command.len - 1);
+        if (cmd_len > 0) {
+            @memcpy(job.command[0..cmd_len], command[0..cmd_len]);
+            job.command_len = @intCast(cmd_len);
+        }
+
         try self.jobs.append(self.allocator, job);
+        const job_id = self.next_job_id;
+        self.next_job_id += 1;
+
         return job_id;
     }
 
@@ -109,53 +127,43 @@ pub const JobManager = struct {
         return null;
     }
 
-    /// Get job by PID.
-    pub fn get_job_by_pid(self: *JobManager, pid: std.posix.pid_t) ?*Job {
-        for (self.jobs.items) |*job| {
-            if (job.pid == pid) {
-                return job;
-            }
-        }
-        return null;
+    /// Get all jobs.
+    pub fn get_all_jobs(self: *JobManager) []Job {
+        return self.jobs.items;
     }
 
-    /// Remove job by ID (after it's done).
+    /// Update status of all jobs.
+    pub fn update_all_jobs(self: *JobManager) !void {
+        for (self.jobs.items) |*job| {
+            if (job.status != .done) {
+                job.update_status() catch {
+                    // If update fails, mark as done
+                    job.status = .done;
+                };
+            }
+        }
+    }
+
+    /// Remove a job by ID.
     pub fn remove_job(self: *JobManager, job_id: u32) bool {
         for (self.jobs.items, 0..) |*job, i| {
             if (job.job_id == job_id) {
-                _ = self.jobs.swapRemove(@intCast(i));
+                _ = self.jobs.swapRemove(i);
                 return true;
             }
         }
         return false;
     }
 
-    /// Update all job statuses.
-    pub fn update_all_jobs(self: *JobManager) !void {
-        for (self.jobs.items) |*job| {
-            try job.update_status();
-        }
-    }
-
     /// Remove all done jobs.
     pub fn remove_done_jobs(self: *JobManager) void {
-        var i: u32 = 0;
+        var i: usize = 0;
         while (i < self.jobs.items.len) {
-            if (self.jobs.items[i].is_done()) {
-                _ = self.jobs.swapRemove(@intCast(i));
+            if (self.jobs.items[i].status == .done) {
+                _ = self.jobs.swapRemove(i);
             } else {
                 i += 1;
             }
         }
-    }
-
-    /// Get all jobs (for `jobs` command).
-    pub fn get_all_jobs(self: *JobManager) []const Job {
-        return self.jobs.items;
-    }
-
-    /// Get number of jobs.
-    pub fn job_count(self: *const JobManager) u32 {
-        return @intCast(self.jobs.items.len);
     }
 };
