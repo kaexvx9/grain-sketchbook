@@ -271,8 +271,7 @@ fn parse_and_execute_line(
 /// Handle parse error with improved error messages.
 fn handle_parse_error(err: anyerror, stderr_file: *const std.fs.File) !void {
     var err_buf: [512]u8 = undefined;
-    const err_msg = format_parse_error(err, &err_buf) catch |buf_err| {
-        _ = buf_err;
+    const err_msg = format_parse_error(err, &err_buf) catch {
         // Fallback to simple error name if formatting fails
         const fallback_msg = std.fmt.bufPrint(&err_buf, "Parse error: {s}\n", .{@errorName(err)}) catch {
             try stderr_file.writeAll("Parse error\n");
@@ -299,8 +298,7 @@ fn format_parse_error(err: anyerror, buf: []u8) ![]const u8 {
 /// Handle execution error with improved error messages.
 fn handle_exec_error(err: anyerror, stderr_file: *const std.fs.File) !void {
     var err_buf: [512]u8 = undefined;
-    const err_msg = format_exec_error(err, &err_buf) catch |buf_err| {
-        _ = buf_err;
+    const err_msg = format_exec_error(err, &err_buf) catch {
         // Fallback to simple error name if formatting fails
         const fallback_msg = std.fmt.bufPrint(&err_buf, "Execution error: {s}\n", .{@errorName(err)}) catch {
             try stderr_file.writeAll("Execution error\n");
