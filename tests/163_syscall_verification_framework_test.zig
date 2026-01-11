@@ -2086,24 +2086,6 @@ test "syscall verification: network_set_ipv6 (syscall 94)" {
     }
 }
 
-// Test: network_set_state syscall (network interface state setting - already covered but verifying).
-test "syscall verification: network_set_state (syscall 91)" {
-    const test_setup = create_test_integration();
-    var integration = test_setup.integration;
-    
-    // Test network_set_state with invalid interface ID (should return error).
-    const invalid_interface: u64 = 999;
-    const state: u64 = 1; // Enabled
-    
-    const vm_result = call_syscall_via_vm(&integration, @intFromEnum(Syscall.network_set_state), invalid_interface, state, 0, 0) catch |err| {
-        _ = err;
-        return;
-    };
-    
-    if (vm_result == .err) {
-        testing.expect(vm_result.err == BasinError.not_found);
-    }
-}
 
 // Test: udp_sendto_with_timeout syscall (UDP send with timeout).
 test "syscall verification: udp_sendto_with_timeout (syscall 138)" {
