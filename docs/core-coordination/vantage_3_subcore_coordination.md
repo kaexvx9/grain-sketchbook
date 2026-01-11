@@ -546,6 +546,13 @@
 - **Reference**: `docs/core-coordination/2026-01-06-101000-pst_core_1_subcore_integration_readiness_assessment_guide.md`
 - **Distribution**: Stream 3 agents (3a, 3b, 3c, 3d) to complete self-assessments by end of next week
 
+**Syscall Verification Framework Ownership**: ✅ **ACKNOWLEDGED** (2026-01-11-095000-pst) — Hybrid ownership approach approved and integrated into Stream 3 coordination
+- **Core 1 Subcore**: Maintains framework infrastructure, coordinates overall progress, reviews test quality
+- **Agent 3b (VM Runtime)**: Owns Phase 2 test expansion (systematic testing of all 140 syscalls), verifies translation correctness
+- **Vantage 3 Subcore**: Coordinates Agent 3b's testing work, ensures alignment with VM Runtime development
+- **Reference**: `docs/core-coordination/2026-01-11-094500-pst_syscall_verification_framework_ownership_recommendation.md`
+- **Framework Status**: Phase 1 COMPLETE ✅, Phase 2 READY (Agent 3b to begin systematic test expansion)
+
 **Next Coordination Check-In**: Weekly/bi-weekly as needed, or when sub-agents report blockers or need architecture decisions
 
 ---
@@ -559,6 +566,7 @@
 - ✅ **Step 4 COMPLETE** — Grainscript Shell (1e) testing + Init System integration complete (2026-01-06-095800-pst) 🎉
 - ⏳ **Step 5 COORDINATION** — Support Agent 3c multi-arch testing framework implementation (IN PROGRESS — can proceed in parallel)
 - ⏳ **JIT TESTING COORDINATION** — Coordinate JIT testing with Agent 3c (Agent 3b ready for testing)
+- ⏳ **SYSCALL VERIFICATION FRAMEWORK COORDINATION** — Coordinate Agent 3b's Phase 2 test expansion (systematic testing of all 140 syscalls)
 - ⏳ **HOST MEMORY DETECTION** — Support Agent 3b host memory detection for Aurora (ADR 009 approved)
 - ✅ **INTEGRATION PLANNING COMPLETE** — JIT integration, Init System integration, cross-subcore shell/init integration planning documents created
 - ✅ **FRAMEWORK X86_64 DOCS COMPLETE** — Development environment guide, testing environment guide created
