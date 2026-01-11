@@ -518,7 +518,7 @@
 
 **Sub-Agent Status** (Single-Threaded Priority Chain):
 - ✅ **Basin Kernel Agent (3a)**: Step 1 COMPLETE ✅ (syscall docs distributed 2026-01-02-090000-pst), Step 2 COMPLETE ✅ (supporting Agent 3b), Step 3 SUPPORTING ✅ (supporting Agent 3d)
-- ✅ **VM Runtime Agent (3b)**: Step 2 COMPLETE ✅ (x86_64 JIT with ECALL, guest RAM integration, SLT/SLTU optimizations 2026-01-02-090817-pst)
+- ✅ **VM Runtime Agent (3b)**: Step 2 COMPLETE ✅ (x86_64 JIT with ECALL, guest RAM integration, SLT/SLTU optimizations 2026-01-02-090817-pst), Phase 2 Syscall Verification Framework ownership accepted ✅ (2026-01-11-094500-pst)
 - ✅ **sevenos Init System Agent (3d)**: Step 3 COMPLETE ✅ (Phase 5 + Phase 8A complete 2026-01-03-072000-pst), ready for Step 4 (shell integration)
 - ⏳ **System Integration Agent (3c)**: Step 5 IN PROGRESS ⏳ (multi-arch testing framework design approved, implementation ready, can proceed in parallel)
 
@@ -566,7 +566,7 @@
 - ✅ **Step 4 COMPLETE** — Grainscript Shell (1e) testing + Init System integration complete (2026-01-06-095800-pst) 🎉
 - ⏳ **Step 5 COORDINATION** — Support Agent 3c multi-arch testing framework implementation (IN PROGRESS — can proceed in parallel)
 - ⏳ **JIT TESTING COORDINATION** — Coordinate JIT testing with Agent 3c (Agent 3b ready for testing)
-- ⏳ **SYSCALL VERIFICATION FRAMEWORK COORDINATION** — Coordinate Agent 3b's Phase 2 test expansion (systematic testing of all 140 syscalls)
+- ⏳ **SYSCALL VERIFICATION FRAMEWORK COORDINATION** — Coordinate Agent 3b's Phase 2 test expansion (systematic testing of all 140 syscalls) — Agent 3b ownership accepted ✅ (2026-01-11-094500-pst)
 - ⏳ **HOST MEMORY DETECTION** — Support Agent 3b host memory detection for Aurora (ADR 009 approved)
 - ✅ **INTEGRATION PLANNING COMPLETE** — JIT integration, Init System integration, cross-subcore shell/init integration planning documents created
 - ✅ **FRAMEWORK X86_64 DOCS COMPLETE** — Development environment guide, testing environment guide created
