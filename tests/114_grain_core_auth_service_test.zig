@@ -1235,4 +1235,3 @@ test "auth_service_init_with_validation_invalid" {
     const result = auth_service.init_with_validation(invalid_secret);
     std.debug.assert(result == error.InvalidSecret);
 }
-

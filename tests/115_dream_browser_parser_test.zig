@@ -1012,4 +1012,3 @@ test "parser and renderer integration" {
     try testing.expect(layout_boxes[0].width > 0);
     try testing.expect(layout_boxes[0].height >= 0);
 }
-

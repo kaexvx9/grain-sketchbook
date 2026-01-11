@@ -387,3 +387,4 @@ test "vfs multiple file handles" {
     std.debug.assert(vfs.get_file_size(handle2) > 0);
 }
 
+

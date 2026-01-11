@@ -5264,6 +5264,21 @@ pub fn build(b: *std.Build) void {
     const grain_research_cost_tracking_integration_tests_run = b.addRunArtifact(grain_research_cost_tracking_integration_tests);
     test_step.dependOn(&grain_research_cost_tracking_integration_tests_run.step);
 
+    // Syscall Verification Framework Tests (Phase 1)
+    const syscall_verification_framework_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("tests/163_syscall_verification_framework_test.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "kernel_vm", .module = kernel_vm_module },
+                .{ .name = "basin_kernel", .module = basin_kernel_module },
+            },
+        }),
+    });
+    const syscall_verification_framework_tests_run = b.addRunArtifact(syscall_verification_framework_tests);
+    test_step.dependOn(&syscall_verification_framework_tests_run.step);
+
     // Grain Bubble component tests
     const grain_bubble_component_tests = b.addTest(.{
         .root_module = b.createModule(.{

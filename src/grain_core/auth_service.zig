@@ -2667,4 +2667,3 @@ pub fn init_with_validation(secret: []const u8) SecretError!AuthService {
     }
     return init(secret);
 }
-

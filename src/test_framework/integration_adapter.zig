@@ -197,3 +197,4 @@ pub fn get_architecture_name_for_reporting(
     return arch_detection.get_architecture_name(arch);
 }
 
+

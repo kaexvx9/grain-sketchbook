@@ -174,3 +174,4 @@ grainstore/grainflow/src/lib/dag/synthesis.zig
 **Voice**: Glow G2 (steadfast, calm, solution-focused)  
 **Status**: ✅ **PHASE 2 IN PROGRESS** — DAG node/edge creation complete, workflow execution foundation complete, blocked on dag_core.zig structure fix
 
+
