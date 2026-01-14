@@ -84,13 +84,21 @@ test "timer set timer" {
     try std.testing.expect(timer_instance.initialized);
 }
 
+// Helper: Create kernel on heap to avoid stack overflow.
+fn create_test_kernel() !*BasinKernel {
+    const kernel = try std.testing.allocator.create(BasinKernel);
+    BasinKernel.init_in_place(kernel);
+    return kernel;
+}
+
 // Test kernel timer integration.
 test "kernel timer integration" {
     // Disable RawIO to avoid SIGILL in tests.
     RawIO.disable();
     defer RawIO.enable();
     
-    var kernel = BasinKernel.init();
+    const kernel = try create_test_kernel();
+    defer std.testing.allocator.destroy(kernel);
     
     // Assert: Kernel timer must be initialized.
     try std.testing.expect(kernel.timer.initialized);
@@ -113,7 +121,8 @@ test "clock_gettime syscall" {
     
     // Note: This test requires VM and integration layer setup.
     // For now, we test the timer directly.
-    var kernel = BasinKernel.init();
+    const kernel = try create_test_kernel();
+    defer std.testing.allocator.destroy(kernel);
     
     // Test monotonic clock (clock_id = 0).
     const monotonic_ns = kernel.timer.get_monotonic_ns();
@@ -137,7 +146,8 @@ test "clock_gettime syscall" {
 
 // Test sleep_until syscall validation.
 test "sleep_until syscall validation" {
-    var kernel = BasinKernel.init();
+    const kernel = try create_test_kernel();
+    defer std.testing.allocator.destroy(kernel);
     
     // Get current monotonic time.
     const current_time = kernel.timer.get_monotonic_ns();

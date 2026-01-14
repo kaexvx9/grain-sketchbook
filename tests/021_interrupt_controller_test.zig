@@ -5,10 +5,9 @@
 const std = @import("std");
 const basin_kernel = @import("basin_kernel");
 const BasinKernel = basin_kernel.BasinKernel;
-const InterruptController = basin_kernel.basin_kernel.InterruptController;
-const InterruptType = basin_kernel.basin_kernel.InterruptType;
-const interrupt = @import("interrupt");
-const InterruptHandler = interrupt.InterruptHandler;
+const InterruptController = basin_kernel.InterruptController;
+const InterruptType = basin_kernel.InterruptType;
+const InterruptHandler = @import("interrupt.zig").InterruptHandler;
 
 // Test interrupt controller initialization.
 test "interrupt controller init" {
@@ -202,14 +201,14 @@ test "interrupt controller process pending" {
     
     var handler_state = HandlerState{};
     
-    const timer_handler: InterruptController.InterruptHandler = struct {
+    const timer_handler: InterruptHandler = struct {
         fn handle_wrapper(interrupt_type: InterruptType, context: ?*anyopaque) void {
             const state = @as(*HandlerState, @ptrCast(context.?));
             HandlerState.handle_timer(state, interrupt_type, null);
         }
     }.handle_wrapper;
     
-    const external_handler: InterruptController.InterruptHandler = struct {
+    const external_handler: InterruptHandler = struct {
         fn handle_wrapper(interrupt_type: InterruptType, context: ?*anyopaque) void {
             const state = @as(*HandlerState, @ptrCast(context.?));
             HandlerState.handle_external(state, interrupt_type, null);

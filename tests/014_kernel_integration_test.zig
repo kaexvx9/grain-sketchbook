@@ -158,10 +158,9 @@ test "Kernel Boot: Execute kernel boot sequence" {
     try testing.expect(vm.state == .running);
     
     while (vm.state == .running and step_count < MAX_BOOT_STEPS) : (step_count += 1) {
-        vm.step() catch |err| {
+        vm.step() catch {
             // If execution fails, that's okay (kernel may hit unimplemented instruction).
             // Why: Kernel may call syscalls or hit instructions not yet implemented.
-            _ = err;
             break;
         };
     }
@@ -211,10 +210,9 @@ test "Stress Test: Long-running program execution" {
     // Note: initial_x1 is used implicitly by the test logic.
     
     while (vm.state == .running and step_count < STRESS_TEST_STEPS) : (step_count += 1) {
-        vm.step() catch |err| {
+        vm.step() catch {
             // If execution fails, that's unexpected for this simple program.
             // Why: Simple loop should execute without errors.
-            _ = err;
             break;
         };
     }
@@ -280,9 +278,8 @@ test "Edge Case: State transition validation" {
     try testing.expect(vm.state == .running);
     
     // Execute one step.
-    vm.step() catch |err| {
+    vm.step() catch {
         // If execution fails, that's unexpected for NOP.
-        _ = err;
     };
     
     // Assert: VM must transition to halted state after NOP (postcondition).
@@ -316,8 +313,7 @@ test "Edge Case: Syscall error handling" {
     try testing.expect(vm.regs.get(10) >= FRAMEBUFFER_WIDTH);
     
     // Execute ECALL.
-    const ecall_inst: u32 = 0x00000073;
-    vm.execute_ecall(ecall_inst) catch |err| {
+    vm.execute_ecall() catch |err| {
         // ECALL execution may fail, that's okay.
         // Why: Invalid arguments may cause syscall handler to return error.
         _ = err;
@@ -361,10 +357,9 @@ test "Memory Leak Detection: VM state consistency" {
         
         // Start and execute.
         vm.start();
-        vm.step() catch |err| {
+        vm.step() catch {
             // If execution fails, that's unexpected.
             // Why: NOP should execute without errors.
-            _ = err;
             break;
         };
         
@@ -405,8 +400,7 @@ test "Memory Leak Detection: Framebuffer memory consistency" {
         _ = COLOR_DARK_BG; // Color constant is valid.
         
         // Execute ECALL.
-        const ecall_inst: u32 = 0x00000073;
-        vm.execute_ecall(ecall_inst) catch |err| {
+        vm.execute_ecall() catch |err| {
             // ECALL execution may fail, that's okay.
             // Why: Syscall may return error if framebuffer is not accessible.
             _ = err;

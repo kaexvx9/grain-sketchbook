@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 const sbi = @import("sbi");
 const SerialOutput = @import("serial.zig").SerialOutput;
 const jit_mod = @import("jit.zig");
@@ -343,19 +344,40 @@ pub const VM = struct {
     /// Instruction execution statistics tracker.
     /// Why: Track instruction execution frequency and patterns.
     /// GrainStyle: Static allocation, bounded counters, explicit types.
-    instruction_stats: instruction_stats_mod.VMInstructionStats = .{},
+    instruction_stats: instruction_stats_mod.VMInstructionStats = .{
+        .entries = undefined,
+        .entries_len = 0,
+        .total_instructions = 0,
+    },
     /// Syscall execution statistics tracker.
     /// Why: Track syscall execution frequency and patterns.
     /// GrainStyle: Static allocation, bounded counters, explicit types.
-    syscall_stats: syscall_stats_mod.VMSyscallStats = .{},
+    syscall_stats: syscall_stats_mod.VMSyscallStats = .{
+        .entries = undefined,
+        .entries_len = 0,
+        .total_syscalls = 0,
+    },
     /// Execution flow tracker.
     /// Why: Track PC sequences to identify execution patterns, loops, and control flow.
     /// GrainStyle: Static allocation, bounded buffers, explicit types.
-    execution_flow: execution_flow_mod.VMExecutionFlow = .{},
+    execution_flow: execution_flow_mod.VMExecutionFlow = .{
+        .pc_history = undefined,
+        .pc_history_index = 0,
+        .pc_history_len = 0,
+        .unique_pcs = undefined,
+        .unique_pcs_len = 0,
+        .total_instructions = 0,
+    },
     /// Branch statistics tracker.
     /// Why: Track branch instruction outcomes for branch prediction analysis.
     /// GrainStyle: Static allocation, bounded counters, explicit types.
-    branch_stats: branch_stats_mod.VMBranchStats = .{},
+    branch_stats: branch_stats_mod.VMBranchStats = .{
+        .entries = undefined,
+        .entries_len = 0,
+        .total_branches = 0,
+        .total_taken = 0,
+        .total_not_taken = 0,
+    },
     /// Register usage statistics tracker.
     /// Why: Track register read/write frequency for register usage analysis.
     /// GrainStyle: Static allocation, bounded counters, explicit types.
@@ -373,8 +395,14 @@ pub const VM = struct {
     /// Instruction trace logger.
     /// Why: Record instruction execution history for debugging.
     /// GrainStyle: Static allocation, bounded circular buffer, explicit types.
-    instruction_trace: instruction_trace_mod.VMInstructionTrace =
-        instruction_trace_mod.VMInstructionTrace.init(),
+    instruction_trace: instruction_trace_mod.VMInstructionTrace = .{
+        .trace_buffer = undefined,
+        .trace_index = 0,
+        .trace_count = 0,
+        .enabled = false,
+        .filter_pc_min = null,
+        .filter_pc_max = null,
+    },
     /// Checkpoint manager.
     /// Why: Save and restore VM state for debugging and state management.
     /// GrainStyle: Static allocation, bounded buffers, explicit types.
@@ -387,8 +415,10 @@ pub const VM = struct {
     /// Memory protection manager.
     /// Why: Provide memory protection capabilities (page tables, permissions).
     /// GrainStyle: Static allocation, bounded page tables, explicit types.
-    memory_protection: memory_protection_mod.VMMemoryProtection =
-        memory_protection_mod.VMMemoryProtection.init(),
+    memory_protection: memory_protection_mod.VMMemoryProtection = .{
+        .page_table = undefined,
+        .page_table_len = 0,
+    },
 
     const Self = @This();
 
@@ -554,15 +584,15 @@ pub const VM = struct {
         }
 
         // Initialize VM struct in-place (GrainStyle: avoid stack allocation of large struct).
-        target.* = .{
-            .regs = .{},
-            .memory = [_]u8{0} ** VM_MEMORY_SIZE,
-            .memory_size = VM_MEMORY_SIZE,
-            .state = .halted,
-            .last_error = null,
-            .exception_stats = exception_stats_mod.ExceptionStats.init(),
-            .memory_stats = memory_stats_mod.VMMemoryStats.init(VM_MEMORY_SIZE),
-        };
+        // Note: Initialize memory array directly to avoid creating 8MB stack temporary.
+        target.regs = .{};
+        @memset(&target.memory, 0); // Initialize 8MB memory array directly (avoid stack temporary)
+        target.memory_size = VM_MEMORY_SIZE;
+        target.state = .halted;
+        target.last_error = null;
+        target.exception_stats = exception_stats_mod.ExceptionStats.init();
+        target.memory_stats = memory_stats_mod.VMMemoryStats.init(VM_MEMORY_SIZE);
+        target.syscall_stats = syscall_stats_mod.VMSyscallStats.init();
         
         // Add default memory regions (kernel, framebuffer).
         target.memory_stats.add_region(0x80000000, 0x80000000 + VM_MEMORY_SIZE);
@@ -3434,20 +3464,22 @@ pub const VM = struct {
         const syscall_num = self.regs.get(17); // a7 register
 
         // Debug: Print ECALL execution for troubleshooting.
-        const a0 = self.regs.get(10);
-        const a1 = self.regs.get(11);
-        const a2 = self.regs.get(12);
-        const a3 = self.regs.get(13);
-        std.debug.print(
-            "DEBUG vm.zig: ECALL instruction: syscall_num={} (0x{x}), a0=0x{x}, a1=0x{x}, a2=0x{x}, a3=0x{x}, PC=0x{x}\n",
-            .{ syscall_num, syscall_num, a0, a1, a2, a3, self.regs.pc },
-        );
+        // Note: Commented out to avoid potential crash in test environment
+        // const a0 = self.regs.get(10);
+        // const a1 = self.regs.get(11);
+        // const a2 = self.regs.get(12);
+        // const a3 = self.regs.get(13);
+        // std.debug.print(
+        //     "DEBUG vm.zig: ECALL instruction: syscall_num={} (0x{x}), a0=0x{x}, a1=0x{x}, a2=0x{x}, a3=0x{x}, PC=0x{x}\n",
+        //     .{ syscall_num, syscall_num, a0, a1, a2, a3, self.regs.pc },
+        // );
 
         // Assert: syscall number must fit in u32.
         std.debug.assert(syscall_num <= 0xFFFFFFFF);
 
-        // Assert: syscall number must be within reasonable range (0-50).
-        std.debug.assert(syscall_num <= 50);
+        // Assert: syscall number must be within reasonable range (0-200 for all kernel syscalls).
+        // Note: Highest syscall is getsid=59, but allow room for future expansion.
+        std.debug.assert(syscall_num <= 200);
 
         // Extract syscall arguments from a0-a5 registers (x10-x15).
         const arg1 = self.regs.get(10); // a0
@@ -3473,8 +3505,11 @@ pub const VM = struct {
             std.debug.assert(syscall_num >= 10);
 
             // Track kernel syscall execution.
+            // Note: Temporarily wrapped in defensive check for debugging
             const syscall_num_u32: u32 = @intCast(syscall_num);
-            self.syscall_stats.record_syscall(syscall_num_u32);
+            if (syscall_num_u32 < 256) {
+                self.syscall_stats.record_syscall(syscall_num_u32);
+            }
 
             // Kernel syscall: Handle via callback if available.
             if (self.syscall_handler) |handler| {

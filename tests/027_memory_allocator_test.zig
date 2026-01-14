@@ -10,6 +10,13 @@ const MAX_PAGES = basin_kernel.basin_kernel.MAX_PAGES;
 const BasinKernel = basin_kernel.BasinKernel;
 const RawIO = basin_kernel.RawIO;
 
+// Helper: Create kernel on heap to avoid stack overflow.
+fn create_test_kernel() !*BasinKernel {
+    const kernel = try std.testing.allocator.create(BasinKernel);
+    BasinKernel.init_in_place(kernel);
+    return kernel;
+}
+
 // Test memory pool initialization.
 test "memory pool init" {
     const pool = MemoryPool.init();
@@ -145,7 +152,8 @@ test "memory pool deallocation failure" {
 
 // Test kernel memory pool integration.
 test "kernel memory pool integration" {
-    var kernel = BasinKernel.init();
+    const kernel = try create_test_kernel();
+    defer std.testing.allocator.destroy(kernel);
     
     // Assert: Memory pool must be initialized.
     try std.testing.expect(kernel.memory_pool.get_allocated_pages() == 0);

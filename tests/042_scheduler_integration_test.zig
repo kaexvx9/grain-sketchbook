@@ -9,7 +9,9 @@ const VM = kernel_vm.VM;
 const Integration = kernel_vm.Integration;
 const basin_kernel = @import("basin_kernel");
 const BasinKernel = basin_kernel.BasinKernel;
-const ProcessContext = basin_kernel.basin_kernel.ProcessContext;
+// ProcessContext not needed for this test
+const handle_syscall = basin_kernel.handle_syscall;
+const Syscall = basin_kernel.Syscall;
 
 // Test: run_current_process executes current process.
 test "run_current_process executes current process" {
@@ -18,10 +20,8 @@ test "run_current_process executes current process" {
     var kernel = BasinKernel.init();
     
     // Spawn a process.
-    const result = kernel.syscall_spawn(0x1000, 0, 0, 0) catch {
-        try testing.expect(false);
-        return;
-    };
+    const spawn_num = @intFromEnum(Syscall.spawn);
+    const result = try handle_syscall(&kernel, spawn_num, 0x1000, 0, 0, 0);
     try testing.expect(result == .success);
     const process_id = result.success;
     
@@ -49,10 +49,8 @@ test "schedule_and_run_next schedules and runs next process" {
     var kernel = BasinKernel.init();
     
     // Spawn a process.
-    const result = kernel.syscall_spawn(0x1000, 0, 0, 0) catch {
-        try testing.expect(false);
-        return;
-    };
+    const spawn_num = @intFromEnum(Syscall.spawn);
+    const result = try handle_syscall(&kernel, spawn_num, 0x1000, 0, 0, 0);
     try testing.expect(result == .success);
     const process_id = result.success;
     

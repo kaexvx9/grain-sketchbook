@@ -352,10 +352,320 @@ pub const BasinKernel = struct {
         return kernel;
     }
     
+    /// Why: For heap-allocated kernels, initialize directly to avoid stack overflow.
+    /// Contract: target must point to valid memory large enough for BasinKernel.
+    /// Initialize core subsystems (timer, interrupt, scheduler).
+    /// Why: Split initialization into smaller functions to avoid size issues.
+    fn init_core_subsystems(target: *BasinKernel) void {
+        Debug.vprint("Initializing timer...", .{});
+        target.timer = Timer.init();
+        Debug.vprint("Timer initialized", .{});
+        
+        Debug.vprint("Initializing interrupt controller...", .{});
+        target.interrupt_controller = InterruptController.init();
+        Debug.vprint("Interrupt controller initialized", .{});
+        
+        Debug.vprint("Initializing scheduler...", .{});
+        target.scheduler = Scheduler.init();
+        Debug.vprint("Scheduler initialized", .{});
+    }
+    
+    /// Initialize process group managers.
+    /// Why: Split into even smaller functions.
+    fn init_process_group_managers(target: *BasinKernel) void {
+        Debug.vprint("Initializing process group managers...", .{});
+        // Initialize ProcessGroupManager directly to avoid stack overflow
+        const ProcessGroup = process_group.ProcessGroup;
+        const Session = process_group.Session;
+        var i: u32 = 0;
+        while (i < 64) : (i += 1) {
+            target.process_group_manager.groups[i] = ProcessGroup.init();
+        }
+        i = 0;
+        while (i < 32) : (i += 1) {
+            target.process_group_manager.sessions[i] = Session.init();
+        }
+        target.process_group_manager.next_pgid = 1;
+        target.process_group_manager.next_sid = 1;
+        target.process_group_manager.initialized = true;
+        
+        // Initialize ProcessGroupStatsManager in-place to avoid stack temporary
+        const ProcessGroupStats = @import("process_group_stats.zig").ProcessGroupStats;
+        i = 0; // Reuse existing i variable
+        while (i < 64) : (i += 1) {
+            target.process_group_stats.stats[i] = ProcessGroupStats.init();
+        }
+        target.process_group_stats.initialized = true;
+        
+        // Initialize ProcessGroupLimitsManager directly to avoid stack overflow
+        const ProcessGroupLimits = @import("process_group_limits.zig").ProcessGroupLimits;
+        i = 0; // Reuse existing i variable
+        while (i < 64) : (i += 1) {
+            target.process_group_limits.limits[i] = ProcessGroupLimits.init();
+        }
+        target.process_group_limits.initialized = true;
+        Debug.vprint("Process group managers initialized", .{});
+    }
+    
+    /// Initialize network managers (interfaces, TCP, UDP).
+    /// Why: Split into smaller functions to avoid function size issues.
+    fn init_network_managers(target: *BasinKernel) void {
+        Debug.vprint("Initializing network managers...", .{});
+        
+        // Initialize NetworkInterfaceManager in-place
+        const NetworkInterface = @import("network.zig").NetworkInterface;
+        var i: u32 = 0;
+        while (i < 8) : (i += 1) {
+            target.network_interfaces.interfaces[i] = NetworkInterface.init();
+        }
+        target.network_interfaces.initialized = true;
+        target.network_interfaces.stats = @import("network_interface_stats.zig").NetworkInterfaceStats.init();
+        
+        // Initialize TcpSocketManager in-place (each socket has 2×64KB buffers = 128KB, 64 sockets = 8MB!)
+        // Note: TcpSocket.init() returns a 128KB struct, so we initialize fields directly to avoid stack temporary
+        i = 0;
+        while (i < 64) : (i += 1) {
+            // Initialize socket fields directly to avoid TcpSocket.init() creating 128KB temporary
+            target.tcp_sockets.sockets[i].socket_id = 0;
+            target.tcp_sockets.sockets[i].state = @import("tcp_socket.zig").TcpSocketState.closed;
+            target.tcp_sockets.sockets[i].local_addr = 0;
+            target.tcp_sockets.sockets[i].local_port = 0;
+            target.tcp_sockets.sockets[i].remote_addr = 0;
+            target.tcp_sockets.sockets[i].remote_port = 0;
+            @memset(&target.tcp_sockets.sockets[i].recv_buffer, 0);
+            target.tcp_sockets.sockets[i].recv_buffer_size = 0;
+            @memset(&target.tcp_sockets.sockets[i].send_buffer, 0);
+            target.tcp_sockets.sockets[i].send_buffer_size = 0;
+            target.tcp_sockets.sockets[i].allocated = false;
+            target.tcp_sockets.sockets[i].owner_process_id = 0;
+        }
+        target.tcp_sockets.next_socket_id = 1;
+        target.tcp_sockets.initialized = true;
+        target.tcp_sockets.stats = @import("tcp_socket_stats.zig").TcpSocketStats.init();
+        
+        // Initialize UdpSocketManager in-place (same size issue as TCP - each socket has 2×64KB buffers)
+        // Note: UdpSocket.init() returns a 128KB struct, so we initialize fields directly
+        i = 0;
+        while (i < 64) : (i += 1) {
+            // Initialize socket fields directly to avoid UdpSocket.init() creating 128KB temporary
+            target.udp_sockets.sockets[i].socket_id = 0;
+            target.udp_sockets.sockets[i].state = @import("udp_socket.zig").UdpSocketState.closed;
+            target.udp_sockets.sockets[i].local_addr = 0;
+            target.udp_sockets.sockets[i].local_port = 0;
+            @memset(&target.udp_sockets.sockets[i].recv_buffer, 0);
+            target.udp_sockets.sockets[i].recv_buffer_size = 0;
+            @memset(&target.udp_sockets.sockets[i].send_buffer, 0);
+            target.udp_sockets.sockets[i].send_buffer_size = 0;
+            target.udp_sockets.sockets[i].allocated = false;
+            target.udp_sockets.sockets[i].owner_process_id = 0;
+        }
+        target.udp_sockets.next_socket_id = 1;
+        target.udp_sockets.initialized = true;
+        target.udp_sockets.stats = @import("udp_socket_stats.zig").UdpSocketStats.init();
+        Debug.vprint("Network managers initialized", .{});
+    }
+    
+    /// Initialize audio device manager.
+    /// Why: Split into smaller functions to avoid function size issues.
+    /// Note: AudioDevice.init() returns a struct with 2×64KB buffers = 128KB, so we initialize fields directly.
+    fn init_audio_manager(target: *BasinKernel) void {
+        Debug.vprint("Initializing audio device manager...", .{});
+        // Initialize AudioDeviceManager in-place
+        var i: u32 = 0;
+        while (i < 16) : (i += 1) {
+            // Initialize audio device fields directly to avoid AudioDevice.init() creating 128KB temporary
+            target.audio_devices.devices[i].device_id = 0;
+            @memset(&target.audio_devices.devices[i].name, 0);
+            target.audio_devices.devices[i].device_type = @import("audio.zig").AudioDeviceType.unknown;
+            target.audio_devices.devices[i].state = @import("audio.zig").AudioDeviceState.disconnected;
+            target.audio_devices.devices[i].volume = 50;
+            target.audio_devices.devices[i].muted = false;
+            target.audio_devices.devices[i].allocated = false;
+            target.audio_devices.devices[i].owner_process_id = 0;
+            target.audio_devices.devices[i].format = @import("audio.zig").AudioFormat.init();
+            @memset(&target.audio_devices.devices[i].input_buffer, 0);
+            target.audio_devices.devices[i].input_buffer_len = 0;
+            @memset(&target.audio_devices.devices[i].output_buffer, 0);
+            target.audio_devices.devices[i].output_buffer_len = 0;
+        }
+        target.audio_devices.next_device_id = 1;
+        target.audio_devices.master_volume = 50;
+        target.audio_devices.master_muted = false;
+        target.audio_devices.active_output_device_id = 0;
+        target.audio_devices.active_input_device_id = 0;
+        target.audio_devices.initialized = true;
+        target.audio_devices.stats = @import("audio_device_stats.zig").AudioDeviceStats.init();
+        Debug.vprint("Audio device manager initialized", .{});
+    }
+    
+    /// Initialize managers (process groups, network, etc.).
+    /// Why: Split initialization into smaller functions to avoid size issues.
+    fn init_managers(target: *BasinKernel) void {
+        Debug.vprint("Initializing kernel managers...", .{});
+        init_process_group_managers(target);
+        init_network_managers(target);
+        init_audio_manager(target);
+        Debug.vprint("Kernel managers initialized", .{});
+    }
+    
+    /// Initialize channel table.
+    /// Why: Split into smaller functions to avoid function size issues.
+    fn init_channels(target: *BasinKernel) void {
+        Debug.vprint("Initializing channels...", .{});
+        // ChannelTable.init() creates 8MB temporary (64 channels × 32 messages × 4KB), so initialize in-place
+        var i: u32 = 0;
+        while (i < 64) : (i += 1) {
+            // Initialize channel fields directly
+            target.channels.channels[i].id = 0;
+            target.channels.channels[i].message_count = 0;
+            target.channels.channels[i].read_pos = 0;
+            target.channels.channels[i].write_pos = 0;
+            target.channels.channels[i].allocated = false;
+            target.channels.channels[i].owner_process_id = 0;
+            // Initialize messages array (32 messages per channel)
+            var j: u32 = 0;
+            while (j < 32) : (j += 1) {
+                @memset(&target.channels.channels[i].messages[j].data, 0);
+                target.channels.channels[i].messages[j].length = 0;
+                target.channels.channels[i].messages[j].valid = false;
+            }
+        }
+        target.channels.channel_count = 0;
+        target.channels.next_channel_id = 1;
+        Debug.vprint("Channels initialized", .{});
+    }
+    
+    /// Initialize storage, keyboard, and mouse.
+    /// Why: Split into smaller functions to avoid function size issues.
+    fn init_storage_keyboard_mouse(target: *BasinKernel) void {
+        Debug.vprint("Initializing storage...", .{});
+        // Storage.init() creates large temporary (128 files × 64KB + 32 directories), so initialize in-place
+        var i: u32 = 0;
+        while (i < 128) : (i += 1) {
+            // Initialize file entry fields directly
+            @memset(&target.storage.files[i].name, 0);
+            target.storage.files[i].name_len = 0;
+            @memset(&target.storage.files[i].data, 0);
+            target.storage.files[i].data_len = 0;
+            target.storage.files[i].allocated = false;
+        }
+        i = 0;
+        while (i < 32) : (i += 1) {
+            // Initialize directory entry fields directly
+            @memset(&target.storage.directories[i].name, 0);
+            target.storage.directories[i].name_len = 0;
+            @memset(&target.storage.directories[i].file_indices, 0);
+            target.storage.directories[i].file_count = 0;
+            target.storage.directories[i].allocated = false;
+        }
+        target.storage.file_count = 0;
+        target.storage.next_file_index = 1;
+        target.storage.directory_count = 0;
+        target.storage.next_directory_index = 1;
+        Debug.vprint("Storage initialized", .{});
+        
+        Debug.vprint("Initializing keyboard...", .{});
+        target.keyboard = Keyboard.init();
+        Debug.vprint("Keyboard initialized", .{});
+        
+        Debug.vprint("Initializing mouse...", .{});
+        target.mouse = Mouse.init();
+        Debug.vprint("Mouse initialized", .{});
+    }
+    
+    /// Initialize I/O subsystems (channels, storage, keyboard, mouse).
+    /// Why: Split initialization into smaller functions to avoid size issues.
+    fn init_io_subsystems(target: *BasinKernel) void {
+        Debug.vprint("Initializing I/O subsystems...", .{});
+        init_channels(target);
+        init_storage_keyboard_mouse(target);
+        Debug.vprint("I/O subsystems initialized", .{});
+    }
+    
+    /// Initialize memory subsystems (memory pool, page table, stats, COW, profiler).
+    /// Why: Split into smaller functions to avoid function size issues.
+    fn init_memory_subsystems(target: *BasinKernel) void {
+        Debug.vprint("Initializing memory subsystems...", .{});
+        Debug.vprint("Initializing memory pool...", .{});
+        // MemoryPool.init() creates a 4MB buffer, so initialize in-place
+        @memset(&target.memory_pool.buffer, 0);
+        var i: u32 = 0;
+        while (i < 1024) : (i += 1) {
+            target.memory_pool.page_states[i] = @import("memory.zig").PageState.free;
+        }
+        target.memory_pool.allocated_pages = 0;
+        target.memory_pool.next_free_page = 0;
+        
+        Debug.vprint("Initializing page table...", .{});
+        target.page_table = PageTable.init();
+        
+        Debug.vprint("Initializing page fault stats...", .{});
+        target.page_fault_stats = PageFaultStats.init();
+        
+        Debug.vprint("Initializing memory stats...", .{});
+        target.memory_stats = MemoryStats.init();
+        
+        Debug.vprint("Initializing COW table...", .{});
+        target.cow_table = CowTable.init();
+        
+        Debug.vprint("Initializing syscall profiler...", .{});
+        target.syscall_profiler = SyscallPerformanceProfiler.init();
+        
+        Debug.vprint("Memory subsystems initialized", .{});
+    }
+    
+    /// Initialize I/O and memory subsystems.
+    /// Why: Split initialization into smaller functions to avoid size issues.
+    fn init_io_and_memory(target: *BasinKernel) void {
+        Debug.vprint("Initializing I/O and memory subsystems...", .{});
+        init_io_subsystems(target);
+        init_memory_subsystems(target);
+        Debug.vprint("I/O and memory subsystems initialized", .{});
+    }
+    
+    /// Why: For heap-allocated kernels, initialize directly to avoid stack overflow.
+    /// Contract: target must point to valid memory large enough for BasinKernel.
+    pub fn init_in_place(target: *BasinKernel) void {
+        // Initialize all fields directly in target (no stack temporary)
+        // Split into smaller functions to avoid function size issues
+        Debug.vprint("Starting kernel initialization...", .{});
+        
+        // Initialize core subsystems
+        init_core_subsystems(target);
+        
+        // Initialize managers
+        init_managers(target);
+        
+        // Initialize I/O and memory
+        init_io_and_memory(target);
+        
+        // Initialize log buffer with timer reference (after timer is created).
+        // KernelLogBuffer.init() creates ~76KB temporary (256 entries × 288 bytes), so initialize in-place
+        Debug.vprint("Initializing log buffer...", .{});
+        var i: u32 = 0;
+        while (i < 256) : (i += 1) {
+            // Initialize log entry fields directly
+            target.log_buffer.entries[i].timestamp = 0;
+            target.log_buffer.entries[i].level = 0;
+            @memset(&target.log_buffer.entries[i].source, 0);
+            @memset(&target.log_buffer.entries[i].message, 0);
+        }
+        target.log_buffer.write_index = 0;
+        target.log_buffer.entry_count = 0;
+        target.log_buffer.timer = &target.timer;
+        Debug.vprint("Log buffer initialized", .{});
+        
+        // Initialize default users (root and xy).
+        target.init_users();
+        
+        Debug.vprint("Kernel initialization complete", .{});
+    }
+    
     /// Initialize default users.
     /// Why: Create root and xy users at kernel boot.
     /// Grain Style: Static allocation, explicit initialization.
     fn init_users(self: *BasinKernel) void {
+        Debug.vprint("Creating root user...", .{});
         // Root user (uid=0)
         var root = User.init();
         root.uid = 0;
@@ -363,9 +673,12 @@ pub const BasinKernel = struct {
         @memcpy(root.name[0..4], "root");
         @memcpy(root.home[0..5], "/root");
         root.capabilities = 0xFFFFFFFFFFFFFFFF; // All capabilities
+        Debug.vprint("Validating root user...", .{});
         root.validate();
+        Debug.vprint("Storing root user...", .{});
         self.users[0] = root;
         
+        Debug.vprint("Creating xy user...", .{});
         // xy user (uid=1000)
         var xy = User.init();
         xy.uid = 1000;
@@ -373,15 +686,20 @@ pub const BasinKernel = struct {
         @memcpy(xy.name[0..2], "xy");
         @memcpy(xy.home[0..8], "/home/xy");
         xy.capabilities = 0x0000000000000001; // Basic user capabilities
+        Debug.vprint("Validating xy user...", .{});
         xy.validate();
+        Debug.vprint("Storing xy user...", .{});
         self.users[1] = xy;
         
+        Debug.vprint("Setting user count...", .{});
         self.user_count = 2;
         
+        Debug.vprint("Running user assertions...", .{});
         // Assert: Root user must exist.
         Debug.kassert(self.users[0].uid == 0, "Root UID check failed", .{});
         Debug.kassert(self.users[1].uid == 1000, "XY UID check failed", .{});
         Debug.kassert(self.user_count == 2, "User count check failed", .{});
+        Debug.vprint("User assertions passed", .{});
     }
     
     /// Find user by UID.
@@ -449,8 +767,8 @@ pub const BasinKernel = struct {
         const network_stats = self.network_interfaces.get_stats();
         const audio_stats = self.audio_devices.get_stats();
         const scheduler_stats = self.scheduler.get_stats();
-        const memory_stats = &self.memory_stats;
-        const page_fault_stats = &self.page_fault_stats;
+        const memory_stats_ptr = &self.memory_stats;
+        const page_fault_stats_ptr = &self.page_fault_stats;
         
         // Create unified snapshot.
         return KernelStatsSnapshot.create(
@@ -459,8 +777,8 @@ pub const BasinKernel = struct {
             network_stats,
             audio_stats,
             scheduler_stats,
-            memory_stats,
-            page_fault_stats,
+            memory_stats_ptr,
+            page_fault_stats_ptr,
         );
     }
     
@@ -589,7 +907,7 @@ pub const BasinKernel = struct {
     /// Why: Keep process memory_used field current when mappings change.
     /// Contract: process_id must be valid (non-zero).
     /// Grain Style: Explicit types, bounded operations.
-    fn update_process_memory_usage(self: *BasinKernel, process_id: u64) void {
+    pub fn update_process_memory_usage(self: *BasinKernel, process_id: u64) void {
         // Assert: process ID must be valid (non-zero).
         Debug.kassert(process_id != 0, "Process ID is 0", .{});
         
@@ -608,7 +926,7 @@ pub const BasinKernel = struct {
     /// Why: Allocate new mapping entry.
     /// Returns: Index of free entry, or null if table full.
     /// Grain Style: Comprehensive assertions for table state.
-    fn find_free_mapping(self: *BasinKernel) ?u32 {
+    pub fn find_free_mapping(self: *BasinKernel) ?u32 {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
@@ -643,7 +961,7 @@ pub const BasinKernel = struct {
     /// Why: Look up mapping for unmap/protect operations.
     /// Returns: Index of mapping, or null if not found.
     /// Grain Style: Comprehensive assertions for address validation.
-    fn find_mapping_by_address(self: *BasinKernel, addr: u64) ?u32 {
+    pub fn find_mapping_by_address(self: *BasinKernel, addr: u64) ?u32 {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
@@ -763,7 +1081,7 @@ pub const BasinKernel = struct {
     /// Check if address range overlaps with any existing mapping.
     /// Why: Validate no overlapping mappings.
     /// Grain Style: Comprehensive assertions for overlap detection.
-    fn check_overlap(self: *BasinKernel, addr: u64, size: u64) bool {
+    pub fn check_overlap(self: *BasinKernel, addr: u64, size: u64) bool {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
@@ -825,7 +1143,7 @@ pub const BasinKernel = struct {
     /// Why: Allocate new handle entry.
     /// Returns: Index of free entry, or null if table full.
     /// Grain Style: Comprehensive assertions for table state.
-    fn find_free_handle(self: *BasinKernel) ?u32 {
+    pub fn find_free_handle(self: *BasinKernel) ?u32 {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
@@ -846,7 +1164,7 @@ pub const BasinKernel = struct {
     /// Returns: Index of handle, or null if not found.
     /// Grain Style: Comprehensive assertions for handle validation.
     /// Optimization: Check MRU cache first for common case (repeated handle access).
-    fn find_handle_by_id(self: *BasinKernel, handle_id: u64) ?u32 {
+    pub fn find_handle_by_id(self: *BasinKernel, handle_id: u64) ?u32 {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
@@ -1066,7 +1384,7 @@ pub const BasinKernel = struct {
     /// Check if timeout has expired.
     /// Why: Helper function to check timeout expiration for syscalls.
     /// Contract: start_time_ns must be valid monotonic time, timeout_ns is in nanoseconds (0 = no timeout).
-    fn check_timeout(self: *const BasinKernel, start_time_ns: u64, timeout_ns: u64) bool {
+    pub fn check_timeout(self: *const BasinKernel, start_time_ns: u64, timeout_ns: u64) bool {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
@@ -1096,7 +1414,7 @@ pub const BasinKernel = struct {
     /// Check if process has exceeded CPU time limit.
     /// Why: Enforce CPU time limits before allowing process to continue.
     /// Contract: process must be allocated.
-    fn check_cpu_time_limit(self: *const BasinKernel, process: *const Process) bool {
+    fn check_cpu_time_limit(_: *const BasinKernel, process: *const Process) bool {
         // If limit is 0 (unlimited), never exceeded.
         if (process.max_cpu_time_ns == 0) {
             return false;
@@ -1109,7 +1427,7 @@ pub const BasinKernel = struct {
     /// Check if process can allocate memory.
     /// Why: Enforce memory limits before memory allocation.
     /// Contract: process must be allocated, requested_bytes must be valid.
-    fn can_allocate_memory(self: *const BasinKernel, process: *const Process, requested_bytes: u64) bool {
+    fn can_allocate_memory(_: *const BasinKernel, process: *const Process, requested_bytes: u64) bool {
         // If limit is 0 (unlimited), allow allocation.
         if (process.max_memory_bytes == 0) {
             return true;
@@ -1123,7 +1441,7 @@ pub const BasinKernel = struct {
     /// Check if process can open file descriptor.
     /// Why: Enforce file descriptor limits before opening files.
     /// Contract: process must be allocated.
-    fn can_open_file_descriptor(self: *const BasinKernel, process: *const Process) bool {
+    pub fn can_open_file_descriptor(_: *const BasinKernel, process: *const Process) bool {
         // If limit is 0 (unlimited), allow opening.
         if (process.max_file_descriptors == 0) {
             return true;
@@ -1136,7 +1454,7 @@ pub const BasinKernel = struct {
     /// Check if process can open network connection.
     /// Why: Enforce connection limits before opening connections.
     /// Contract: process must be allocated.
-    fn can_open_connection(self: *const BasinKernel, process: *const Process) bool {
+    pub fn can_open_connection(_: *const BasinKernel, process: *const Process) bool {
         // If limit is 0 (unlimited), allow opening.
         if (process.max_connections == 0) {
             return true;

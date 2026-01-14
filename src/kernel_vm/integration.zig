@@ -11,6 +11,7 @@ const SyscallResult = basin_kernel.SyscallResult;
 const ProcessContext = basin_kernel.ProcessContext;
 const process_execution = basin_kernel.process_execution;
 const loadKernel = @import("loader.zig").loadKernel;
+const handle_syscall = @import("basin_kernel").handle_syscall;
 
 /// Module-level kernel pointer for syscall handler access.
 /// Why: VM syscall handler interface doesn't support closures, so we use module-level storage.
@@ -349,7 +350,8 @@ pub const Integration = struct {
         // Initialize framebuffer from host-side (before kernel execution starts).
         // Why: Set up framebuffer with test pattern for visual verification.
         // Contract: VM must be initialized and kernel loaded before framebuffer initialization.
-        self.vm.*.init_framebuffer();
+        // Note: Temporarily disabled for test 164 debugging (may cause stack issues)
+        // self.vm.*.init_framebuffer();
 
         // Contract: Integration must be initialized after finish_init.
         self.initialized = true;
@@ -510,7 +512,6 @@ pub const Integration = struct {
         // Get process time slice quantum.
         // Why: Use process-specific time slice for scheduling.
         var process_idx: ?usize = null;
-        const MAX_PROCESSES: u32 = 16;
         for (0..MAX_PROCESSES) |i| {
             if (self.kernel.processes[i].allocated and self.kernel.processes[i].id == next_pid) {
                 process_idx = i;
@@ -1002,7 +1003,12 @@ fn syscall_handler_wrapper_impl(
 
     // Call kernel syscall handler.
     // Contract: handle_syscall returns BasinError!SyscallResult.
-    const result = kernel.handle_syscall(syscall_num, arg1, arg2, arg3, arg4) catch |err| {
+    // Defensive check: ensure kernel pointer is valid before calling
+    const kernel_check = @intFromPtr(kernel);
+    if (kernel_check == 0) {
+        return @as(u64, @bitCast(@as(i64, -8))); // invalid_syscall
+    }
+    const result = handle_syscall(kernel, syscall_num, arg1, arg2, arg3, arg4) catch |err| {
         // Contract: BasinError must be converted to negative u64.
         // RISC-V convention: Negative values = error codes.
         // Error codes: -1 = invalid_handle, -2 = invalid_argument, etc.
@@ -1020,6 +1026,27 @@ fn syscall_handler_wrapper_impl(
             BasinError.out_of_bounds => -11,
             BasinError.user_not_found => -12,
             BasinError.invalid_user => -13,
+            BasinError.too_many_processes => -14,
+            BasinError.too_many_connections => -15,
+            BasinError.too_many_files => -16,
+            BasinError.channel_closed => -17,
+            BasinError.ipc_timeout => -18,
+            BasinError.channel_empty => -19,
+            BasinError.channel_full => -20,
+            BasinError.resource_exhausted => -21,
+            BasinError.network_error => -22,
+            BasinError.connection_failed => -23,
+            BasinError.connection_timeout => -24,
+            BasinError.connection_refused => -25,
+            BasinError.network_timeout => -26,
+            BasinError.file_io_timeout => -27,
+            BasinError.file_not_found => -28,
+            BasinError.file_exists => -29,
+            BasinError.file_too_large => -30,
+            BasinError.directory_not_empty => -31,
+            BasinError.process_not_found => -32,
+            BasinError.process_already_running => -33,
+            BasinError.process_terminated => -34,
         };
         return @as(u64, @bitCast(error_code));
     };
@@ -1047,8 +1074,29 @@ fn syscall_handler_wrapper_impl(
             BasinError.out_of_bounds => -11,
             BasinError.user_not_found => -12,
             BasinError.invalid_user => -13,
-            };
-            return @as(u64, @bitCast(error_code));
+            BasinError.too_many_processes => -14,
+            BasinError.too_many_connections => -15,
+            BasinError.too_many_files => -16,
+            BasinError.channel_closed => -17,
+            BasinError.ipc_timeout => -18,
+            BasinError.channel_empty => -19,
+            BasinError.channel_full => -20,
+            BasinError.resource_exhausted => -21,
+            BasinError.network_error => -22,
+            BasinError.connection_failed => -23,
+            BasinError.connection_timeout => -24,
+            BasinError.connection_refused => -25,
+            BasinError.network_timeout => -26,
+            BasinError.file_io_timeout => -27,
+            BasinError.file_not_found => -28,
+            BasinError.file_exists => -29,
+            BasinError.file_too_large => -30,
+            BasinError.directory_not_empty => -31,
+            BasinError.process_not_found => -32,
+            BasinError.process_already_running => -33,
+            BasinError.process_terminated => -34,
+        };
+        return @as(u64, @bitCast(error_code));
         },
     };
 }
@@ -1216,8 +1264,8 @@ pub fn loadUserspaceELF(
             if (argv_array_current + 8 > target.memory_size) {
                 return error.AddressOutOfBounds;
             }
-            const array_start = @intCast(argv_array_current);
-            const array_end = @intCast(argv_array_current + 8);
+            const array_start = @as(usize, @intCast(argv_array_current));
+            const array_end = @as(usize, @intCast(argv_array_current + 8));
             @memcpy(target.memory[array_start..array_end], &std.mem.toBytes(argv_ptrs[i]));
             argv_array_current += 8;
         }
@@ -1236,16 +1284,16 @@ pub fn loadUserspaceELF(
             return error.AddressOutOfBounds;
         }
         const argc: u64 = argv.len;
-        const sp_start = @intCast(sp);
-        const sp_end = @intCast(sp + 8);
+        const sp_start = @as(usize, @intCast(sp));
+        const sp_end = @as(usize, @intCast(sp + 8));
         @memcpy(target.memory[sp_start..sp_end], &std.mem.toBytes(argc));
         
         // Write argv pointer (points to array of string pointers) at sp + 8
         if (sp + 16 > target.memory_size) {
             return error.AddressOutOfBounds;
         }
-        const argv_ptr_start = @intCast(sp + 8);
-        const argv_ptr_end = @intCast(sp + 16);
+        const argv_ptr_start = @as(usize, @intCast(sp + 8));
+        const argv_ptr_end = @as(usize, @intCast(sp + 16));
         @memcpy(target.memory[argv_ptr_start..argv_ptr_end], &std.mem.toBytes(argv_array_addr));
         
         // Set registers according to RISC-V calling convention

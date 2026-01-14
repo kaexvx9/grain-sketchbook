@@ -5,8 +5,10 @@
 const std = @import("std");
 const basin_kernel = @import("basin_kernel");
 const BasinKernel = basin_kernel.BasinKernel;
-const ProcessContext = basin_kernel.basin_kernel.ProcessContext;
-const RawIO = @import("basin_kernel").basin_kernel.RawIO;
+const ProcessContext = @import("process.zig").ProcessContext;
+const RawIO = basin_kernel.RawIO;
+const handle_syscall = basin_kernel.handle_syscall;
+const Syscall = basin_kernel.Syscall;
 
 // Test process context initialization.
 test "process context init" {
@@ -54,20 +56,14 @@ test "kernel spawn process context" {
     // Spawn a process.
     const executable: u64 = 0x1000;
     // Use syscall number directly (spawn = 1)
-    const result = kernel.handle_syscall(
-        1, // spawn syscall
-        executable,
-        0,
-        0,
-        0,
-    );
+    const spawn_num = @intFromEnum(Syscall.spawn);
+    const result = try handle_syscall(&kernel, spawn_num, executable, 0, 0, 0);
     
     // Assert: Spawn must succeed.
-    const result_unwrapped = try result;
-    try std.testing.expect(result_unwrapped == .success or result_unwrapped == .err);
-    if (result_unwrapped == .err) return error.TestUnexpectedError;
+    try std.testing.expect(result == .success or result == .err);
+    if (result == .err) return error.TestUnexpectedError;
     
-    const pid = result_unwrapped.success;
+    const pid = result.success;
     
     // Assert: Process must be current.
     try std.testing.expect(kernel.scheduler.is_current(pid));
@@ -118,18 +114,12 @@ test "process context after exit" {
     // Spawn a process.
     const executable: u64 = 0x1000;
     // Use syscall number directly (spawn = 1)
-    const spawn_result = kernel.handle_syscall(
-        1, // spawn syscall
-        executable,
-        0,
-        0,
-        0,
-    );
+    const spawn_num2 = @intFromEnum(Syscall.spawn);
+    const spawn_result = try handle_syscall(&kernel, spawn_num2, executable, 0, 0, 0);
     
-    const spawn_result_unwrapped = try spawn_result;
-    try std.testing.expect(spawn_result_unwrapped == .success or spawn_result_unwrapped == .err);
-    if (spawn_result_unwrapped == .err) return error.TestUnexpectedError;
-    const pid = spawn_result_unwrapped.success;
+    try std.testing.expect(spawn_result == .success or spawn_result == .err);
+    if (spawn_result == .err) return error.TestUnexpectedError;
+    const pid = spawn_result.success;
     
     // Set process context.
     var found: ?usize = null;
@@ -155,8 +145,7 @@ test "process context after exit" {
         0,
     );
     
-    const exit_result_unwrapped = try exit_result;
-    try std.testing.expect(exit_result_unwrapped == .success);
+    try std.testing.expect(exit_result == .success);
     
     // Assert: Process must be exited.
     try std.testing.expect(process_instance.state == .exited);
@@ -173,33 +162,19 @@ test "multiple processes contexts" {
     // Spawn first process.
     const exec1: u64 = 0x1000;
     // Use syscall number directly (spawn = 1)
-    const result1 = kernel.handle_syscall(
-        1, // spawn syscall
-        exec1,
-        0,
-        0,
-        0,
-    );
-    
-    const result1_unwrapped = try result1;
-    try std.testing.expect(result1_unwrapped == .success or result1_unwrapped == .err);
-    if (result1_unwrapped == .err) return error.TestUnexpectedError;
-    const pid1 = result1_unwrapped.success;
+    const spawn_num3 = @intFromEnum(Syscall.spawn);
+    const result1 = try handle_syscall(&kernel, spawn_num3, exec1, 0, 0, 0);
+    try std.testing.expect(result1 == .success or result1 == .err);
+    if (result1 == .err) return error.TestUnexpectedError;
+    const pid1 = result1.success;
     
     // Spawn second process.
     const exec2: u64 = 0x2000;
-    const result2 = kernel.handle_syscall(
-        1, // spawn syscall
-        exec2,
-        0,
-        0,
-        0,
-    );
-    
-    const result2_unwrapped = try result2;
-    try std.testing.expect(result2_unwrapped == .success or result2_unwrapped == .err);
-    if (result2_unwrapped == .err) return error.TestUnexpectedError;
-    const pid2 = result2_unwrapped.success;
+    const spawn_num4 = @intFromEnum(Syscall.spawn);
+    const result2 = try handle_syscall(&kernel, spawn_num4, exec2, 0, 0, 0);
+    try std.testing.expect(result2 == .success or result2 == .err);
+    if (result2 == .err) return error.TestUnexpectedError;
+    const pid2 = result2.success;
     
     // Assert: Both processes must have unique IDs.
     try std.testing.expect(pid1 != pid2);
