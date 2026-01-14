@@ -24,5 +24,5 @@ _start:
 .global _stack_bottom
 .global _stack_top
 _stack_bottom:
-    .skip 4096 * 4 # 16KB stack
+    .skip 4096 * 32 # 128KB stack (increased from 64KB to handle nested function calls with large socket arrays)
 _stack_top:

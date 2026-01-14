@@ -163,7 +163,7 @@ pub fn auth_middleware(
             );
             return false;
         }
-        _ = token;
+        // token validated (length checked above), reserved for future authentication logic
         return true;
     }
     write_json_error_response(

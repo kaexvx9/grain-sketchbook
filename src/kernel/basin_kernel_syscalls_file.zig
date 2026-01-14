@@ -18,6 +18,7 @@ const MAX_DIR_HANDLES = types.MAX_DIR_HANDLES;
 // Import core
 const core = @import("basin_kernel_core.zig");
 const BasinKernel = core.BasinKernel;
+const can_open_file_descriptor = core.can_open_file_descriptor;
 
 /// File syscall handlers for BasinKernel.
 /// Why: Extract file system syscalls to separate module for organization.
@@ -95,7 +96,7 @@ pub const FileSyscalls = struct {
         // Check file descriptor limit for current process.
         if (current_process_idx) |idx| {
             const current_process = &self.processes[idx];
-            if (!self.can_open_file_descriptor(self, current_process)) {
+            if (!self.can_open_file_descriptor(current_process)) {
                 return SyscallResult.fail(BasinError.resource_exhausted); // File descriptor limit exceeded
             }
         }

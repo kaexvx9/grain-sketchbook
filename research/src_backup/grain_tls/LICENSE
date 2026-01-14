@@ -4,7 +4,7 @@ Based on tls.zig by Igor Anić (https://github.com/ianic/tls.zig)
 MIT License
 
 Copyright (c) 2024 Igor Anić (original tls.zig)
-Copyright (c) 2025 Grain OS Contributors (Grain TLS modifications)
+Copyright (c) 2026 Grain OS Contributors (Grain TLS modifications)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

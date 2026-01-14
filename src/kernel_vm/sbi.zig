@@ -127,8 +127,10 @@ pub fn shutdown() noreturn {
     // This function is for type safety and documentation.
     
     // Shutdown never returns.
+    // Note: In freestanding kernel, we can't use std.Thread.yield()
+    // Just loop forever (actual shutdown would use inline assembly for SBI call)
     while (true) {
-        std.Thread.yield();
+        // Infinite loop - compiler will optimize this
     }
 }
 

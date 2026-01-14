@@ -26,8 +26,8 @@ pub const IntegratedFileIO = struct {
     pub fn init(
         storage_manager: *integrated_file_storage.IntegratedFileStorageManager,
     ) IntegratedFileIO {
-        std.debug.assert(storage_manager != null);
-        var io = IntegratedFileIO{
+        // storage_manager is a non-nullable pointer, no null check needed
+        const io = IntegratedFileIO{
             .storage_manager = storage_manager,
             .compression_enabled = false,
             .encryption_enabled = false,

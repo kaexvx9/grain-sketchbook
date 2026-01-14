@@ -51,7 +51,7 @@ You should see the Grain OS boot banner:
 \____/_/   \__,_/_/_/ /_/   \____//____/  
                                           
 Grain Basin Kernel v0.1.0 (RISC-V64)
-Copyright (c) 2025 Team Carry
+Copyright (c) 2026 Team Carry
 
 [kernel] Initializing Basin...
 [kernel] Users initialized: 2

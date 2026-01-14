@@ -15,9 +15,15 @@ term sustainability. risc-v unifies both directions.
 current status:
 - jit compiler: complete (risc-v -> aarch64, risc-v -> x86_64)
 - vantage integration: complete
-- kernel boot: implementing
+- kernel boot: ✅ working (boots successfully, enters REPL)
 - sevenos init system: phases 1-6 complete
 - grainscript shell: step 4 ready
+
+quick start:
+- build kernel: `zig build kernel-rv64`
+- run in qemu: `./run_qemu.sh`
+- kernel boots and enters grainscript repl
+- type 'help' in repl for available commands
 
 architecture:
 framework x86_64 ubuntu (native host)
@@ -66,6 +72,18 @@ this is not a sprint. this is a marathon. we build for the long
 term, we code for the ages. every function a lesson, every module a
 chapter in the book of understanding. the work continues, one commit
 at a time, one function at a time, one lesson at a time.
+
+building and running:
+- kernel: `zig build kernel-rv64` (output: zig-out/bin/grain-rv64)
+- tests: `zig build test` (runs 21 essential tests)
+- qemu: `./run_qemu.sh` (requires qemu-system-riscv64)
+- verbose debug: set `Debug.set_verbose(true)` in main.zig
+
+kernel debugging:
+- see docs/2026-01-13-045414-pst_debugging_pattern.md for debug patterns
+- use Debug.vprint() for detailed debugging (filtered by verbose mode)
+- use Debug.log() for structured logging
+- avoid RawIO.write() in production code (temporary debugging only)
 
 keaton dunsford
 email: kj3x39@gmail.com

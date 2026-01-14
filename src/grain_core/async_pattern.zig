@@ -84,7 +84,7 @@ pub fn publish_http_request_failed(
     event_bus: anytype,
     request_id: u32,
     agent_id: u32,
-    error: http_errors.HttpClientError,
+    http_error: http_errors.HttpClientError,
     timestamp: u64,
 ) bool {
     std.debug.assert(request_id > 0);
@@ -92,7 +92,7 @@ pub fn publish_http_request_failed(
     std.debug.assert(timestamp > 0);
     var payload: [MAX_ASYNC_PAYLOAD_SIZE]u8 = undefined;
     var payload_len: u32 = 0;
-    const error_json = format_http_error_json(error, &payload, &payload_len);
+    const error_json = format_http_error_json(http_error, &payload, &payload_len);
     if (!error_json) {
         return false;
     }
@@ -142,12 +142,12 @@ fn format_http_response_json(
 
 // Format HTTP error as JSON for event payload.
 fn format_http_error_json(
-    error: http_errors.HttpClientError,
+    http_error: http_errors.HttpClientError,
     payload_out: []u8,
     payload_len_out: *u32,
 ) bool {
     std.debug.assert(payload_out.len >= MAX_ASYNC_PAYLOAD_SIZE);
-    const error_msg = http_errors.get_http_error_message(error);
+    const error_msg = http_errors.get_http_error_message(http_error);
     var pos: u32 = 0;
     payload_out[pos] = '{';
     pos += 1;

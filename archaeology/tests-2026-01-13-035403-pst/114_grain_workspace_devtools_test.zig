@@ -70,13 +70,13 @@ test "add linter message" {
     const allocator = testing.allocator;
 
     var app = DevToolsApp.init(allocator);
-    const result = app.add_linter_message("test.zig", 10, 5, .warning, "Unused variable");
+    const result = app.add_linter_message("test.zig", 10, 5, LinterSeverity.warning, "Unused variable");
 
     try testing.expect(result == true);
     try testing.expect(app.linter_messages_len == 1);
     try testing.expect(app.linter_messages[0] != null);
     try testing.expect(app.linter_messages[0].?.line_number == 10);
-    try testing.expect(app.linter_messages[0].?.severity == .warning);
+    try testing.expect(app.linter_messages[0].?.severity == LinterSeverity.warning);
 }
 
 test "add test result" {
@@ -122,8 +122,8 @@ test "clear linter messages" {
     const allocator = testing.allocator;
 
     var app = DevToolsApp.init(allocator);
-    _ = app.add_linter_message("test.zig", 10, 5, .warning, "Message 1");
-    _ = app.add_linter_message("test.zig", 20, 3, .error, "Message 2");
+    _ = app.add_linter_message("test.zig", 10, 5, LinterSeverity.warning, "Message 1");
+    _ = app.add_linter_message("test.zig", 20, 3, LinterSeverity.error, "Message 2");
     try testing.expect(app.linter_messages_len == 2);
 
     app.clear_linter_messages();
@@ -168,7 +168,7 @@ test "lint grain style line length violation" {
     try testing.expect(violations > 0);
     try testing.expect(app.linter_messages_len > 0);
     try testing.expect(app.linter_messages[0] != null);
-    try testing.expect(app.linter_messages[0].?.severity == .error);
+    try testing.expect(app.linter_messages[0].?.severity == LinterSeverity.error);
 }
 
 test "lint grain style usize violation" {
@@ -226,7 +226,7 @@ test "get linter messages" {
     // Add some linter messages
     _ = app.add_linter_message("test.zig", 10, 5, .warning, "Message 1");
     _ = app.add_linter_message("test.zig", 20, 3, .error, "Message 2");
-    _ = app.add_linter_message("other.zig", 5, 1, .info, "Message 3");
+    _ = app.add_linter_message("other.zig", 5, 1, LinterSeverity.info, "Message 3");
 
     var messages: [10]?DevToolsApp.LinterMessage = undefined;
     var messages_len: u32 = 0;

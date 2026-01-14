@@ -65,16 +65,16 @@ pub fn aarch64_to_unified(aarch64_id: u32) InterruptType {
     }
     
     // Map AArch64 interrupt IDs to unified types.
-    return if (aarch64_id < 16) {
+    if (aarch64_id < 16) {
         // SGI (Software Generated Interrupt): 0-15
-        .software
+        return .software;
     } else if (aarch64_id >= 27 and aarch64_id <= 30) {
         // PPI Timer interrupts: 27-30
-        .timer
+        return .timer;
     } else {
         // PPI/SPI External interrupts: 16-26, 31, 32-1019
-        .external
-    };
+        return .external;
+    }
 }
 
 /// Unified interrupt type to AArch64 interrupt ID conversion.

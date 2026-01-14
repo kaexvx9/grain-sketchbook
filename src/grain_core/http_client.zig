@@ -196,10 +196,13 @@ pub const HttpClient = struct {
     ) HttpClient {
         std.debug.assert(net_stack != null);
         std.debug.assert(resolver != null);
-        fn get_nano_timestamp() u64 {
-            return std.time.nanoTimestamp();
-        }
-        const pool = connection_pool.ConnectionPool.init(get_nano_timestamp);
+        // Create time function wrapper
+        const get_nano_timestamp_wrapper: *const fn () u64 = struct {
+            fn wrapper() u64 {
+                return std.time.nanoTimestamp();
+            }
+        }.wrapper;
+        const pool = connection_pool.ConnectionPool.init(get_nano_timestamp_wrapper);
         var client = HttpClient{
             .requests = undefined,
             .requests_len = 0,
@@ -452,9 +455,9 @@ pub const HttpClient = struct {
         std.debug.assert(self.current_time_fn != null);
         std.debug.assert(self.allocator != null);
         const transfer_mgr = self.transfer_manager.?;
-        const file_io_mgr = self.file_io.?;
+        _ = self.file_io; // Reserved for future use
         const time_fn = self.current_time_fn.?;
-        const alloc = self.allocator.?;
+        _ = self.allocator; // Reserved for future use
         const current_time = time_fn();
         const file_size: u64 = 0;
         const transfer_id_opt = transfer_mgr.create_download(
@@ -472,7 +475,7 @@ pub const HttpClient = struct {
             _ = transfer_mgr.cancel_transfer(transfer_id);
             return http_errors.HttpClientError.request_failed;
         }
-        const req = req_opt.?;
+        // req_opt validated above (not null), reserved for future use in request execution
         std.debug.assert(transfer_id > 0);
         return transfer_id;
     }

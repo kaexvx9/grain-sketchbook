@@ -4,7 +4,9 @@
 
 const std = @import("std");
 const builtin = @import("builtin");
-const Debug = @import("../kernel/debug.zig");
+// Import Debug through basin_kernel module to avoid module conflicts.
+const basin_kernel = @import("basin_kernel");
+const Debug = basin_kernel.Debug;
 const host_macos = @import("host_macos.zig");
 
 /// Host memory protection flags.
@@ -274,7 +276,8 @@ fn macos_get_performance_counter(counter_id: u32) u64 {
     // This function is for future integration with macOS hardware performance counters
     // (e.g., via mach_absolute_time, Instruments integration).
     // For now, return 0 (VM statistics track counters directly).
-    _ = counter_id;
+    // counter_id is validated above via kassert (counts as usage)
+    // Future: Use counter_id to access macOS hardware performance counters
     return 0;
 }
 

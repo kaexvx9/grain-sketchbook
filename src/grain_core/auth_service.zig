@@ -2665,5 +2665,5 @@ pub fn init_with_validation(secret: []const u8) SecretError!AuthService {
     if (!validation.is_valid) {
         return error.InvalidSecret;
     }
-    return init(secret);
+    return AuthService.init(secret);
 }

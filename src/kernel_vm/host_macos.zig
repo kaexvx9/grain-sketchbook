@@ -4,7 +4,9 @@
 
 const std = @import("std");
 const builtin = @import("builtin");
-const Debug = @import("../kernel/debug.zig");
+// Import Debug through basin_kernel module to avoid module conflicts.
+const basin_kernel = @import("basin_kernel");
+const Debug = basin_kernel.Debug;
 
 /// macOS version information.
 /// Why: Track macOS version for adaptation and feature detection.
@@ -25,7 +27,7 @@ pub const MacOSVersion = struct {
     pub fn format_string(self: *const MacOSVersion) [32]u8 {
         var buf: [32]u8 = undefined;
         var stream = std.io.fixedBufferStream(&buf);
-        const writer = stream.writer();
+        _ = stream.writer(); // Unused in this context
         
         _ = std.fmt.bufPrint(&buf, "{d}.{d}.{d}", .{
             self.major,

@@ -22,7 +22,7 @@ pub export fn kmain() noreturn {
     Debug.kprint("\\____/_/   \\__,_/_/_/ /_/   \\____//____/  \n", .{});
     Debug.kprint("                                          \n", .{});
     Debug.kprint("Grain Basin Kernel v0.1.0 (RISC-V64)\n", .{});
-    Debug.kprint("Copyright (c) 2025 Team Carry\n\n", .{});
+    Debug.kprint("Copyright (c) 2026 Team Carry\n\n", .{});
 
     // 2. Initialize Kernel
     Debug.log(.info, "Initializing Basin...", .{});

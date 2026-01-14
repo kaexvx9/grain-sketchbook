@@ -124,22 +124,21 @@ test "breadth-first search traversal" {
     var visited: [10000]bool = undefined;
     var visit_count: u32 = 0;
 
-    const Visitor = struct {
-        count: *u32,
-        fn visit(node_id: u64) void {
-            _ = node_id;
-            count.* += 1;
-        }
-    };
-
-    var visitor_state = Visitor{ .count = &visit_count };
     const visitor_fn = struct {
+        count_ptr: *u32,
+        fn call(self: *@This(), node_id: u64) void {
+            _ = node_id;
+            self.count_ptr.* += 1;
+        }
+    }{ .count_ptr = &visit_count };
+
+    const wrapper_fn = struct {
         fn call(node_id: u64) void {
-            visitor_state.visit(node_id);
+            visitor_fn.call(&visitor_fn, node_id);
         }
     }.call;
 
-    try graph.traverse_bfs(node1_id, visitor_fn, &visited);
+    try graph.traverse_bfs(node1_id, wrapper_fn, &visited);
     try testing.expect(visit_count >= 1);
 }
 
@@ -157,22 +156,21 @@ test "depth-first search traversal" {
     var visited: [10000]bool = undefined;
     var visit_count: u32 = 0;
 
-    const Visitor = struct {
-        count: *u32,
-        fn visit(node_id: u64) void {
-            _ = node_id;
-            count.* += 1;
-        }
-    };
-
-    var visitor_state = Visitor{ .count = &visit_count };
     const visitor_fn = struct {
+        count_ptr: *u32,
+        fn call(self: *@This(), node_id: u64) void {
+            _ = node_id;
+            self.count_ptr.* += 1;
+        }
+    }{ .count_ptr = &visit_count };
+
+    const wrapper_fn = struct {
         fn call(node_id: u64) void {
-            visitor_state.visit(node_id);
+            visitor_fn.call(&visitor_fn, node_id);
         }
     }.call;
 
-    try graph.traverse_dfs(node1_id, visitor_fn, &visited);
+    try graph.traverse_dfs(node1_id, wrapper_fn, &visited);
     try testing.expect(visit_count >= 1);
 }
 

@@ -130,7 +130,7 @@ pub fn compress(
     std.debug.assert(allocator != null);
     return switch (algorithm) {
         .none => {
-            var result = try allocator.alloc(u8, data.len);
+            const result = try allocator.alloc(u8, data.len);
             @memcpy(result, data);
             return result;
         },
@@ -149,7 +149,7 @@ pub fn decompress(
     std.debug.assert(allocator != null);
     return switch (algorithm) {
         .none => {
-            var result = try allocator.alloc(u8, compressed_data.len);
+            const result = try allocator.alloc(u8, compressed_data.len);
             @memcpy(result, compressed_data);
             return result;
         },

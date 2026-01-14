@@ -1,6 +1,6 @@
 const std = @import("std");
-const AiProvider = @import("aurora_ai_provider.zig").AiProvider;
-const Glm46Client = @import("aurora_glm46.zig").Glm46Client;
+const AiProvider = @import("aurora_ai_provider").AiProvider;
+const Glm46Client = @import("aurora_glm46").Glm46Client;
 
 /// GLM-4.6 Provider: GLM-4.6-specific implementation of AI provider interface.
 /// ~<~ Glow Airbend: explicit GLM-4.6 API calls, bounded context windows.

@@ -26,10 +26,10 @@ pub const GrainLoom = struct {
         var terminal = GrainBuffer.init(allocator);
         try terminal.append(command_line);
         try terminal.append("\n");
-        const status_start = terminal.textSlice().len;
+        const status_start: u32 = @intCast(terminal.textSlice().len);
         try terminal.append(status_line);
         try terminal.append("\n");
-        const status_len = terminal.textSlice().len - status_start - 1; // exclude newline
+        const status_len: u32 = @intCast(terminal.textSlice().len - status_start - 1); // exclude newline
         try terminal.markReadOnly(status_start, status_start + status_len);
 
         return GrainLoom{
@@ -56,13 +56,13 @@ pub const GrainLoom = struct {
 
     pub fn updateStatus(self: *GrainLoom, status_line: []const u8) !void {
         if (status_line.len > self.status.len) return error.StatusTooLong;
-        try self.terminal.overwriteSystem(self.status.start, status_line);
+        try self.terminal.overwriteSystem(@intCast(self.status.start), status_line);
         const pad = self.status.len - status_line.len;
         if (pad > 0) {
             const scratch = try self.allocator.alloc(u8, pad);
             defer self.allocator.free(scratch);
             @memset(scratch, ' ');
-            try self.terminal.overwriteSystem(self.status.start + status_line.len, scratch);
+            try self.terminal.overwriteSystem(@intCast(self.status.start + status_line.len), scratch);
         }
     }
 

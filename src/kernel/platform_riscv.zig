@@ -4,7 +4,8 @@
 
 const std = @import("std");
 const Debug = @import("debug.zig");
-const sbi = @import("../kernel_vm/sbi.zig");
+// Use module import for SBI (provided by build.zig for kernel build) or fallback to file import for tests
+const sbi = @import("sbi");
 const platform = @import("platform.zig");
 
 /// RISC-V platform function implementation.
@@ -54,14 +55,15 @@ pub fn platform_call_riscv(
             const result = sbi.console_getchar();
             
             // Map SBI result to platform result.
+            // Note: ConsoleGetcharResult has .NoChar and catch-all `_` for character value
             return switch (result) {
                 .NoChar => platform.PlatformResult{
                     .error_code = -1, // Failed (no character)
                     .value = -1,
                 },
-                .Char => |char| platform.PlatformResult{
+                _ => platform.PlatformResult{
                     .error_code = 0, // Success
-                    .value = @as(i64, @intCast(char)),
+                    .value = @intFromEnum(result), // Convert enum to integer
                 },
             };
         },
@@ -89,14 +91,22 @@ pub fn platform_call_riscv(
     };
 }
 
+// Static counter for time source (increments each call)
+var time_call_counter: u64 = 0;
+
 /// Get current time in nanoseconds since epoch.
 /// Why: Provide time source for freestanding RISC-V kernel.
 /// Contract: Returns monotonic time (or fixed value for stub).
 /// Note: This is a stub - actual implementation should use RISC-V timer.
+/// For now, use a simple counter that increments to provide monotonic time.
 pub fn get_time_ns() u64 {
-    // Stub: Return a fixed time value for now.
+    // Stub: Use a simple counter-based approach for now.
     // Actual implementation should read RISC-V time CSR (time register).
-    // For now, use a reasonable fixed value to allow compilation.
-    const FIXED_TIME_NS: u64 = 1703000000 * 1000000000; // Jan 2024
-    return FIXED_TIME_NS;
+    // For now, use a base time + incrementing counter to provide monotonic time.
+    const BASE_TIME_NS: u64 = 1703000000 * 1000000000; // Jan 2024
+    // Increment counter each call
+    time_call_counter += 1;
+    // Return base time + counter (in nanoseconds)
+    // Increment by 1ms (1,000,000 ns) per call to simulate time passing
+    return BASE_TIME_NS + (time_call_counter * 1000000);
 }

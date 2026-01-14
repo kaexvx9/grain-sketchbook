@@ -1,6 +1,7 @@
 const Panic = @import("panic.zig");
 const Trap = @import("trap.zig");
 const BasinKernel = @import("basin_kernel.zig").BasinKernel;
+const BasinKernelCore = @import("basin_kernel_core.zig").BasinKernel;
 const Debug = @import("debug.zig");
 const Framebuffer = @import("framebuffer.zig").Framebuffer;
 const boot = @import("boot.zig");
@@ -36,11 +37,19 @@ pub export fn kmain() noreturn {
     Debug.kprint("\\____/_/   \\__,_/_/_/ /_/   \\____//____/  \n", .{});
     Debug.kprint("                                          \n", .{});
     Debug.kprint("Grain Basin Kernel v0.1.0 (RISC-V64)\n", .{});
-    Debug.kprint("Copyright (c) 2025 Team Carry\n\n", .{});
+    Debug.kprint("Copyright (c) 2026 Team Carry\n\n", .{});
 
     // 2. Initialize Kernel
     Debug.log(.info, "Initializing Basin...", .{});
-    kernel = BasinKernel.init();
+    // Note: Use init_in_place() to avoid stack overflow (BasinKernel is ~76KB, stack is only 16KB)
+    // Verbose mode can be enabled via CLI flag (future: kernel parameter)
+    // For now, verbose mode is disabled by default (set to true for detailed debugging)
+    Debug.set_verbose(false);
+    
+    Debug.vprint("Starting kernel initialization...", .{});
+    const kernel_ptr = &kernel;
+    @call(.auto, BasinKernelCore.init_in_place, .{kernel_ptr});
+    Debug.vprint("Kernel initialization complete", .{});
     
     // 3. Execute boot sequence (validate all subsystems initialized).
     // Why: Ensure all subsystems are initialized in correct order.
@@ -58,9 +67,17 @@ pub export fn kmain() noreturn {
     // We'll use a syscall-based approach for kernel framebuffer access in the future.
     
     Debug.log(.info, "Framebuffer available at 0x90000000 (initialized by VM).", .{});
-    Debug.log(.info, "System ready. Entering trap loop.", .{});
+    Debug.log(.info, "System ready.", .{});
 
-    // 5. Enter trap loop (handles interrupts and exceptions)
+    // 5. Start REPL (interactive mode for development)
+    // Why: Provide interactive command interface for development and testing.
+    // Note: In production, this would spawn init process instead.
+    const repl_mod = @import("repl.zig");
+    var repl = repl_mod.Repl.init(&kernel);
+    repl.run();
+
+    // 6. Enter trap loop (handles interrupts and exceptions)
     // Why: Process pending interrupts and handle exceptions in main loop.
+    // Note: This is reached if REPL exits.
     Trap.loop_with_kernel(&kernel);
 }

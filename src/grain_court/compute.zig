@@ -1,6 +1,6 @@
-const std = @import("std");
-
 //! Grain Court Compute: WSE-wafer-scale SRAM spatial computing abstraction for self-hostable LLM backend.
+
+const std = @import("std");
 //!
 //! This module provides an abstraction layer for Cerebras WSE (Wafer-Scale Engine) hardware,
 //! enabling efficient spatial computing for LLM inference and related operations. The abstraction

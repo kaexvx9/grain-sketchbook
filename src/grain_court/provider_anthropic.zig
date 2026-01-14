@@ -92,8 +92,8 @@ fn parse_anthropic_response(
                 &out_tokens_result,
             )) |tokens| {
                 if (tokens > 0) {
-                    response.output_tokens = @intCast(tokens);
-                    response.tokens_used = response.input_tokens + @intCast(tokens);
+                    response.output_tokens = @as(u32, @truncate(tokens));
+                    response.tokens_used = response.input_tokens + @as(u32, @truncate(tokens));
                 }
             }
         }

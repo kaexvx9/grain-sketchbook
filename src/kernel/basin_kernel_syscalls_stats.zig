@@ -182,7 +182,7 @@ pub const StatsSyscalls = struct {
         // Count open file descriptors for this process.
         var file_descriptor_count: u32 = 0;
         for (self.handles) |handle| {
-            if (handle.allocated and handle.owner_process_id == @intCast(pid)) {
+            if (handle.allocated and handle.owner_process_id == @as(u32, @truncate(pid))) {
                 file_descriptor_count += 1;
             }
         }
@@ -208,10 +208,10 @@ pub const StatsSyscalls = struct {
         };
         
         // Stub: In a real VM, this would write the ResourceUsage struct to VM memory at usage_ptr.
-        _ = usage;
+        // Note: usage is validated below but not written to VM memory (stub).
         
         // Assert: Usage must be valid.
-        Debug.kassert(usage.pid == @intCast(pid), "Usage PID mismatch", .{});
+        Debug.kassert(usage.pid == @as(u32, @truncate(pid)), "Usage PID mismatch", .{});
         
         const result = SyscallResult.ok(0);
         

@@ -30,9 +30,9 @@ pub const FileTransferIntegrationContext = struct {
         std.debug.assert(@intFromPtr(current_time_fn) != 0);
         std.debug.assert(default_user_id > 0);
         std.debug.assert(default_group_id > 0);
-        var storage_mgr = integrated_file_storage.IntegratedFileStorageManager.init(current_time_fn);
-        var io = integrated_file_io.IntegratedFileIO.init(&storage_mgr);
-        var context = FileTransferIntegrationContext{
+        const storage_mgr = integrated_file_storage.IntegratedFileStorageManager.init(current_time_fn);
+        const io = integrated_file_io.IntegratedFileIO.init(&storage_mgr);
+        const context = FileTransferIntegrationContext{
             .transfer_manager = file_transfer.FileTransferManager.init(),
             .mime_detector = file_mime_type.FileMimeTypeDetector.init(),
             .file_io = io,

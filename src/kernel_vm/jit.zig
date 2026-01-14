@@ -1405,13 +1405,11 @@ pub const JitContext = struct {
         defer self.protect_code();
 
         const start_offset: u32 = self.cursor;
-        var current_pc = guest_pc;
-        var instructions_in_block: u32 = 0;
 
         if (self.block_cache.get(guest_pc)) |addr| {
             return self.get_cached_block(addr);
         }
-
+        
         // Check compilation threshold before compiling.
         if (!self.should_compile_block(guest_pc)) {
             // Threshold not met: track deferral and return error.
@@ -1423,6 +1421,7 @@ pub const JitContext = struct {
         self.perf_counters.cache_misses += 1;
         
         // Dispatch to backend-specific compilation.
+        // Note: compile_block_x86_64/arm64 create their own current_pc and instructions_in_block
         return switch (self.backend) {
             .arm64 => self.compile_block_arm64(guest_pc, start_offset),
             .x86_64 => self.compile_block_x86_64(guest_pc, start_offset),
@@ -1531,6 +1530,7 @@ pub const JitContext = struct {
     /// Contract: Adds source register to destination register.
     /// GrainStyle: Explicit instruction encoding, deterministic behavior.
     pub fn emit_add_x86_64(self: *JitContext, rd: u5, rn: u5, rm: u5) void {
+        _ = rd; // rd not used in ADD encoding (result stored in rn)
         std.debug.assert(self.cursor + 4 <= self.code_buffer.len);
         const start_cursor = self.cursor;
         
@@ -1733,6 +1733,7 @@ pub const JitContext = struct {
     /// GrainStyle: Explicit instruction encoding, deterministic behavior.
     /// Note: R13 is set by enter_jit_x86_64() to point to guest_ram.
     pub fn emit_ldr_x86_64(self: *JitContext, rt: u5, base: u5, offset: i32) void {
+        _ = base; // base not used (always uses R13 as guest_ram pointer)
         std.debug.assert(self.cursor + 7 <= self.code_buffer.len);
         const start_cursor = self.cursor;
         
@@ -1764,6 +1765,7 @@ pub const JitContext = struct {
     /// GrainStyle: Explicit instruction encoding, deterministic behavior.
     /// Note: R13 is set by enter_jit_x86_64() to point to guest_ram.
     pub fn emit_str_x86_64(self: *JitContext, rt: u5, base: u5, offset: i32) void {
+        _ = base; // base not used (always uses R13 as guest_ram pointer)
         std.debug.assert(self.cursor + 7 <= self.code_buffer.len);
         const start_cursor = self.cursor;
         
@@ -1884,6 +1886,7 @@ pub const JitContext = struct {
     /// Contract: Performs bitwise AND and stores result in destination.
     /// GrainStyle: Explicit instruction encoding, deterministic behavior.
     pub fn emit_and_x86_64(self: *JitContext, rd: u5, rn: u5, rm: u5) void {
+        _ = rd; // rd not used in AND encoding (result stored in rn)
         std.debug.assert(self.cursor + 4 <= self.code_buffer.len);
         const start_cursor = self.cursor;
         
@@ -1907,6 +1910,7 @@ pub const JitContext = struct {
     /// Contract: Performs bitwise OR and stores result in destination.
     /// GrainStyle: Explicit instruction encoding, deterministic behavior.
     pub fn emit_or_x86_64(self: *JitContext, rd: u5, rn: u5, rm: u5) void {
+        _ = rd; // rd not used in OR encoding (result stored in rn)
         std.debug.assert(self.cursor + 4 <= self.code_buffer.len);
         const start_cursor = self.cursor;
         
@@ -1930,6 +1934,7 @@ pub const JitContext = struct {
     /// Contract: Performs bitwise XOR and stores result in destination.
     /// GrainStyle: Explicit instruction encoding, deterministic behavior.
     pub fn emit_xor_x86_64(self: *JitContext, rd: u5, rn: u5, rm: u5) void {
+        _ = rd; // rd not used in XOR encoding (result stored in rn)
         std.debug.assert(self.cursor + 4 <= self.code_buffer.len);
         const start_cursor = self.cursor;
         
@@ -1953,6 +1958,7 @@ pub const JitContext = struct {
     /// Contract: Subtracts source from destination and stores result.
     /// GrainStyle: Explicit instruction encoding, deterministic behavior.
     pub fn emit_sub_x86_64(self: *JitContext, rd: u5, rn: u5, rm: u5) void {
+        _ = rd; // rd not used in SUB encoding (result stored in rn)
         std.debug.assert(self.cursor + 4 <= self.code_buffer.len);
         const start_cursor = self.cursor;
         
@@ -2286,8 +2292,8 @@ pub const JitContext = struct {
                 // Why: ECALL not JIT-compiled per syscall interface documentation.
                 // Strategy: Return error to trigger interpreter fallback.
                 // GrainStyle: Explicit fallback handling, deterministic behavior.
-                _ = inst;
-                _ = current_pc;
+                // Note: inst and current_pc are function parameters but not used in this fallback path
+                _ = .{ inst, current_pc };
                 self.perf_counters.interpreter_fallbacks += 1;
                 return error.InvalidInstruction; // Fall back to interpreter
             },

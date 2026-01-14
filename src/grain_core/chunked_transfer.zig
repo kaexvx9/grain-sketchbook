@@ -158,7 +158,7 @@ pub fn parse_chunked_body(
     body_len_out.* = 0;
     var pos: u32 = 0;
     while (pos < input.len) {
-        var chunk_header_start = pos;
+        const chunk_header_start = pos;
         var chunk_header_end = pos;
         while (chunk_header_end < input.len and input[chunk_header_end] != '\r') : (chunk_header_end += 1) {}
         if (chunk_header_end >= input.len) {

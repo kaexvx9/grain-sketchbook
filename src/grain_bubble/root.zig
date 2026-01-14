@@ -7,11 +7,6 @@
 //! 2025-12-21-102906-pst: Grain Bubble Agent
 //! 2026-01-01-235500-pst: Enhanced module documentation (Glow G2 voice)
 
-//! Core Canvas Modules
-//! These modules provide the foundation for the design canvas.
-
-//! Infinite canvas with zoom, pan, and shape management.
-//! Use this for canvas data structures, viewport transformations, and shape operations.
 pub const canvas = @import("canvas.zig");
 
 //! Bubble renderer for drawing rounded rectangles and shapes.

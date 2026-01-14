@@ -10,31 +10,20 @@ const VM = kernel_vm.VM;
 const basin_kernel = @import("basin_kernel");
 const BasinKernel = basin_kernel.BasinKernel;
 const Syscall = basin_kernel.Syscall;
+const BasinError = basin_kernel.BasinError;
+const SyscallResult = basin_kernel.SyscallResult;
 
 // Test execution bounds (Grain Style: explicit limits).
 const MAX_TEST_STEPS: u32 = 1000; // Maximum steps for test execution.
 const MAX_SYSCALL_ITERATIONS: u32 = 100; // Maximum syscall iterations per test.
 
-/// Helper: Create VM and kernel with integration layer initialized.
-/// Why: Reduce test boilerplate, ensure consistent setup across tests.
-/// Contract: Returns initialized Integration instance, VM ready for syscalls.
-/// GrainStyle: In-place initialization pattern, explicit types.
-fn create_test_integration() struct { vm: VM, kernel: BasinKernel, integration: Integration } {
-    var vm: VM = undefined;
-    VM.init(&vm, &[_]u8{}, 0x80000000);
-    
-    var kernel = BasinKernel.init();
-    
-    var integration = Integration.init_with_kernel(&vm, &kernel);
-    integration.finish_init();
-    
-    // Assert: Integration must be initialized (postcondition).
-    std.debug.assert(integration.initialized);
-    
-    // Assert: VM must be in halted state (postcondition).
-    std.debug.assert(vm.state == .halted);
-    
-    return .{ .vm = vm, .kernel = kernel, .integration = integration };
+/// Helper: Create kernel only (no VM/Integration needed for these tests).
+/// Why: These tests only need kernel, not full integration stack.
+/// GrainStyle: Simple stack allocation (BasinKernel is ~76KB, fits on stack).
+fn create_test_kernel() BasinKernel {
+    // Note: BasinKernel is ~76KB, which fits on stack (unlike VM's 8MB)
+    const kernel = BasinKernel.init();
+    return kernel;
 }
 
 // Test: File I/O sequence (open -> read -> write -> close).
@@ -43,18 +32,17 @@ test "syscall combination: file I/O sequence" {
     // Methodology: Open file, read from it, write to it, close it.
     // Why: File I/O is a common operation pattern that must work correctly.
     
-    const test_setup = create_test_integration();
-    var kernel = test_setup.kernel;
+    const kernel = try create_test_kernel();
+    defer testing.allocator.destroy(kernel);
     
     // Test file I/O sequence using kernel syscalls directly.
     // Note: File operations require valid file handles and paths.
     // For this test, we verify the syscall interface works correctly.
     
     // Test open syscall (syscall number 30).
-    const open_result = kernel.handle_syscall(@intFromEnum(Syscall.open), 0, 0, 0, 0) catch |err| {
+    const open_result = basin_kernel.handle_syscall(&kernel, @intFromEnum(Syscall.open), 0, 0, 0, 0) catch {
         // Open may fail with invalid arguments (expected for test setup).
         // Why: We're testing syscall combination, not full file system setup.
-        _ = err;
         return;
     };
     
@@ -71,18 +59,13 @@ test "syscall combination: process lifecycle" {
     // Methodology: Spawn process, wait for it, verify it exits.
     // Why: Process lifecycle is fundamental to kernel operation.
     
-    const test_setup = create_test_integration();
-    var kernel = test_setup.kernel;
+    const kernel = try create_test_kernel();
+    defer testing.allocator.destroy(kernel);
     
     // Test spawn syscall (syscall number 1).
-    // Note: spawn is handled by process syscalls, not handle_syscall directly.
-    // For this test, we verify the syscall interface exists.
-    
-    // Test spawn via process syscalls.
-    const spawn_result = kernel.syscall_spawn(0x1000, 0, 0, 0) catch |err| {
+    const spawn_result = basin_kernel.handle_syscall(&kernel, @intFromEnum(Syscall.spawn), 0x1000, 0, 0, 0) catch {
         // Spawn may fail with invalid arguments (expected for test setup).
         // Why: We're testing syscall combination, not full process setup.
-        _ = err;
         return;
     };
     
@@ -91,9 +74,8 @@ test "syscall combination: process lifecycle" {
         const process_id = spawn_result.success;
         
         // Test wait syscall (syscall number 4).
-        const wait_result = kernel.syscall_wait(process_id, 0, 0, 0) catch |err| {
+        const wait_result = basin_kernel.handle_syscall(&kernel, @intFromEnum(Syscall.wait), process_id, 0, 0, 0) catch {
             // Wait may fail if process doesn't exist or hasn't exited.
-            _ = err;
             return;
         };
         
@@ -108,23 +90,21 @@ test "syscall combination: memory management sequence" {
     // Methodology: Map memory, change protection, unmap memory.
     // Why: Memory management is critical for kernel/VM integration.
     
-    const test_setup = create_test_integration();
-    var kernel = test_setup.kernel;
+    const kernel = try create_test_kernel();
+    defer testing.allocator.destroy(kernel);
     
     // Test map syscall (syscall number 10).
-    const map_result = kernel.handle_syscall(@intFromEnum(Syscall.map), 0x10000000, 4096, 0, 0) catch |err| {
+    const map_result = basin_kernel.handle_syscall(&kernel, @intFromEnum(Syscall.map), 0x10000000, 4096, 0, 0) catch {
         // Map may fail with invalid arguments (expected for test setup).
         // Why: We're testing syscall combination, not full memory setup.
-        _ = err;
         return;
     };
     
     // If map succeeds, memory is mapped.
     if (map_result == .success) {
         // Test protect syscall (syscall number 12).
-        const protect_result = kernel.handle_syscall(@intFromEnum(Syscall.protect), 0x10000000, 4096, 0, 0) catch |err| {
+        const protect_result = basin_kernel.handle_syscall(&kernel, @intFromEnum(Syscall.protect), 0x10000000, 4096, 0, 0) catch {
             // Protect may fail with invalid arguments.
-            _ = err;
             return;
         };
         
@@ -132,9 +112,8 @@ test "syscall combination: memory management sequence" {
         _ = protect_result;
         
         // Test unmap syscall (syscall number 11).
-        const unmap_result = kernel.handle_syscall(@intFromEnum(Syscall.unmap), 0x10000000, 4096, 0, 0) catch |err| {
+        const unmap_result = basin_kernel.handle_syscall(&kernel, @intFromEnum(Syscall.unmap), 0x10000000, 4096, 0, 0) catch {
             // Unmap may fail with invalid arguments.
-            _ = err;
             return;
         };
         
@@ -149,14 +128,13 @@ test "syscall combination: IPC communication sequence" {
     // Methodology: Create channel, send message, receive message.
     // Why: IPC is essential for inter-process communication.
     
-    const test_setup = create_test_integration();
-    var kernel = test_setup.kernel;
+    const kernel = try create_test_kernel();
+    defer testing.allocator.destroy(kernel);
     
     // Test channel_create syscall (syscall number 20).
-    const create_result = kernel.handle_syscall(@intFromEnum(Syscall.channel_create), 0, 0, 0, 0) catch |err| {
+    const create_result = basin_kernel.handle_syscall(&kernel, @intFromEnum(Syscall.channel_create), 0, 0, 0, 0) catch {
         // Channel create may fail with invalid arguments (expected for test setup).
         // Why: We're testing syscall combination, not full IPC setup.
-        _ = err;
         return;
     };
     
@@ -165,9 +143,8 @@ test "syscall combination: IPC communication sequence" {
         const channel_id = create_result.success;
         
         // Test channel_send syscall (syscall number 21).
-        const send_result = kernel.handle_syscall(@intFromEnum(Syscall.channel_send), channel_id, 0, 0, 0) catch |err| {
+        const send_result = basin_kernel.handle_syscall(&kernel, @intFromEnum(Syscall.channel_send), channel_id, 0, 0, 0) catch {
             // Send may fail with invalid arguments.
-            _ = err;
             return;
         };
         
@@ -175,9 +152,8 @@ test "syscall combination: IPC communication sequence" {
         _ = send_result;
         
         // Test channel_recv syscall (syscall number 22).
-        const recv_result = kernel.handle_syscall(@intFromEnum(Syscall.channel_recv), channel_id, 0, 0, 0) catch |err| {
+        const recv_result = basin_kernel.handle_syscall(&kernel, @intFromEnum(Syscall.channel_recv), channel_id, 0, 0, 0) catch {
             // Recv may fail with invalid arguments or no message.
-            _ = err;
             return;
         };
         
@@ -192,14 +168,13 @@ test "syscall combination: system information sequence" {
     // Methodology: Get system info, enumerate processes, get process info.
     // Why: System information is needed for monitoring and debugging.
     
-    const test_setup = create_test_integration();
-    var kernel = test_setup.kernel;
+    const kernel = try create_test_kernel();
+    defer testing.allocator.destroy(kernel);
     
     // Test sysinfo syscall (syscall number 50).
-    const sysinfo_result = kernel.handle_syscall(@intFromEnum(Syscall.sysinfo), 0x1000, 0, 0, 0) catch |err| {
+    const sysinfo_result = basin_kernel.handle_syscall(&kernel, @intFromEnum(Syscall.sysinfo), 0x1000, 0, 0, 0) catch {
         // Sysinfo may fail with invalid arguments (expected for test setup).
         // Why: We're testing syscall combination, not full system info setup.
-        _ = err;
         return;
     };
     
@@ -207,9 +182,8 @@ test "syscall combination: system information sequence" {
     _ = sysinfo_result;
     
     // Test enumerate_processes syscall (syscall number 51).
-    const enumerate_result = kernel.handle_syscall(@intFromEnum(Syscall.enumerate_processes), 0x1000, 0, 0, 0) catch |err| {
+    const enumerate_result = basin_kernel.handle_syscall(&kernel, @intFromEnum(Syscall.enumerate_processes), 0x1000, 0, 0, 0) catch {
         // Enumerate may fail with invalid arguments.
-        _ = err;
         return;
     };
     
@@ -217,9 +191,8 @@ test "syscall combination: system information sequence" {
     _ = enumerate_result;
     
     // Test get_process_info syscall (syscall number 52).
-    const process_info_result = kernel.handle_syscall(@intFromEnum(Syscall.get_process_info), 0, 0x1000, 0, 0) catch |err| {
+    const process_info_result = basin_kernel.handle_syscall(&kernel, @intFromEnum(Syscall.get_process_info), 0, 0x1000, 0, 0) catch {
         // Get process info may fail with invalid process ID.
-        _ = err;
         return;
     };
     
@@ -233,14 +206,13 @@ test "syscall combination: directory operations sequence" {
     // Methodology: Create directory, open it, read entries, close it.
     // Why: Directory operations are common file system operations.
     
-    const test_setup = create_test_integration();
-    var kernel = test_setup.kernel;
+    const kernel = try create_test_kernel();
+    defer testing.allocator.destroy(kernel);
     
     // Test mkdir syscall (syscall number 36).
-    const mkdir_result = kernel.handle_syscall(@intFromEnum(Syscall.mkdir), 0, 0, 0, 0) catch |err| {
+    const mkdir_result = basin_kernel.handle_syscall(&kernel, @intFromEnum(Syscall.mkdir), 0, 0, 0, 0) catch {
         // Mkdir may fail with invalid arguments (expected for test setup).
         // Why: We're testing syscall combination, not full file system setup.
-        _ = err;
         return;
     };
     
@@ -248,9 +220,8 @@ test "syscall combination: directory operations sequence" {
     _ = mkdir_result;
     
     // Test opendir syscall (syscall number 37).
-    const opendir_result = kernel.handle_syscall(@intFromEnum(Syscall.opendir), 0, 0, 0, 0) catch |err| {
+    const opendir_result = basin_kernel.handle_syscall(&kernel, @intFromEnum(Syscall.opendir), 0, 0, 0, 0) catch {
         // Opendir may fail with invalid arguments.
-        _ = err;
         return;
     };
     
@@ -259,9 +230,8 @@ test "syscall combination: directory operations sequence" {
         const dir_handle = opendir_result.success;
         
         // Test readdir syscall (syscall number 38).
-        const readdir_result = kernel.handle_syscall(@intFromEnum(Syscall.readdir), dir_handle, 0, 0, 0) catch |err| {
+        const readdir_result = basin_kernel.handle_syscall(&kernel, @intFromEnum(Syscall.readdir), dir_handle, 0, 0, 0) catch {
             // Readdir may fail with invalid arguments or end of directory.
-            _ = err;
             return;
         };
         
@@ -269,9 +239,8 @@ test "syscall combination: directory operations sequence" {
         _ = readdir_result;
         
         // Test closedir syscall (syscall number 39).
-        const closedir_result = kernel.handle_syscall(@intFromEnum(Syscall.closedir), dir_handle, 0, 0, 0) catch |err| {
+        const closedir_result = basin_kernel.handle_syscall(&kernel, @intFromEnum(Syscall.closedir), dir_handle, 0, 0, 0) catch {
             // Closedir may fail with invalid handle.
-            _ = err;
             return;
         };
         
@@ -286,14 +255,13 @@ test "syscall combination: process management sequence" {
     // Methodology: Spawn process, set priority, get priority, exit.
     // Why: Process management is fundamental to kernel operation.
     
-    const test_setup = create_test_integration();
-    var kernel = test_setup.kernel;
+    const kernel = try create_test_kernel();
+    defer testing.allocator.destroy(kernel);
     
     // Test spawn syscall (syscall number 1).
-    const spawn_result = kernel.syscall_spawn(0x1000, 0, 0, 0) catch |err| {
+    const spawn_result = basin_kernel.handle_syscall(&kernel, @intFromEnum(Syscall.spawn), 0x1000, 0, 0, 0) catch {
         // Spawn may fail with invalid arguments (expected for test setup).
         // Why: We're testing syscall combination, not full process setup.
-        _ = err;
         return;
     };
     
@@ -302,9 +270,8 @@ test "syscall combination: process management sequence" {
         const process_id = spawn_result.success;
         
         // Test set_priority syscall (syscall number 54).
-        const set_priority_result = kernel.handle_syscall(@intFromEnum(Syscall.set_priority), process_id, 10, 0, 0) catch |err| {
+        const set_priority_result = basin_kernel.handle_syscall(&kernel, @intFromEnum(Syscall.set_priority), process_id, 10, 0, 0) catch {
             // Set priority may fail with invalid arguments.
-            _ = err;
             return;
         };
         
@@ -312,9 +279,8 @@ test "syscall combination: process management sequence" {
         _ = set_priority_result;
         
         // Test get_priority syscall (syscall number 55).
-        const get_priority_result = kernel.handle_syscall(@intFromEnum(Syscall.get_priority), process_id, 0, 0, 0) catch |err| {
+        const get_priority_result = basin_kernel.handle_syscall(&kernel, @intFromEnum(Syscall.get_priority), process_id, 0, 0, 0) catch {
             // Get priority may fail with invalid process ID.
-            _ = err;
             return;
         };
         
@@ -322,9 +288,8 @@ test "syscall combination: process management sequence" {
         _ = get_priority_result;
         
         // Test exit syscall (syscall number 2).
-        const exit_result = kernel.syscall_exit(process_id, 0, 0, 0) catch |err| {
+        const exit_result = basin_kernel.handle_syscall(&kernel, @intFromEnum(Syscall.exit), process_id, 0, 0, 0) catch {
             // Exit may fail with invalid process ID.
-            _ = err;
             return;
         };
         
@@ -339,14 +304,13 @@ test "syscall combination: framebuffer operations sequence" {
     // Methodology: Clear framebuffer, draw pixel, draw text.
     // Why: Framebuffer operations are needed for display output.
     
-    const test_setup = create_test_integration();
-    var kernel = test_setup.kernel;
+    const kernel = try create_test_kernel();
+    defer testing.allocator.destroy(kernel);
     
     // Test fb_clear syscall (syscall number 70).
-    const clear_result = kernel.handle_syscall(@intFromEnum(Syscall.fb_clear), 0, 0, 0, 0) catch |err| {
+    const clear_result = basin_kernel.handle_syscall(&kernel, @intFromEnum(Syscall.fb_clear), 0, 0, 0, 0) catch {
         // Fb_clear may fail with invalid arguments (expected for test setup).
         // Why: We're testing syscall combination, not full framebuffer setup.
-        _ = err;
         return;
     };
     
@@ -354,9 +318,8 @@ test "syscall combination: framebuffer operations sequence" {
     _ = clear_result;
     
     // Test fb_draw_pixel syscall (syscall number 71).
-    const pixel_result = kernel.handle_syscall(@intFromEnum(Syscall.fb_draw_pixel), 100, 200, 0xFFFFFFFF, 0) catch |err| {
+    const pixel_result = basin_kernel.handle_syscall(&kernel, @intFromEnum(Syscall.fb_draw_pixel), 100, 200, 0xFFFFFFFF, 0) catch {
         // Fb_draw_pixel may fail with invalid coordinates or color.
-        _ = err;
         return;
     };
     
@@ -364,9 +327,8 @@ test "syscall combination: framebuffer operations sequence" {
     _ = pixel_result;
     
     // Test fb_draw_text syscall (syscall number 72).
-    const text_result = kernel.handle_syscall(@intFromEnum(Syscall.fb_draw_text), 0, 0, 0, 0) catch |err| {
+    const text_result = basin_kernel.handle_syscall(&kernel, @intFromEnum(Syscall.fb_draw_text), 0, 0, 0, 0) catch {
         // Fb_draw_text may fail with invalid arguments.
-        _ = err;
         return;
     };
     
@@ -380,14 +342,13 @@ test "syscall combination: time and scheduling sequence" {
     // Methodology: Get current time, sleep until future time.
     // Why: Time and scheduling are essential for kernel operation.
     
-    const test_setup = create_test_integration();
-    var kernel = test_setup.kernel;
+    const kernel = try create_test_kernel();
+    defer testing.allocator.destroy(kernel);
     
     // Test clock_gettime syscall (syscall number 40).
-    const time_result = kernel.handle_syscall(@intFromEnum(Syscall.clock_gettime), 0, 0x1000, 0, 0) catch |err| {
+    const time_result = basin_kernel.handle_syscall(&kernel, @intFromEnum(Syscall.clock_gettime), 0, 0x1000, 0, 0) catch {
         // Clock_gettime may fail with invalid arguments (expected for test setup).
         // Why: We're testing syscall combination, not full time setup.
-        _ = err;
         return;
     };
     
@@ -395,9 +356,8 @@ test "syscall combination: time and scheduling sequence" {
     _ = time_result;
     
     // Test sleep_until syscall (syscall number 41).
-    const sleep_result = kernel.handle_syscall(@intFromEnum(Syscall.sleep_until), 0, 0, 0, 0) catch |err| {
+    const sleep_result = basin_kernel.handle_syscall(&kernel, @intFromEnum(Syscall.sleep_until), 0, 0, 0, 0) catch {
         // Sleep_until may fail with invalid arguments.
-        _ = err;
         return;
     };
     

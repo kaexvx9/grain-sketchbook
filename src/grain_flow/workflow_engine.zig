@@ -429,9 +429,9 @@ pub const WorkflowEngine = struct {
             if (self.metrics_collector) |collector| {
                 var name_buf: [MAX_NODE_NAME_LEN]u8 = undefined;
                 var name_len: u32 = 0;
-                var i: u32 = 0;
-                while (i < workflow.?.name_len) : (i += 1) {
-                    name_buf[i] = workflow.?.name[i];
+                var name_idx: u32 = 0;
+                while (name_idx < workflow.?.name_len) : (name_idx += 1) {
+                    name_buf[name_idx] = workflow.?.name[name_idx];
                 }
                 name_len = workflow.?.name_len;
                 _ = collector.record_execution(

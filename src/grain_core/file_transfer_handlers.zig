@@ -354,8 +354,8 @@ pub const FileTransferHandlers = struct {
         std.debug.assert(data.len > 0);
         std.debug.assert(self != null);
         const current_time = self.current_time_fn();
-        const user_id: u32 = 1;
-        const group_id: u32 = 1;
+        _ = 1; // user_id placeholder
+        _ = 1; // group_id placeholder
         self.file_io.write_file(
             self.allocator,
             file_path,
@@ -379,8 +379,8 @@ pub const FileTransferHandlers = struct {
         std.debug.assert(mime_type.len > 0);
         std.debug.assert(self != null);
         const current_time = self.current_time_fn();
-        const user_id: u32 = 1;
-        const group_id: u32 = 1;
+        _ = 1; // user_id placeholder
+        _ = 1; // group_id placeholder
         const file_data = self.file_io.read_file(
             self.allocator,
             file_path,
@@ -436,7 +436,6 @@ pub const FileTransferHandlers = struct {
         file_size: u64,
         status: []const u8,
     ) void {
-        _ = self;
         std.debug.assert(response != null);
         std.debug.assert(transfer_id > 0);
         std.debug.assert(file_id.len > 0);

@@ -78,8 +78,8 @@ pub const NetworkInterface = struct {
         }
         
         // Copy name to buffer.
-        std.mem.set(u8, &self.name, 0);
-        std.mem.copyForwards(u8, self.name[0..name.len], name);
+        @memset(&self.name, 0);
+        @memcpy(self.name[0..name.len], name);
         self.name[name.len] = 0; // Null terminator
         
         return true;

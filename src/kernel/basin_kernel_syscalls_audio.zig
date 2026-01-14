@@ -19,62 +19,6 @@ const BasinKernel = core.BasinKernel;
 /// Audio syscall handlers for BasinKernel.
 /// Why: Extract audio syscalls to separate module for organization.
 pub const AudioSyscalls = struct {
-    pub fn syscall_audio_create_device(
-        self: *BasinKernel,
-        name_ptr: u64,
-        name_len: u64,
-        _arg3: u64,
-        _arg4: u64,
-    ) BasinError!SyscallResult {
-        // Assert: self pointer must be valid.
-        const self_ptr = @intFromPtr(self);
-        Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
-        
-        _ = _arg3;
-        _ = _arg4;
-        
-        // Assert: name pointer must be valid (non-zero, within VM memory).
-        if (name_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
-        }
-        
-        const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default
-        if (name_ptr >= VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Name pointer exceeds VM memory
-        }
-        
-        // Assert: name length must be reasonable (max interface name length).
-        if (name_len == 0) {
-            return BasinError.invalid_argument; // Zero-length name
-        }
-        if (name_len > 16) {
-            return BasinError.invalid_argument; // Name too long
-        }
-        
-        // Assert: name must fit within VM memory.
-        if (name_ptr + name_len > VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Name exceeds VM memory
-        }
-        
-        // Read interface name from VM memory (stub: would use vm_memory_reader).
-        // For now, use a placeholder name.
-        const name = "eth0";
-        
-        // Create interface.
-        const iface_idx = self.network_interfaces.create_interface(name) orelse {
-            return BasinError.out_of_memory; // No free interface slot
-        };
-        
-        const result = SyscallResult.ok(iface_idx);
-        
-        // Assert: result must be success (not error).
-        Debug.kassert(result == .success, "Result not success", .{});
-        
-        return result;
-    }
-    
-    
     /// Create an audio device.
     /// Why: Add a new audio device.
     /// Contract: name_ptr, name_len, and device_type must be valid.
@@ -726,8 +670,10 @@ pub const AudioSyscalls = struct {
         
         // Write device IDs to VM memory (stub: would use vm_memory_writer).
         // For now, just return the count.
-        // Note: device_ids_ptr and temp_device_ids are validated but not written in stub.
-        _ = temp_device_ids;
+        // Note: device_ids_ptr is validated above (lines 646-653) but not written in stub.
+        // Note: temp_device_ids is populated by enumerate_devices but not written to VM memory (stub).
+        // TODO: Implement VM memory writer to write temp_device_ids to device_ids_ptr.
+        // device_ids_ptr and temp_device_ids are intentionally not used after validation/population (stub).
         
         const result = SyscallResult.ok(count);
         

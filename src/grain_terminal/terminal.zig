@@ -845,57 +845,6 @@ pub const Terminal = struct {
         }
     }
 
-    /// Handle Set Mode (SM) - CSI ? <n> h (DEC private modes).
-    // 2025-11-24-214900-pst: Active function
-    fn handle_set_mode(self: *Terminal, params: []const u8) void {
-        // Parse parameters (handle semicolon-separated)
-        var params_list: [16]u32 = undefined;
-        var params_count: u32 = 0;
-        var params_iter = std.mem.splitScalar(u8, params, ';');
-        while (params_iter.next()) |param_str| {
-            if (params_count >= 16) {
-                break; // Bounded: max 16 parameters
-            }
-            const code = self.parse_number(param_str, 0);
-            params_list[params_count] = code;
-            params_count += 1;
-        }
-
-        // Process parameters
-        var i: u32 = 0;
-        while (i < params_count) : (i += 1) {
-            const code = params_list[i];
-            // Check if DEC private mode (starts with ?)
-            if (i == 0 and params.len > 0 and params[0] == '?') {
-                // DEC private modes
-                switch (code) {
-                    1 => {
-                        // DECCKM - Cursor Keys Mode (application keys)
-                        self.dec_ckm = true;
-                    },
-                    6 => {
-                        // DECOM - Origin Mode (relative origin)
-                        self.dec_om = true;
-                    },
-                    7 => {
-                        // DECAWM - Auto Wrap Mode (wrap at right margin)
-                        self.dec_awm = true;
-                    },
-                    25 => {
-                        // DECTCEM - Text Cursor Enable Mode (show cursor)
-                        self.dec_tcem = true;
-                    },
-                    else => {
-                        // Unknown DEC private mode, ignore
-                    },
-                }
-            } else {
-                // ANSI modes (not implemented yet)
-                _ = code;
-            }
-        }
-    }
-
     /// Handle Reset Mode (RM) - CSI ? <n> l (DEC private modes).
     // 2025-11-24-214900-pst: Active function
     fn handle_reset_mode(self: *Terminal, params: []const u8) void {

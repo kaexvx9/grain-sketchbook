@@ -360,7 +360,10 @@ pub const NetworkSyscalls = struct {
         // Write indices to VM memory (stub: would use vm_memory_writer).
         // For now, just return the count.
         // Note: indices_ptr and temp_indices are validated but not written in stub.
-        _ = temp_indices;
+        // TODO: Implement VM memory writer to write temp_indices to indices_ptr.
+        // Note: indices_ptr is validated above but not written in stub.
+        // Note: temp_indices is populated but not written to VM memory (stub).
+        // TODO: Implement VM memory writer to write temp_indices to indices_ptr.
         
         const result = SyscallResult.ok(count);
         
@@ -446,7 +449,7 @@ pub const NetworkSyscalls = struct {
         if (current_process_id > 0) {
             for (0..MAX_PROCESSES) |i| {
                 if (self.processes[i].allocated and self.processes[i].id == current_process_id) {
-                    if (!self.can_open_connection(self, &self.processes[i])) {
+                    if (!self.can_open_connection(&self.processes[i])) {
                         return BasinError.resource_exhausted; // Connection limit exceeded
                     }
                     break;
@@ -909,7 +912,7 @@ pub const NetworkSyscalls = struct {
         if (current_process_id > 0) {
             for (0..MAX_PROCESSES) |i| {
                 if (self.processes[i].allocated and self.processes[i].id == current_process_id) {
-                    if (!self.can_open_connection(self, &self.processes[i])) {
+                    if (!self.can_open_connection(&self.processes[i])) {
                         return BasinError.resource_exhausted; // Connection limit exceeded
                     }
                     break;
@@ -1443,8 +1446,9 @@ pub const NetworkSyscalls = struct {
         
         // Write socket IDs to VM memory (stub: would use vm_memory_writer).
         // For now, just return the count.
-        // Note: socket_ids_ptr and temp_socket_ids are validated but not written in stub.
-        _ = temp_socket_ids;
+        // Note: socket_ids_ptr is validated above but not written in stub.
+        // Note: temp_socket_ids is populated but not written to VM memory (stub).
+        // TODO: Implement VM memory writer to write temp_socket_ids to socket_ids_ptr.
         
         const result = SyscallResult.ok(count);
         
@@ -1596,8 +1600,9 @@ pub const NetworkSyscalls = struct {
         
         // Write socket IDs to VM memory (stub: would use vm_memory_writer).
         // For now, just return the count.
-        // Note: socket_ids_ptr and temp_socket_ids are validated but not written in stub.
-        _ = temp_socket_ids;
+        // Note: socket_ids_ptr is validated above but not written in stub.
+        // Note: temp_socket_ids is populated but not written to VM memory (stub).
+        // TODO: Implement VM memory writer to write temp_socket_ids to socket_ids_ptr.
         
         const result = SyscallResult.ok(count);
         

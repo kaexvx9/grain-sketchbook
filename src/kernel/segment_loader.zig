@@ -8,6 +8,7 @@ const elf_parser = @import("elf_parser.zig");
 const BasinKernel = @import("basin_kernel.zig").BasinKernel;
 const MapFlags = @import("basin_kernel.zig").MapFlags;
 const SyscallResult = @import("basin_kernel.zig").SyscallResult;
+const syscall_map = @import("basin_kernel.zig").syscall_map;
 
 /// Load a single program segment into VM memory.
 /// Why: Extract segment loading logic to reduce nesting in syscall_spawn.
@@ -47,7 +48,7 @@ pub fn load_program_segment(
     
     // Create mapping for segment (use segment's virtual address).
     // Why: Map segment at its intended virtual address.
-    const map_result = kernel.syscall_map(segment.p_vaddr, aligned_size, @as(u64, @intCast(@as(u32, @bitCast(map_flags)))), 0) catch {
+    const map_result = syscall_map(kernel, segment.p_vaddr, aligned_size, @as(u64, @intCast(@as(u32, @bitCast(map_flags)))), 0) catch {
         return false; // Mapping failed
     };
     
