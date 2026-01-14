@@ -4,13 +4,13 @@
 const std = @import("std");
 const testing = std.testing;
 const basin_kernel = @import("basin_kernel");
+const KernelLogLevel = @import("kernel_log_buffer.zig").KernelLogLevel;
+const KernelLogEntry = @import("kernel_log_buffer.zig").KernelLogEntry;
 
 test "kernel log reading syscall" {
     var kernel = basin_kernel.BasinKernel.init();
-    defer kernel.deinit();
     
     // Add some test log entries to the buffer.
-    const KernelLogLevel = @import("kernel_log_buffer").KernelLogLevel;
     kernel.log_buffer.add_entry(
         KernelLogLevel.info,
         "test",
@@ -27,7 +27,9 @@ test "kernel log reading syscall" {
     const buffer_len: u64 = 1024; // Enough for multiple KernelLogEntry structures
     const max_entries: u64 = 16;
     
-    const result = kernel.syscall_read_kernel_log(buffer_ptr, buffer_len, max_entries, 0);
+    const read_log_num = @intFromEnum(basin_kernel.Syscall.read_kernel_log);
+    const handle_syscall = basin_kernel.handle_syscall;
+    const result = try handle_syscall(&kernel, read_log_num, buffer_ptr, buffer_len, max_entries, 0);
     
     // Should succeed and return number of entries.
     try testing.expect(result == .success);
@@ -36,25 +38,24 @@ test "kernel log reading syscall" {
 
 test "kernel log reading with invalid buffer" {
     var kernel = basin_kernel.BasinKernel.init();
-    defer kernel.deinit();
     
     // Test with null buffer pointer.
-    const result1 = kernel.syscall_read_kernel_log(0, 1024, 16, 0);
+    const read_log_num = @intFromEnum(basin_kernel.Syscall.read_kernel_log);
+    const handle_syscall = basin_kernel.handle_syscall;
+    const result1 = try handle_syscall(&kernel, read_log_num, 0, 1024, 16, 0);
     try testing.expect(result1 == .err);
     try testing.expect(result1.err == basin_kernel.BasinError.invalid_argument);
     
     // Test with buffer too small.
     const buffer_ptr: u64 = 0x1000;
-    const KernelLogEntry = @import("kernel_log_buffer").KernelLogEntry;
     const KERNEL_LOG_ENTRY_SIZE: u64 = @sizeOf(KernelLogEntry);
-    const result2 = kernel.syscall_read_kernel_log(buffer_ptr, KERNEL_LOG_ENTRY_SIZE - 1, 16, 0);
+    const result2 = try handle_syscall(&kernel, read_log_num, buffer_ptr, KERNEL_LOG_ENTRY_SIZE - 1, 16, 0);
     try testing.expect(result2 == .err);
     try testing.expect(result2.err == basin_kernel.BasinError.invalid_argument);
 }
 
 test "kernel log entry structure layout" {
     // Verify KernelLogEntry structure size and layout.
-    const KernelLogEntry = @import("kernel_log_buffer").KernelLogEntry;
     const entry = KernelLogEntry.init();
     
     // Structure should be: timestamp(8) + level(1) + padding(7) + source(32) + message(256) = 304 bytes

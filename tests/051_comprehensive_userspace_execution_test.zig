@@ -10,6 +10,70 @@ const BasinKernel = basin_kernel.BasinKernel;
 const BasinError = basin_kernel.BasinError;
 const Syscall = basin_kernel.Syscall;
 const RawIO = basin_kernel.RawIO;
+const handle_syscall = basin_kernel.handle_syscall;
+
+// Helper: Create kernel on heap to avoid stack overflow.
+fn create_test_kernel() !*BasinKernel {
+    const kernel = try testing.allocator.create(BasinKernel);
+    BasinKernel.init_in_place(kernel);
+    return kernel;
+}
+
+// Threadlocal storage for VM memory access in tests.
+threadlocal var test_vm_mem: *[4 * 1024 * 1024]u8 = undefined;
+threadlocal var test_vm_mem2: *[4 * 1024 * 1024]u8 = undefined;
+threadlocal var test_vm_mem3: *[4 * 1024 * 1024]u8 = undefined;
+threadlocal var test_vm_mem4: *[4 * 1024 * 1024]u8 = undefined;
+
+// VM memory reader/writer functions for tests.
+fn vm_read(addr: u64, len: u32, buffer: []u8) ?u32 {
+    const mem_ptr = test_vm_mem;
+    if (addr + @as(u64, len) > mem_ptr.len) return null;
+    @memcpy(buffer[0..len], mem_ptr[@intCast(addr)..][0..len]);
+    return len;
+}
+fn vm_write(addr: u64, len: u32, data: []const u8) ?u32 {
+    const mem_ptr = test_vm_mem;
+    if (addr + @as(u64, len) > mem_ptr.len) return null;
+    @memcpy(mem_ptr[@intCast(addr)..][0..len], data[0..len]);
+    return len;
+}
+fn vm_read2(addr: u64, len: u32, buffer: []u8) ?u32 {
+    const mem_ptr = test_vm_mem2;
+    if (addr + @as(u64, len) > mem_ptr.len) return null;
+    @memcpy(buffer[0..len], mem_ptr[@intCast(addr)..][0..len]);
+    return len;
+}
+fn vm_write2(addr: u64, len: u32, data: []const u8) ?u32 {
+    const mem_ptr = test_vm_mem2;
+    if (addr + @as(u64, len) > mem_ptr.len) return null;
+    @memcpy(mem_ptr[@intCast(addr)..][0..len], data[0..len]);
+    return len;
+}
+fn vm_read3(addr: u64, len: u32, buffer: []u8) ?u32 {
+    const mem_ptr = test_vm_mem3;
+    if (addr + @as(u64, len) > mem_ptr.len) return null;
+    @memcpy(buffer[0..len], mem_ptr[@intCast(addr)..][0..len]);
+    return len;
+}
+fn vm_write3(addr: u64, len: u32, data: []const u8) ?u32 {
+    const mem_ptr = test_vm_mem3;
+    if (addr + @as(u64, len) > mem_ptr.len) return null;
+    @memcpy(mem_ptr[@intCast(addr)..][0..len], data[0..len]);
+    return len;
+}
+fn vm_read4(addr: u64, len: u32, buffer: []u8) ?u32 {
+    const mem_ptr = test_vm_mem4;
+    if (addr + @as(u64, len) > mem_ptr.len) return null;
+    @memcpy(buffer[0..len], mem_ptr[@intCast(addr)..][0..len]);
+    return len;
+}
+fn vm_write4(addr: u64, len: u32, data: []const u8) ?u32 {
+    const mem_ptr = test_vm_mem4;
+    if (addr + @as(u64, len) > mem_ptr.len) return null;
+    @memcpy(mem_ptr[@intCast(addr)..][0..len], data[0..len]);
+    return len;
+}
 
 // Helper: Create test ELF with multiple segments.
 // Why: Test complete ELF loading with code and data segments.
@@ -178,28 +242,13 @@ test "complete ELF program execution with multiple segments" {
     defer RawIO.enable();
 
     var vm_memory: [4 * 1024 * 1024]u8 = [_]u8{0} ** (4 * 1024 * 1024);
-    var kernel = BasinKernel.init();
+    var kernel = try create_test_kernel();
+    defer testing.allocator.destroy(kernel);
 
-    // Create VM memory reader/writer using threadlocal pattern.
-    const VmAccess = struct {
-        threadlocal var mem: *[4 * 1024 * 1024]u8 = undefined;
-        fn read(addr: u64, len: u32, buffer: []u8) ?u32 {
-            const mem_ptr = mem;
-            if (addr + len > mem_ptr.len) return null;
-            @memcpy(buffer[0..len], mem_ptr[@intCast(addr)..][0..len]);
-            return len;
-        }
-        fn write(addr: u64, len: u32, data: []const u8) ?u32 {
-            const mem_ptr = mem;
-            if (addr + len > mem_ptr.len) return null;
-            @memcpy(mem_ptr[@intCast(addr)..][0..len], data[0..len]);
-            return len;
-        }
-    };
-    VmAccess.mem = &vm_memory;
-
-    kernel.vm_memory_reader = VmAccess.read;
-    kernel.vm_memory_writer = VmAccess.write;
+    // Set up VM memory reader/writer.
+    test_vm_mem = &vm_memory;
+    kernel.vm_memory_reader = vm_read;
+    kernel.vm_memory_writer = vm_write;
 
     // Create a process.
     const process_id: u64 = 1;
@@ -208,7 +257,7 @@ test "complete ELF program execution with multiple segments" {
     kernel.processes[process_idx].id = process_id;
     kernel.processes[process_idx].state = .running;
     kernel.processes[process_idx].allocated = true;
-    kernel.scheduler.set_current(process_id);
+    kernel.scheduler.set_current(process_id, 1000);
 
     // Create multi-segment ELF.
     const entry_point: u64 = 0x10000;
@@ -229,7 +278,8 @@ test "complete ELF program execution with multiple segments" {
     @memcpy(vm_memory[@intCast(executable_addr)..][0..elf_data.len], &elf_data);
 
     // Spawn process.
-    const result = try kernel.syscall_spawn(executable_addr, 0, 0, 0);
+    const spawn_num = @intFromEnum(Syscall.spawn);
+    const result = try handle_syscall(kernel, spawn_num, executable_addr, 0, 0, 0);
     try testing.expect(result == .success);
     const spawned_pid = result.success;
     try testing.expect(spawned_pid != 0);
@@ -259,28 +309,13 @@ test "multiple processes executing simultaneously" {
     defer RawIO.enable();
 
     var vm_memory: [4 * 1024 * 1024]u8 = [_]u8{0} ** (4 * 1024 * 1024);
-    var kernel = BasinKernel.init();
+    var kernel = try create_test_kernel();
+    defer testing.allocator.destroy(kernel);
 
-    // Create VM memory reader/writer.
-    const VmAccess = struct {
-        threadlocal var mem: *[4 * 1024 * 1024]u8 = undefined;
-        fn read(addr: u64, len: u32, buffer: []u8) ?u32 {
-            const mem_ptr = mem;
-            if (addr + len > mem_ptr.len) return null;
-            @memcpy(buffer[0..len], mem_ptr[@intCast(addr)..][0..len]);
-            return len;
-        }
-        fn write(addr: u64, len: u32, data: []const u8) ?u32 {
-            const mem_ptr = mem;
-            if (addr + len > mem_ptr.len) return null;
-            @memcpy(mem_ptr[@intCast(addr)..][0..len], data[0..len]);
-            return len;
-        }
-    };
-    VmAccess.mem = &vm_memory;
-
-    kernel.vm_memory_reader = VmAccess.read;
-    kernel.vm_memory_writer = VmAccess.write;
+    // Set up VM memory reader/writer.
+    test_vm_mem2 = &vm_memory;
+    kernel.vm_memory_reader = vm_read2;
+    kernel.vm_memory_writer = vm_write2;
 
     // Create minimal ELF headers for two processes.
     var elf1: [64]u8 = undefined;
@@ -315,14 +350,15 @@ test "multiple processes executing simultaneously" {
     kernel.processes[0].id = 1;
     kernel.processes[0].state = .running;
     kernel.processes[0].allocated = true;
-    kernel.scheduler.set_current(1);
+    kernel.scheduler.set_current(1, 1000);
 
     // Write ELFs to VM memory.
     @memcpy(vm_memory[0x1000..][0..elf1.len], &elf1);
     @memcpy(vm_memory[0x2000..][0..elf2.len], &elf2);
 
     // Spawn first process.
-    const result1 = try kernel.syscall_spawn(0x1000, 0, 0, 0);
+    const spawn_num = @intFromEnum(Syscall.spawn);
+    const result1 = try handle_syscall(kernel, spawn_num, 0x1000, 0, 0, 0);
     try testing.expect(result1 == .success);
     const pid1 = result1.success;
 
@@ -330,10 +366,11 @@ test "multiple processes executing simultaneously" {
     kernel.processes[1].id = 2;
     kernel.processes[1].state = .running;
     kernel.processes[1].allocated = true;
-    kernel.scheduler.set_current(2);
+    kernel.scheduler.set_current(2, 1000);
 
     // Spawn second process.
-    const result2 = try kernel.syscall_spawn(0x2000, 0, 0, 0);
+    const spawn_num2 = @intFromEnum(Syscall.spawn);
+    const result2 = try handle_syscall(kernel, spawn_num2, 0x2000, 0, 0, 0);
     try testing.expect(result2 == .success);
     const pid2 = result2.success;
 
@@ -350,38 +387,23 @@ test "IPC communication between processes" {
     defer RawIO.enable();
 
     var vm_memory: [4 * 1024 * 1024]u8 = [_]u8{0} ** (4 * 1024 * 1024);
-    var kernel = BasinKernel.init();
+    var kernel = try create_test_kernel();
+    defer testing.allocator.destroy(kernel);
 
-    // Create VM memory reader/writer.
-    const VmAccess = struct {
-        threadlocal var mem: *[4 * 1024 * 1024]u8 = undefined;
-        fn read(addr: u64, len: u32, buffer: []u8) ?u32 {
-            const mem_ptr = mem;
-            if (addr + len > mem_ptr.len) return null;
-            @memcpy(buffer[0..len], mem_ptr[@intCast(addr)..][0..len]);
-            return len;
-        }
-        fn write(addr: u64, len: u32, data: []const u8) ?u32 {
-            const mem_ptr = mem;
-            if (addr + len > mem_ptr.len) return null;
-            @memcpy(mem_ptr[@intCast(addr)..][0..len], data[0..len]);
-            return len;
-        }
-    };
-    VmAccess.mem = &vm_memory;
-
-    kernel.vm_memory_reader = VmAccess.read;
-    kernel.vm_memory_writer = VmAccess.write;
+    // Set up VM memory reader/writer.
+    test_vm_mem2 = &vm_memory;
+    kernel.vm_memory_reader = vm_read2;
+    kernel.vm_memory_writer = vm_write2;
 
     // Set up process 1.
     kernel.processes[0].id = 1;
     kernel.processes[0].state = .running;
     kernel.processes[0].allocated = true;
-    kernel.scheduler.set_current(1);
+    kernel.scheduler.set_current(1, 1000);
 
     // Create channel.
     const channel_create_num = @intFromEnum(Syscall.channel_create);
-    const channel_result = try kernel.handle_syscall(channel_create_num, 0, 0, 0, 0);
+    const channel_result = try handle_syscall(kernel, channel_create_num, 0, 0, 0, 0);
     try testing.expect(channel_result == .success);
     const channel_id = channel_result.success;
 
@@ -391,20 +413,20 @@ test "IPC communication between processes" {
     @memcpy(vm_memory[@intCast(data_ptr)..][0..message.len], message);
 
     const send_num = @intFromEnum(Syscall.channel_send);
-    const send_result = try kernel.handle_syscall(send_num, channel_id, data_ptr, message.len, 0);
+    const send_result = try handle_syscall(kernel, send_num, channel_id, data_ptr, message.len, 0);
     try testing.expect(send_result == .success);
 
     // Set up process 2.
     kernel.processes[1].id = 2;
     kernel.processes[1].state = .running;
     kernel.processes[1].allocated = true;
-    kernel.scheduler.set_current(2);
+    kernel.scheduler.set_current(2, 1000);
 
     // Process 2 receives message.
     const buffer_ptr: u64 = 0x200000;
     const buffer_len: u64 = 4096;
     const recv_num = @intFromEnum(Syscall.channel_recv);
-    const recv_result = try kernel.handle_syscall(recv_num, channel_id, buffer_ptr, buffer_len, 0);
+    const recv_result = try handle_syscall(kernel, recv_num, channel_id, buffer_ptr, buffer_len, 0);
     try testing.expect(recv_result == .success);
     try testing.expect(recv_result.success == message.len);
 
@@ -421,28 +443,13 @@ test "resource cleanup during process execution" {
     defer RawIO.enable();
 
     var vm_memory: [4 * 1024 * 1024]u8 = [_]u8{0} ** (4 * 1024 * 1024);
-    var kernel = BasinKernel.init();
+    var kernel = try create_test_kernel();
+    defer testing.allocator.destroy(kernel);
 
-    // Create VM memory reader/writer.
-    const VmAccess = struct {
-        threadlocal var mem: *[4 * 1024 * 1024]u8 = undefined;
-        fn read(addr: u64, len: u32, buffer: []u8) ?u32 {
-            const mem_ptr = mem;
-            if (addr + len > mem_ptr.len) return null;
-            @memcpy(buffer[0..len], mem_ptr[@intCast(addr)..][0..len]);
-            return len;
-        }
-        fn write(addr: u64, len: u32, data: []const u8) ?u32 {
-            const mem_ptr = mem;
-            if (addr + len > mem_ptr.len) return null;
-            @memcpy(mem_ptr[@intCast(addr)..][0..len], data[0..len]);
-            return len;
-        }
-    };
-    VmAccess.mem = &vm_memory;
-
-    kernel.vm_memory_reader = VmAccess.read;
-    kernel.vm_memory_writer = VmAccess.write;
+    // Set up VM memory reader/writer.
+    test_vm_mem4 = &vm_memory;
+    kernel.vm_memory_reader = vm_read4;
+    kernel.vm_memory_writer = vm_write4;
 
     // Set up process.
     const process_id: u64 = 1;
@@ -451,19 +458,19 @@ test "resource cleanup during process execution" {
     kernel.processes[process_idx].id = process_id;
     kernel.processes[process_idx].state = .running;
     kernel.processes[process_idx].allocated = true;
-    kernel.scheduler.set_current(process_id);
+    kernel.scheduler.set_current(process_id, 1000);
 
     // Create memory mapping.
     const map_num = @intFromEnum(Syscall.map);
     const map_addr: u64 = 0x40000;
     const map_size: u64 = 4096;
     const map_flags: u64 = 0x7; // Read, Write, Execute
-    const map_result = try kernel.handle_syscall(map_num, map_addr, map_size, map_flags, 0);
+    const map_result = try handle_syscall(kernel, map_num, map_addr, map_size, map_flags, 0);
     try testing.expect(map_result == .success);
 
     // Create channel.
     const channel_create_num = @intFromEnum(Syscall.channel_create);
-    const channel_result = try kernel.handle_syscall(channel_create_num, 0, 0, 0, 0);
+    const channel_result = try handle_syscall(kernel, channel_create_num, 0, 0, 0, 0);
     try testing.expect(channel_result == .success);
     const channel_id = channel_result.success;
 
@@ -483,7 +490,7 @@ test "resource cleanup during process execution" {
 
     // Process exits.
     const exit_num = @intFromEnum(Syscall.exit);
-    const exit_result = try kernel.handle_syscall(exit_num, 0, 0, 0, 0);
+    const exit_result = try handle_syscall(kernel, exit_num, 0, 0, 0, 0);
     try testing.expect(exit_result == .success);
 
     // Verify process is marked as exited.

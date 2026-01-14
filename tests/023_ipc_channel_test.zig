@@ -5,9 +5,19 @@
 const std = @import("std");
 const basin_kernel = @import("basin_kernel");
 const BasinKernel = basin_kernel.BasinKernel;
+const BasinError = basin_kernel.BasinError;
 const Channel = basin_kernel.basin_kernel.Channel;
 const ChannelTable = basin_kernel.basin_kernel.ChannelTable;
 const MAX_MESSAGE_SIZE = basin_kernel.basin_kernel.MAX_MESSAGE_SIZE;
+const basin_kernel_mod = basin_kernel; // Alias for handle_syscall
+const RawIO = basin_kernel.RawIO;
+
+// Helper: Create kernel on heap to avoid stack overflow.
+fn create_test_kernel() !*BasinKernel {
+    const kernel = try std.testing.allocator.create(BasinKernel);
+    BasinKernel.init_in_place(kernel);
+    return kernel;
+}
 
 // Test channel initialization.
 test "channel init" {
@@ -120,6 +130,10 @@ test "channel receive empty" {
 
 // Test channel table create.
 test "channel table create" {
+    // Disable RawIO to avoid SIGILL in tests (even though this test doesn't use kernel directly).
+    RawIO.disable();
+    defer RawIO.enable();
+    
     var table = ChannelTable.init();
     
     const id1 = table.create();
@@ -166,18 +180,26 @@ test "channel table create multiple" {
 
 // Test kernel channel create syscall.
 test "kernel channel create" {
-    var kernel = BasinKernel.init();
+    // Disable RawIO to avoid SIGILL in tests.
+    RawIO.disable();
+    defer RawIO.enable();
     
-    const result = kernel.handle_syscall(
+    const kernel = try create_test_kernel();
+    defer std.testing.allocator.destroy(kernel);
+    
+    const result = basin_kernel_mod.handle_syscall(
+        kernel,
         20, // channel_create syscall number
         0,
         0,
         0,
         0,
-    );
+    ) catch |err| {
+        return err;
+    };
     
     // Assert: Channel must be created.
-    const syscall_result = try result;
+    const syscall_result = result;
     try std.testing.expect(syscall_result == .success or syscall_result == .err);
     if (syscall_result == .err) return error.TestUnexpectedError;
     try std.testing.expect(syscall_result.success != 0);
@@ -186,91 +208,115 @@ test "kernel channel create" {
 
 // Test kernel channel send syscall (validation only).
 test "kernel channel send validation" {
-    var kernel = BasinKernel.init();
+    const kernel = try create_test_kernel();
+    defer std.testing.allocator.destroy(kernel);
     
     // Create channel first.
-    const create_result_raw = kernel.handle_syscall(
+    const create_result_raw = basin_kernel_mod.handle_syscall(
+        kernel,
         20, // channel_create syscall number
         0,
         0,
         0,
         0,
-    );
-    const create_result = try create_result_raw;
+    ) catch |err| {
+        return err;
+    };
+    const create_result = create_result_raw;
     try std.testing.expect(create_result == .success or create_result == .err);
     if (create_result == .err) return error.TestUnexpectedError;
     const channel_id = create_result.success;
     
     // Try to send with invalid channel ID.
-    const send_result_invalid = kernel.handle_syscall(
-        81, // channel_send syscall number
+    const send_result_invalid = basin_kernel_mod.handle_syscall(
+        kernel,
+        21, // channel_send syscall number (corrected from 81)
         999, // Invalid channel ID
         0x1000,
         10,
         0,
-    );
+    ) catch |err| {
+        return err;
+    };
     
     // Assert: Send must fail (channel not found).
-    const send_result_unwrapped = try send_result_invalid;
+    const send_result_unwrapped = send_result_invalid;
     try std.testing.expect(send_result_unwrapped == .err);
     try std.testing.expect(send_result_unwrapped.err == BasinError.not_found);
     
     // Try to send with valid channel ID (but invalid data pointer).
-    const send_result_null = kernel.handle_syscall(
-        81, // channel_send syscall number
+    const send_result_null = basin_kernel_mod.handle_syscall(
+        kernel,
+        21, // channel_send syscall number (corrected from 81)
         channel_id,
         0, // Null pointer
         10,
         0,
-    );
+    ) catch |err| {
+        return err;
+    };
     
     // Assert: Send must fail (null pointer).
     try std.testing.expect(send_result_null == .err);
-    try std.testing.expect(send_result_null.err == .invalid_argument);
+    if (send_result_null == .err) {
+        try std.testing.expect(send_result_null.err == BasinError.invalid_argument);
+    }
 }
 
 // Test kernel channel recv syscall (validation only).
 test "kernel channel recv validation" {
-    var kernel = BasinKernel.init();
+    const kernel = try create_test_kernel();
+    defer std.testing.allocator.destroy(kernel);
     
     // Create channel first.
-    const create_result_raw = kernel.handle_syscall(
+    const create_result_raw = basin_kernel_mod.handle_syscall(
+        kernel,
         20, // channel_create syscall number
         0,
         0,
         0,
         0,
-    );
-    const create_result = try create_result_raw;
+    ) catch |err| {
+        return err;
+    };
+    const create_result = create_result_raw;
     try std.testing.expect(create_result == .success or create_result == .err);
     if (create_result == .err) return error.TestUnexpectedError;
     const channel_id = create_result.success;
     
     // Try to receive with invalid channel ID.
-    const recv_result_invalid = kernel.handle_syscall(
-        82, // channel_recv syscall number
+    const recv_result_invalid = basin_kernel_mod.handle_syscall(
+        kernel,
+        22, // channel_recv syscall number (corrected from 82)
         999, // Invalid channel ID
         0x1000,
         4096,
         0,
-    );
+    ) catch |err| {
+        return err;
+    };
     
     // Assert: Receive must fail (channel not found).
-    const recv_result_unwrapped = try recv_result_invalid;
+    const recv_result_unwrapped = recv_result_invalid;
     try std.testing.expect(recv_result_unwrapped == .err);
     try std.testing.expect(recv_result_unwrapped.err == BasinError.not_found);
     
     // Try to receive with valid channel ID but empty queue.
-    const recv_result_empty = kernel.handle_syscall(
-        82, // channel_recv syscall number
+    const recv_result_empty = basin_kernel_mod.handle_syscall(
+        kernel,
+        22, // channel_recv syscall number (corrected from 82)
         channel_id,
         0x1000,
         4096,
         0,
-    );
+    ) catch |err| {
+        return err;
+    };
     
     // Assert: Receive must fail (queue empty).
     try std.testing.expect(recv_result_empty == .err);
-    try std.testing.expect(recv_result_empty.err == .would_block);
+    if (recv_result_empty == .err) {
+        try std.testing.expect(recv_result_empty.err == BasinError.would_block);
+    }
 }
 

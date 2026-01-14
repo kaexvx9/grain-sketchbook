@@ -9,7 +9,16 @@ const VM = kernel_vm.VM;
 const Integration = kernel_vm.Integration;
 const basin_kernel = @import("basin_kernel");
 const BasinKernel = basin_kernel.BasinKernel;
-const RawIO = @import("basin_kernel").basin_kernel.RawIO;
+const RawIO = basin_kernel.RawIO;
+const handle_syscall = basin_kernel.handle_syscall;
+const Syscall = basin_kernel.Syscall;
+
+// Helper: Create kernel on heap to avoid stack overflow.
+fn create_test_kernel() !*BasinKernel {
+    const kernel = try testing.allocator.create(BasinKernel);
+    BasinKernel.init_in_place(kernel);
+    return kernel;
+}
 
 // Test: read_input_event syscall reads keyboard events.
 test "read_input_event reads keyboard events" {
@@ -17,15 +26,18 @@ test "read_input_event reads keyboard events" {
     RawIO.disable();
     defer RawIO.enable();
     
-    var vm: VM = undefined;
-    VM.init(&vm, &[_]u8{}, 0);
-    var kernel = BasinKernel.init();
+    // Use heap allocation for VM to avoid stack overflow
+    const vm = try testing.allocator.create(VM);
+    defer testing.allocator.destroy(vm);
+    VM.init(vm, &[_]u8{}, 0);
+    const kernel = try create_test_kernel();
+    defer testing.allocator.destroy(kernel);
     
     // Inject keyboard event into VM.
     vm.inject_keyboard_event(0, 65, 'A', 0); // key down, 'A', no modifiers
     
     // Create integration.
-    var integration = Integration.init_with_kernel(&vm, &kernel);
+    var integration = Integration.init_with_kernel(vm, kernel);
     integration.finish_init();
     
     // Assert: Event must be in queue.
@@ -40,13 +52,14 @@ test "read_input_event reads keyboard events" {
 test "read_input_event reads mouse events" {
     var vm: VM = undefined;
     VM.init(&vm, &[_]u8{}, 0);
-    var kernel = BasinKernel.init();
+    const kernel = try create_test_kernel();
+    defer testing.allocator.destroy(kernel);
     
     // Inject mouse event into VM.
     vm.inject_mouse_event(0, 0, 100.0, 200.0, 0); // button down, left, (100, 200), no modifiers
     
     // Create integration.
-    var integration = Integration.init_with_kernel(&vm, &kernel);
+    var integration = Integration.init_with_kernel(&vm, kernel);
     integration.finish_init();
     
     // Assert: Event must be in queue.
@@ -57,10 +70,11 @@ test "read_input_event reads mouse events" {
 test "file I/O syscalls for configuration files" {
     var vm: VM = undefined;
     VM.init(&vm, &[_]u8{}, 0);
-    var kernel = BasinKernel.init();
+    const kernel = try create_test_kernel();
+    defer testing.allocator.destroy(kernel);
     
     // Create integration.
-    var integration = Integration.init_with_kernel(&vm, &kernel);
+    var integration = Integration.init_with_kernel(&vm, kernel);
     integration.finish_init();
     
     // Open configuration file for writing (create if doesn't exist).
@@ -72,9 +86,8 @@ test "file I/O syscalls for configuration files" {
     vm.memory[@intCast(path_ptr + config_path.len)] = 0; // null terminator
     
     // Open file (write | create | truncate flags = 2 | 4 | 8 = 14).
-    const open_result = kernel.handle_syscall(30, path_ptr, config_path.len, 14, 0) catch |err| {
-        return err;
-    };
+    const open_num = @intFromEnum(Syscall.open);
+    const open_result = try handle_syscall(kernel, open_num, path_ptr, config_path.len, 14, 0);
     
     // Assert: File must be opened successfully.
     try testing.expect(open_result == .success);
@@ -86,42 +99,37 @@ test "file I/O syscalls for configuration files" {
     const data_ptr: u64 = 0x300000;
     @memcpy(vm.memory[@intCast(data_ptr)..][0..config_data.len], config_data);
     
-    const write_result = kernel.handle_syscall(32, handle, data_ptr, config_data.len, 0) catch |err| {
-        return err;
-    };
+    const write_num = @intFromEnum(Syscall.write);
+    const write_result = try handle_syscall(kernel, write_num, handle, data_ptr, config_data.len, 0);
     
     // Assert: Data must be written successfully.
     try testing.expect(write_result == .success);
     try testing.expect(write_result.success == config_data.len);
     
     // Close file.
-    const close_result = kernel.handle_syscall(33, handle, 0, 0, 0) catch |err| {
-        return err;
-    };
+    const close_num = @intFromEnum(Syscall.close);
+    const close_result = try handle_syscall(kernel, close_num, handle, 0, 0, 0);
     try testing.expect(close_result == .success);
     
     // Reopen file for reading.
-    const open_read_result = kernel.handle_syscall(30, path_ptr, config_path.len, 1, 0) catch |err| { // read flag = 1
-        return err;
-    };
+    const open_read_num = @intFromEnum(Syscall.open);
+    const open_read_result = try handle_syscall(kernel, open_read_num, path_ptr, config_path.len, 1, 0); // read flag = 1
     try testing.expect(open_read_result == .success);
     const read_handle = open_read_result.success;
     
     // Read configuration data.
     const read_buffer_ptr: u64 = 0x400000;
     const read_buffer_len: u64 = 1024;
-    const read_result = kernel.handle_syscall(31, read_handle, read_buffer_ptr, read_buffer_len, 0) catch |err| {
-        return err;
-    };
+    const read_num = @intFromEnum(Syscall.read);
+    const read_result = try handle_syscall(kernel, read_num, read_handle, read_buffer_ptr, read_buffer_len, 0);
     
     // Assert: Data must be read successfully.
     try testing.expect(read_result == .success);
     try testing.expect(read_result.success == config_data.len);
     
     // Close file.
-    const close_read_result = kernel.handle_syscall(33, read_handle, 0, 0, 0) catch |err| {
-        return err;
-    };
+    const close_read_num = @intFromEnum(Syscall.close);
+    const close_read_result = try handle_syscall(kernel, close_read_num, read_handle, 0, 0, 0);
     try testing.expect(close_read_result == .success);
 }
 
@@ -129,10 +137,11 @@ test "file I/O syscalls for configuration files" {
 test "spawn syscall creates processes" {
     var vm: VM = undefined;
     VM.init(&vm, &[_]u8{}, 0);
-    var kernel = BasinKernel.init();
+    const kernel = try create_test_kernel();
+    defer testing.allocator.destroy(kernel);
     
     // Create integration.
-    var integration = Integration.init_with_kernel(&vm, &kernel);
+    var integration = Integration.init_with_kernel(&vm, kernel);
     integration.finish_init();
     
     // Create minimal ELF header in VM memory.
@@ -163,7 +172,8 @@ test "spawn syscall creates processes" {
     @memcpy(vm.memory[@intCast(executable_ptr)..][0..64], &elf_header);
     
     // Spawn process.
-    const spawn_result = try kernel.syscall_spawn(executable_ptr, 0, 0, 0);
+    const spawn_num = @intFromEnum(Syscall.spawn);
+    const spawn_result = try handle_syscall(kernel, spawn_num, executable_ptr, 0, 0, 0);
     
     // Assert: Process must be spawned successfully.
     try testing.expect(spawn_result == .success);
@@ -178,10 +188,11 @@ test "spawn syscall creates processes" {
 test "read_input_event returns would_block when no events" {
     var vm: VM = undefined;
     VM.init(&vm, &[_]u8{}, 0);
-    var kernel = BasinKernel.init();
+    const kernel = try create_test_kernel();
+    defer testing.allocator.destroy(kernel);
     
     // Create integration (no events injected).
-    var integration = Integration.init_with_kernel(&vm, &kernel);
+    var integration = Integration.init_with_kernel(&vm, kernel);
     integration.finish_init();
     
     // Assert: Event queue must be empty.

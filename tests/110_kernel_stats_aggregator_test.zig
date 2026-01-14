@@ -6,12 +6,23 @@
 
 const std = @import("std");
 const testing = std.testing;
-const BasinKernel = @import("basin_kernel.zig").BasinKernel;
-const KernelStatsSnapshot = @import("kernel_stats_aggregator.zig").KernelStatsSnapshot;
+const basin_kernel = @import("basin_kernel");
+const BasinKernel = basin_kernel.BasinKernel;
+const KernelStatsSnapshot = basin_kernel.KernelStatsSnapshot;
+const handle_syscall = basin_kernel.handle_syscall;
+const Syscall = basin_kernel.Syscall;
+
+// Helper: Create kernel on heap to avoid stack overflow.
+fn create_test_kernel() !*BasinKernel {
+    const kernel = try testing.allocator.create(BasinKernel);
+    BasinKernel.init_in_place(kernel);
+    return kernel;
+}
 
 // Test: Kernel statistics snapshot creation.
 test "kernel stats snapshot create" {
-    var kernel = BasinKernel.init();
+    var kernel = try create_test_kernel();
+    defer testing.allocator.destroy(kernel);
     
     // Get statistics snapshot.
     const snapshot = kernel.get_kernel_stats_snapshot();
@@ -24,17 +35,24 @@ test "kernel stats snapshot create" {
 
 // Test: Kernel statistics snapshot with TCP operations.
 test "kernel stats snapshot with tcp operations" {
-    var kernel = BasinKernel.init();
+    // Disable RawIO to avoid SIGILL in tests.
+    RawIO.disable();
+    defer RawIO.enable();
+    
+    var kernel = try create_test_kernel();
+    defer testing.allocator.destroy(kernel);
     
     // Create TCP socket and perform operations.
-    const socket_result = kernel.syscall_tcp_socket(0, 0, 0, 0);
+    const tcp_socket_num = @intFromEnum(Syscall.tcp_socket);
+    const socket_result = try handle_syscall(kernel, tcp_socket_num, 0, 0, 0, 0);
     try testing.expect(socket_result == .success);
     
     const socket_id = socket_result.success;
     
     // Send some data.
     const send_data: [4]u8 = "test".*;
-    _ = kernel.syscall_tcp_send(socket_id, @intFromPtr(&send_data), 4, 0);
+    const tcp_send_num = @intFromEnum(Syscall.tcp_send);
+    _ = handle_syscall(kernel, tcp_send_num, socket_id, @intFromPtr(&send_data), 4, 0) catch {};
     
     // Get statistics snapshot.
     const snapshot = kernel.get_kernel_stats_snapshot();
@@ -47,11 +65,15 @@ test "kernel stats snapshot with tcp operations" {
 
 // Test: Kernel statistics snapshot with network operations.
 test "kernel stats snapshot with network operations" {
-    var kernel = BasinKernel.init();
+    var kernel = try create_test_kernel();
+    defer testing.allocator.destroy(kernel);
     
     // Create network interface.
-    const iface_name: [16]u8 = "eth0".*;
-    _ = kernel.syscall_network_create_interface(@intFromPtr(&iface_name), 4, 0, 0);
+    var iface_name: [16]u8 = undefined;
+    @memset(&iface_name, 0);
+    @memcpy(iface_name[0..4], "eth0");
+    const network_create_num = @intFromEnum(Syscall.network_create_interface);
+    _ = handle_syscall(kernel, network_create_num, @intFromPtr(&iface_name), 4, 0, 0) catch {};
     
     // Get statistics snapshot.
     const snapshot = kernel.get_kernel_stats_snapshot();
@@ -64,13 +86,16 @@ test "kernel stats snapshot with network operations" {
 
 // Test: Kernel statistics snapshot with errors.
 test "kernel stats snapshot with errors" {
-    var kernel = BasinKernel.init();
+    var kernel = try create_test_kernel();
+    defer testing.allocator.destroy(kernel);
     
     // Try to create TCP socket with invalid arguments (will fail).
-    _ = kernel.syscall_tcp_socket(0xFFFFFFFF, 0, 0, 0);
+    const tcp_socket_num2 = @intFromEnum(Syscall.tcp_socket);
+    _ = handle_syscall(kernel, tcp_socket_num2, 0xFFFFFFFF, 0, 0, 0) catch {};
     
     // Try to create network interface with invalid name (will fail).
-    _ = kernel.syscall_network_create_interface(0, 0, 0, 0);
+    const network_create_num2 = @intFromEnum(Syscall.network_create_interface);
+    _ = handle_syscall(kernel, network_create_num2, 0, 0, 0, 0) catch {};
     
     // Get statistics snapshot.
     const snapshot = kernel.get_kernel_stats_snapshot();
@@ -83,7 +108,8 @@ test "kernel stats snapshot with errors" {
 
 // Test: Kernel statistics snapshot print (doesn't crash).
 test "kernel stats snapshot print" {
-    var kernel = BasinKernel.init();
+    var kernel = try create_test_kernel();
+    defer testing.allocator.destroy(kernel);
     
     // Get statistics snapshot.
     const snapshot = kernel.get_kernel_stats_snapshot();
