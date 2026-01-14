@@ -44,6 +44,8 @@ Oregon is perfect for MMT because we already have the right tax structure: no sa
 
 Through Grainbank (an open-source currency system built on Grain OS), Oregon can create $WAVE currency to fund a Job Guarantee program. Workers get paid $18-22 per hour (regionally adjusted), with benefits including healthcare, childcare, and retirement. The program funds itself through currency creation, not taxation.
 
+Now, there's an important constitutional consideration here. The U.S. Constitution prohibits states from coining money or emitting bills of credit. But here's what changes the equation: modern digital networking technology, combined with the federal government's ability to create dollars, means the federal sector can always outbid the private sector in any market for Oregon's currency. This isn't a threat to federal authority—it's a feature. The federal government maintains its position as the most trustworthy financial institution in the world, with unmatched stability in redeeming government bonds for ordinary living expenses. When state economies strengthen and liquidity improves, the value of the dollar rises—both domestically and in international markets. What works in Oregon can be replicated in other states, creating a competitive governance model that ultimately strengthens the dollar's position globally. Currency markets and exchanges don't weaken federal authority—they create healthy competition that makes the entire system more resilient.
+
 This isn't theory. It's how money actually works. The question isn't whether we can do it—it's whether we have the political will to do it.
 
 ### Factory Farm Conversion: From Destruction to Regeneration
