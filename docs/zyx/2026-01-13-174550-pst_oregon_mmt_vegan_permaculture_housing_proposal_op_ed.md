@@ -66,7 +66,7 @@ Here's a concrete proposal: Oregon uses MMT-generated dollars to purchase non-ve
 
 - **East Cascades**: High desert permaculture with drought-resistant plants, native grains, and sustainable timber. Lower density, larger agricultural buffers.
 
-- **Additional Regions**: Coast (aquaculture integration), Columbia Gorge (wind energy, fruit orchards), Central Oregon (high desert agriculture, renewable energy).
+- **Additional Regions**: Coast (marine permaculture with kelp and seaweed farming), Columbia Gorge (wind energy, fruit orchards), Central Oregon (high desert agriculture, renewable energy).
 
 The conversion process follows principles from Helen Atthowe's Ecological Farm: no-till agriculture, cover crops, compost and biochar, native plant integration, and pollinator habitat creation. We work with the land, not against it.
 
@@ -78,7 +78,7 @@ Traditional urbanism isn't about nostalgia. It's about building communities that
 
 **Walkable Districts**: Narrow streets, mixed materials (stone, gravel, dirt, tarmac), traffic calming, mixed use (pedestrians, bicycles, occasional vehicles). Human-scaled, not car-scaled.
 
-**Water Integration**: Canals and drains throughout neighborhoods. Bioswales and rain gardens. Aquaculture in larger canals. Graywater systems for irrigation. Water isn't just infrastructure—it's part of the community's life.
+**Water Integration**: Canals and drains throughout neighborhoods. Bioswales and rain gardens. Aquatic plant cultivation in larger canals—watercress, lotus, water chestnuts, and other edible aquatic plants. Floating gardens and hydroponic systems. Graywater systems for irrigation. Water isn't just infrastructure—it's part of the community's life.
 
 **Productive Landscapes**: Espaliered fruit trees on south-facing walls. Community orchards. Pollarded trees for fuel and feed. Market gardens within town walls. Native landscaping inspired by "Botany Pays but Crime Doesn't" (a YouTube channel focused on indigenous landscaping that supports healthy native insects and pollinators).
 
@@ -145,7 +145,7 @@ Oregon isn't one place. It's many places, each with unique characteristics, oppo
 
 ### Additional Regions
 
-**Coast** (Astoria, Newport, Coos Bay): Ocean resilience focus, aquaculture integration, tourism + agriculture.
+**Coast** (Astoria, Newport, Coos Bay): Ocean resilience focus, marine permaculture integration (kelp and seaweed farming), tourism + agriculture.
 
 **Columbia Gorge** (Hood River, The Dalles): Wind energy integration, fruit tree orchards (existing), tourism economy.
 

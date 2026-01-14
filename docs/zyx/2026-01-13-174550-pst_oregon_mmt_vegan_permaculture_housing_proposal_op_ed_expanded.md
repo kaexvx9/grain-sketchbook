@@ -90,7 +90,7 @@ Oregon isn't one place. It's many places, each with unique characteristics, oppo
 
 **The High Desert** (Bend, Ashland, Rogue River, Klamath Falls): Here, the approach is different. Drought-resistant permaculture: agave, mesquite, native grains, sustainable timber. Lower density, larger agricultural buffers. Water conservation is critical. The landscape is different, but the principles are the same: work with the land, not against it.
 
-**The Coast** (Astoria, Newport, Coos Bay): Aquaculture integration, ocean resilience, tourism and agriculture hybrid economy. The opportunities are unique: kelp farming, shellfish cultivation, coastal food forests.
+**The Coast** (Astoria, Newport, Coos Bay): Marine permaculture integration, ocean resilience, tourism and agriculture hybrid economy. The opportunities are unique: kelp and seaweed farming, marine ecosystem restoration, coastal food forests with salt-tolerant plants, ocean-based carbon sequestration through kelp forests.
 
 **The Columbia Gorge** (Hood River, The Dalles): Wind energy integration, existing fruit orchards, tourism economy. The transition is natural: from monoculture orchards to diverse food forests, from industrial agriculture to regenerative permaculture.
 
@@ -120,7 +120,7 @@ Traditional urbanism isn't about nostalgia. It's about building communities that
 
 **Streets**: Narrow, human-scaled, mixed materials (stone, gravel, dirt, tarmac). Traffic calming through material variation. Mixed use: pedestrians, bicycles, occasional vehicles. The street isn't just infrastructure. It's community space.
 
-**Water**: Canals and drains throughout neighborhoods. Bioswales and rain gardens. Aquaculture in larger canals. Graywater systems for irrigation. Water isn't just utility. It's part of the community's life, its beauty, its productivity.
+**Water**: Canals and drains throughout neighborhoods. Bioswales and rain gardens. Aquatic plant cultivation in larger canals—watercress, lotus, water chestnuts, and other edible aquatic plants. Floating gardens and hydroponic systems. Graywater systems for irrigation. Water isn't just utility. It's part of the community's life, its beauty, its productivity.
 
 **Trees**: Espaliered fruit trees on south-facing walls. Community orchards. Pollarded trees for fuel and feed. Market gardens within town walls. Native landscaping that supports healthy native insects and pollinators. Trees aren't just decoration. They're productivity, beauty, meaning.
 
