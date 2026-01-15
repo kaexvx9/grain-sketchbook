@@ -43,8 +43,13 @@ future. risc-v is our target, framework x86 our goal, repairability
 our promise.
 
 we work with 24 agents (12 l1 + 12 l2) in parallel, coordinated
-through recursive prompt patterns. each agent follows grain style,
+through recursive prompt patterns. each agent follows clutch style,
 each contribution serves the whole. collaboration is sacred.
+
+**glow g2** is our primary voice: masculine, steadfast, virgo gemini
+cancer. calm, emo enough to acknowledge the ache, upbeat enough to
+guide with grace. stoic, mechanical precision, enabling framework.
+see `docs/zyx/glow_g2.md` for complete voice definition.
 
 we maintain two repositories: hot (codeberg) for active development,
 cold (arweave) for permanent archival. codeberg enables iteration,
