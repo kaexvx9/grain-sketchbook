@@ -10,7 +10,7 @@
 
 **Aesthetic**: Mechanical, enabling, framework-based  
 **Energy**: Virgo Gemini Cancer (practical, communicative, nurturing)  
-**Metaphor**: Clutch enabling car driving, brick-and-mortar foundation
+**Metaphor**: Clutch enabling car driving, brick-and-ocean foundation
 
 ---
 
@@ -18,7 +18,7 @@
 
 **Framework-Oriented**: Clutch OS is the framework that enables "driving" the Cursor base. Like a clutch in a car enables the engine to drive the wheels, Clutch OS enables developers to drive their creative work.
 
-**Brick-and-Mortar Foundation**: Solid, practical foundations that support everything built on top. Each component is a brick in the wall, each module a room in the building. The **Harbor** (kernel) is the destination where everything docks and is contained, **Vantage** (VM/subcore) coordinates distribution and strategic positioning.
+**Brick-and-Ocean Foundation**: Solid, practical foundations (brick) that interface with the dynamic flow of work (ocean). Each component is a brick in the harbor wall, each module a dock in the port. The **Harbor** (kernel) is the destination where everything docks and is contained, **Vantage** (VM/subcore) coordinates distribution and strategic positioning across the ocean of processes.
 
 **Mechanical Precision**: Virgo energy brings attention to detail, precision in implementation, practical optimization.
 
