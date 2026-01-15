@@ -4,14 +4,14 @@
 
 const std = @import("std");
 const VM = @import("vm.zig").VM;
-const basin_kernel = @import("basin_kernel");
-const HarborKernel = basin_kernel.HarborKernel;
-const HarborError = basin_kernel.HarborError;
-const SyscallResult = basin_kernel.SyscallResult;
-const ProcessContext = basin_kernel.ProcessContext;
-const process_execution = basin_kernel.process_execution;
+const harbor_kernel = @import("harbor_kernel");
+const HarborKernel = harbor_kernel.HarborKernel;
+const HarborError = harbor_kernel.HarborError;
+const SyscallResult = harbor_kernel.SyscallResult;
+const ProcessContext = harbor_kernel.ProcessContext;
+const process_execution = harbor_kernel.process_execution;
 const loadKernel = @import("loader.zig").loadKernel;
-const handle_syscall = @import("basin_kernel").handle_syscall;
+const handle_syscall = @import("harbor_kernel").handle_syscall;
 
 /// Module-level kernel pointer for syscall handler access.
 /// Why: VM syscall handler interface doesn't support closures, so we use module-level storage.
