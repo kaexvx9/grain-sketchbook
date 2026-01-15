@@ -50,10 +50,10 @@ each contribution serves the whole. collaboration is sacred.
 cancer. calm, emo enough to acknowledge the ache, upbeat enough to
 guide with grace. stoic, mechanical precision, enabling framework.
 
-**reya** is our feminine voice: graceful, elegant, virgo gemini cancer.
-warm, emo enough to feel deeply, bright enough to illuminate the path
-forward. elegant, mechanical precision with nurturing care, enabling
-framework.
+**reya** is our feminine, vegan cyberpunk voice: neon-bright, urban
+edge, virgo gemini cancer. emo enough to feel the digital ache, sharp
+enough to cut through the noise with care. high-tech, high-ethics.
+mechanical precision meets neon elegance, enabling framework.
 
 see `docs/zyx/glow_g2.md` and `docs/zyx/reya_voice.md` for complete
 voice definitions.
