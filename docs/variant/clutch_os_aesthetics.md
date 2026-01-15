@@ -18,7 +18,7 @@
 
 **Framework-Oriented**: Clutch OS is the framework that enables "driving" the Cursor base. Like a clutch in a car enables the engine to drive the wheels, Clutch OS enables developers to drive their creative work.
 
-**Brick-and-Mortar Foundation**: Solid, practical foundations that support everything built on top. Each component is a brick in the wall, each module a room in the building. The **Quarry** (kernel) extracts the raw materials with mechanical precision, **Vantage** (VM/subcore) coordinates distribution and strategic positioning.
+**Brick-and-Mortar Foundation**: Solid, practical foundations that support everything built on top. Each component is a brick in the wall, each module a room in the building. The **Harbor** (kernel) is the destination where everything docks and is contained, **Vantage** (VM/subcore) coordinates distribution and strategic positioning.
 
 **Mechanical Precision**: Virgo energy brings attention to detail, precision in implementation, practical optimization.
 
@@ -34,7 +34,7 @@
 
 | Technical Concept | Clutch OS Name | Aesthetic Meaning |
 |-------------------|----------------|-------------------|
-| `Basin` (Kernel) | **Quarry** | The source of building materials, where foundation stones are extracted with Virgo precision. More mechanical/industrial than "Basin" (which is organic/water-based). |
+| `Basin` (Kernel) | **Harbor** | The destination where everything docks and is contained. Mechanical/industrial/urban (ports, shipping, logistics). More mechanical than "Basin" (which is organic/water-based). Fits Virgo precision, Gemini communication/transportation, Cancer nurturing safe haven. |
 | `Vantage` (VM/Subcore) | **Vantage** | Neutral aesthetic abstraction - works for both Grain OS and Clutch OS. Strategic position, coordination center. |
 | `LlmProvider` | Clutch Engine | The mechanical engine that enables driving the Cursor base |
 | `TokenEfficiency` | Clutch Efficiency | Mechanical efficiency optimization, smooth power transfer |
