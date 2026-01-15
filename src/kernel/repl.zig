@@ -5,7 +5,7 @@
 const std = @import("std");
 const Debug = @import("debug.zig");
 const RawIO = @import("raw_io.zig");
-const BasinKernel = @import("basin_kernel.zig").BasinKernel;
+const HarborKernel = @import("harbor_kernel.zig").HarborKernel;
 const grainscript = @import("grainscript");
 const Lexer = grainscript.Lexer;
 const Parser = grainscript.Parser;
@@ -14,7 +14,7 @@ const Interpreter = grainscript.Interpreter;
 /// Simple REPL for kernel interactive mode.
 /// Why: Allow interactive commands during development.
 pub const Repl = struct {
-    kernel: *BasinKernel,
+    kernel: *HarborKernel,
     running: bool,
     /// Fixed buffer allocator for Grainscript execution.
     /// Why: Provide memory allocation for Grainscript interpreter in freestanding kernel.
@@ -27,7 +27,7 @@ pub const Repl = struct {
     const MAX_ARGS: u32 = 16;
 
     /// Initialize REPL.
-    pub fn init(kernel: *BasinKernel) Self {
+    pub fn init(kernel: *HarborKernel) Self {
         var repl = Self{
             .kernel = kernel,
             .running = true,
@@ -200,7 +200,7 @@ pub const Repl = struct {
     /// Execute sysinfo command.
     fn cmd_sysinfo(self: *Self) void {
         // Count processes
-        const MAX_PROCESSES = 256; // From basin_kernel_types.zig
+        const MAX_PROCESSES = 256; // From harbor_kernel_types.zig
         var process_count: u32 = 0;
         var i: u32 = 0;
         while (i < MAX_PROCESSES) : (i += 1) {
@@ -210,7 +210,7 @@ pub const Repl = struct {
         }
         
         Debug.kprint("System Information:\n", .{});
-        Debug.kprint("  Kernel: Grain Basin Kernel v0.1.0\n", .{});
+        Debug.kprint("  Kernel: Clutch Harbor Kernel v0.1.0\n", .{});
         Debug.kprint("  Architecture: RISC-V64\n", .{});
         Debug.kprint("  Users: {d}\n", .{self.kernel.user_count});
         Debug.kprint("  Processes: {d}\n", .{process_count});
@@ -221,7 +221,7 @@ pub const Repl = struct {
         Debug.kprint("Process List:\n", .{});
         Debug.kprint("  PID  State\n", .{});
         
-        const MAX_PROCESSES = 256; // From basin_kernel_types.zig
+        const MAX_PROCESSES = 256; // From harbor_kernel_types.zig
         var count: u32 = 0;
         var i: u32 = 0;
         while (i < MAX_PROCESSES) : (i += 1) {
