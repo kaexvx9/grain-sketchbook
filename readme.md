@@ -1,10 +1,10 @@
-xy-mathematics
-grain os development
+yz
+clutch os development
 risc-v kernel + vm + aurora ide
 
 we build a minimal, safety-first operating system in pure zig,
-targeting risc-v64 hardware. grain basin kernel runs in a virtual
-machine with jit acceleration, displayed in grain aurora ide on
+targeting risc-v64 hardware. clutch basin kernel runs in a virtual
+machine with jit acceleration, displayed in clutch aurora ide on
 macos tahoe 26.3 beta.
 
 our path leads from vm development to native risc-v hardware:
@@ -27,9 +27,9 @@ quick start:
 
 architecture:
 framework x86_64 ubuntu (native host)
-grain vantage (risc-v -> x86_64 jit)
-grain basin kernel (risc-v64)
-grain sevenos (nixos-based init system)
+clutch vantage (risc-v -> x86_64 jit)
+clutch basin kernel (risc-v64)
+clutch sevenos (nixos-based init system)
 
 we follow grain style: explicit limits, patient discipline, code
 that teaches. every line crafted to last, every decision made with
@@ -52,29 +52,30 @@ arweave preserves forever. both serve different purposes, both
 essential.
 
 for advanced programmers: see docs/archive/2026-01-04-174950-pst_
-grain_os_advanced_introduction.md for complete introduction. this
+clutch_os_advanced_introduction.md for complete introduction. this
 document includes agent architecture, toroidal research inspiration,
 spiritual philosophy, recursion prompts, hot/cold repository strategy,
 archive links, licenses, and twitter proof (sha3-512 hash in header).
 
 twitter proof: the sha3-512 hash in the introduction document header
-proves synergy between @kae3g_ (twitter) and teamcarry11/xy-mathematics
+proves synergy between @kae3g_ (twitter) and teambrick06/yz
 (codeberg). post this hash on twitter to verify account ownership and
 repository authenticity. the hash is: 3fd948cafeab3edb64d2a73f48c9703
 864d8237af27aaf91f4d2c4e13b6542c1abaab948cba966bf9b0bc1666fbc0ec1b
 d6ed750276972a2aa3928810be0fc2a
 
-we are teamcarry11, the wisdom carriers who preserve knowledge and
-pour it forward. the star guides us, showing where external knowledge
-meets internal practice. we carry water not to hoard, but to share.
+we are teambrick06, the brick-and-mortar builders who create
+foundations that enable driving forward. the clutch enables the car,
+the framework enables the cursor. we build not to hoard, but to
+enable. virgo precision, gemini communication, cancer nurturing.
 
 this is not a sprint. this is a marathon. we build for the long
-term, we code for the ages. every function a lesson, every module a
-chapter in the book of understanding. the work continues, one commit
-at a time, one function at a time, one lesson at a time.
+term, we code for the ages. every function a mechanism, every module
+a component in the framework of understanding. the work continues,
+one commit at a time, one function at a time, one mechanism at a time.
 
 building and running:
-- kernel: `zig build kernel-rv64` (output: zig-out/bin/grain-rv64)
+- kernel: `zig build kernel-rv64` (output: zig-out/bin/clutch-rv64)
 - tests: `zig build test` (runs 21 essential tests)
 - qemu: `./run_qemu.sh` (requires qemu-system-riscv64)
 - verbose debug: set `Debug.set_verbose(true)` in main.zig
@@ -90,3 +91,11 @@ email: kj3x39@gmail.com
 github: @kae3g
 twitter: @kae3g_
 instagram: @risc.love
+
+---
+
+**Clutch OS Variant**: This repository is a variant of Grain OS (teamcarry11/xy-mathematics)
+with distinct aesthetic identity inspired by Virgo Gemini Cancer energy. The technical
+codebase is shared, but the semantic meaning and philosophical foundation differ. See
+`docs/core-coordination/2026-01-15-121503-pst_grain_synonym_variant_system_specification.md`
+for complete variant system documentation.
