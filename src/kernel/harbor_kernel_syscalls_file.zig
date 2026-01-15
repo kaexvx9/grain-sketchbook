@@ -6,7 +6,7 @@ const std = @import("std");
 const Debug = @import("debug.zig");
 
 // Import types
-const types = @import("basin_kernel_types.zig");
+const types = @import("harbor_kernel_types.zig");
 const HarborError = types.HarborError;
 const SyscallResult = types.SyscallResult;
 const OpenFlags = types.OpenFlags;
@@ -16,7 +16,7 @@ const MAX_HANDLES = types.MAX_HANDLES;
 const MAX_DIR_HANDLES = types.MAX_DIR_HANDLES;
 
 // Import core
-const core = @import("basin_kernel_core.zig");
+const core = @import("harbor_kernel_core.zig");
 const HarborKernel = core.HarborKernel;
 const can_open_file_descriptor = core.can_open_file_descriptor;
 

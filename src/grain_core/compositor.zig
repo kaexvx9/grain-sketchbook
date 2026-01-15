@@ -6,7 +6,7 @@
 
 const std = @import("std");
 const wayland = @import("wayland/protocol.zig");
-const basin_kernel = @import("basin_kernel");
+const harbor_kernel = @import("harbor_kernel");
 const tiling = @import("tiling.zig");
 const framebuffer_renderer = @import("framebuffer_renderer.zig");
 const layout_generator = @import("layout_generator.zig");

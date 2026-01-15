@@ -13,7 +13,7 @@ pub const PAGE_SIZE: u64 = 4096;
 /// Why: Bounded allocation, prevents unbounded growth.
 pub const MAX_PAGES: u32 = 1024;
 
-/// Page permissions flags (matches MapFlags from basin_kernel).
+/// Page permissions flags (matches MapFlags from harbor_kernel).
 /// Why: Explicit flags instead of POSIX-style bitmasks for type safety.
 pub const PageFlags = packed struct {
     read: bool = false,

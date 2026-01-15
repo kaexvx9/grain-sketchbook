@@ -4,7 +4,7 @@
 
 const std = @import("std");
 const Debug = @import("debug.zig");
-const types = @import("basin_kernel_types.zig");
+const types = @import("harbor_kernel_types.zig");
 const Syscall = types.Syscall;
 
 /// Maximum number of syscalls to track.

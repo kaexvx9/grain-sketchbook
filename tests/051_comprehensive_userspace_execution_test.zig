@@ -5,17 +5,17 @@
 
 const std = @import("std");
 const testing = std.testing;
-const basin_kernel = @import("basin_kernel");
-const BasinKernel = basin_kernel.BasinKernel;
-const BasinError = basin_kernel.BasinError;
-const Syscall = basin_kernel.Syscall;
-const RawIO = basin_kernel.RawIO;
-const handle_syscall = basin_kernel.handle_syscall;
+const harbor_kernel = @import("harbor_kernel");
+const HarborKernel = harbor_kernel.HarborKernel;
+const HarborError = harbor_kernel.HarborError;
+const Syscall = harbor_kernel.Syscall;
+const RawIO = harbor_kernel.RawIO;
+const handle_syscall = harbor_kernel.handle_syscall;
 
 // Helper: Create kernel on heap to avoid stack overflow.
-fn create_test_kernel() !*BasinKernel {
-    const kernel = try testing.allocator.create(BasinKernel);
-    BasinKernel.init_in_place(kernel);
+fn create_test_kernel() !*HarborKernel {
+    const kernel = try testing.allocator.create(HarborKernel);
+    HarborKernel.init_in_place(kernel);
     return kernel;
 }
 

@@ -6,7 +6,7 @@ const std = @import("std");
 const Debug = @import("debug.zig");
 
 // Import types
-const types = @import("basin_kernel_types.zig");
+const types = @import("harbor_kernel_types.zig");
 const HarborError = types.HarborError;
 const SyscallResult = types.SyscallResult;
 const ResourceUsage = types.ResourceUsage;
@@ -14,7 +14,7 @@ const MAX_PROCESSES = types.MAX_PROCESSES;
 const Process = types.Process;
 
 // Import core
-const core = @import("basin_kernel_core.zig");
+const core = @import("harbor_kernel_core.zig");
 const HarborKernel = core.HarborKernel;
 
 /// Stats syscall handlers for HarborKernel.

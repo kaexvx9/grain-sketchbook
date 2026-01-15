@@ -150,7 +150,7 @@ pub fn handle_syscall(
     // Assert: self pointer must be valid.
     const self_ptr = @intFromPtr(self);
     Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-    Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+    Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
     
     // Assert: syscall number must be >= 10 (kernel syscalls, not SBI).
     // Why: SBI calls use function ID < 10, kernel syscalls use >= 10.
@@ -1586,23 +1586,23 @@ pub fn handle_syscall(
 
 /// Basin Kernel module exports.
 /// Why: Explicit exports, clear public API.
-pub const basin_kernel = struct {
-    pub const Syscall = @import("basin_kernel.zig").Syscall;
-    pub const handle_syscall = @import("basin_kernel.zig").handle_syscall;
-    pub const MapFlags = @import("basin_kernel.zig").MapFlags;
-    pub const OpenFlags = @import("basin_kernel.zig").OpenFlags;
-    pub const ClockId = @import("basin_kernel.zig").ClockId;
-    pub const Handle = @import("basin_kernel.zig").Handle;
+pub const harbor_kernel = struct {
+    pub const Syscall = @import("harbor_kernel.zig").Syscall;
+    pub const handle_syscall = @import("harbor_kernel.zig").handle_syscall;
+    pub const MapFlags = @import("harbor_kernel.zig").MapFlags;
+    pub const OpenFlags = @import("harbor_kernel.zig").OpenFlags;
+    pub const ClockId = @import("harbor_kernel.zig").ClockId;
+    pub const Handle = @import("harbor_kernel.zig").Handle;
     pub const Signal = @import("signal.zig").Signal;
-    pub const SysInfo = @import("basin_kernel.zig").SysInfo;
-    pub const BasinError = @import("basin_kernel.zig").BasinError;
-    pub const SyscallResult = @import("basin_kernel.zig").SyscallResult;
-    pub const BasinKernel = @import("basin_kernel.zig").BasinKernel;
+    pub const SysInfo = @import("harbor_kernel.zig").SysInfo;
+    pub const HarborError = @import("harbor_kernel.zig").HarborError;
+    pub const SyscallResult = @import("harbor_kernel.zig").SyscallResult;
+    pub const HarborKernel = @import("harbor_kernel.zig").HarborKernel;
     pub const ProcessContext = @import("process.zig").ProcessContext;
     pub const KernelLogBuffer = @import("kernel_log_buffer.zig").KernelLogBuffer;
     pub const KernelLogEntry = @import("kernel_log_buffer.zig").KernelLogEntry;
     pub const KernelLogLevel = @import("kernel_log_buffer.zig").KernelLogLevel;
-    pub const Process = @import("basin_kernel.zig").Process;
+    pub const Process = @import("harbor_kernel.zig").Process;
     pub const process_execution = @import("process_execution.zig");
     pub const Storage = @import("storage.zig").Storage;
     pub const FileEntry = @import("storage.zig").FileEntry;

@@ -7,13 +7,13 @@ const Debug = @import("debug.zig");
 const network = @import("network.zig");
 
 // Import types
-const types = @import("basin_kernel_types.zig");
+const types = @import("harbor_kernel_types.zig");
 const HarborError = types.HarborError;
 const SyscallResult = types.SyscallResult;
 const MAX_PROCESSES = types.MAX_PROCESSES;
 
 // Import core
-const core = @import("basin_kernel_core.zig");
+const core = @import("harbor_kernel_core.zig");
 const HarborKernel = core.HarborKernel;
 
 /// Network syscall handlers for HarborKernel.

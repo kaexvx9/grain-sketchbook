@@ -4,8 +4,8 @@
 
 const std = @import("std");
 const Debug = @import("debug.zig");
-const ProcessState = @import("basin_kernel.zig").ProcessState;
-const Process = @import("basin_kernel.zig").Process;
+const ProcessState = @import("harbor_kernel.zig").ProcessState;
+const Process = @import("harbor_kernel.zig").Process;
 const scheduler_stats = @import("scheduler_stats.zig");
 const SchedulerStats = scheduler_stats.SchedulerStats;
 
