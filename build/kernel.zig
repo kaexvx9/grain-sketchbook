@@ -68,6 +68,21 @@ pub fn create_kernel_executable(
     };
     const kernel_resolved = ctx.b.resolveTargetQuery(kernel_target);
     
+    // Get grainscript module from shared modules (if available)
+    // Note: We need to pass grainscript module to kernel executable
+    const grainscript_mod = ctx.b.addModule("grainscript", .{
+        .root_source_file = ctx.b.path("src/grainscript/root.zig"),
+        .target = kernel_resolved,
+        .optimize = ctx.optimize,
+    });
+    
+    // Grainscript module for kernel REPL eval command
+    const grainscript_mod = ctx.b.addModule("grainscript", .{
+        .root_source_file = ctx.b.path("src/grainscript/root.zig"),
+        .target = kernel_resolved,
+        .optimize = ctx.optimize,
+    });
+    
     const kernel_exe = ctx.b.addExecutable(.{
         .name = "grain-rv64",
         .root_module = ctx.b.createModule(.{
@@ -75,6 +90,9 @@ pub fn create_kernel_executable(
             .target = kernel_resolved,
             .optimize = ctx.optimize,
             .code_model = .medium,
+            .imports = &.{
+                .{ .name = "grainscript", .module = grainscript_mod },
+            },
         }),
     });
     kernel_exe.setLinkerScript(ctx.b.path("src/kernel/linker.ld"));

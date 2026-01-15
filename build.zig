@@ -156,6 +156,13 @@ pub fn build(b: *std.Build) void {
     };
     const kernel_resolved = b.resolveTargetQuery(kernel_target);
 
+    // Grainscript module for kernel (RISC-V64 target)
+    const grainscript_kernel_module = b.addModule("grainscript", .{
+        .root_source_file = b.path("src/grainscript/root.zig"),
+        .target = kernel_resolved,
+        .optimize = optimize,
+    });
+
     const kernel_exe = b.addExecutable(.{
         .name = "grain-rv64",
         .root_module = b.createModule(.{
@@ -165,6 +172,7 @@ pub fn build(b: *std.Build) void {
             .code_model = .medium,
             .imports = &.{
                 .{ .name = "sbi", .module = sbi_module },
+                .{ .name = "grainscript", .module = grainscript_kernel_module },
             },
         }),
     });
@@ -203,13 +211,6 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-
-    // ARCHIVED 2026-01-13 03:54:03 PST: Grainscript module archived - not used by essential kernel tests
-    // const grainscript_module = b.addModule("grainscript", .{
-    //     .root_source_file = b.path("src/grainscript/root.zig"),
-    //     .target = target,
-    //     .optimize = optimize,
-    // });
 
     // ARCHIVED 2026-01-13: Module archived - not used by essential tests
     // const grain_buffer_module = b.addModule("grain_buffer_terminal", .{

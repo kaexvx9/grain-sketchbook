@@ -1,0 +1,126 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+thread 2705915 panic: unrecognized command line argument
+/home/xy/.local/bin/zig-x86_64-linux-0.15.2/lib/compiler/test_runner.zig:53:13: 0x134fac5 in main (test_runner.zig)
+            @panic("unrecognized command line argument");
+            ^
+/home/xy/.local/bin/zig-x86_64-linux-0.15.2/lib/std/start.zig:618:22: 0x134a1a5 in main (std.zig)
+            root.main();
+                     ^
+../sysdeps/nptl/libc_start_call_main.h:58:16: 0x7ffff7c2a1c9 in __libc_start_call_main (../sysdeps/x86/libc-start.c)
+../csu/libc-start.c:360:3: 0x7ffff7c2a28a in __libc_start_main_impl (../sysdeps/x86/libc-start.c)
+???:?:?: 0x1394954 in ??? (???)
+???:?:?: 0x0 in ??? (???)
+
+Program received signal SIGABRT, Aborted.
+__pthread_kill_implementation (no_tid=0, signo=6, threadid=<optimized out>) at ./nptl/pthread_kill.c:44
+warning: 44	./nptl/pthread_kill.c: No such file or directory
+ >
+=== CRASH DETECTED ===
+#0  __pthread_kill_implementation (no_tid=0, signo=6, threadid=<optimized out>) at ./nptl/pthread_kill.c:44
+#1  __pthread_kill_internal (signo=6, threadid=<optimized out>) at ./nptl/pthread_kill.c:78
+#2  __GI___pthread_kill (threadid=<optimized out>, signo=signo@entry=6) at ./nptl/pthread_kill.c:89
+#3  0x00007ffff7c4527e in __GI_raise (sig=sig@entry=6) at ../sysdeps/posix/raise.c:26
+#4  0x00007ffff7c288ff in __GI_abort () at ./stdlib/abort.c:79
+#5  0x00000000010a2a43 in posix.abort ()
+#6  0x000000000107cb17 in debug.defaultPanic (msg=..., first_trace_addr=...)
+#7  0x000000000134fac6 in test_runner.main ()
+#8  0x000000000134a1a6 in start.main (c_argc=3, c_argv=0x7fffffffd9b8, c_envp=0x7fffffffd9d8)
+rax            0x0                 0
+rbx            0x2949fb            2705915
+rcx            0x7ffff7c9eb2c      140737350593324
+rdx            0x6                 6
+rsi            0x2949fb            2705915
+rdi            0x2949fb            2705915
+rbp            0x7fffffffd0b0      0x7fffffffd0b0
+rsp            0x7fffffffd070      0x7fffffffd070
+r8             0x7fffffffbf58      140737488338776
+r9             0x7fffffffd730      140737488344880
+r10            0x8                 8
+r11            0x246               582
+r12            0x6                 6
+r13            0x0                 0
+r14            0x16                22
+r15            0x7ffff7ffd000      140737354125312
+rip            0x7ffff7c9eb2c      0x7ffff7c9eb2c <__GI___pthread_kill+284>
+eflags         0x246               [ PF ZF IF ]
+cs             0x33                51
+ss             0x2b                43
+ds             0x0                 0
+es             0x0                 0
+fs             0x0                 0
+gs             0x0                 0
+k0             0x8002              32770
+k1             0x0                 0
+k2             0x0                 0
+k3             0x10000000          268435456
+k4             0x0                 0
+k5             0x0                 0
+k6             0x0                 0
+k7             0x0                 0
+fs_base        0x7ffff7ebd740      140737352816448
+gs_base        0x0                 0
+=> 0x7ffff7c9eb2c <__GI___pthread_kill+284>:	mov    %eax,%r14d
+   0x7ffff7c9eb2f <__GI___pthread_kill+287>:	neg    %r14d
+   0x7ffff7c9eb32 <__GI___pthread_kill+290>:	cmp    $0xfffff000,%eax
+   0x7ffff7c9eb37 <__GI___pthread_kill+295>:	mov    $0x0,%eax
+   0x7ffff7c9eb3c <__GI___pthread_kill+300>:	cmovbe %eax,%r14d
+   0x7ffff7c9eb40 <__GI___pthread_kill+304>:	jmp    0x7ffff7c9eac0 <__GI___pthread_kill+176>
+   0x7ffff7c9eb45 <__GI___pthread_kill+309>:	nopl   (%rax)
+   0x7ffff7c9eb48 <__GI___pthread_kill+312>:	mov    %r13,%rdi
+   0x7ffff7c9eb4b <__GI___pthread_kill+315>:	call   0x7ffff7c98ee0 <__GI___lll_lock_wait_private>
+   0x7ffff7c9eb50 <__GI___pthread_kill+320>:	jmp    0x7ffff7c9ea8e <__GI___pthread_kill+126>
+   0x7ffff7c9eb55 <__GI___pthread_kill+325>:	nopl   (%rax)
+   0x7ffff7c9eb58 <__GI___pthread_kill+328>:	mov    %r13,%rdi
+   0x7ffff7c9eb5b <__GI___pthread_kill+331>:	call   0x7ffff7c98fa0 <__GI___lll_lock_wake_private>
+   0x7ffff7c9eb60 <__GI___pthread_kill+336>:	jmp    0x7ffff7c9eaa9 <__GI___pthread_kill+153>
+   0x7ffff7c9eb65 <__GI___pthread_kill+341>:	call   0x7ffff7d37ec0 <__stack_chk_fail>
+   0x7ffff7c9eb6a:	nopw   0x0(%rax,%rax,1)
+   0x7ffff7c9eb70 <__pthread_kill_other_threads_np>:	endbr64
+   0x7ffff7c9eb74 <__pthread_kill_other_threads_np+4>:	ret
+   0x7ffff7c9eb75:	cs nopw 0x0(%rax,%rax,1)
+   0x7ffff7c9eb7f:	nop
+Stack level 0, frame at 0x7fffffffd0c0:
+ rip = 0x7ffff7c9eb2c in __pthread_kill_implementation (./nptl/pthread_kill.c:44); saved rip = 0x7ffff7c4527e
+ inlined into frame 1
+ source language c.
+ Arglist at unknown address.
+ Locals at unknown address, Previous frame's sp in rsp
+tid = <optimized out>
+ret = 0
+pd = <optimized out>
+old_mask = {__val = {140737488343248}}
+ret = <optimized out>
+pd = <optimized out>
+old_mask = <optimized out>
+ret = <optimized out>
+tid = <optimized out>
+ret = <optimized out>
+resultvar = <optimized out>
+resultvar = <optimized out>
+__arg3 = <optimized out>
+__arg2 = <optimized out>
+__arg1 = <optimized out>
+_a3 = <optimized out>
+_a2 = <optimized out>
+_a1 = <optimized out>
+__futex = <optimized out>
+resultvar = <optimized out>
+__arg3 = <optimized out>
+__arg2 = <optimized out>
+__arg1 = <optimized out>
+_a3 = <optimized out>
+_a2 = <optimized out>
+_a1 = <optimized out>
+__futex = <optimized out>
+__private = <optimized out>
+__oldval = <optimized out>
+Undefined command: "else".  Try "help".
+
+=== TEST COMPLETED ===
+This command cannot be used at the top level.
+A debugging session is active.
+
+	Inferior 1 [process 2705915] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

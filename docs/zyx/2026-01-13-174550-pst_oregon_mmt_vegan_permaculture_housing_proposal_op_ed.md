@@ -8,6 +8,7 @@
 
 ---
 
+
 ## Introduction: Why Oregon, Why Now
 
 I'm 29 years old, and I've spent years thinking about how we can build a better future. Not just for ourselves, but for our children, our communities, and the planet we all share. I believe Oregon is uniquely positioned to lead the way—not just in progressive policy, but in creating a model that other states can follow.
