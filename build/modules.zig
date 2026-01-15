@@ -144,7 +144,7 @@ pub fn create_agent_modules(
         ctx,
         "grain_core",
         "src/grain_core/root.zig",
-        &.{.{ .name = "basin_kernel", .module = kernel_modules.basin_kernel }},
+        &.{.{ .name = "harbor_kernel", .module = kernel_modules.harbor_kernel }},
     );
     const grain_skate_mod = helpers.add_module(
         ctx,
