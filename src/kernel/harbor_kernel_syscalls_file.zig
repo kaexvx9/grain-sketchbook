@@ -7,7 +7,7 @@ const Debug = @import("debug.zig");
 
 // Import types
 const types = @import("basin_kernel_types.zig");
-const BasinError = types.BasinError;
+const HarborError = types.HarborError;
 const SyscallResult = types.SyscallResult;
 const OpenFlags = types.OpenFlags;
 const DirectoryHandle = types.DirectoryHandle;
@@ -17,47 +17,47 @@ const MAX_DIR_HANDLES = types.MAX_DIR_HANDLES;
 
 // Import core
 const core = @import("basin_kernel_core.zig");
-const BasinKernel = core.BasinKernel;
+const HarborKernel = core.HarborKernel;
 const can_open_file_descriptor = core.can_open_file_descriptor;
 
-/// File syscall handlers for BasinKernel.
+/// File syscall handlers for HarborKernel.
 /// Why: Extract file system syscalls to separate module for organization.
 pub const FileSyscalls = struct {
     pub fn syscall_open(
-        self: *BasinKernel,
+        self: *HarborKernel,
         path_ptr: u64,
         path_len: u64,
         flags: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg4;
         
         // Assert: path pointer must be valid (non-zero, within VM memory).
         if (path_ptr == 0) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Null pointer
+            return SyscallResult.fail(HarborError.invalid_argument); // Null pointer
         }
         
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default (matches syscall_map)
         if (path_ptr >= VM_MEMORY_SIZE) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Path pointer exceeds VM memory
+            return SyscallResult.fail(HarborError.invalid_argument); // Path pointer exceeds VM memory
         }
         
         // Assert: path length must be reasonable (max 4096 bytes).
         if (path_len == 0) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Empty path
+            return SyscallResult.fail(HarborError.invalid_argument); // Empty path
         }
         if (path_len > 4096) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Path too long
+            return SyscallResult.fail(HarborError.invalid_argument); // Path too long
         }
         
         // Assert: path must fit within VM memory.
         if (path_ptr + path_len > VM_MEMORY_SIZE) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Path exceeds VM memory
+            return SyscallResult.fail(HarborError.invalid_argument); // Path exceeds VM memory
         }
         
         // Decode flags (OpenFlags packed struct).
@@ -65,18 +65,18 @@ pub const FileSyscalls = struct {
         
         // Assert: flags padding must be zero (no reserved bits set).
         if (open_flags._padding != 0) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Reserved bits set
+            return SyscallResult.fail(HarborError.invalid_argument); // Reserved bits set
         }
         
         // Assert: flags must have at least one permission (read or write).
         if (!open_flags.read and !open_flags.write) {
-            return SyscallResult.fail(BasinError.invalid_argument); // No permissions set
+            return SyscallResult.fail(HarborError.invalid_argument); // No permissions set
         }
         
         // Assert: path length must fit in handle path buffer (max 256 bytes, so max path_len is 255).
         // Note: path_len is the string length, handle.path is 256 bytes, so max path_len is 255.
         if (path_len > 255) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Path too long for handle buffer
+            return SyscallResult.fail(HarborError.invalid_argument); // Path too long for handle buffer
         }
         
         // Assert: path_len must be > 0 (already checked above, but double-check for safety).
@@ -85,7 +85,7 @@ pub const FileSyscalls = struct {
         
         // Find free handle entry.
         const handle_idx = self.find_free_handle() orelse {
-            return SyscallResult.fail(BasinError.out_of_memory); // Handle table full
+            return SyscallResult.fail(HarborError.out_of_memory); // Handle table full
         };
         
         // Get current process index (with caching optimization).
@@ -97,7 +97,7 @@ pub const FileSyscalls = struct {
         if (current_process_idx) |idx| {
             const current_process = &self.processes[idx];
             if (!self.can_open_file_descriptor(current_process)) {
-                return SyscallResult.fail(BasinError.resource_exhausted); // File descriptor limit exceeded
+                return SyscallResult.fail(HarborError.resource_exhausted); // File descriptor limit exceeded
             }
         }
         
@@ -152,51 +152,51 @@ pub const FileSyscalls = struct {
     }
     
     pub fn syscall_read(
-        self: *BasinKernel,
+        self: *HarborKernel,
         handle: u64,
         buffer_ptr: u64,
         buffer_len: u64,
         timeout_ns: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         // Record start time for timeout checking.
         const start_time_ns = self.timer.get_monotonic_ns();
         
         // Assert: handle must be valid (non-zero).
         if (handle == 0) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Invalid handle
+            return SyscallResult.fail(HarborError.invalid_argument); // Invalid handle
         }
         
         // Assert: buffer pointer must be valid (non-zero, within VM memory).
         if (buffer_ptr == 0) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Null pointer
+            return SyscallResult.fail(HarborError.invalid_argument); // Null pointer
         }
         
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default (matches syscall_map)
         if (buffer_ptr >= VM_MEMORY_SIZE) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Buffer pointer exceeds VM memory
+            return SyscallResult.fail(HarborError.invalid_argument); // Buffer pointer exceeds VM memory
         }
         
         // Assert: buffer length must be reasonable (max 1MB per read).
         if (buffer_len == 0) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Zero-length buffer
+            return SyscallResult.fail(HarborError.invalid_argument); // Zero-length buffer
         }
         if (buffer_len > 1024 * 1024) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Buffer too large (> 1MB)
+            return SyscallResult.fail(HarborError.invalid_argument); // Buffer too large (> 1MB)
         }
         
         // Assert: buffer must fit within VM memory.
         if (buffer_ptr + buffer_len > VM_MEMORY_SIZE) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Buffer exceeds VM memory
+            return SyscallResult.fail(HarborError.invalid_argument); // Buffer exceeds VM memory
         }
         
         // Find handle by ID.
         const handle_idx = self.find_handle_by_id(handle) orelse {
-            return SyscallResult.fail(BasinError.invalid_handle); // Handle not found
+            return SyscallResult.fail(HarborError.invalid_handle); // Handle not found
         };
         
         // Assert: Handle must be allocated.
@@ -207,12 +207,12 @@ pub const FileSyscalls = struct {
         
         // Assert: Handle must be readable.
         if (!file_handle.flags.read) {
-            return SyscallResult.fail(BasinError.permission_denied); // Handle not readable
+            return SyscallResult.fail(HarborError.permission_denied); // Handle not readable
         }
         
         // Check timeout before operation.
         if (self.check_timeout(start_time_ns, timeout_ns)) {
-            return SyscallResult.fail(BasinError.file_io_timeout); // Timeout expired
+            return SyscallResult.fail(HarborError.file_io_timeout); // Timeout expired
         }
         
         // Note: Actual file data reading is handled by integration layer.
@@ -236,7 +236,7 @@ pub const FileSyscalls = struct {
         
         // Check timeout after operation.
         if (self.check_timeout(start_time_ns, timeout_ns)) {
-            return SyscallResult.fail(BasinError.file_io_timeout); // Timeout expired
+            return SyscallResult.fail(HarborError.file_io_timeout); // Timeout expired
         }
         
         // Assert: Position must not exceed buffer size.
@@ -254,51 +254,51 @@ pub const FileSyscalls = struct {
     }
     
     pub fn syscall_write(
-        self: *BasinKernel,
+        self: *HarborKernel,
         handle: u64,
         data_ptr: u64,
         data_len: u64,
         timeout_ns: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         // Record start time for timeout checking.
         const start_time_ns = self.timer.get_monotonic_ns();
         
         // Assert: handle must be valid (non-zero).
         if (handle == 0) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Invalid handle
+            return SyscallResult.fail(HarborError.invalid_argument); // Invalid handle
         }
         
         // Assert: data pointer must be valid (non-zero, within VM memory).
         if (data_ptr == 0) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Null pointer
+            return SyscallResult.fail(HarborError.invalid_argument); // Null pointer
         }
         
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default (matches syscall_map)
         if (data_ptr >= VM_MEMORY_SIZE) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Data pointer exceeds VM memory
+            return SyscallResult.fail(HarborError.invalid_argument); // Data pointer exceeds VM memory
         }
         
         // Assert: data length must be reasonable (max 1MB per write).
         if (data_len == 0) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Zero-length data
+            return SyscallResult.fail(HarborError.invalid_argument); // Zero-length data
         }
         if (data_len > 1024 * 1024) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Data too large (> 1MB)
+            return SyscallResult.fail(HarborError.invalid_argument); // Data too large (> 1MB)
         }
         
         // Assert: data must fit within VM memory.
         if (data_ptr + data_len > VM_MEMORY_SIZE) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Data exceeds VM memory
+            return SyscallResult.fail(HarborError.invalid_argument); // Data exceeds VM memory
         }
         
         // Find handle by ID.
         const handle_idx = self.find_handle_by_id(handle) orelse {
-            return SyscallResult.fail(BasinError.invalid_handle); // Handle not found
+            return SyscallResult.fail(HarborError.invalid_handle); // Handle not found
         };
         
         // Assert: Handle must be allocated.
@@ -309,12 +309,12 @@ pub const FileSyscalls = struct {
         
         // Assert: Handle must be writable.
         if (!file_handle.flags.write) {
-            return SyscallResult.fail(BasinError.permission_denied); // Handle not writable
+            return SyscallResult.fail(HarborError.permission_denied); // Handle not writable
         }
         
         // Check timeout before operation.
         if (self.check_timeout(start_time_ns, timeout_ns)) {
-            return SyscallResult.fail(BasinError.file_io_timeout); // Timeout expired
+            return SyscallResult.fail(HarborError.file_io_timeout); // Timeout expired
         }
         
         // Calculate bytes to write (min of data length and available buffer space).
@@ -336,7 +336,7 @@ pub const FileSyscalls = struct {
         
         // Check timeout after operation.
         if (self.check_timeout(start_time_ns, timeout_ns)) {
-            return SyscallResult.fail(BasinError.file_io_timeout); // Timeout expired
+            return SyscallResult.fail(HarborError.file_io_timeout); // Timeout expired
         }
         
         // Assert: Position and buffer size must be valid.
@@ -355,16 +355,16 @@ pub const FileSyscalls = struct {
     }
     
     pub fn syscall_close(
-        self: *BasinKernel,
+        self: *HarborKernel,
         handle: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg2;
         _ = _arg3;
@@ -372,12 +372,12 @@ pub const FileSyscalls = struct {
         
         // Assert: handle must be valid (non-zero).
         if (handle == 0) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Invalid handle
+            return SyscallResult.fail(HarborError.invalid_argument); // Invalid handle
         }
         
         // Find handle by ID.
         const handle_idx = self.find_handle_by_id(handle) orelse {
-            return SyscallResult.fail(BasinError.invalid_handle); // Handle not found
+            return SyscallResult.fail(HarborError.invalid_handle); // Handle not found
         };
         
         // Assert: Handle must be allocated.
@@ -431,41 +431,41 @@ pub const FileSyscalls = struct {
     }
     
     pub fn syscall_unlink(
-        self: *BasinKernel,
+        self: *HarborKernel,
         path_ptr: u64,
         path_len: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg3;
         _ = _arg4;
         
         // Assert: path pointer must be valid (non-zero, within VM memory).
         if (path_ptr == 0) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Null pointer
+            return SyscallResult.fail(HarborError.invalid_argument); // Null pointer
         }
         
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default
         if (path_ptr >= VM_MEMORY_SIZE) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Path pointer exceeds VM memory
+            return SyscallResult.fail(HarborError.invalid_argument); // Path pointer exceeds VM memory
         }
         
         // Assert: path length must be reasonable (max 4096 bytes).
         if (path_len == 0) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Empty path
+            return SyscallResult.fail(HarborError.invalid_argument); // Empty path
         }
         if (path_len > 4096) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Path too long
+            return SyscallResult.fail(HarborError.invalid_argument); // Path too long
         }
         
         // Assert: path must fit within VM memory.
         if (path_ptr + path_len > VM_MEMORY_SIZE) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Path exceeds VM memory
+            return SyscallResult.fail(HarborError.invalid_argument); // Path exceeds VM memory
         }
         
         // Find handle by path and remove it (simulated file deletion).
@@ -483,7 +483,7 @@ pub const FileSyscalls = struct {
         }
         
         if (!found) {
-            return SyscallResult.fail(BasinError.not_found); // File not found
+            return SyscallResult.fail(HarborError.not_found); // File not found
         }
         
         const result = SyscallResult.ok(0);
@@ -491,49 +491,49 @@ pub const FileSyscalls = struct {
     }
     
     pub fn syscall_rename(
-        self: *BasinKernel,
+        self: *HarborKernel,
         old_path_ptr: u64,
         old_path_len: u64,
         new_path_ptr: u64,
         new_path_len: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         // Assert: old path pointer must be valid (non-zero, within VM memory).
         if (old_path_ptr == 0) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Null pointer
+            return SyscallResult.fail(HarborError.invalid_argument); // Null pointer
         }
         
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default
         if (old_path_ptr >= VM_MEMORY_SIZE) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Old path pointer exceeds VM memory
+            return SyscallResult.fail(HarborError.invalid_argument); // Old path pointer exceeds VM memory
         }
         
         // Assert: new path pointer must be valid (non-zero, within VM memory).
         if (new_path_ptr == 0) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Null pointer
+            return SyscallResult.fail(HarborError.invalid_argument); // Null pointer
         }
         if (new_path_ptr >= VM_MEMORY_SIZE) {
-            return SyscallResult.fail(BasinError.invalid_argument); // New path pointer exceeds VM memory
+            return SyscallResult.fail(HarborError.invalid_argument); // New path pointer exceeds VM memory
         }
         
         // Assert: path lengths must be reasonable (max 4096 bytes).
         if (old_path_len == 0 or old_path_len > 4096) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Invalid old path length
+            return SyscallResult.fail(HarborError.invalid_argument); // Invalid old path length
         }
         if (new_path_len == 0 or new_path_len > 4096) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Invalid new path length
+            return SyscallResult.fail(HarborError.invalid_argument); // Invalid new path length
         }
         
         // Assert: paths must fit within VM memory.
         if (old_path_ptr + old_path_len > VM_MEMORY_SIZE) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Old path exceeds VM memory
+            return SyscallResult.fail(HarborError.invalid_argument); // Old path exceeds VM memory
         }
         if (new_path_ptr + new_path_len > VM_MEMORY_SIZE) {
-            return SyscallResult.fail(BasinError.invalid_argument); // New path exceeds VM memory
+            return SyscallResult.fail(HarborError.invalid_argument); // New path exceeds VM memory
         }
         
         // Find handle by old path and update to new path (simulated rename).
@@ -550,7 +550,7 @@ pub const FileSyscalls = struct {
         }
         
         if (!found) {
-            return SyscallResult.fail(BasinError.not_found); // File not found
+            return SyscallResult.fail(HarborError.not_found); // File not found
         }
         
         const result = SyscallResult.ok(0);
@@ -558,41 +558,41 @@ pub const FileSyscalls = struct {
     }
     
     pub fn syscall_mkdir(
-        self: *BasinKernel,
+        self: *HarborKernel,
         path_ptr: u64,
         path_len: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg3;
         _ = _arg4;
         
         // Assert: path pointer must be valid (non-zero, within VM memory).
         if (path_ptr == 0) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Null pointer
+            return SyscallResult.fail(HarborError.invalid_argument); // Null pointer
         }
         
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default
         if (path_ptr >= VM_MEMORY_SIZE) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Path pointer exceeds VM memory
+            return SyscallResult.fail(HarborError.invalid_argument); // Path pointer exceeds VM memory
         }
         
         // Assert: path length must be reasonable (max 4096 bytes).
         if (path_len == 0) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Empty path
+            return SyscallResult.fail(HarborError.invalid_argument); // Empty path
         }
         if (path_len > 4096) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Path too long
+            return SyscallResult.fail(HarborError.invalid_argument); // Path too long
         }
         
         // Assert: path must fit within VM memory.
         if (path_ptr + path_len > VM_MEMORY_SIZE) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Path exceeds VM memory
+            return SyscallResult.fail(HarborError.invalid_argument); // Path exceeds VM memory
         }
         
         // Check if directory already exists (simulated).
@@ -601,7 +601,7 @@ pub const FileSyscalls = struct {
             if (self.handles[i].allocated and self.handles[i].path_len == @as(u32, @intCast(path_len))) {
                 // In real implementation, would compare path strings.
                 // For now, return error if path length matches (directory exists).
-                return SyscallResult.fail(BasinError.invalid_argument); // Directory already exists
+                return SyscallResult.fail(HarborError.invalid_argument); // Directory already exists
             }
         }
         
@@ -612,33 +612,33 @@ pub const FileSyscalls = struct {
     }
     
     pub fn syscall_opendir(
-        self: *BasinKernel,
+        self: *HarborKernel,
         path_ptr: u64,
         path_len: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg3;
         _ = _arg4;
         
         // Assert: path pointer must be valid (non-zero, within VM memory).
         if (path_ptr == 0) {
-            return SyscallResult.fail(BasinError.invalid_argument);
+            return SyscallResult.fail(HarborError.invalid_argument);
         }
         
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default
         if (path_ptr >= VM_MEMORY_SIZE) {
-            return SyscallResult.fail(BasinError.invalid_argument);
+            return SyscallResult.fail(HarborError.invalid_argument);
         }
         
         // Assert: path length must be reasonable (max 256 bytes).
         if (path_len == 0 or path_len > 256) {
-            return SyscallResult.fail(BasinError.invalid_argument);
+            return SyscallResult.fail(HarborError.invalid_argument);
         }
         
         // Find free directory handle slot.
@@ -651,7 +651,7 @@ pub const FileSyscalls = struct {
         }
         
         if (slot == null) {
-            return SyscallResult.fail(BasinError.out_of_memory);
+            return SyscallResult.fail(HarborError.out_of_memory);
         }
         
         const idx = slot.?;
@@ -672,37 +672,37 @@ pub const FileSyscalls = struct {
     }
     
     pub fn syscall_readdir(
-        self: *BasinKernel,
+        self: *HarborKernel,
         dir_handle: u64,
         entry_ptr: u64,
         entry_len: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg4;
         
         // Assert: directory handle must be valid (non-zero).
         if (dir_handle == 0) {
-            return SyscallResult.fail(BasinError.invalid_argument);
+            return SyscallResult.fail(HarborError.invalid_argument);
         }
         
         // Assert: entry pointer must be valid (non-zero, within VM memory).
         if (entry_ptr == 0) {
-            return SyscallResult.fail(BasinError.invalid_argument);
+            return SyscallResult.fail(HarborError.invalid_argument);
         }
         
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default
         if (entry_ptr >= VM_MEMORY_SIZE) {
-            return SyscallResult.fail(BasinError.invalid_argument);
+            return SyscallResult.fail(HarborError.invalid_argument);
         }
         
         // Assert: entry length must be reasonable (max 256 bytes).
         if (entry_len == 0 or entry_len > 256) {
-            return SyscallResult.fail(BasinError.invalid_argument);
+            return SyscallResult.fail(HarborError.invalid_argument);
         }
         
         // Find directory handle.
@@ -715,7 +715,7 @@ pub const FileSyscalls = struct {
         }
         
         if (found == null) {
-            return SyscallResult.fail(BasinError.invalid_argument);
+            return SyscallResult.fail(HarborError.invalid_argument);
         }
         
         const idx = found.?;
@@ -737,16 +737,16 @@ pub const FileSyscalls = struct {
     }
     
     pub fn syscall_closedir(
-        self: *BasinKernel,
+        self: *HarborKernel,
         dir_handle: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg2;
         _ = _arg3;
@@ -754,7 +754,7 @@ pub const FileSyscalls = struct {
         
         // Assert: directory handle must be valid (non-zero).
         if (dir_handle == 0) {
-            return SyscallResult.fail(BasinError.invalid_argument);
+            return SyscallResult.fail(HarborError.invalid_argument);
         }
         
         // Find and free directory handle.
@@ -768,7 +768,7 @@ pub const FileSyscalls = struct {
         }
         
         if (!found) {
-            return SyscallResult.fail(BasinError.invalid_argument);
+            return SyscallResult.fail(HarborError.invalid_argument);
         }
         
         const result = SyscallResult.ok(0);

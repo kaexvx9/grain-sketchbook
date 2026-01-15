@@ -7,7 +7,7 @@ const Debug = @import("debug.zig");
 
 // Import types
 const types = @import("basin_kernel_types.zig");
-const BasinError = types.BasinError;
+const HarborError = types.HarborError;
 const SyscallResult = types.SyscallResult;
 const ResourceUsage = types.ResourceUsage;
 const MAX_PROCESSES = types.MAX_PROCESSES;
@@ -15,9 +15,9 @@ const Process = types.Process;
 
 // Import core
 const core = @import("basin_kernel_core.zig");
-const BasinKernel = core.BasinKernel;
+const HarborKernel = core.HarborKernel;
 
-/// Stats syscall handlers for BasinKernel.
+/// Stats syscall handlers for HarborKernel.
 /// Why: Extract stats syscalls to separate module for organization.
 pub const StatsSyscalls = struct {
     /// Get unified kernel statistics snapshot.
@@ -25,16 +25,16 @@ pub const StatsSyscalls = struct {
     /// Contract: stats_ptr must be valid pointer (checked by integration layer).
     /// Note: Integration layer will write KernelStatsSnapshot structure to stats_ptr.
     pub fn syscall_kernel_get_stats(
-        self: *BasinKernel,
+        self: *HarborKernel,
         stats_ptr: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg2;
         _ = _arg3;
@@ -42,19 +42,19 @@ pub const StatsSyscalls = struct {
         
         // Assert: Stats pointer must be valid (non-zero, within VM memory).
         if (stats_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
+            return HarborError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default
         if (stats_ptr >= VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Stats pointer exceeds VM memory
+            return HarborError.invalid_argument; // Stats pointer exceeds VM memory
         }
         
         // Assert: KernelStatsSnapshot structure must fit within VM memory.
         // KernelStatsSnapshot size: 7 pointers (8 bytes each) + 2 u64 + 1 f64 = 7*8 + 2*8 + 8 = 80 bytes
         const KERNEL_STATS_SIZE: u64 = 80;
         if (stats_ptr + KERNEL_STATS_SIZE > VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Stats structure exceeds VM memory
+            return HarborError.invalid_argument; // Stats structure exceeds VM memory
         }
         
         // Note: This syscall is handled by integration layer (needs VM access to write snapshot).
@@ -76,16 +76,16 @@ pub const StatsSyscalls = struct {
     /// Why: Provide overall system health status for monitoring.
     /// Returns: Health status (0 = healthy, 1 = degraded, 2 = unhealthy).
     pub fn syscall_health_check(
-        self: *BasinKernel,
+        self: *HarborKernel,
         _arg1: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg1;
         _ = _arg2;
@@ -127,39 +127,39 @@ pub const StatsSyscalls = struct {
     ///   - arg3: Unused
     ///   - arg4: Unused
     pub fn syscall_get_resource_usage(
-        self: *BasinKernel,
+        self: *HarborKernel,
         pid: u64,
         usage_ptr: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg3;
         _ = _arg4;
         
         // Assert: Process ID must be valid (non-zero).
         if (pid == 0) {
-            return BasinError.invalid_argument; // Invalid process ID
+            return HarborError.invalid_argument; // Invalid process ID
         }
         
         // Assert: Usage pointer must be valid (non-zero, within VM memory).
         if (usage_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
+            return HarborError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024;
         if (usage_ptr >= VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Pointer out of bounds
+            return HarborError.invalid_argument; // Pointer out of bounds
         }
         
         // Calculate ResourceUsage struct size (8 + 8 + 8 + 8 + 8 + 4 + 4 = 48 bytes).
         const RESOURCE_USAGE_SIZE: u64 = 48;
         if (usage_ptr + RESOURCE_USAGE_SIZE > VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Buffer extends beyond VM memory
+            return HarborError.invalid_argument; // Buffer extends beyond VM memory
         }
         
         // Find process in process table.
@@ -173,7 +173,7 @@ pub const StatsSyscalls = struct {
         
         // Assert: Process must exist.
         if (found == null) {
-            return BasinError.process_not_found; // Process not found
+            return HarborError.process_not_found; // Process not found
         }
         
         const process_idx = found.?;
@@ -229,27 +229,27 @@ pub const StatsSyscalls = struct {
     ///   - arg3: Limit value (CPU time in nanoseconds, memory in bytes, counts for others)
     ///   - arg4: Unused
     pub fn syscall_set_resource_limit(
-        self: *BasinKernel,
+        self: *HarborKernel,
         pid: u64,
         limit_type: u64,
         limit_value: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg4;
         
         // Assert: Process ID must be valid (non-zero).
         if (pid == 0) {
-            return BasinError.invalid_argument; // Invalid process ID
+            return HarborError.invalid_argument; // Invalid process ID
         }
         
         // Assert: Limit type must be valid (0-3).
         if (limit_type > 3) {
-            return BasinError.invalid_argument; // Invalid limit type
+            return HarborError.invalid_argument; // Invalid limit type
         }
         
         // Find process in process table.
@@ -263,7 +263,7 @@ pub const StatsSyscalls = struct {
         
         // Assert: Process must exist.
         if (found == null) {
-            return BasinError.process_not_found; // Process not found
+            return HarborError.process_not_found; // Process not found
         }
         
         const process_idx = found.?;
@@ -272,7 +272,7 @@ pub const StatsSyscalls = struct {
         // Check permission: Only root or the process itself can set limits.
         const current_pid = self.scheduler.get_current();
         if (current_pid != pid and !self.current_user.is_root()) {
-            return BasinError.permission_denied; // Permission denied
+            return HarborError.permission_denied; // Permission denied
         }
         
         // Set limit based on type.
@@ -288,19 +288,19 @@ pub const StatsSyscalls = struct {
             2 => {
                 // File descriptor limit (count).
                 if (limit_value > 0xFFFFFFFF) {
-                    return BasinError.invalid_argument; // Limit value too large
+                    return HarborError.invalid_argument; // Limit value too large
                 }
                 process.max_file_descriptors = @as(u32, @truncate(limit_value));
             },
             3 => {
                 // Network connection limit (count).
                 if (limit_value > 0xFFFFFFFF) {
-                    return BasinError.invalid_argument; // Limit value too large
+                    return HarborError.invalid_argument; // Limit value too large
                 }
                 process.max_connections = @as(u32, @truncate(limit_value));
             },
             else => {
-                return BasinError.invalid_argument; // Invalid limit type
+                return HarborError.invalid_argument; // Invalid limit type
             },
         }
         

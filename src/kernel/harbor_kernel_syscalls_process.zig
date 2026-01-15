@@ -13,71 +13,71 @@ const resource_cleanup = @import("resource_cleanup.zig");
 
 // Import types
 const types = @import("basin_kernel_types.zig");
-const BasinError = types.BasinError;
+const HarborError = types.HarborError;
 const SyscallResult = types.SyscallResult;
 const Process = types.Process;
 const MAX_PROCESSES = types.MAX_PROCESSES;
 
 // Import core
 const core = @import("basin_kernel_core.zig");
-const BasinKernel = core.BasinKernel;
+const HarborKernel = core.HarborKernel;
 
-/// Process syscall handlers for BasinKernel.
+/// Process syscall handlers for HarborKernel.
 /// Why: Extract process management syscalls to separate module for organization.
 pub const ProcessSyscalls = struct {
     pub fn syscall_spawn(
-        self: *BasinKernel,
+        self: *HarborKernel,
         executable: u64,
         args_ptr: u64,
         args_len: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg4;
         
         // Assert: executable pointer must be valid (non-zero, within VM memory).
         if (executable == 0) {
-            return BasinError.invalid_argument; // Null pointer
+            return HarborError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default (matches syscall_map)
         if (executable >= VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Executable pointer exceeds VM memory
+            return HarborError.invalid_argument; // Executable pointer exceeds VM memory
         }
         
         // Assert: executable must be at least ELF header size (64 bytes for ELF64).
         // Why: Minimum size for valid ELF executable header.
         const MIN_ELF_SIZE: u64 = 64;
         if (executable + MIN_ELF_SIZE > VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Executable doesn't fit in VM memory
+            return HarborError.invalid_argument; // Executable doesn't fit in VM memory
         }
         
         // Assert: args pointer must be valid (can be zero for no args, or valid pointer).
         if (args_ptr != 0) {
             if (args_ptr >= VM_MEMORY_SIZE) {
-                return BasinError.invalid_argument; // Args pointer exceeds VM memory
+                return HarborError.invalid_argument; // Args pointer exceeds VM memory
             }
             
             // Assert: args length must be reasonable (max 64KB).
             if (args_len == 0) {
-                return BasinError.invalid_argument; // Zero-length args with non-zero pointer
+                return HarborError.invalid_argument; // Zero-length args with non-zero pointer
             }
             if (args_len > 64 * 1024) {
-                return BasinError.invalid_argument; // Args too large (> 64KB)
+                return HarborError.invalid_argument; // Args too large (> 64KB)
             }
             
             // Assert: args must fit within VM memory.
             if (args_ptr + args_len > VM_MEMORY_SIZE) {
-                return BasinError.invalid_argument; // Args exceed VM memory
+                return HarborError.invalid_argument; // Args exceed VM memory
             }
         } else {
             // Args pointer is zero: args_len must also be zero.
             if (args_len != 0) {
-                return BasinError.invalid_argument; // Non-zero args_len with null pointer
+                return HarborError.invalid_argument; // Non-zero args_len with null pointer
             }
         }
         
@@ -91,7 +91,7 @@ pub const ProcessSyscalls = struct {
         }
         
         if (slot == null) {
-            return BasinError.out_of_memory; // No free process slots
+            return HarborError.out_of_memory; // No free process slots
         }
         
         const idx = slot.?;
@@ -112,18 +112,18 @@ pub const ProcessSyscalls = struct {
         if (self.vm_memory_reader) |reader| {
             // Read ELF header from VM memory.
             const bytes_read = reader(executable, ELF_HEADER_SIZE, &elf_header_buffer) orelse {
-                return BasinError.invalid_argument; // Failed to read ELF header
+                return HarborError.invalid_argument; // Failed to read ELF header
             };
             
             // Assert: Must read full ELF header.
             if (bytes_read < ELF_HEADER_SIZE) {
-                return BasinError.invalid_argument; // Incomplete ELF header
+                return HarborError.invalid_argument; // Incomplete ELF header
             }
             
             // Parse ELF header to get entry point.
             const elf_info = elf_parser.parse_elf_header(&elf_header_buffer);
             if (!elf_info.valid) {
-                return BasinError.invalid_argument; // Invalid ELF format
+                return HarborError.invalid_argument; // Invalid ELF format
             }
             
             entry_point = elf_info.entry_point;
@@ -239,7 +239,7 @@ pub const ProcessSyscalls = struct {
             
             // Check if spawning would exceed limit.
             if (!self.process_group_limits.can_spawn_process(parent_pgid, process_count)) {
-                return BasinError.resource_exhausted; // Process count limit exceeded
+                return HarborError.resource_exhausted; // Process count limit exceeded
             }
         }
         
@@ -287,16 +287,16 @@ pub const ProcessSyscalls = struct {
     }
     
     pub fn syscall_exit(
-        self: *BasinKernel,
+        self: *HarborKernel,
         status: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg2;
         _ = _arg3;
@@ -380,12 +380,12 @@ pub const ProcessSyscalls = struct {
     }
     
     pub fn syscall_yield(
-        self: *BasinKernel,
+        self: *HarborKernel,
         _arg1: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         _ = self;
         _ = _arg1;
         _ = _arg2;
@@ -400,16 +400,16 @@ pub const ProcessSyscalls = struct {
     }
     
     pub fn syscall_wait(
-        self: *BasinKernel,
+        self: *HarborKernel,
         process: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg2;
         _ = _arg3;
@@ -417,7 +417,7 @@ pub const ProcessSyscalls = struct {
         
         // Assert: process ID must be valid (non-zero).
         if (process == 0) {
-            return BasinError.invalid_argument; // Invalid process ID
+            return HarborError.invalid_argument; // Invalid process ID
         }
         
         // Find process in process table.
@@ -430,7 +430,7 @@ pub const ProcessSyscalls = struct {
         }
         
         if (found == null) {
-            return BasinError.not_found; // Process not found
+            return HarborError.not_found; // Process not found
         }
         
         const idx = found.?;
@@ -472,32 +472,32 @@ pub const ProcessSyscalls = struct {
         }
         
         // Process still running: return error (blocking wait not fully implemented).
-        return BasinError.would_block; // Process still running (would block)
+        return HarborError.would_block; // Process still running (would block)
     }
     
     pub fn syscall_setpgid(
-        self: *BasinKernel,
+        self: *HarborKernel,
         pid: u64,
         pgid: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg3;
         _ = _arg4;
         
         // Assert: Process ID must be valid (non-zero).
         if (pid == 0) {
-            return BasinError.invalid_argument; // Invalid process ID
+            return HarborError.invalid_argument; // Invalid process ID
         }
         
         // Assert: Process group ID must be valid (non-zero).
         if (pgid == 0) {
-            return BasinError.invalid_argument; // Invalid process group ID
+            return HarborError.invalid_argument; // Invalid process group ID
         }
         
         // Find process in process table.
@@ -510,7 +510,7 @@ pub const ProcessSyscalls = struct {
         }
         
         if (found == null) {
-            return BasinError.not_found; // Process not found
+            return HarborError.not_found; // Process not found
         }
         
         const idx = found.?;
@@ -535,16 +535,16 @@ pub const ProcessSyscalls = struct {
     }
     
     pub fn syscall_getpgid(
-        self: *BasinKernel,
+        self: *HarborKernel,
         pid: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg2;
         _ = _arg3;
@@ -552,7 +552,7 @@ pub const ProcessSyscalls = struct {
         
         // Assert: Process ID must be valid (non-zero).
         if (pid == 0) {
-            return BasinError.invalid_argument; // Invalid process ID
+            return HarborError.invalid_argument; // Invalid process ID
         }
         
         // Find process in process table.
@@ -565,7 +565,7 @@ pub const ProcessSyscalls = struct {
         }
         
         if (found == null) {
-            return BasinError.not_found; // Process not found
+            return HarborError.not_found; // Process not found
         }
         
         const idx = found.?;
@@ -579,16 +579,16 @@ pub const ProcessSyscalls = struct {
     }
     
     pub fn syscall_setsid(
-        self: *BasinKernel,
+        self: *HarborKernel,
         _arg1: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg1;
         _ = _arg2;
@@ -598,14 +598,14 @@ pub const ProcessSyscalls = struct {
         // Get current process ID.
         const current_pid = self.scheduler.get_current();
         if (current_pid == 0) {
-            return BasinError.invalid_argument; // No current process
+            return HarborError.invalid_argument; // No current process
         }
         
         // Create new session.
         // Why: Create a new session for the current process.
         const sid = self.process_group_manager.create_session(current_pid);
         if (sid == 0) {
-            return BasinError.resource_exhausted; // No free session slot
+            return HarborError.resource_exhausted; // No free session slot
         }
         
         // Find process in process table.
@@ -618,7 +618,7 @@ pub const ProcessSyscalls = struct {
         }
         
         if (found == null) {
-            return BasinError.not_found; // Process not found
+            return HarborError.not_found; // Process not found
         }
         
         const idx = found.?;
@@ -636,7 +636,7 @@ pub const ProcessSyscalls = struct {
             MAX_PROCESSES,
         );
         if (pgid == 0) {
-            return BasinError.resource_exhausted; // No free group slot
+            return HarborError.resource_exhausted; // No free group slot
         }
         
         // Return session ID.
@@ -644,16 +644,16 @@ pub const ProcessSyscalls = struct {
     }
     
     pub fn syscall_getsid(
-        self: *BasinKernel,
+        self: *HarborKernel,
         pid: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg2;
         _ = _arg3;
@@ -661,7 +661,7 @@ pub const ProcessSyscalls = struct {
         
         // Assert: Process ID must be valid (non-zero).
         if (pid == 0) {
-            return BasinError.invalid_argument; // Invalid process ID
+            return HarborError.invalid_argument; // Invalid process ID
         }
         
         // Find process in process table.
@@ -674,7 +674,7 @@ pub const ProcessSyscalls = struct {
         }
         
         if (found == null) {
-            return BasinError.not_found; // Process not found
+            return HarborError.not_found; // Process not found
         }
         
         const idx = found.?;
@@ -688,23 +688,23 @@ pub const ProcessSyscalls = struct {
     }
     
     pub fn syscall_kill(
-        self: *BasinKernel,
+        self: *HarborKernel,
         pid: u64,
         signal_num: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg3;
         _ = _arg4;
         
         // Assert: Signal number must be valid (< 32).
         if (signal_num >= 32) {
-            return BasinError.invalid_argument;
+            return HarborError.invalid_argument;
         }
         
         // Convert signal number to Signal enum.
@@ -724,7 +724,7 @@ pub const ProcessSyscalls = struct {
             // Extract process group ID by clearing the sign bit.
             const pgid = pid & 0x7FFFFFFFFFFFFFFF;
             if (pgid == 0) {
-                return BasinError.invalid_argument; // Invalid process group ID
+                return HarborError.invalid_argument; // Invalid process group ID
             }
             return ProcessSyscalls.kill_process_group(self, pgid, signal);
         }
@@ -734,14 +734,14 @@ pub const ProcessSyscalls = struct {
             // Extract session ID by clearing the session bit (bit 62).
             const sid = pid & 0x3FFFFFFFFFFFFFFF;
             if (sid == 0) {
-                return BasinError.invalid_argument; // Invalid session ID
+                return HarborError.invalid_argument; // Invalid session ID
             }
             return ProcessSyscalls.kill_session(self, sid, signal);
         }
         
         // Assert: PID must be valid (non-zero) for single process.
         if (pid == 0) {
-            return BasinError.invalid_argument;
+            return HarborError.invalid_argument;
         }
         
         // Positive PID: send signal to single process (existing behavior).
@@ -755,7 +755,7 @@ pub const ProcessSyscalls = struct {
         }
         
         if (found == null) {
-            return BasinError.not_found; // Process not found
+            return HarborError.not_found; // Process not found
         }
         
         const idx = found.?;
@@ -788,13 +788,13 @@ pub const ProcessSyscalls = struct {
     /// Why: Support POSIX signal delivery to process groups.
     /// Contract: pgid must be valid (non-zero), signal must be valid.
     pub fn kill_process_group(
-        self: *BasinKernel,
+        self: *HarborKernel,
         pgid: u64,
         signal: Signal,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: Process group ID must be valid (non-zero).
         if (pgid == 0) {
-            return BasinError.invalid_argument; // Invalid process group ID
+            return HarborError.invalid_argument; // Invalid process group ID
         }
         
         // Find all processes in the process group.
@@ -811,7 +811,7 @@ pub const ProcessSyscalls = struct {
         
         // If no processes found in group, return error.
         if (processes_found == 0) {
-            return BasinError.not_found; // Process group not found or empty
+            return HarborError.not_found; // Process group not found or empty
         }
         
         // Send signal to all processes in the group.
@@ -846,13 +846,13 @@ pub const ProcessSyscalls = struct {
     /// Why: Support POSIX signal delivery to sessions.
     /// Contract: sid must be valid (non-zero), signal must be valid.
     pub fn kill_session(
-        self: *BasinKernel,
+        self: *HarborKernel,
         sid: u64,
         signal: Signal,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: Session ID must be valid (non-zero).
         if (sid == 0) {
-            return BasinError.invalid_argument; // Invalid session ID
+            return HarborError.invalid_argument; // Invalid session ID
         }
         
         // Find all processes in the session.
@@ -869,7 +869,7 @@ pub const ProcessSyscalls = struct {
         
         // If no processes found in session, return error.
         if (processes_found == 0) {
-            return BasinError.not_found; // Session not found or empty
+            return HarborError.not_found; // Session not found or empty
         }
         
         // Send signal to all processes in the session.
@@ -901,16 +901,16 @@ pub const ProcessSyscalls = struct {
     }
     
     pub fn syscall_signal(
-        self: *BasinKernel,
+        self: *HarborKernel,
         signal_num: u64,
         _handler_ptr: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _handler_ptr;
         _ = _arg3;
@@ -918,13 +918,13 @@ pub const ProcessSyscalls = struct {
         
         // Assert: Signal number must be valid (< 32).
         if (signal_num >= 32) {
-            return BasinError.invalid_argument;
+            return HarborError.invalid_argument;
         }
         
         // Get current process.
         const current_pid = self.scheduler.get_current();
         if (current_pid == 0) {
-            return BasinError.invalid_user; // No current process
+            return HarborError.invalid_user; // No current process
         }
         
         // Find current process.
@@ -937,7 +937,7 @@ pub const ProcessSyscalls = struct {
         }
         
         if (found == null) {
-            return BasinError.not_found;
+            return HarborError.not_found;
         }
         
         const process = &self.processes[found.?];
@@ -960,28 +960,28 @@ pub const ProcessSyscalls = struct {
     }
     
     pub fn syscall_sigaction(
-        self: *BasinKernel,
+        self: *HarborKernel,
         signal_num: u64,
         action_ptr: u64,
         old_action_ptr: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg4;
         
         // Assert: Signal number must be valid (< 32).
         if (signal_num >= 32) {
-            return BasinError.invalid_argument;
+            return HarborError.invalid_argument;
         }
         
         // Get current process.
         const current_pid = self.scheduler.get_current();
         if (current_pid == 0) {
-            return BasinError.invalid_user;
+            return HarborError.invalid_user;
         }
         
         // Find current process.
@@ -994,7 +994,7 @@ pub const ProcessSyscalls = struct {
         }
         
         if (found == null) {
-            return BasinError.not_found;
+            return HarborError.not_found;
         }
         
         const process = &self.processes[found.?];
