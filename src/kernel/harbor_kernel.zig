@@ -1,16 +1,16 @@
-//! Grain Basin kernel — The foundation that holds everything
+//! Clutch Harbor kernel — The destination where everything docks
 //!
-//! Grain Basin kernel is a Zig monolith kernel for RISC-V64, designed for the next 30 years.
-//! Non-POSIX, type-safe, minimal syscall surface, Grain Style safety.
+//! Clutch Harbor kernel is a Zig monolith kernel for RISC-V64, designed for the next 30 years.
+//! Non-POSIX, type-safe, minimal syscall surface, Clutch Style safety.
 //!
-//! **Homebrew Bundle**: `grainbasin`
+//! **Homebrew Bundle**: `clutchharbor`
 //!
 //! **Vision**: Modern kernel design inspired by seL4 (minimal), Aero OS (monolithic),
 //! and Fuchsia (capability-based), but built in pure Zig for RISC-V.
 //!
 //! **Note**: Theseus OS uses SAS/SPL architecture (not traditional monolithic).
 //! Aero OS proves monolithic kernels work (runs real apps), but targets x86_64 only.
-//! Grain Basin kernel fills the gap: RISC-V native, non-POSIX, minimal syscall surface.
+//! Clutch Harbor kernel fills the gap: RISC-V native, non-POSIX, minimal syscall surface.
 //!
 //! **Target**: Framework 13 DeepComputing RISC-V Mainboard
 //! **Development**: macOS Tahoe IDE with RISC-V VM for testing
@@ -62,29 +62,29 @@ const kernel_stats_aggregator = @import("kernel_stats_aggregator.zig");
 const KernelStatsSnapshot = kernel_stats_aggregator.KernelStatsSnapshot;
 
 // Import types from separate module
-const types = @import("basin_kernel_types.zig");
+const types = @import("harbor_kernel_types.zig");
 
-// Import core BasinKernel struct and helpers
-const core = @import("basin_kernel_core.zig");
+// Import core HarborKernel struct and helpers
+const core = @import("harbor_kernel_core.zig");
 
 // Import process syscalls
-const process_syscalls = @import("basin_kernel_syscalls_process.zig");
+const process_syscalls = @import("harbor_kernel_syscalls_process.zig");
 const ProcessSyscalls = process_syscalls.ProcessSyscalls;
 
 // Import file syscalls
-const file_syscalls = @import("basin_kernel_syscalls_file.zig");
+const file_syscalls = @import("harbor_kernel_syscalls_file.zig");
 const FileSyscalls = file_syscalls.FileSyscalls;
 
 // Import network syscalls
-const network_syscalls = @import("basin_kernel_syscalls_network.zig");
+const network_syscalls = @import("harbor_kernel_syscalls_network.zig");
 const NetworkSyscalls = network_syscalls.NetworkSyscalls;
 
 // Import audio syscalls
-const audio_syscalls = @import("basin_kernel_syscalls_audio.zig");
+const audio_syscalls = @import("harbor_kernel_syscalls_audio.zig");
 const AudioSyscalls = audio_syscalls.AudioSyscalls;
 
 // Import stats syscalls
-const stats_syscalls = @import("basin_kernel_syscalls_stats.zig");
+const stats_syscalls = @import("harbor_kernel_syscalls_stats.zig");
 const StatsSyscalls = stats_syscalls.StatsSyscalls;
 
 // Re-export all public types for backward compatibility
@@ -100,12 +100,12 @@ pub const UserId = types.UserId;
 pub const GroupId = types.GroupId;
 pub const User = types.User;
 pub const UserContext = types.UserContext;
-pub const BasinError = types.BasinError;
+pub const HarborError = types.HarborError;
 pub const SyscallResult = types.SyscallResult;
 pub const ProcessState = types.ProcessState;
 pub const Process = types.Process;
 
-// Re-export internal types used by BasinKernel
+// Re-export internal types used by HarborKernel
 const MemoryMapping = types.MemoryMapping;
 const FileHandle = types.FileHandle;
 const DirectoryHandle = types.DirectoryHandle;
@@ -133,24 +133,24 @@ comptime {
     std.debug.assert(MAX_HANDLES < 0xFFFFFFFF);
 }
 
-// Re-export BasinKernel from core module
-pub const BasinKernel = core.BasinKernel;
+// Re-export HarborKernel from core module
+pub const HarborKernel = core.HarborKernel;
 
 /// Handle syscall from user space.
 /// Why: Central syscall entry point, validate syscall number and arguments.
 /// Grain Style: Comprehensive assertions for all syscall parameters and state.
 pub fn handle_syscall(
-    self: *BasinKernel,
+    self: *HarborKernel,
     syscall_num: u32,
     arg1: u64,
     arg2: u64,
     arg3: u64,
     arg4: u64,
-) BasinError!SyscallResult {
+) HarborError!SyscallResult {
     // Assert: self pointer must be valid.
     const self_ptr = @intFromPtr(self);
     Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-    Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+    Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
     
     // Assert: syscall number must be >= 10 (kernel syscalls, not SBI).
     // Why: SBI calls use function ID < 10, kernel syscalls use >= 10.
@@ -163,7 +163,7 @@ pub fn handle_syscall(
     const syscall = @as(?Syscall, @enumFromInt(syscall_num)) orelse {
         // Assert: Invalid syscall number must return error.
         Debug.kassert(syscall_num < 10 or syscall_num > @intFromEnum(Syscall.getsid), "Invalid syscall logic", .{});
-        return BasinError.invalid_syscall;
+        return HarborError.invalid_syscall;
     };
     
     // Assert: syscall must be valid enum value.
@@ -291,25 +291,25 @@ pub fn handle_syscall(
     // Why: Separate functions for each syscall, Grain Style function length limit.
     
     pub fn syscall_map(
-        self: *BasinKernel,
+        self: *HarborKernel,
         addr: u64,
         size: u64,
         flags: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg4;
         
         // Assert: size must be non-zero and page-aligned.
         if (size == 0) {
-            return BasinError.invalid_argument;
+            return HarborError.invalid_argument;
         }
         if (size % 4096 != 0) {
-            return BasinError.unaligned_access;
+            return HarborError.unaligned_access;
         }
         
         // Assert: size must be reasonable (max 1GB per mapping, fits in VM memory).
@@ -318,10 +318,10 @@ pub fn handle_syscall(
         // Note: Default 4MB, configurable via VM_MEMORY_SIZE constant.
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default (safe for 8GB target)
         if (size > 1024 * 1024 * 1024) {
-            return BasinError.invalid_argument; // Too large (> 1GB)
+            return HarborError.invalid_argument; // Too large (> 1GB)
         }
         if (size > VM_MEMORY_SIZE) {
-            return BasinError.out_of_memory; // Larger than VM memory
+            return HarborError.out_of_memory; // Larger than VM memory
         }
         
         // Decode flags (MapFlags packed struct).
@@ -329,12 +329,12 @@ pub fn handle_syscall(
         
         // Assert: flags must be valid (at least one permission).
         if (!map_flags.read and !map_flags.write and !map_flags.execute) {
-            return BasinError.invalid_argument; // No permissions set
+            return HarborError.invalid_argument; // No permissions set
         }
         
         // Assert: flags padding must be zero (no reserved bits set).
         if (map_flags._padding != 0) {
-            return BasinError.invalid_argument; // Reserved bits set
+            return HarborError.invalid_argument; // Reserved bits set
         }
         
         // Determine mapping address.
@@ -355,33 +355,33 @@ pub fn handle_syscall(
             
             // Assert: Kernel-chosen address must fit in VM memory.
             if (mapping_addr + size > VM_MEMORY_SIZE) {
-                return BasinError.out_of_memory; // No space for kernel-chosen address
+                return HarborError.out_of_memory; // No space for kernel-chosen address
             }
         } else {
             // User-provided address: validate alignment and range.
             if (mapping_addr % 4096 != 0) {
-                return BasinError.unaligned_access;
+                return HarborError.unaligned_access;
             }
             
             // Assert: Address must be in user space (not kernel space).
             if (mapping_addr < USER_SPACE_START) {
-                return BasinError.permission_denied; // Attempting to map in kernel space
+                return HarborError.permission_denied; // Attempting to map in kernel space
             }
         }
         
         // Assert: Mapping must fit within VM memory.
         if (mapping_addr + size > VM_MEMORY_SIZE) {
-            return BasinError.out_of_memory; // Mapping exceeds VM memory
+            return HarborError.out_of_memory; // Mapping exceeds VM memory
         }
         
         // Assert: Mapping must not overlap kernel space.
         if (mapping_addr < KERNEL_SPACE_END) {
-            return BasinError.permission_denied; // Overlaps kernel space
+            return HarborError.permission_denied; // Overlaps kernel space
         }
         
         // Check if mapping overlaps with existing mappings.
         if (self.check_overlap(mapping_addr, size)) {
-            return BasinError.invalid_argument; // Overlapping mapping
+            return HarborError.invalid_argument; // Overlapping mapping
         }
         
         // Check memory limit for current process group.
@@ -409,14 +409,14 @@ pub fn handle_syscall(
                 
                 // Check if allocating this memory would exceed limit.
                 if (!self.process_group_limits.can_allocate_memory(process_pgid, group_memory, size)) {
-                    return BasinError.resource_exhausted; // Memory limit exceeded
+                    return HarborError.resource_exhausted; // Memory limit exceeded
                 }
             }
         }
         
         // Find free mapping entry.
         const mapping_idx = self.find_free_mapping() orelse {
-            return BasinError.out_of_memory; // Mapping table full
+            return HarborError.out_of_memory; // Mapping table full
         };
         
         // Get current process ID from scheduler.
@@ -486,16 +486,16 @@ pub fn handle_syscall(
     }
     
     fn syscall_unmap(
-        self: *BasinKernel,
+        self: *HarborKernel,
         region: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg2;
         _ = _arg3;
@@ -503,7 +503,7 @@ pub fn handle_syscall(
         
         // Assert: region address must be page-aligned (4KB pages).
         if (region % 4096 != 0) {
-            return BasinError.unaligned_access;
+            return HarborError.unaligned_access;
         }
         
         // Assert: region address must be in user space (not kernel space).
@@ -511,18 +511,18 @@ pub fn handle_syscall(
         const USER_SPACE_START: u64 = KERNEL_SPACE_END;
         
         if (region < USER_SPACE_START) {
-            return BasinError.permission_denied; // Attempting to unmap kernel space
+            return HarborError.permission_denied; // Attempting to unmap kernel space
         }
         
         // Assert: region address must be within VM memory bounds.
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default (matches syscall_map)
         if (region >= VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Region address exceeds VM memory
+            return HarborError.invalid_argument; // Region address exceeds VM memory
         }
         
         // Find mapping by address.
         const mapping_idx = self.find_mapping_by_address(region) orelse {
-            return BasinError.invalid_argument; // Mapping not found
+            return HarborError.invalid_argument; // Mapping not found
         };
         
         // Assert: Mapping must be allocated.
@@ -570,23 +570,23 @@ pub fn handle_syscall(
     }
     
     fn syscall_protect(
-        self: *BasinKernel,
+        self: *HarborKernel,
         region: u64,
         flags: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg3;
         _ = _arg4;
         
         // Assert: region address must be page-aligned (4KB pages).
         if (region % 4096 != 0) {
-            return BasinError.unaligned_access;
+            return HarborError.unaligned_access;
         }
         
         // Assert: region address must be in user space (not kernel space).
@@ -594,13 +594,13 @@ pub fn handle_syscall(
         const USER_SPACE_START: u64 = KERNEL_SPACE_END;
         
         if (region < USER_SPACE_START) {
-            return BasinError.permission_denied; // Attempting to protect kernel space
+            return HarborError.permission_denied; // Attempting to protect kernel space
         }
         
         // Assert: region address must be within VM memory bounds.
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default (matches syscall_map)
         if (region >= VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Region address exceeds VM memory
+            return HarborError.invalid_argument; // Region address exceeds VM memory
         }
         
         // Decode flags (MapFlags packed struct).
@@ -608,17 +608,17 @@ pub fn handle_syscall(
         
         // Assert: flags must be valid (at least one permission).
         if (!map_flags.read and !map_flags.write and !map_flags.execute) {
-            return BasinError.invalid_argument; // No permissions set
+            return HarborError.invalid_argument; // No permissions set
         }
         
         // Assert: flags padding must be zero (no reserved bits set).
         if (map_flags._padding != 0) {
-            return BasinError.invalid_argument; // Reserved bits set
+            return HarborError.invalid_argument; // Reserved bits set
         }
         
         // Find mapping by address.
         const mapping_idx = self.find_mapping_by_address(region) orelse {
-            return BasinError.invalid_argument; // Mapping not found
+            return HarborError.invalid_argument; // Mapping not found
         };
         
         // Assert: Mapping must be allocated.
@@ -660,16 +660,16 @@ pub fn handle_syscall(
     }
     
     fn syscall_channel_create(
-        self: *BasinKernel,
+        self: *HarborKernel,
         _arg1: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg1;
         _ = _arg2;
@@ -685,7 +685,7 @@ pub fn handle_syscall(
         const channel_id = self.channels.create();
         
         if (channel_id == 0) {
-            return BasinError.out_of_memory; // Channel table full
+            return HarborError.out_of_memory; // Channel table full
         }
         
         // Assert: Channel ID must be non-zero.
@@ -708,54 +708,54 @@ pub fn handle_syscall(
     }
     
     fn syscall_channel_send(
-        self: *BasinKernel,
+        self: *HarborKernel,
         channel: u64,
         data_ptr: u64,
         data_len: u64,
         timeout_ns: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         // Record start time for timeout checking.
         const start_time_ns = self.timer.get_monotonic_ns();
         
         // Assert: channel ID must be valid (non-zero).
         if (channel == 0) {
-            return BasinError.invalid_argument; // Invalid channel ID
+            return HarborError.invalid_argument; // Invalid channel ID
         }
         
         // Assert: data pointer must be valid (non-zero, within VM memory).
         if (data_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
+            return HarborError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default (matches syscall_map)
         if (data_ptr >= VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Data pointer exceeds VM memory
+            return HarborError.invalid_argument; // Data pointer exceeds VM memory
         }
         
         // Assert: data length must be reasonable (max 4KB per message, matches MAX_MESSAGE_SIZE).
         const MAX_MESSAGE_SIZE: u32 = 4096; // Matches channel.zig MAX_MESSAGE_SIZE
         if (data_len == 0) {
-            return BasinError.invalid_argument; // Zero-length data
+            return HarborError.invalid_argument; // Zero-length data
         }
         if (data_len > MAX_MESSAGE_SIZE) {
-            return BasinError.invalid_argument; // Data too large (> 4KB)
+            return HarborError.invalid_argument; // Data too large (> 4KB)
         }
         
         // Assert: data must fit within VM memory.
         if (data_ptr + data_len > VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Data exceeds VM memory
+            return HarborError.invalid_argument; // Data exceeds VM memory
         }
         
         // Look up channel in channel table.
         // Why: Find channel to send message to.
         const channel_ptr = self.channels.find(channel);
         if (channel_ptr == null) {
-            return BasinError.not_found; // Channel not found
+            return HarborError.not_found; // Channel not found
         }
         
         const ch = channel_ptr.?;
@@ -766,13 +766,13 @@ pub fn handle_syscall(
         
         // Check timeout before operation.
         if (self.check_timeout(start_time_ns, timeout_ns)) {
-            return BasinError.ipc_timeout; // Timeout expired
+            return HarborError.ipc_timeout; // Timeout expired
         }
         
         // Read data from VM memory.
         // Why: Copy data from VM memory to channel message queue.
         if (self.vm_memory_reader == null) {
-            return BasinError.invalid_syscall; // VM memory reader not available
+            return HarborError.invalid_syscall; // VM memory reader not available
         }
         
         const data_len_u32 = @as(u32, @truncate(data_len));
@@ -780,11 +780,11 @@ pub fn handle_syscall(
         const data_slice = data_buffer[0..data_len_u32];
         
         const bytes_read = self.vm_memory_reader.?(data_ptr, data_len_u32, data_slice) orelse {
-            return BasinError.invalid_argument; // Failed to read data from VM memory
+            return HarborError.invalid_argument; // Failed to read data from VM memory
         };
         
         if (bytes_read != data_len_u32) {
-            return BasinError.invalid_argument; // Incomplete read
+            return HarborError.invalid_argument; // Incomplete read
         }
         
         // Send message to channel.
@@ -794,14 +794,14 @@ pub fn handle_syscall(
         if (!sent) {
             // Check timeout after operation.
             if (self.check_timeout(start_time_ns, timeout_ns)) {
-                return BasinError.ipc_timeout; // Timeout expired
+                return HarborError.ipc_timeout; // Timeout expired
             }
-            return BasinError.would_block; // Channel queue full
+            return HarborError.would_block; // Channel queue full
         }
         
         // Check timeout after operation.
         if (self.check_timeout(start_time_ns, timeout_ns)) {
-            return BasinError.ipc_timeout; // Timeout expired
+            return HarborError.ipc_timeout; // Timeout expired
         }
         
         // Assert: Message must be sent (postcondition).
@@ -817,54 +817,54 @@ pub fn handle_syscall(
     }
     
     fn syscall_channel_recv(
-        self: *BasinKernel,
+        self: *HarborKernel,
         channel: u64,
         buffer_ptr: u64,
         buffer_len: u64,
         timeout_ns: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         // Record start time for timeout checking.
         const start_time_ns = self.timer.get_monotonic_ns();
         
         // Assert: channel ID must be valid (non-zero).
         if (channel == 0) {
-            return BasinError.invalid_argument; // Invalid channel ID
+            return HarborError.invalid_argument; // Invalid channel ID
         }
         
         // Assert: buffer pointer must be valid (non-zero, within VM memory).
         if (buffer_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
+            return HarborError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default (matches syscall_map)
         if (buffer_ptr >= VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Buffer pointer exceeds VM memory
+            return HarborError.invalid_argument; // Buffer pointer exceeds VM memory
         }
         
         // Assert: buffer length must be reasonable (max 4KB per message, matches MAX_MESSAGE_SIZE).
         const MAX_MESSAGE_SIZE: u32 = 4096; // Matches channel.zig MAX_MESSAGE_SIZE
         if (buffer_len == 0) {
-            return BasinError.invalid_argument; // Zero-length buffer
+            return HarborError.invalid_argument; // Zero-length buffer
         }
         if (buffer_len > MAX_MESSAGE_SIZE) {
-            return BasinError.invalid_argument; // Buffer too large (> 4KB)
+            return HarborError.invalid_argument; // Buffer too large (> 4KB)
         }
         
         // Assert: buffer must fit within VM memory.
         if (buffer_ptr + buffer_len > VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Buffer exceeds VM memory
+            return HarborError.invalid_argument; // Buffer exceeds VM memory
         }
         
         // Look up channel in channel table.
         // Why: Find channel to receive message from.
         const channel_ptr = self.channels.find(channel);
         if (channel_ptr == null) {
-            return BasinError.not_found; // Channel not found
+            return HarborError.not_found; // Channel not found
         }
         
         const ch = channel_ptr.?;
@@ -875,7 +875,7 @@ pub fn handle_syscall(
         
         // Check timeout before operation.
         if (self.check_timeout(start_time_ns, timeout_ns)) {
-            return BasinError.ipc_timeout; // Timeout expired
+            return HarborError.ipc_timeout; // Timeout expired
         }
         
         // Receive message from channel.
@@ -887,7 +887,7 @@ pub fn handle_syscall(
         if (bytes_received_u32 == 0) {
             // Check timeout after operation.
             if (self.check_timeout(start_time_ns, timeout_ns)) {
-                return BasinError.ipc_timeout; // Timeout expired
+                return HarborError.ipc_timeout; // Timeout expired
             }
             // Queue empty: return 0 bytes received (non-blocking).
             // Why: Non-blocking receive - return immediately if no message.
@@ -899,24 +899,24 @@ pub fn handle_syscall(
         
         // Check timeout after operation.
         if (self.check_timeout(start_time_ns, timeout_ns)) {
-            return BasinError.ipc_timeout; // Timeout expired
+            return HarborError.ipc_timeout; // Timeout expired
         }
         
         // Write message data to VM memory.
         // Why: Copy message data from channel to VM memory buffer.
         if (self.vm_memory_writer == null) {
-            return BasinError.invalid_syscall; // VM memory writer not available
+            return HarborError.invalid_syscall; // VM memory writer not available
         }
         
         const bytes_to_write = @min(bytes_received_u32, @as(u32, @truncate(buffer_len)));
         const message_slice = message_buffer[0..bytes_to_write];
         
         const bytes_written = self.vm_memory_writer.?(buffer_ptr, bytes_to_write, message_slice) orelse {
-            return BasinError.invalid_argument; // Failed to write data to VM memory
+            return HarborError.invalid_argument; // Failed to write data to VM memory
         };
         
         if (bytes_written != bytes_to_write) {
-            return BasinError.invalid_argument; // Incomplete write
+            return HarborError.invalid_argument; // Incomplete write
         }
         
         // Assert: Bytes written must match bytes received (postcondition).
@@ -934,23 +934,23 @@ pub fn handle_syscall(
     }
     
     fn syscall_clock_gettime(
-        self: *BasinKernel,
+        self: *HarborKernel,
         clock_id: u64,
         timespec_ptr: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg3;
         _ = _arg4;
         
         // Assert: clock_id must be valid (monotonic or realtime).
         const clock = @as(?ClockId, @enumFromInt(@as(u32, @truncate(clock_id)))) orelse {
-            return BasinError.invalid_argument; // Invalid clock ID
+            return HarborError.invalid_argument; // Invalid clock ID
         };
         
         // Assert: Clock must be valid (monotonic or realtime).
@@ -958,18 +958,18 @@ pub fn handle_syscall(
         
         // Assert: timespec pointer must be valid (non-zero, within VM memory).
         if (timespec_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
+            return HarborError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default (matches syscall_map)
         if (timespec_ptr >= VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Timespec pointer exceeds VM memory
+            return HarborError.invalid_argument; // Timespec pointer exceeds VM memory
         }
         
         // Assert: timespec must fit within VM memory (16 bytes: seconds + nanoseconds).
         const TIMESPEC_SIZE: u64 = 16; // 8 bytes seconds + 8 bytes nanoseconds
         if (timespec_ptr + TIMESPEC_SIZE > VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Timespec exceeds VM memory
+            return HarborError.invalid_argument; // Timespec exceeds VM memory
         }
         
         // Note: This syscall is handled by integration layer (needs VM access).
@@ -977,20 +977,20 @@ pub fn handle_syscall(
         // Contract: clock_id and timespec_ptr must be valid (checked by integration layer).
         
         // This should not be reached (integration layer handles this syscall).
-        return BasinError.invalid_syscall;
+        return HarborError.invalid_syscall;
     }
     
     fn syscall_sleep_until(
-        self: *BasinKernel,
+        self: *HarborKernel,
         timestamp: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg2;
         _ = _arg3;
@@ -1000,7 +1000,7 @@ pub fn handle_syscall(
         // Note: Timestamp is nanoseconds since epoch (or boot, depending on clock type).
         // For now, accept any non-zero value (validation depends on clock implementation).
         if (timestamp == 0) {
-            return BasinError.invalid_argument; // Zero timestamp (invalid)
+            return HarborError.invalid_argument; // Zero timestamp (invalid)
         }
         
         // Get current monotonic time (nanoseconds since boot).
@@ -1013,7 +1013,7 @@ pub fn handle_syscall(
         // Note: timestamp is nanoseconds since boot (monotonic clock).
         if (timestamp < current_time_ns) {
             // Timestamp is in the past: return error.
-            return BasinError.invalid_argument; // Timestamp in the past
+            return HarborError.invalid_argument; // Timestamp in the past
         }
         
         // Calculate sleep duration (nanoseconds to wait).
@@ -1042,16 +1042,16 @@ pub fn handle_syscall(
     }
     
     fn syscall_sysinfo(
-        self: *BasinKernel,
+        self: *HarborKernel,
         info_ptr: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg2;
         _ = _arg3;
@@ -1059,12 +1059,12 @@ pub fn handle_syscall(
         
         // Assert: info pointer must be valid (non-zero, within VM memory).
         if (info_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
+            return HarborError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default (matches syscall_map)
         if (info_ptr >= VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Info pointer exceeds VM memory
+            return HarborError.invalid_argument; // Info pointer exceeds VM memory
         }
         
         // Assert: SysInfo structure must fit within VM memory.
@@ -1072,7 +1072,7 @@ pub fn handle_syscall(
         //               uptime_ns (8) + load_avg_1min (4) = 32 bytes
         const SYSINFO_SIZE: u64 = 32;
         if (info_ptr + SYSINFO_SIZE > VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // SysInfo exceeds VM memory
+            return HarborError.invalid_argument; // SysInfo exceeds VM memory
         }
         
         // Get system information from kernel subsystems.
@@ -1165,33 +1165,33 @@ pub fn handle_syscall(
     }
 
     fn syscall_enumerate_processes(
-        self: *BasinKernel,
+        self: *HarborKernel,
         buffer_ptr: u64,
         buffer_len: u64,
         max_processes: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg4;
         
         // Assert: buffer pointer must be valid (non-zero, within VM memory).
         if (buffer_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
+            return HarborError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default
         if (buffer_ptr >= VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Buffer pointer exceeds VM memory
+            return HarborError.invalid_argument; // Buffer pointer exceeds VM memory
         }
         
         // Assert: buffer length must be sufficient for at least one ProcessInfo.
         const PROCESS_INFO_SIZE: u64 = 32; // pid(4) + parent_pid(4) + state(1) + padding(3) + cpu_time_ns(8) + memory_used(8)
         if (buffer_len < PROCESS_INFO_SIZE) {
-            return BasinError.invalid_argument; // Buffer too small
+            return HarborError.invalid_argument; // Buffer too small
         }
         
         // Assert: max_processes must be reasonable.
@@ -1222,39 +1222,39 @@ pub fn handle_syscall(
     }
 
     fn syscall_get_process_info(
-        self: *BasinKernel,
+        self: *HarborKernel,
         pid: u64,
         info_ptr: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg3;
         _ = _arg4;
         
         // Assert: process ID must be valid (non-zero).
         if (pid == 0) {
-            return BasinError.invalid_argument; // Invalid process ID
+            return HarborError.invalid_argument; // Invalid process ID
         }
         
         // Assert: info pointer must be valid (non-zero, within VM memory).
         if (info_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
+            return HarborError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default
         if (info_ptr >= VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Info pointer exceeds VM memory
+            return HarborError.invalid_argument; // Info pointer exceeds VM memory
         }
         
         // Assert: ProcessInfo structure must fit within VM memory.
         const PROCESS_INFO_SIZE: u64 = 32;
         if (info_ptr + PROCESS_INFO_SIZE > VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // ProcessInfo exceeds VM memory
+            return HarborError.invalid_argument; // ProcessInfo exceeds VM memory
         }
         
         // Find process in process table.
@@ -1267,7 +1267,7 @@ pub fn handle_syscall(
         }
         
         if (found == null) {
-            return BasinError.not_found; // Process not found
+            return HarborError.not_found; // Process not found
         }
         
         // Update process memory usage before returning info.
@@ -1296,34 +1296,34 @@ pub fn handle_syscall(
     }
 
     fn syscall_read_kernel_log(
-        self: *BasinKernel,
+        self: *HarborKernel,
         buffer_ptr: u64,
         buffer_len: u64,
         max_entries: u64,
         flags: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = flags; // Reserved for future use (filter flags)
         
         // Assert: buffer pointer must be valid (non-zero, within VM memory).
         if (buffer_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
+            return HarborError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default
         if (buffer_ptr >= VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Buffer pointer exceeds VM memory
+            return HarborError.invalid_argument; // Buffer pointer exceeds VM memory
         }
         
         // Assert: buffer length must be sufficient for at least one KernelLogEntry.
         // Structure layout: timestamp(8) + level(1) + padding(7) + source(32) + message(256) = 304 bytes
         const KERNEL_LOG_ENTRY_SIZE: u64 = @sizeOf(KernelLogEntry);
         if (buffer_len < KERNEL_LOG_ENTRY_SIZE) {
-            return BasinError.invalid_argument; // Buffer too small
+            return HarborError.invalid_argument; // Buffer too small
         }
         
         // Get entry count from log buffer.
@@ -1358,23 +1358,23 @@ pub fn handle_syscall(
     }
 
     fn syscall_set_priority(
-        self: *BasinKernel,
+        self: *HarborKernel,
         pid: u64,
         priority: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg3;
         _ = _arg4;
         
         // Assert: process ID must be valid (non-zero).
         if (pid == 0) {
-            return BasinError.invalid_argument; // Invalid process ID
+            return HarborError.invalid_argument; // Invalid process ID
         }
         
         // Assert: priority must be valid nice value (-20 to 19).
@@ -1385,7 +1385,7 @@ pub fn handle_syscall(
         // Why: Userspace passes nice value as unsigned (0-39), convert to signed (-20 to 19).
         const priority_offset: u64 = 20;
         if (priority < priority_offset or priority > priority_offset + 39) {
-            return BasinError.invalid_argument; // Invalid priority value
+            return HarborError.invalid_argument; // Invalid priority value
         }
         const priority_i8 = @as(i8, @intCast(@as(i64, @intCast(priority)) - @as(i64, priority_offset)));
         
@@ -1402,7 +1402,7 @@ pub fn handle_syscall(
         }
         
         if (found == null) {
-            return BasinError.not_found; // Process not found
+            return HarborError.not_found; // Process not found
         }
         
         const idx = found.?;
@@ -1424,16 +1424,16 @@ pub fn handle_syscall(
     }
 
     fn syscall_get_priority(
-        self: *BasinKernel,
+        self: *HarborKernel,
         pid: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg2;
         _ = _arg3;
@@ -1441,7 +1441,7 @@ pub fn handle_syscall(
         
         // Assert: process ID must be valid (non-zero).
         if (pid == 0) {
-            return BasinError.invalid_argument; // Invalid process ID
+            return HarborError.invalid_argument; // Invalid process ID
         }
         
         // Find process in process table.
@@ -1454,7 +1454,7 @@ pub fn handle_syscall(
         }
         
         if (found == null) {
-            return BasinError.not_found; // Process not found
+            return HarborError.not_found; // Process not found
         }
         
         const idx = found.?;
@@ -1480,16 +1480,16 @@ pub fn handle_syscall(
     }
     
     fn syscall_read_input_event(
-        self: *BasinKernel,
+        self: *HarborKernel,
         event_buf: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg2;
         _ = _arg3;
@@ -1499,24 +1499,24 @@ pub fn handle_syscall(
         // This stub should never be called, but we include it for completeness.
         // Contract: event_buf must be valid pointer (checked by integration layer).
         if (event_buf == 0) {
-            return BasinError.invalid_argument;
+            return HarborError.invalid_argument;
         }
         
         // This should not be reached (integration layer handles this syscall).
-        return BasinError.invalid_syscall;
+        return HarborError.invalid_syscall;
     }
     
     fn syscall_fb_clear(
-        self: *BasinKernel,
+        self: *HarborKernel,
         color: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg2;
         _ = _arg3;
@@ -1526,24 +1526,24 @@ pub fn handle_syscall(
         // This stub should never be called, but we include it for completeness.
         // Contract: color must be valid 32-bit RGBA value.
         if (color > 0xFFFFFFFF) {
-            return BasinError.invalid_argument;
+            return HarborError.invalid_argument;
         }
         
         // This should not be reached (integration layer handles this syscall).
-        return BasinError.invalid_syscall;
+        return HarborError.invalid_syscall;
     }
     
     fn syscall_fb_draw_pixel(
-        self: *BasinKernel,
+        self: *HarborKernel,
         x: u64,
         y: u64,
         color: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg4;
         
@@ -1551,58 +1551,58 @@ pub fn handle_syscall(
         // This stub should never be called, but we include it for completeness.
         // Contract: coordinates and color must be valid.
         if (x > 0xFFFFFFFF or y > 0xFFFFFFFF or color > 0xFFFFFFFF) {
-            return BasinError.invalid_argument;
+            return HarborError.invalid_argument;
         }
         
         // This should not be reached (integration layer handles this syscall).
-        return BasinError.invalid_syscall;
+        return HarborError.invalid_syscall;
     }
     
     fn syscall_fb_draw_text(
-        self: *BasinKernel,
+        self: *HarborKernel,
         text_ptr: u64,
         x: u64,
         y: u64,
         fg_color: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         // Note: This syscall is handled by integration layer (needs VM access).
         // This stub should never be called, but we include it for completeness.
         // Contract: text_ptr must be valid pointer, coordinates and color must be valid.
         if (text_ptr == 0) {
-            return BasinError.invalid_argument;
+            return HarborError.invalid_argument;
         }
         if (x > 0xFFFFFFFF or y > 0xFFFFFFFF or fg_color > 0xFFFFFFFF) {
-            return BasinError.invalid_argument;
+            return HarborError.invalid_argument;
         }
         
         // This should not be reached (integration layer handles this syscall).
-        return BasinError.invalid_syscall;
+        return HarborError.invalid_syscall;
     }
 
 /// Basin Kernel module exports.
 /// Why: Explicit exports, clear public API.
-pub const basin_kernel = struct {
-    pub const Syscall = @import("basin_kernel.zig").Syscall;
-    pub const handle_syscall = @import("basin_kernel.zig").handle_syscall;
-    pub const MapFlags = @import("basin_kernel.zig").MapFlags;
-    pub const OpenFlags = @import("basin_kernel.zig").OpenFlags;
-    pub const ClockId = @import("basin_kernel.zig").ClockId;
-    pub const Handle = @import("basin_kernel.zig").Handle;
+pub const harbor_kernel = struct {
+    pub const Syscall = @import("harbor_kernel.zig").Syscall;
+    pub const handle_syscall = @import("harbor_kernel.zig").handle_syscall;
+    pub const MapFlags = @import("harbor_kernel.zig").MapFlags;
+    pub const OpenFlags = @import("harbor_kernel.zig").OpenFlags;
+    pub const ClockId = @import("harbor_kernel.zig").ClockId;
+    pub const Handle = @import("harbor_kernel.zig").Handle;
     pub const Signal = @import("signal.zig").Signal;
-    pub const SysInfo = @import("basin_kernel.zig").SysInfo;
-    pub const BasinError = @import("basin_kernel.zig").BasinError;
-    pub const SyscallResult = @import("basin_kernel.zig").SyscallResult;
-    pub const BasinKernel = @import("basin_kernel.zig").BasinKernel;
+    pub const SysInfo = @import("harbor_kernel.zig").SysInfo;
+    pub const HarborError = @import("harbor_kernel.zig").HarborError;
+    pub const SyscallResult = @import("harbor_kernel.zig").SyscallResult;
+    pub const HarborKernel = @import("harbor_kernel.zig").HarborKernel;
     pub const ProcessContext = @import("process.zig").ProcessContext;
     pub const KernelLogBuffer = @import("kernel_log_buffer.zig").KernelLogBuffer;
     pub const KernelLogEntry = @import("kernel_log_buffer.zig").KernelLogEntry;
     pub const KernelLogLevel = @import("kernel_log_buffer.zig").KernelLogLevel;
-    pub const Process = @import("basin_kernel.zig").Process;
+    pub const Process = @import("harbor_kernel.zig").Process;
     pub const process_execution = @import("process_execution.zig");
     pub const Storage = @import("storage.zig").Storage;
     pub const FileEntry = @import("storage.zig").FileEntry;

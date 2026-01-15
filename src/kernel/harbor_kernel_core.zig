@@ -1,5 +1,5 @@
 //! Basin Kernel Core
-//! Why: Core BasinKernel struct definition, initialization, and common helper functions.
+//! Why: Core HarborKernel struct definition, initialization, and common helper functions.
 //! Grain Style: Explicit types, static allocation, comprehensive assertions.
 
 const std = @import("std");
@@ -41,7 +41,7 @@ const syscall_performance_profiler = @import("syscall_performance_profiler.zig")
 const SyscallPerformanceProfiler = syscall_performance_profiler.SyscallPerformanceProfiler;
 
 // Import types
-const types = @import("basin_kernel_types.zig");
+const types = @import("harbor_kernel_types.zig");
 const MemoryMapping = types.MemoryMapping;
 const FileHandle = types.FileHandle;
 const DirectoryHandle = types.DirectoryHandle;
@@ -50,7 +50,7 @@ const User = types.User;
 const UserContext = types.UserContext;
 const UserId = types.UserId;
 const MapFlags = types.MapFlags;
-const BasinError = types.BasinError;
+const HarborError = types.HarborError;
 const SyscallResult = types.SyscallResult;
 const Syscall = types.Syscall;
 const MAX_MAPPINGS = types.MAX_MAPPINGS;
@@ -62,7 +62,7 @@ const MAX_USERS = types.MAX_USERS;
 /// Basin Kernel main struct.
 /// Why: Central kernel state, all subsystems, resource tables.
 /// Grain Style: Static allocation, explicit state tracking.
-pub const BasinKernel = struct {
+pub const HarborKernel = struct {
     /// Memory mapping table (static allocation).
     /// Why: Track memory mappings for map/unmap/protect syscalls.
     /// Grain Style: Static allocation, max 256 entries.
@@ -274,8 +274,8 @@ pub const BasinKernel = struct {
     
     /// Initialize Basin Kernel.
     /// Why: Explicit initialization, validate kernel state.
-    pub fn init() BasinKernel {
-        var kernel = BasinKernel{
+    pub fn init() HarborKernel {
+        var kernel = HarborKernel{
             .timer = Timer.init(),
             .interrupt_controller = InterruptController.init(),
             .scheduler = Scheduler.init(),
@@ -353,10 +353,10 @@ pub const BasinKernel = struct {
     }
     
     /// Why: For heap-allocated kernels, initialize directly to avoid stack overflow.
-    /// Contract: target must point to valid memory large enough for BasinKernel.
+    /// Contract: target must point to valid memory large enough for HarborKernel.
     /// Initialize core subsystems (timer, interrupt, scheduler).
     /// Why: Split initialization into smaller functions to avoid size issues.
-    fn init_core_subsystems(target: *BasinKernel) void {
+    fn init_core_subsystems(target: *HarborKernel) void {
         Debug.vprint("Initializing timer...", .{});
         target.timer = Timer.init();
         Debug.vprint("Timer initialized", .{});
@@ -372,7 +372,7 @@ pub const BasinKernel = struct {
     
     /// Initialize process group managers.
     /// Why: Split into even smaller functions.
-    fn init_process_group_managers(target: *BasinKernel) void {
+    fn init_process_group_managers(target: *HarborKernel) void {
         Debug.vprint("Initializing process group managers...", .{});
         // Initialize ProcessGroupManager directly to avoid stack overflow
         const ProcessGroup = process_group.ProcessGroup;
@@ -409,7 +409,7 @@ pub const BasinKernel = struct {
     
     /// Initialize network managers (interfaces, TCP, UDP).
     /// Why: Split into smaller functions to avoid function size issues.
-    fn init_network_managers(target: *BasinKernel) void {
+    fn init_network_managers(target: *HarborKernel) void {
         Debug.vprint("Initializing network managers...", .{});
         
         // Initialize NetworkInterfaceManager in-place
@@ -468,7 +468,7 @@ pub const BasinKernel = struct {
     /// Initialize audio device manager.
     /// Why: Split into smaller functions to avoid function size issues.
     /// Note: AudioDevice.init() returns a struct with 2×64KB buffers = 128KB, so we initialize fields directly.
-    fn init_audio_manager(target: *BasinKernel) void {
+    fn init_audio_manager(target: *HarborKernel) void {
         Debug.vprint("Initializing audio device manager...", .{});
         // Initialize AudioDeviceManager in-place
         var i: u32 = 0;
@@ -500,7 +500,7 @@ pub const BasinKernel = struct {
     
     /// Initialize managers (process groups, network, etc.).
     /// Why: Split initialization into smaller functions to avoid size issues.
-    fn init_managers(target: *BasinKernel) void {
+    fn init_managers(target: *HarborKernel) void {
         Debug.vprint("Initializing kernel managers...", .{});
         init_process_group_managers(target);
         init_network_managers(target);
@@ -510,7 +510,7 @@ pub const BasinKernel = struct {
     
     /// Initialize channel table.
     /// Why: Split into smaller functions to avoid function size issues.
-    fn init_channels(target: *BasinKernel) void {
+    fn init_channels(target: *HarborKernel) void {
         Debug.vprint("Initializing channels...", .{});
         // ChannelTable.init() creates 8MB temporary (64 channels × 32 messages × 4KB), so initialize in-place
         var i: u32 = 0;
@@ -537,7 +537,7 @@ pub const BasinKernel = struct {
     
     /// Initialize storage, keyboard, and mouse.
     /// Why: Split into smaller functions to avoid function size issues.
-    fn init_storage_keyboard_mouse(target: *BasinKernel) void {
+    fn init_storage_keyboard_mouse(target: *HarborKernel) void {
         Debug.vprint("Initializing storage...", .{});
         // Storage.init() creates large temporary (128 files × 64KB + 32 directories), so initialize in-place
         var i: u32 = 0;
@@ -575,7 +575,7 @@ pub const BasinKernel = struct {
     
     /// Initialize I/O subsystems (channels, storage, keyboard, mouse).
     /// Why: Split initialization into smaller functions to avoid size issues.
-    fn init_io_subsystems(target: *BasinKernel) void {
+    fn init_io_subsystems(target: *HarborKernel) void {
         Debug.vprint("Initializing I/O subsystems...", .{});
         init_channels(target);
         init_storage_keyboard_mouse(target);
@@ -584,7 +584,7 @@ pub const BasinKernel = struct {
     
     /// Initialize memory subsystems (memory pool, page table, stats, COW, profiler).
     /// Why: Split into smaller functions to avoid function size issues.
-    fn init_memory_subsystems(target: *BasinKernel) void {
+    fn init_memory_subsystems(target: *HarborKernel) void {
         Debug.vprint("Initializing memory subsystems...", .{});
         Debug.vprint("Initializing memory pool...", .{});
         // MemoryPool.init() creates a 4MB buffer, so initialize in-place
@@ -616,7 +616,7 @@ pub const BasinKernel = struct {
     
     /// Initialize I/O and memory subsystems.
     /// Why: Split initialization into smaller functions to avoid size issues.
-    fn init_io_and_memory(target: *BasinKernel) void {
+    fn init_io_and_memory(target: *HarborKernel) void {
         Debug.vprint("Initializing I/O and memory subsystems...", .{});
         init_io_subsystems(target);
         init_memory_subsystems(target);
@@ -624,8 +624,8 @@ pub const BasinKernel = struct {
     }
     
     /// Why: For heap-allocated kernels, initialize directly to avoid stack overflow.
-    /// Contract: target must point to valid memory large enough for BasinKernel.
-    pub fn init_in_place(target: *BasinKernel) void {
+    /// Contract: target must point to valid memory large enough for HarborKernel.
+    pub fn init_in_place(target: *HarborKernel) void {
         // Initialize all fields directly in target (no stack temporary)
         // Split into smaller functions to avoid function size issues
         Debug.vprint("Starting kernel initialization...", .{});
@@ -664,7 +664,7 @@ pub const BasinKernel = struct {
     /// Initialize default users.
     /// Why: Create root and xy users at kernel boot.
     /// Grain Style: Static allocation, explicit initialization.
-    fn init_users(self: *BasinKernel) void {
+    fn init_users(self: *HarborKernel) void {
         Debug.vprint("Creating root user...", .{});
         // Root user (uid=0)
         var root = User.init();
@@ -705,7 +705,7 @@ pub const BasinKernel = struct {
     /// Find user by UID.
     /// Why: Look up user record for permission checks.
     /// Returns: User index if found, null otherwise.
-    pub fn find_user_by_uid(self: *const BasinKernel, uid: UserId) ?u32 {
+    pub fn find_user_by_uid(self: *const HarborKernel, uid: UserId) ?u32 {
         for (0..self.user_count) |i| {
             if (self.users[i].uid == uid) {
                 return @as(u32, @intCast(i));
@@ -717,7 +717,7 @@ pub const BasinKernel = struct {
     /// Find user by name.
     /// Why: Look up user record by username.
     /// Returns: User index if found, null otherwise.
-    pub fn find_user_by_name(self: *const BasinKernel, name: []const u8) ?u32 {
+    pub fn find_user_by_name(self: *const HarborKernel, name: []const u8) ?u32 {
         for (0..self.user_count) |i| {
             const user_name_array = self.users[i].name;
             // Find null terminator to get actual string length
@@ -740,9 +740,9 @@ pub const BasinKernel = struct {
     /// Set current user context.
     /// Why: Change current user for permission checks.
     /// Contract: uid must exist in user table.
-    pub fn set_current_user(self: *BasinKernel, uid: UserId) !void {
+    pub fn set_current_user(self: *HarborKernel, uid: UserId) !void {
         const user_idx = self.find_user_by_uid(uid) orelse {
-            return BasinError.user_not_found;
+            return HarborError.user_not_found;
         };
         
         const user = self.users[user_idx];
@@ -755,11 +755,11 @@ pub const BasinKernel = struct {
     /// Get unified kernel statistics snapshot.
     /// Why: Provide comprehensive system statistics for monitoring and debugging.
     /// Returns: Statistics snapshot with aggregated metrics from all subsystems.
-    pub fn get_kernel_stats_snapshot(self: *const BasinKernel) KernelStatsSnapshot {
+    pub fn get_kernel_stats_snapshot(self: *const HarborKernel) KernelStatsSnapshot {
         // Assert: Kernel must be initialized (precondition).
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Kernel ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Kernel ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Kernel ptr unaligned", .{});
         
         // Get statistics from all subsystems.
         const tcp_stats = self.tcp_sockets.get_stats();
@@ -786,7 +786,7 @@ pub const BasinKernel = struct {
     /// Why: Provide profiling summary for performance analysis.
     /// Returns: Total syscall count and total execution time (nanoseconds).
     /// Grain Style: Explicit types, bounded operations.
-    pub fn get_profiler_summary(self: *const BasinKernel) struct {
+    pub fn get_profiler_summary(self: *const HarborKernel) struct {
         total_syscall_count: u64,
         total_execution_time_ns: u64,
         enabled: bool,
@@ -794,7 +794,7 @@ pub const BasinKernel = struct {
         // Assert: Kernel must be initialized (precondition).
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Kernel ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Kernel ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Kernel ptr unaligned", .{});
         
         return .{
             .total_syscall_count = self.syscall_profiler.get_total_syscall_count(),
@@ -806,14 +806,14 @@ pub const BasinKernel = struct {
     /// Find hot path (most frequently called syscall).
     /// Why: Identify syscall with highest call count for optimization.
     /// Returns: Syscall number and call count, or null if no syscalls recorded.
-    pub fn find_profiler_hot_path(self: *const BasinKernel) ?struct {
+    pub fn find_profiler_hot_path(self: *const HarborKernel) ?struct {
         syscall_num: u32,
         call_count: u64,
     } {
         // Assert: Kernel must be initialized (precondition).
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Kernel ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Kernel ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Kernel ptr unaligned", .{});
         
         return self.syscall_profiler.find_hot_path();
     }
@@ -821,14 +821,14 @@ pub const BasinKernel = struct {
     /// Find slow path (syscall with highest average execution time).
     /// Why: Identify slowest syscall for optimization.
     /// Returns: Syscall number and average time, or null if no syscalls recorded.
-    pub fn find_profiler_slow_path(self: *const BasinKernel) ?struct {
+    pub fn find_profiler_slow_path(self: *const HarborKernel) ?struct {
         syscall_num: u32,
         avg_time_ns: u64,
     } {
         // Assert: Kernel must be initialized (precondition).
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Kernel ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Kernel ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Kernel ptr unaligned", .{});
         
         return self.syscall_profiler.find_slow_path();
     }
@@ -837,7 +837,7 @@ pub const BasinKernel = struct {
     /// Why: Identify multiple hot paths for optimization.
     /// Returns: Struct with entries array and count of valid entries.
     pub fn get_profiler_top_syscalls_by_count(
-        self: *const BasinKernel,
+        self: *const HarborKernel,
         max_count: u32,
     ) struct {
         entries: [150]struct {
@@ -849,7 +849,7 @@ pub const BasinKernel = struct {
         // Assert: Kernel must be initialized (precondition).
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Kernel ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Kernel ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Kernel ptr unaligned", .{});
         
         return self.syscall_profiler.get_top_syscalls_by_count(max_count);
     }
@@ -858,7 +858,7 @@ pub const BasinKernel = struct {
     /// Why: Identify multiple slow paths for optimization.
     /// Returns: Struct with entries array and count of valid entries.
     pub fn get_profiler_top_syscalls_by_time(
-        self: *const BasinKernel,
+        self: *const HarborKernel,
         max_count: u32,
     ) struct {
         entries: [150]struct {
@@ -870,7 +870,7 @@ pub const BasinKernel = struct {
         // Assert: Kernel must be initialized (precondition).
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Kernel ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Kernel ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Kernel ptr unaligned", .{});
         
         return self.syscall_profiler.get_top_syscalls_by_time(max_count);
     }
@@ -880,7 +880,7 @@ pub const BasinKernel = struct {
     /// Contract: process_id must be valid (non-zero).
     /// Returns: Total memory used in bytes (sum of all mapping sizes).
     /// Grain Style: Explicit types, bounded operations, deterministic calculation.
-    fn calculate_process_memory_usage(self: *const BasinKernel, process_id: u64) u64 {
+    fn calculate_process_memory_usage(self: *const HarborKernel, process_id: u64) u64 {
         // Assert: process ID must be valid (non-zero).
         Debug.kassert(process_id != 0, "Process ID is 0", .{});
         
@@ -907,7 +907,7 @@ pub const BasinKernel = struct {
     /// Why: Keep process memory_used field current when mappings change.
     /// Contract: process_id must be valid (non-zero).
     /// Grain Style: Explicit types, bounded operations.
-    pub fn update_process_memory_usage(self: *BasinKernel, process_id: u64) void {
+    pub fn update_process_memory_usage(self: *HarborKernel, process_id: u64) void {
         // Assert: process ID must be valid (non-zero).
         Debug.kassert(process_id != 0, "Process ID is 0", .{});
         
@@ -926,11 +926,11 @@ pub const BasinKernel = struct {
     /// Why: Allocate new mapping entry.
     /// Returns: Index of free entry, or null if table full.
     /// Grain Style: Comprehensive assertions for table state.
-    pub fn find_free_mapping(self: *BasinKernel) ?u32 {
+    pub fn find_free_mapping(self: *HarborKernel) ?u32 {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         var found_index: ?u32 = null;
         var free_count: u32 = 0;
@@ -961,11 +961,11 @@ pub const BasinKernel = struct {
     /// Why: Look up mapping for unmap/protect operations.
     /// Returns: Index of mapping, or null if not found.
     /// Grain Style: Comprehensive assertions for address validation.
-    pub fn find_mapping_by_address(self: *BasinKernel, addr: u64) ?u32 {
+    pub fn find_mapping_by_address(self: *HarborKernel, addr: u64) ?u32 {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         // Assert: Address must be page-aligned.
         Debug.kassert(addr % 4096 == 0, "Address {x} not aligned", .{addr});
@@ -1014,11 +1014,11 @@ pub const BasinKernel = struct {
     
     /// Add mapping to hash table.
     /// Why: Maintain hash table when new mappings are allocated.
-    pub fn add_mapping_to_hash_table(self: *BasinKernel, addr: u64, mapping_idx: u32) void {
+    pub fn add_mapping_to_hash_table(self: *HarborKernel, addr: u64, mapping_idx: u32) void {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         // Assert: Address must be page-aligned.
         Debug.kassert(addr % 4096 == 0, "Address {x} not aligned", .{addr});
@@ -1035,11 +1035,11 @@ pub const BasinKernel = struct {
     
     /// Remove mapping from hash table.
     /// Why: Maintain hash table when mappings are deallocated.
-    pub fn remove_mapping_from_hash_table(self: *BasinKernel, addr: u64) void {
+    pub fn remove_mapping_from_hash_table(self: *HarborKernel, addr: u64) void {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         // Assert: Address must be page-aligned.
         Debug.kassert(addr % 4096 == 0, "Address {x} not aligned", .{addr});
@@ -1057,11 +1057,11 @@ pub const BasinKernel = struct {
     /// Returns: MapFlags with permissions, or null if address is not mapped.
     /// Note: Kernel space (0x80000000+) and framebuffer (0x90000000+) are always readable/writable.
     /// Uses page table for page-level granularity.
-    pub fn check_memory_permission(self: *const BasinKernel, addr: u64) ?MapFlags {
+    pub fn check_memory_permission(self: *const HarborKernel, addr: u64) ?MapFlags {
         // Assert: self pointer must be valid (precondition).
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         // Use page table for page-level permission checking.
         const page_flags = self.page_table.check_permission(addr) orelse {
@@ -1081,11 +1081,11 @@ pub const BasinKernel = struct {
     /// Check if address range overlaps with any existing mapping.
     /// Why: Validate no overlapping mappings.
     /// Grain Style: Comprehensive assertions for overlap detection.
-    pub fn check_overlap(self: *BasinKernel, addr: u64, size: u64) bool {
+    pub fn check_overlap(self: *HarborKernel, addr: u64, size: u64) bool {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         // Assert: Address and size must be valid.
         Debug.kassert(addr % 4096 == 0, "Addr {x} unaligned", .{addr}); // Page-aligned
@@ -1116,11 +1116,11 @@ pub const BasinKernel = struct {
     /// Count allocated mappings (for testing and validation).
     /// Why: Validate mapping table state consistency.
     /// Grain Style: Comprehensive assertions for state validation.
-    pub fn count_allocated_mappings(self: *BasinKernel) u32 {
+    pub fn count_allocated_mappings(self: *HarborKernel) u32 {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         var count: u32 = 0;
         
@@ -1143,11 +1143,11 @@ pub const BasinKernel = struct {
     /// Why: Allocate new handle entry.
     /// Returns: Index of free entry, or null if table full.
     /// Grain Style: Comprehensive assertions for table state.
-    pub fn find_free_handle(self: *BasinKernel) ?u32 {
+    pub fn find_free_handle(self: *HarborKernel) ?u32 {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         for (self.handles, 0..) |handle, i| {
             if (!handle.allocated) {
@@ -1164,11 +1164,11 @@ pub const BasinKernel = struct {
     /// Returns: Index of handle, or null if not found.
     /// Grain Style: Comprehensive assertions for handle validation.
     /// Optimization: Check MRU cache first for common case (repeated handle access).
-    pub fn find_handle_by_id(self: *BasinKernel, handle_id: u64) ?u32 {
+    pub fn find_handle_by_id(self: *HarborKernel, handle_id: u64) ?u32 {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         // Assert: Handle ID must be non-zero (0 is invalid).
         Debug.kassert(handle_id != 0, "Handle ID is 0", .{});
@@ -1228,11 +1228,11 @@ pub const BasinKernel = struct {
     /// Why: Clear MRU cache when handle is closed or invalidated.
     /// Contract: Should be called when handle is deallocated.
     /// Note: Public function for use by syscall handlers.
-    pub fn invalidate_mru_handle_cache(self: *BasinKernel) void {
+    pub fn invalidate_mru_handle_cache(self: *HarborKernel) void {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         self.mru_handle_index = MAX_HANDLES;
         self.mru_handle_id = 0;
@@ -1246,11 +1246,11 @@ pub const BasinKernel = struct {
     /// Why: Maintain O(1) handle lookup performance.
     /// Contract: handle_id must be valid (non-zero), handle_idx must be < MAX_HANDLES.
     /// Note: Public function for use by syscall handlers.
-    pub fn update_handle_hash_table(self: *BasinKernel, handle_id: u64, handle_idx: u32) void {
+    pub fn update_handle_hash_table(self: *HarborKernel, handle_id: u64, handle_idx: u32) void {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         // Assert: Handle ID must be valid (non-zero).
         Debug.kassert(handle_id != 0, "Handle ID is 0", .{});
@@ -1270,11 +1270,11 @@ pub const BasinKernel = struct {
     /// Why: Maintain hash table consistency when handles are deallocated.
     /// Contract: handle_id must be valid (non-zero).
     /// Note: Public function for use by syscall handlers.
-    pub fn invalidate_handle_hash_table(self: *BasinKernel, handle_id: u64) void {
+    pub fn invalidate_handle_hash_table(self: *HarborKernel, handle_id: u64) void {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         // Assert: Handle ID must be valid (non-zero).
         Debug.kassert(handle_id != 0, "Handle ID is 0", .{});
@@ -1292,11 +1292,11 @@ pub const BasinKernel = struct {
     /// Returns: Index of current process, or null if no process running or not found.
     /// Grain Style: Comprehensive assertions for process validation.
     /// Optimization: Check cache first, update cache on miss.
-    pub fn find_current_process_index(self: *BasinKernel) ?u32 {
+    pub fn find_current_process_index(self: *HarborKernel) ?u32 {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         // Get current process ID from scheduler.
         const current_pid = self.scheduler.get_current();
@@ -1343,11 +1343,11 @@ pub const BasinKernel = struct {
     /// Why: Clear cache when process state changes (switch, exit, etc.).
     /// Contract: Should be called when process switches or exits.
     /// Note: Public function for use by scheduler and process management.
-    pub fn invalidate_current_process_cache(self: *BasinKernel) void {
+    pub fn invalidate_current_process_cache(self: *HarborKernel) void {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         self.current_process_index = MAX_PROCESSES;
         
@@ -1358,11 +1358,11 @@ pub const BasinKernel = struct {
     /// Count allocated handles (for testing and validation).
     /// Why: Validate handle table state consistency.
     /// Grain Style: Comprehensive assertions for state validation.
-    pub fn count_allocated_handles(self: *BasinKernel) u32 {
+    pub fn count_allocated_handles(self: *HarborKernel) u32 {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         var count: u32 = 0;
         
@@ -1384,11 +1384,11 @@ pub const BasinKernel = struct {
     /// Check if timeout has expired.
     /// Why: Helper function to check timeout expiration for syscalls.
     /// Contract: start_time_ns must be valid monotonic time, timeout_ns is in nanoseconds (0 = no timeout).
-    pub fn check_timeout(self: *const BasinKernel, start_time_ns: u64, timeout_ns: u64) bool {
+    pub fn check_timeout(self: *const HarborKernel, start_time_ns: u64, timeout_ns: u64) bool {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         // No timeout if timeout_ns is 0.
         if (timeout_ns == 0) {
@@ -1414,7 +1414,7 @@ pub const BasinKernel = struct {
     /// Check if process has exceeded CPU time limit.
     /// Why: Enforce CPU time limits before allowing process to continue.
     /// Contract: process must be allocated.
-    fn check_cpu_time_limit(_: *const BasinKernel, process: *const Process) bool {
+    fn check_cpu_time_limit(_: *const HarborKernel, process: *const Process) bool {
         // If limit is 0 (unlimited), never exceeded.
         if (process.max_cpu_time_ns == 0) {
             return false;
@@ -1427,7 +1427,7 @@ pub const BasinKernel = struct {
     /// Check if process can allocate memory.
     /// Why: Enforce memory limits before memory allocation.
     /// Contract: process must be allocated, requested_bytes must be valid.
-    fn can_allocate_memory(_: *const BasinKernel, process: *const Process, requested_bytes: u64) bool {
+    fn can_allocate_memory(_: *const HarborKernel, process: *const Process, requested_bytes: u64) bool {
         // If limit is 0 (unlimited), allow allocation.
         if (process.max_memory_bytes == 0) {
             return true;
@@ -1441,7 +1441,7 @@ pub const BasinKernel = struct {
     /// Check if process can open file descriptor.
     /// Why: Enforce file descriptor limits before opening files.
     /// Contract: process must be allocated.
-    pub fn can_open_file_descriptor(_: *const BasinKernel, process: *const Process) bool {
+    pub fn can_open_file_descriptor(_: *const HarborKernel, process: *const Process) bool {
         // If limit is 0 (unlimited), allow opening.
         if (process.max_file_descriptors == 0) {
             return true;
@@ -1454,7 +1454,7 @@ pub const BasinKernel = struct {
     /// Check if process can open network connection.
     /// Why: Enforce connection limits before opening connections.
     /// Contract: process must be allocated.
-    pub fn can_open_connection(_: *const BasinKernel, process: *const Process) bool {
+    pub fn can_open_connection(_: *const HarborKernel, process: *const Process) bool {
         // If limit is 0 (unlimited), allow opening.
         if (process.max_connections == 0) {
             return true;

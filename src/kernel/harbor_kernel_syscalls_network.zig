@@ -7,54 +7,54 @@ const Debug = @import("debug.zig");
 const network = @import("network.zig");
 
 // Import types
-const types = @import("basin_kernel_types.zig");
-const BasinError = types.BasinError;
+const types = @import("harbor_kernel_types.zig");
+const HarborError = types.HarborError;
 const SyscallResult = types.SyscallResult;
 const MAX_PROCESSES = types.MAX_PROCESSES;
 
 // Import core
-const core = @import("basin_kernel_core.zig");
-const BasinKernel = core.BasinKernel;
+const core = @import("harbor_kernel_core.zig");
+const HarborKernel = core.HarborKernel;
 
-/// Network syscall handlers for BasinKernel.
+/// Network syscall handlers for HarborKernel.
 /// Why: Extract network syscalls to separate module for organization.
 pub const NetworkSyscalls = struct {
     pub fn syscall_network_create_interface(
-        self: *BasinKernel,
+        self: *HarborKernel,
         name_ptr: u64,
         name_len: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg3;
         _ = _arg4;
         
         // Assert: name pointer must be valid (non-zero, within VM memory).
         if (name_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
+            return HarborError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default
         if (name_ptr >= VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Name pointer exceeds VM memory
+            return HarborError.invalid_argument; // Name pointer exceeds VM memory
         }
         
         // Assert: name length must be reasonable (max interface name length).
         if (name_len == 0) {
-            return BasinError.invalid_argument; // Zero-length name
+            return HarborError.invalid_argument; // Zero-length name
         }
         if (name_len > 16) {
-            return BasinError.invalid_argument; // Name too long
+            return HarborError.invalid_argument; // Name too long
         }
         
         // Assert: name must fit within VM memory.
         if (name_ptr + name_len > VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Name exceeds VM memory
+            return HarborError.invalid_argument; // Name exceeds VM memory
         }
         
         // Read interface name from VM memory (stub: would use vm_memory_reader).
@@ -63,7 +63,7 @@ pub const NetworkSyscalls = struct {
         
         // Create interface.
         const iface_idx = self.network_interfaces.create_interface(name) orelse {
-            return BasinError.out_of_memory; // No free interface slot
+            return HarborError.out_of_memory; // No free interface slot
         };
         
         const result = SyscallResult.ok(iface_idx);
@@ -78,16 +78,16 @@ pub const NetworkSyscalls = struct {
     /// Why: Control interface state.
     /// Contract: iface_idx and state must be valid.
     pub fn syscall_network_set_state(
-        self: *BasinKernel,
+        self: *HarborKernel,
         iface_idx: u64,
         state: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg3;
         _ = _arg4;
@@ -95,19 +95,19 @@ pub const NetworkSyscalls = struct {
         // Assert: Interface index must be valid (within bounds).
         const idx = @as(u32, @truncate(iface_idx));
         if (idx >= 8) {
-            return BasinError.invalid_argument; // Invalid interface index
+            return HarborError.invalid_argument; // Invalid interface index
         }
         
         // Assert: State must be valid (0 = down, 1 = up).
         if (state > 1) {
-            return BasinError.invalid_argument; // Invalid state
+            return HarborError.invalid_argument; // Invalid state
         }
         
         const iface_state = if (state == 0) network.InterfaceState.down else network.InterfaceState.up;
         
         // Set interface state.
         if (!self.network_interfaces.set_interface_state(idx, iface_state)) {
-            return BasinError.not_found; // Interface not found
+            return HarborError.not_found; // Interface not found
         }
         
         const result = SyscallResult.ok(0);
@@ -122,21 +122,21 @@ pub const NetworkSyscalls = struct {
     /// Why: Configure IPv4 address, netmask, and gateway.
     /// Contract: iface_idx, addr, netmask, and gateway must be valid.
     pub fn syscall_network_set_ipv4(
-        self: *BasinKernel,
+        self: *HarborKernel,
         iface_idx: u64,
         addr: u64,
         netmask: u64,
         gateway: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         // Assert: Interface index must be valid (within bounds).
         const idx = @as(u32, @truncate(iface_idx));
         if (idx >= 8) {
-            return BasinError.invalid_argument; // Invalid interface index
+            return HarborError.invalid_argument; // Invalid interface index
         }
         
         // Assert: Address, netmask, and gateway must be valid (32-bit values).
@@ -146,17 +146,17 @@ pub const NetworkSyscalls = struct {
         
         // Set IPv4 address.
         if (!self.network_interfaces.set_ipv4_address(idx, ipv4_addr)) {
-            return BasinError.not_found; // Interface not found
+            return HarborError.not_found; // Interface not found
         }
         
         // Set IPv4 netmask.
         if (!self.network_interfaces.set_ipv4_netmask(idx, ipv4_netmask)) {
-            return BasinError.not_found; // Interface not found
+            return HarborError.not_found; // Interface not found
         }
         
         // Set IPv4 gateway.
         if (!self.network_interfaces.set_ipv4_gateway(idx, ipv4_gateway)) {
-            return BasinError.not_found; // Interface not found
+            return HarborError.not_found; // Interface not found
         }
         
         const result = SyscallResult.ok(0);
@@ -171,16 +171,16 @@ pub const NetworkSyscalls = struct {
     /// Why: Configure IPv6 address.
     /// Contract: iface_idx must be valid, addr_ptr must be valid VM address.
     pub fn syscall_network_set_ipv6(
-        self: *BasinKernel,
+        self: *HarborKernel,
         iface_idx: u64,
         addr_ptr: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg3;
         _ = _arg4;
@@ -188,22 +188,22 @@ pub const NetworkSyscalls = struct {
         // Assert: Interface index must be valid (within bounds).
         const idx = @as(u32, @truncate(iface_idx));
         if (idx >= 8) {
-            return BasinError.invalid_argument; // Invalid interface index
+            return HarborError.invalid_argument; // Invalid interface index
         }
         
         // Assert: Address pointer must be valid (non-zero, within VM memory).
         if (addr_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
+            return HarborError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default
         if (addr_ptr >= VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Address pointer exceeds VM memory
+            return HarborError.invalid_argument; // Address pointer exceeds VM memory
         }
         
         // Assert: Address must fit within VM memory (16 bytes for IPv6).
         if (addr_ptr + 16 > VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Address exceeds VM memory
+            return HarborError.invalid_argument; // Address exceeds VM memory
         }
         
         // Read IPv6 address from VM memory (stub: would use vm_memory_reader).
@@ -212,7 +212,7 @@ pub const NetworkSyscalls = struct {
         
         // Set IPv6 address.
         if (!self.network_interfaces.set_ipv6_address(idx, ipv6_addr)) {
-            return BasinError.not_found; // Interface not found
+            return HarborError.not_found; // Interface not found
         }
         
         const result = SyscallResult.ok(0);
@@ -227,16 +227,16 @@ pub const NetworkSyscalls = struct {
     /// Why: Retrieve interface configuration.
     /// Contract: iface_idx must be valid, info_ptr must be valid VM address.
     pub fn syscall_network_get_interface(
-        self: *BasinKernel,
+        self: *HarborKernel,
         iface_idx: u64,
         info_ptr: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg3;
         _ = _arg4;
@@ -244,22 +244,22 @@ pub const NetworkSyscalls = struct {
         // Assert: Interface index must be valid (within bounds).
         const idx = @as(u32, @truncate(iface_idx));
         if (idx >= 8) {
-            return BasinError.invalid_argument; // Invalid interface index
+            return HarborError.invalid_argument; // Invalid interface index
         }
         
         // Assert: Info pointer must be valid (non-zero, within VM memory).
         if (info_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
+            return HarborError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE_GET: u64 = 4 * 1024 * 1024; // 4MB default
         if (info_ptr >= VM_MEMORY_SIZE_GET) {
-            return BasinError.invalid_argument; // Info pointer exceeds VM memory
+            return HarborError.invalid_argument; // Info pointer exceeds VM memory
         }
         
         // Get interface.
         const iface = self.network_interfaces.get_interface(idx) orelse {
-            return BasinError.not_found; // Interface not found
+            return HarborError.not_found; // Interface not found
         };
         
         // Write interface information to VM memory (stub: would use vm_memory_writer).
@@ -279,16 +279,16 @@ pub const NetworkSyscalls = struct {
     /// Why: Remove network interface.
     /// Contract: iface_idx must be valid.
     pub fn syscall_network_delete_interface(
-        self: *BasinKernel,
+        self: *HarborKernel,
         iface_idx: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg2;
         _ = _arg3;
@@ -297,12 +297,12 @@ pub const NetworkSyscalls = struct {
         // Assert: Interface index must be valid (within bounds).
         const idx = @as(u32, @truncate(iface_idx));
         if (idx >= 8) {
-            return BasinError.invalid_argument; // Invalid interface index
+            return HarborError.invalid_argument; // Invalid interface index
         }
         
         // Delete interface.
         if (!self.network_interfaces.delete_interface(idx)) {
-            return BasinError.not_found; // Interface not found
+            return HarborError.not_found; // Interface not found
         }
         
         const result = SyscallResult.ok(0);
@@ -317,40 +317,40 @@ pub const NetworkSyscalls = struct {
     /// Why: Get list of all network interfaces.
     /// Contract: indices_ptr must be valid VM address, max_count must be valid.
     pub fn syscall_network_enumerate_interfaces(
-        self: *BasinKernel,
+        self: *HarborKernel,
         indices_ptr: u64,
         max_count: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg3;
         _ = _arg4;
         
         // Assert: Indices pointer must be valid (non-zero, within VM memory).
         if (indices_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
+            return HarborError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default
         if (indices_ptr >= VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Indices pointer exceeds VM memory
+            return HarborError.invalid_argument; // Indices pointer exceeds VM memory
         }
         
         // Assert: Max count must be reasonable (max 8 interfaces).
         const max_cnt = @as(u32, @truncate(max_count));
         if (max_cnt > 8) {
-            return BasinError.invalid_argument; // Max count too large
+            return HarborError.invalid_argument; // Max count too large
         }
         
         // Assert: Indices array must fit within VM memory (max 8 * 4 bytes = 32 bytes).
         const INDICES_SIZE: u64 = max_cnt * 4; // u32 per index
         if (indices_ptr + INDICES_SIZE > VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Indices array exceeds VM memory
+            return HarborError.invalid_argument; // Indices array exceeds VM memory
         }
         
         // Create temporary indices array.
@@ -377,16 +377,16 @@ pub const NetworkSyscalls = struct {
     /// Why: Provide network interface statistics to userspace.
     /// Contract: stats_ptr must be valid pointer to NetworkInterfaceStats structure.
     pub fn syscall_network_get_stats(
-        self: *BasinKernel,
+        self: *HarborKernel,
         stats_ptr: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg2;
         _ = _arg3;
@@ -394,19 +394,19 @@ pub const NetworkSyscalls = struct {
         
         // Assert: Stats pointer must be valid (non-zero, within VM memory).
         if (stats_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
+            return HarborError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default
         if (stats_ptr >= VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Stats pointer exceeds VM memory
+            return HarborError.invalid_argument; // Stats pointer exceeds VM memory
         }
         
         // Assert: NetworkInterfaceStats structure must fit within VM memory.
         // NetworkInterfaceStats size: 10 fields (7 u64 + 1 u32 + 2 u64) = 7*8 + 4 + 2*8 = 76 bytes
         const NETWORK_STATS_SIZE: u64 = 76;
         if (stats_ptr + NETWORK_STATS_SIZE > VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Stats structure exceeds VM memory
+            return HarborError.invalid_argument; // Stats structure exceeds VM memory
         }
         
         // Note: Statistics structure will be written by integration layer.
@@ -425,16 +425,16 @@ pub const NetworkSyscalls = struct {
     /// Why: Allocate a new TCP socket.
     /// Contract: Returns socket ID.
     pub fn syscall_tcp_socket(
-        self: *BasinKernel,
+        self: *HarborKernel,
         _arg1: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg1;
         _ = _arg2;
@@ -450,7 +450,7 @@ pub const NetworkSyscalls = struct {
             for (0..MAX_PROCESSES) |i| {
                 if (self.processes[i].allocated and self.processes[i].id == current_process_id) {
                     if (!self.can_open_connection(&self.processes[i])) {
-                        return BasinError.resource_exhausted; // Connection limit exceeded
+                        return HarborError.resource_exhausted; // Connection limit exceeded
                     }
                     break;
                 }
@@ -459,7 +459,7 @@ pub const NetworkSyscalls = struct {
         
         // Create socket.
         const socket_id = self.tcp_sockets.create_socket(owner_process_id) orelse {
-            return BasinError.out_of_memory; // No free socket slot
+            return HarborError.out_of_memory; // No free socket slot
         };
         
         const result = SyscallResult.ok(socket_id);
@@ -474,27 +474,27 @@ pub const NetworkSyscalls = struct {
     /// Why: Configure local endpoint for socket.
     /// Contract: socket_id, addr, and port must be valid.
     pub fn syscall_tcp_bind(
-        self: *BasinKernel,
+        self: *HarborKernel,
         socket_id: u64,
         addr: u64,
         port: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg4;
         
         // Assert: Socket ID must be non-zero.
         if (socket_id == 0) {
-            return BasinError.invalid_argument; // Invalid socket ID
+            return HarborError.invalid_argument; // Invalid socket ID
         }
         
         // Assert: Port must be valid (16-bit value).
         if (port > 65535) {
-            return BasinError.invalid_argument; // Invalid port
+            return HarborError.invalid_argument; // Invalid port
         }
         
         const ipv4_addr = @as(u32, @truncate(addr));
@@ -502,7 +502,7 @@ pub const NetworkSyscalls = struct {
         
         // Bind socket.
         if (!self.tcp_sockets.bind_socket(socket_id, ipv4_addr, ipv4_port)) {
-            return BasinError.not_found; // Socket not found or invalid state
+            return HarborError.not_found; // Socket not found or invalid state
         }
         
         const result = SyscallResult.ok(0);
@@ -517,16 +517,16 @@ pub const NetworkSyscalls = struct {
     /// Why: Enable socket to accept incoming connections.
     /// Contract: socket_id must be valid, socket must be bound.
     pub fn syscall_tcp_listen(
-        self: *BasinKernel,
+        self: *HarborKernel,
         socket_id: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg2;
         _ = _arg3;
@@ -534,12 +534,12 @@ pub const NetworkSyscalls = struct {
         
         // Assert: Socket ID must be non-zero.
         if (socket_id == 0) {
-            return BasinError.invalid_argument; // Invalid socket ID
+            return HarborError.invalid_argument; // Invalid socket ID
         }
         
         // Set socket to listening state.
         if (!self.tcp_sockets.listen_socket(socket_id)) {
-            return BasinError.not_found; // Socket not found or invalid state
+            return HarborError.not_found; // Socket not found or invalid state
         }
         
         const result = SyscallResult.ok(0);
@@ -554,16 +554,16 @@ pub const NetworkSyscalls = struct {
     /// Why: Accept incoming connection and create new socket.
     /// Contract: socket_id must be valid, socket must be listening.
     pub fn syscall_tcp_accept(
-        self: *BasinKernel,
+        self: *HarborKernel,
         socket_id: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg2;
         _ = _arg3;
@@ -571,7 +571,7 @@ pub const NetworkSyscalls = struct {
         
         // Assert: Socket ID must be non-zero.
         if (socket_id == 0) {
-            return BasinError.invalid_argument; // Invalid socket ID
+            return HarborError.invalid_argument; // Invalid socket ID
         }
         
         // Get current process ID from scheduler.
@@ -580,7 +580,7 @@ pub const NetworkSyscalls = struct {
         
         // Accept connection.
         const new_socket_id = self.tcp_sockets.accept_connection(socket_id, owner_process_id) orelse {
-            return BasinError.not_found; // Socket not found, not listening, or no connection
+            return HarborError.not_found; // Socket not found, not listening, or no connection
         };
         
         const result = SyscallResult.ok(new_socket_id);
@@ -595,33 +595,33 @@ pub const NetworkSyscalls = struct {
     /// Why: Establish connection to remote endpoint.
     /// Contract: socket_id, addr, and port must be valid.
     pub fn syscall_tcp_connect(
-        self: *BasinKernel,
+        self: *HarborKernel,
         socket_id: u64,
         addr: u64,
         port: u64,
         timeout_ns: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         // Record start time for timeout checking.
         const start_time_ns = self.timer.get_monotonic_ns();
         
         // Assert: Socket ID must be non-zero.
         if (socket_id == 0) {
-            return BasinError.invalid_argument; // Invalid socket ID
+            return HarborError.invalid_argument; // Invalid socket ID
         }
         
         // Assert: Port must be valid (16-bit value).
         if (port > 65535) {
-            return BasinError.invalid_argument; // Invalid port
+            return HarborError.invalid_argument; // Invalid port
         }
         
         // Check timeout before operation.
         if (self.check_timeout(start_time_ns, timeout_ns)) {
-            return BasinError.network_timeout; // Timeout expired
+            return HarborError.network_timeout; // Timeout expired
         }
         
         const ipv4_addr = @as(u32, @truncate(addr));
@@ -632,14 +632,14 @@ pub const NetworkSyscalls = struct {
         if (!self.tcp_sockets.connect_socket(socket_id, ipv4_addr, ipv4_port)) {
             // Check timeout after operation.
             if (self.check_timeout(start_time_ns, timeout_ns)) {
-                return BasinError.network_timeout; // Timeout expired
+                return HarborError.network_timeout; // Timeout expired
             }
-            return BasinError.not_found; // Socket not found or invalid state
+            return HarborError.not_found; // Socket not found or invalid state
         }
         
         // Check timeout after operation.
         if (self.check_timeout(start_time_ns, timeout_ns)) {
-            return BasinError.network_timeout; // Timeout expired
+            return HarborError.network_timeout; // Timeout expired
         }
         
         const result = SyscallResult.ok(0);
@@ -654,51 +654,51 @@ pub const NetworkSyscalls = struct {
     /// Why: Transmit data on connected socket.
     /// Contract: socket_id must be valid, data_ptr and data_len must be valid, socket must be connected.
     pub fn syscall_tcp_send(
-        self: *BasinKernel,
+        self: *HarborKernel,
         socket_id: u64,
         data_ptr: u64,
         data_len: u64,
         timeout_ns: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         // Record start time for timeout checking.
         const start_time_ns = self.timer.get_monotonic_ns();
         
         // Assert: Socket ID must be non-zero.
         if (socket_id == 0) {
-            return BasinError.invalid_argument; // Invalid socket ID
+            return HarborError.invalid_argument; // Invalid socket ID
         }
         
         // Assert: Data pointer must be valid (non-zero, within VM memory).
         if (data_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
+            return HarborError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE_SEND: u64 = 4 * 1024 * 1024; // 4MB default
         if (data_ptr >= VM_MEMORY_SIZE_SEND) {
-            return BasinError.invalid_argument; // Data pointer exceeds VM memory
+            return HarborError.invalid_argument; // Data pointer exceeds VM memory
         }
         
         // Assert: Data length must be reasonable (max socket buffer size).
         if (data_len == 0) {
-            return BasinError.invalid_argument; // Zero-length data
+            return HarborError.invalid_argument; // Zero-length data
         }
         if (data_len > 64 * 1024) {
-            return BasinError.invalid_argument; // Data too large
+            return HarborError.invalid_argument; // Data too large
         }
         
         // Assert: Data must fit within VM memory.
         if (data_ptr + data_len > VM_MEMORY_SIZE_SEND) {
-            return BasinError.invalid_argument; // Data exceeds VM memory
+            return HarborError.invalid_argument; // Data exceeds VM memory
         }
         
         // Check timeout before operation.
         if (self.check_timeout(start_time_ns, timeout_ns)) {
-            return BasinError.network_timeout; // Timeout expired
+            return HarborError.network_timeout; // Timeout expired
         }
         
         // Read data from VM memory (stub: would use vm_memory_reader).
@@ -710,14 +710,14 @@ pub const NetworkSyscalls = struct {
         const bytes_sent = self.tcp_sockets.send_data(socket_id, data) orelse {
             // Check timeout after operation.
             if (self.check_timeout(start_time_ns, timeout_ns)) {
-                return BasinError.network_timeout; // Timeout expired
+                return HarborError.network_timeout; // Timeout expired
             }
-            return BasinError.not_found; // Socket not found or invalid state
+            return HarborError.not_found; // Socket not found or invalid state
         };
         
         // Check timeout after operation.
         if (self.check_timeout(start_time_ns, timeout_ns)) {
-            return BasinError.network_timeout; // Timeout expired
+            return HarborError.network_timeout; // Timeout expired
         }
         
         // Update process resource usage (network bytes sent).
@@ -743,51 +743,51 @@ pub const NetworkSyscalls = struct {
     /// Why: Read incoming data from connected socket.
     /// Contract: socket_id must be valid, buffer_ptr and buffer_len must be valid, socket must be connected.
     pub fn syscall_tcp_recv(
-        self: *BasinKernel,
+        self: *HarborKernel,
         socket_id: u64,
         buffer_ptr: u64,
         buffer_len: u64,
         timeout_ns: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         // Record start time for timeout checking.
         const start_time_ns = self.timer.get_monotonic_ns();
         
         // Assert: Socket ID must be non-zero.
         if (socket_id == 0) {
-            return BasinError.invalid_argument; // Invalid socket ID
+            return HarborError.invalid_argument; // Invalid socket ID
         }
         
         // Assert: Buffer pointer must be valid (non-zero, within VM memory).
         if (buffer_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
+            return HarborError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE_RECV: u64 = 4 * 1024 * 1024; // 4MB default
         if (buffer_ptr >= VM_MEMORY_SIZE_RECV) {
-            return BasinError.invalid_argument; // Buffer pointer exceeds VM memory
+            return HarborError.invalid_argument; // Buffer pointer exceeds VM memory
         }
         
         // Assert: Buffer length must be reasonable (max socket buffer size).
         if (buffer_len == 0) {
-            return BasinError.invalid_argument; // Zero-length buffer
+            return HarborError.invalid_argument; // Zero-length buffer
         }
         if (buffer_len > 64 * 1024) {
-            return BasinError.invalid_argument; // Buffer too large
+            return HarborError.invalid_argument; // Buffer too large
         }
         
         // Assert: Buffer must fit within VM memory.
         if (buffer_ptr + buffer_len > VM_MEMORY_SIZE_RECV) {
-            return BasinError.invalid_argument; // Buffer exceeds VM memory
+            return HarborError.invalid_argument; // Buffer exceeds VM memory
         }
         
         // Check timeout before operation.
         if (self.check_timeout(start_time_ns, timeout_ns)) {
-            return BasinError.network_timeout; // Timeout expired
+            return HarborError.network_timeout; // Timeout expired
         }
         
         // Create buffer slice (stub: would use vm_memory_writer).
@@ -799,14 +799,14 @@ pub const NetworkSyscalls = struct {
         const bytes_received = self.tcp_sockets.recv_data(socket_id, buffer_slice) orelse {
             // Check timeout after operation.
             if (self.check_timeout(start_time_ns, timeout_ns)) {
-                return BasinError.network_timeout; // Timeout expired
+                return HarborError.network_timeout; // Timeout expired
             }
-            return BasinError.not_found; // Socket not found or invalid state
+            return HarborError.not_found; // Socket not found or invalid state
         };
         
         // Check timeout after operation.
         if (self.check_timeout(start_time_ns, timeout_ns)) {
-            return BasinError.network_timeout; // Timeout expired
+            return HarborError.network_timeout; // Timeout expired
         }
         
         // Update process resource usage (network bytes received).
@@ -836,16 +836,16 @@ pub const NetworkSyscalls = struct {
     /// Why: Release socket resources.
     /// Contract: socket_id must be valid.
     pub fn syscall_tcp_close(
-        self: *BasinKernel,
+        self: *HarborKernel,
         socket_id: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg2;
         _ = _arg3;
@@ -853,7 +853,7 @@ pub const NetworkSyscalls = struct {
         
         // Assert: Socket ID must be non-zero.
         if (socket_id == 0) {
-            return BasinError.invalid_argument; // Invalid socket ID
+            return HarborError.invalid_argument; // Invalid socket ID
         }
         
         // Get current process ID before closing.
@@ -861,7 +861,7 @@ pub const NetworkSyscalls = struct {
         
         // Close socket.
         if (!self.tcp_sockets.close_socket(socket_id)) {
-            return BasinError.not_found; // Socket not found
+            return HarborError.not_found; // Socket not found
         }
         
         // Update process resource usage (decrement connection count).
@@ -888,16 +888,16 @@ pub const NetworkSyscalls = struct {
     /// Why: Allocate a new UDP socket.
     /// Contract: Returns socket ID.
     pub fn syscall_udp_socket(
-        self: *BasinKernel,
+        self: *HarborKernel,
         _arg1: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg1;
         _ = _arg2;
@@ -913,7 +913,7 @@ pub const NetworkSyscalls = struct {
             for (0..MAX_PROCESSES) |i| {
                 if (self.processes[i].allocated and self.processes[i].id == current_process_id) {
                     if (!self.can_open_connection(&self.processes[i])) {
-                        return BasinError.resource_exhausted; // Connection limit exceeded
+                        return HarborError.resource_exhausted; // Connection limit exceeded
                     }
                     break;
                 }
@@ -922,7 +922,7 @@ pub const NetworkSyscalls = struct {
         
         // Create socket.
         const socket_id = self.udp_sockets.create_socket(owner_process_id) orelse {
-            return BasinError.out_of_memory; // No free socket slot
+            return HarborError.out_of_memory; // No free socket slot
         };
         
         // Update process resource usage (increment connection count).
@@ -947,27 +947,27 @@ pub const NetworkSyscalls = struct {
     /// Why: Configure local endpoint for socket.
     /// Contract: socket_id, addr, and port must be valid.
     pub fn syscall_udp_bind(
-        self: *BasinKernel,
+        self: *HarborKernel,
         socket_id: u64,
         addr: u64,
         port: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg4;
         
         // Assert: Socket ID must be non-zero.
         if (socket_id == 0) {
-            return BasinError.invalid_argument; // Invalid socket ID
+            return HarborError.invalid_argument; // Invalid socket ID
         }
         
         // Assert: Port must be valid (16-bit value).
         if (port > 65535) {
-            return BasinError.invalid_argument; // Invalid port
+            return HarborError.invalid_argument; // Invalid port
         }
         
         const ipv4_addr = @as(u32, @truncate(addr));
@@ -975,7 +975,7 @@ pub const NetworkSyscalls = struct {
         
         // Bind socket.
         if (!self.udp_sockets.bind_socket(socket_id, ipv4_addr, ipv4_port)) {
-            return BasinError.not_found; // Socket not found or invalid state
+            return HarborError.not_found; // Socket not found or invalid state
         }
         
         const result = SyscallResult.ok(0);
@@ -990,43 +990,43 @@ pub const NetworkSyscalls = struct {
     /// Why: Transmit data to remote endpoint.
     /// Contract: socket_id must be valid, data_ptr, data_len, addr, and port must be valid.
     pub fn syscall_udp_sendto(
-        self: *BasinKernel,
+        self: *HarborKernel,
         socket_id: u64,
         data_ptr: u64,
         data_len: u64,
         addr: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         // Assert: Socket ID must be non-zero.
         if (socket_id == 0) {
-            return BasinError.invalid_argument; // Invalid socket ID
+            return HarborError.invalid_argument; // Invalid socket ID
         }
         
         // Assert: Data pointer must be valid (non-zero, within VM memory).
         if (data_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
+            return HarborError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE_SENDTO: u64 = 4 * 1024 * 1024; // 4MB default
         if (data_ptr >= VM_MEMORY_SIZE_SENDTO) {
-            return BasinError.invalid_argument; // Data pointer exceeds VM memory
+            return HarborError.invalid_argument; // Data pointer exceeds VM memory
         }
         
         // Assert: Data length must be reasonable (max socket buffer size).
         if (data_len == 0) {
-            return BasinError.invalid_argument; // Zero-length data
+            return HarborError.invalid_argument; // Zero-length data
         }
         if (data_len > 64 * 1024) {
-            return BasinError.invalid_argument; // Data too large
+            return HarborError.invalid_argument; // Data too large
         }
         
         // Assert: Data must fit within VM memory.
         if (data_ptr + data_len > VM_MEMORY_SIZE_SENDTO) {
-            return BasinError.invalid_argument; // Data exceeds VM memory
+            return HarborError.invalid_argument; // Data exceeds VM memory
         }
         
         // Stub: would extract port from arguments properly.
@@ -1040,7 +1040,7 @@ pub const NetworkSyscalls = struct {
         
         // Send data.
         const bytes_sent = self.udp_sockets.sendto(socket_id, data, ipv4_addr, ipv4_port) orelse {
-            return BasinError.not_found; // Socket not found or invalid state
+            return HarborError.not_found; // Socket not found or invalid state
         };
         
         // Update process resource usage (network bytes sent).
@@ -1066,43 +1066,43 @@ pub const NetworkSyscalls = struct {
     /// Why: Read incoming data from bound socket.
     /// Contract: socket_id must be valid, buffer_ptr and buffer_len must be valid.
     pub fn syscall_udp_recvfrom(
-        self: *BasinKernel,
+        self: *HarborKernel,
         socket_id: u64,
         buffer_ptr: u64,
         buffer_len: u64,
         addr_ptr: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         // Assert: Socket ID must be non-zero.
         if (socket_id == 0) {
-            return BasinError.invalid_argument; // Invalid socket ID
+            return HarborError.invalid_argument; // Invalid socket ID
         }
         
         // Assert: Buffer pointer must be valid (non-zero, within VM memory).
         if (buffer_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
+            return HarborError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE_RECVFROM: u64 = 4 * 1024 * 1024; // 4MB default
         if (buffer_ptr >= VM_MEMORY_SIZE_RECVFROM) {
-            return BasinError.invalid_argument; // Buffer pointer exceeds VM memory
+            return HarborError.invalid_argument; // Buffer pointer exceeds VM memory
         }
         
         // Assert: Buffer length must be reasonable (max socket buffer size).
         if (buffer_len == 0) {
-            return BasinError.invalid_argument; // Zero-length buffer
+            return HarborError.invalid_argument; // Zero-length buffer
         }
         if (buffer_len > 64 * 1024) {
-            return BasinError.invalid_argument; // Buffer too large
+            return HarborError.invalid_argument; // Buffer too large
         }
         
         // Assert: Buffer must fit within VM memory.
         if (buffer_ptr + buffer_len > VM_MEMORY_SIZE_RECVFROM) {
-            return BasinError.invalid_argument; // Buffer exceeds VM memory
+            return HarborError.invalid_argument; // Buffer exceeds VM memory
         }
         
         // Create buffer slice (stub: would use vm_memory_writer).
@@ -1117,7 +1117,7 @@ pub const NetworkSyscalls = struct {
         
         // Receive data (remote_addr and remote_port are written by recvfrom if addr_ptr != 0).
         const bytes_received = self.udp_sockets.recvfrom(socket_id, buffer_slice, addr_ptr_opt, port_ptr_opt) orelse {
-            return BasinError.not_found; // Socket not found or invalid state
+            return HarborError.not_found; // Socket not found or invalid state
         };
         
         // Update process resource usage (network bytes received).
@@ -1147,16 +1147,16 @@ pub const NetworkSyscalls = struct {
     /// Why: Transmit data on UDP socket with timeout support.
     /// Contract: socket_id must be valid, data_ptr and data_len must be valid, addr_and_timeout contains IPv4 address and timeout_ms.
     pub fn syscall_udp_sendto_with_timeout(
-        self: *BasinKernel,
+        self: *HarborKernel,
         socket_id: u64,
         data_ptr: u64,
         data_len: u64,
         addr_and_timeout: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         // Record start time for timeout checking.
         const start_time_ns = self.timer.get_monotonic_ns();
@@ -1169,35 +1169,35 @@ pub const NetworkSyscalls = struct {
         
         // Assert: Socket ID must be non-zero.
         if (socket_id == 0) {
-            return BasinError.invalid_argument; // Invalid socket ID
+            return HarborError.invalid_argument; // Invalid socket ID
         }
         
         // Assert: Data pointer must be valid (non-zero, within VM memory).
         if (data_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
+            return HarborError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE_SENDTO: u64 = 4 * 1024 * 1024; // 4MB default
         if (data_ptr >= VM_MEMORY_SIZE_SENDTO) {
-            return BasinError.invalid_argument; // Data pointer exceeds VM memory
+            return HarborError.invalid_argument; // Data pointer exceeds VM memory
         }
         
         // Assert: Data length must be reasonable (max socket buffer size).
         if (data_len == 0) {
-            return BasinError.invalid_argument; // Zero-length data
+            return HarborError.invalid_argument; // Zero-length data
         }
         if (data_len > 64 * 1024) {
-            return BasinError.invalid_argument; // Data too large
+            return HarborError.invalid_argument; // Data too large
         }
         
         // Assert: Data must fit within VM memory.
         if (data_ptr + data_len > VM_MEMORY_SIZE_SENDTO) {
-            return BasinError.invalid_argument; // Data exceeds VM memory
+            return HarborError.invalid_argument; // Data exceeds VM memory
         }
         
         // Check timeout before operation.
         if (self.check_timeout(start_time_ns, timeout_ns)) {
-            return BasinError.network_timeout; // Timeout expired
+            return HarborError.network_timeout; // Timeout expired
         }
         
         // Stub: would extract port from arguments properly.
@@ -1213,14 +1213,14 @@ pub const NetworkSyscalls = struct {
         const bytes_sent = self.udp_sockets.sendto(socket_id, data, ipv4_addr, ipv4_port) orelse {
             // Check timeout after operation.
             if (self.check_timeout(start_time_ns, timeout_ns)) {
-                return BasinError.network_timeout; // Timeout expired
+                return HarborError.network_timeout; // Timeout expired
             }
-            return BasinError.not_found; // Socket not found or invalid state
+            return HarborError.not_found; // Socket not found or invalid state
         };
         
         // Check timeout after operation.
         if (self.check_timeout(start_time_ns, timeout_ns)) {
-            return BasinError.network_timeout; // Timeout expired
+            return HarborError.network_timeout; // Timeout expired
         }
         
         // Update process resource usage (network bytes sent).
@@ -1246,16 +1246,16 @@ pub const NetworkSyscalls = struct {
     /// Why: Read incoming data from bound socket with timeout support.
     /// Contract: socket_id must be valid, buffer_ptr and buffer_len must be valid, addr_ptr_and_timeout contains addr_ptr and timeout_ms.
     pub fn syscall_udp_recvfrom_with_timeout(
-        self: *BasinKernel,
+        self: *HarborKernel,
         socket_id: u64,
         buffer_ptr: u64,
         buffer_len: u64,
         addr_ptr_and_timeout: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         // Record start time for timeout checking.
         const start_time_ns = self.timer.get_monotonic_ns();
@@ -1268,35 +1268,35 @@ pub const NetworkSyscalls = struct {
         
         // Assert: Socket ID must be non-zero.
         if (socket_id == 0) {
-            return BasinError.invalid_argument; // Invalid socket ID
+            return HarborError.invalid_argument; // Invalid socket ID
         }
         
         // Assert: Buffer pointer must be valid (non-zero, within VM memory).
         if (buffer_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
+            return HarborError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE_RECVFROM: u64 = 4 * 1024 * 1024; // 4MB default
         if (buffer_ptr >= VM_MEMORY_SIZE_RECVFROM) {
-            return BasinError.invalid_argument; // Buffer pointer exceeds VM memory
+            return HarborError.invalid_argument; // Buffer pointer exceeds VM memory
         }
         
         // Assert: Buffer length must be reasonable (max socket buffer size).
         if (buffer_len == 0) {
-            return BasinError.invalid_argument; // Zero-length buffer
+            return HarborError.invalid_argument; // Zero-length buffer
         }
         if (buffer_len > 64 * 1024) {
-            return BasinError.invalid_argument; // Buffer too large
+            return HarborError.invalid_argument; // Buffer too large
         }
         
         // Assert: Buffer must fit within VM memory.
         if (buffer_ptr + buffer_len > VM_MEMORY_SIZE_RECVFROM) {
-            return BasinError.invalid_argument; // Buffer exceeds VM memory
+            return HarborError.invalid_argument; // Buffer exceeds VM memory
         }
         
         // Check timeout before operation.
         if (self.check_timeout(start_time_ns, timeout_ns)) {
-            return BasinError.network_timeout; // Timeout expired
+            return HarborError.network_timeout; // Timeout expired
         }
         
         // Create buffer slice (stub: would use vm_memory_writer).
@@ -1315,14 +1315,14 @@ pub const NetworkSyscalls = struct {
         const bytes_received = self.udp_sockets.recvfrom(socket_id, buffer_slice, addr_ptr_opt, port_ptr_opt) orelse {
             // Check timeout after operation.
             if (self.check_timeout(start_time_ns, timeout_ns)) {
-                return BasinError.network_timeout; // Timeout expired
+                return HarborError.network_timeout; // Timeout expired
             }
-            return BasinError.not_found; // Socket not found or invalid state
+            return HarborError.not_found; // Socket not found or invalid state
         };
         
         // Check timeout after operation.
         if (self.check_timeout(start_time_ns, timeout_ns)) {
-            return BasinError.network_timeout; // Timeout expired
+            return HarborError.network_timeout; // Timeout expired
         }
         
         // Update process resource usage (network bytes received).
@@ -1352,16 +1352,16 @@ pub const NetworkSyscalls = struct {
     /// Why: Release socket resources.
     /// Contract: socket_id must be valid.
     pub fn syscall_udp_close(
-        self: *BasinKernel,
+        self: *HarborKernel,
         socket_id: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg2;
         _ = _arg3;
@@ -1369,7 +1369,7 @@ pub const NetworkSyscalls = struct {
         
         // Assert: Socket ID must be non-zero.
         if (socket_id == 0) {
-            return BasinError.invalid_argument; // Invalid socket ID
+            return HarborError.invalid_argument; // Invalid socket ID
         }
         
         // Get current process ID before closing.
@@ -1377,7 +1377,7 @@ pub const NetworkSyscalls = struct {
         
         // Close socket.
         if (!self.udp_sockets.close_socket(socket_id)) {
-            return BasinError.not_found; // Socket not found
+            return HarborError.not_found; // Socket not found
         }
         
         // Update process resource usage (decrement connection count).
@@ -1404,40 +1404,40 @@ pub const NetworkSyscalls = struct {
     /// Why: Get list of all UDP sockets.
     /// Contract: socket_ids_ptr must be valid VM address, max_count must be valid.
     pub fn syscall_udp_enumerate_sockets(
-        self: *BasinKernel,
+        self: *HarborKernel,
         socket_ids_ptr: u64,
         max_count: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg3;
         _ = _arg4;
         
         // Assert: Socket IDs pointer must be valid (non-zero, within VM memory).
         if (socket_ids_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
+            return HarborError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default
         if (socket_ids_ptr >= VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Socket IDs pointer exceeds VM memory
+            return HarborError.invalid_argument; // Socket IDs pointer exceeds VM memory
         }
         
         // Assert: Max count must be reasonable (max 64 sockets).
         const max_cnt = @as(u32, @truncate(max_count));
         if (max_cnt > 64) {
-            return BasinError.invalid_argument; // Max count too large
+            return HarborError.invalid_argument; // Max count too large
         }
         
         // Assert: Socket IDs array must fit within VM memory (max 64 * 8 bytes = 512 bytes).
         const SOCKET_IDS_SIZE: u64 = max_cnt * 8; // u64 per socket ID
         if (socket_ids_ptr + SOCKET_IDS_SIZE > VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Socket IDs array exceeds VM memory
+            return HarborError.invalid_argument; // Socket IDs array exceeds VM memory
         }
         
         // Create temporary socket IDs array.
@@ -1462,16 +1462,16 @@ pub const NetworkSyscalls = struct {
     /// Why: Provide TCP socket statistics to userspace.
     /// Contract: stats_ptr must be valid pointer to TcpSocketStats structure.
     pub fn syscall_tcp_get_stats(
-        self: *BasinKernel,
+        self: *HarborKernel,
         stats_ptr: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg2;
         _ = _arg3;
@@ -1479,19 +1479,19 @@ pub const NetworkSyscalls = struct {
         
         // Assert: Stats pointer must be valid (non-zero, within VM memory).
         if (stats_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
+            return HarborError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default
         if (stats_ptr >= VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Stats pointer exceeds VM memory
+            return HarborError.invalid_argument; // Stats pointer exceeds VM memory
         }
         
         // Assert: TcpSocketStats structure must fit within VM memory.
         // TcpSocketStats size: 13 fields (8 u64 + 2 u32 + 3 u64) = 8*8 + 2*4 + 3*8 = 64 + 8 + 24 = 96 bytes
         const TCP_STATS_SIZE: u64 = 96;
         if (stats_ptr + TCP_STATS_SIZE > VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Stats structure exceeds VM memory
+            return HarborError.invalid_argument; // Stats structure exceeds VM memory
         }
         
         // Note: Statistics structure will be written by integration layer.
@@ -1510,16 +1510,16 @@ pub const NetworkSyscalls = struct {
     /// Why: Provide UDP socket statistics to userspace.
     /// Contract: stats_ptr must be valid pointer to UdpSocketStats structure.
     pub fn syscall_udp_get_stats(
-        self: *BasinKernel,
+        self: *HarborKernel,
         stats_ptr: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg2;
         _ = _arg3;
@@ -1527,19 +1527,19 @@ pub const NetworkSyscalls = struct {
         
         // Assert: Stats pointer must be valid (non-zero, within VM memory).
         if (stats_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
+            return HarborError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default
         if (stats_ptr >= VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Stats pointer exceeds VM memory
+            return HarborError.invalid_argument; // Stats pointer exceeds VM memory
         }
         
         // Assert: UdpSocketStats structure must fit within VM memory.
         // UdpSocketStats size: 9 fields (4 u64 + 1 u32 + 1 u64 + 2 u64 + 1 u64) = 4*8 + 4 + 8 + 2*8 + 8 = 32 + 4 + 8 + 16 + 8 = 68 bytes
         const UDP_STATS_SIZE: u64 = 68;
         if (stats_ptr + UDP_STATS_SIZE > VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Stats structure exceeds VM memory
+            return HarborError.invalid_argument; // Stats structure exceeds VM memory
         }
         
         // Note: Statistics structure will be written by integration layer.
@@ -1558,40 +1558,40 @@ pub const NetworkSyscalls = struct {
     /// Why: Get list of all TCP sockets.
     /// Contract: socket_ids_ptr must be valid VM address, max_count must be valid.
     pub fn syscall_tcp_enumerate_sockets(
-        self: *BasinKernel,
+        self: *HarborKernel,
         socket_ids_ptr: u64,
         max_count: u64,
         _arg3: u64,
         _arg4: u64,
-    ) BasinError!SyscallResult {
+    ) HarborError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg3;
         _ = _arg4;
         
         // Assert: Socket IDs pointer must be valid (non-zero, within VM memory).
         if (socket_ids_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
+            return HarborError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default
         if (socket_ids_ptr >= VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Socket IDs pointer exceeds VM memory
+            return HarborError.invalid_argument; // Socket IDs pointer exceeds VM memory
         }
         
         // Assert: Max count must be reasonable (max 64 sockets).
         const max_cnt = @as(u32, @truncate(max_count));
         if (max_cnt > 64) {
-            return BasinError.invalid_argument; // Max count too large
+            return HarborError.invalid_argument; // Max count too large
         }
         
         // Assert: Socket IDs array must fit within VM memory (max 64 * 8 bytes = 512 bytes).
         const SOCKET_IDS_SIZE: u64 = max_cnt * 8; // u64 per socket ID
         if (socket_ids_ptr + SOCKET_IDS_SIZE > VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Socket IDs array exceeds VM memory
+            return HarborError.invalid_argument; // Socket IDs array exceeds VM memory
         }
         
         // Create temporary socket IDs array.

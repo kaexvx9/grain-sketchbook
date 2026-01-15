@@ -4,10 +4,10 @@
 
 // Import sbi module (provided by build.zig imports)
 const sbi = @import("sbi");
-// Import Debug and platform through basin_kernel to avoid module conflicts
-const basin_kernel = @import("basin_kernel");
-const Debug = basin_kernel.Debug;
-pub const platform = basin_kernel.platform;
+// Import Debug and platform through harbor_kernel to avoid module conflicts
+const harbor_kernel = @import("harbor_kernel");
+const Debug = harbor_kernel.Debug;
+pub const platform = harbor_kernel.platform;
 
 // Re-implement platform_riscv functions using module imports instead of file imports
 // Why: platform_riscv.zig uses @import("../kernel_vm/sbi.zig") which doesn't work in module context

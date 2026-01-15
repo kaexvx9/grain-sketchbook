@@ -3,10 +3,10 @@
 //! Grain Style: Explicit types (u64 not usize), minimum 2 assertions per function.
 
 const std = @import("std");
-const basin_kernel = @import("basin_kernel");
-const BasinKernel = basin_kernel.BasinKernel;
-const InterruptController = basin_kernel.InterruptController;
-const InterruptType = basin_kernel.InterruptType;
+const harbor_kernel = @import("harbor_kernel");
+const HarborKernel = harbor_kernel.HarborKernel;
+const InterruptController = harbor_kernel.InterruptController;
+const InterruptType = harbor_kernel.InterruptType;
 const InterruptHandler = @import("interrupt.zig").InterruptHandler;
 
 // Test interrupt controller initialization.
@@ -249,7 +249,7 @@ test "interrupt controller no handler" {
 
 // Test kernel interrupt controller integration.
 test "kernel interrupt controller integration" {
-    const kernel = BasinKernel.init();
+    const kernel = HarborKernel.init();
     
     // Assert: Kernel interrupt controller must be initialized.
     try std.testing.expect(kernel.interrupt_controller.initialized);

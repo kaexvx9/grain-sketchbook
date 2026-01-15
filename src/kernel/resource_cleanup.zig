@@ -4,8 +4,8 @@
 
 const std = @import("std");
 const Debug = @import("debug.zig");
-const BasinKernel = @import("basin_kernel.zig").BasinKernel;
-const ProcessState = @import("basin_kernel.zig").ProcessState;
+const HarborKernel = @import("harbor_kernel.zig").HarborKernel;
+const ProcessState = @import("harbor_kernel.zig").ProcessState;
 
 /// Clean up all resources owned by a process.
 /// Why: Free memory mappings, handles, and channels when process exits.
@@ -13,13 +13,13 @@ const ProcessState = @import("basin_kernel.zig").ProcessState;
 /// Returns: Number of resources cleaned up (mappings + handles + channels).
 /// Grain Style: Explicit types, bounded operations, static allocation.
 pub fn cleanup_process_resources(
-    kernel: *BasinKernel,
+    kernel: *HarborKernel,
     process_id: u32,
 ) u32 {
     // Assert: Kernel must be initialized (precondition).
     const kernel_ptr = @intFromPtr(kernel);
     Debug.kassert(kernel_ptr != 0, "Kernel ptr is null", .{});
-    Debug.kassert(kernel_ptr % @alignOf(BasinKernel) == 0, "Kernel ptr unaligned", .{});
+    Debug.kassert(kernel_ptr % @alignOf(HarborKernel) == 0, "Kernel ptr unaligned", .{});
 
     // Assert: Process ID must be valid (non-zero).
     Debug.kassert(process_id != 0, "Process ID is 0", .{});
@@ -56,7 +56,7 @@ pub fn cleanup_process_resources(
 /// Returns: Number of mappings freed.
 /// Grain Style: Explicit types, bounded operations, static allocation.
 fn cleanup_process_mappings(
-    kernel: *BasinKernel,
+    kernel: *HarborKernel,
     process_id: u32,
 ) u32 {
     // Assert: Kernel must be initialized (precondition).
@@ -69,7 +69,7 @@ fn cleanup_process_mappings(
     // Free all memory mappings owned by this process.
     // Why: Process memory mappings should be freed on exit.
     var mappings_freed: u32 = 0;
-    const MAX_MAPPINGS: u32 = 256; // Matches MAX_MAPPINGS in basin_kernel.zig
+    const MAX_MAPPINGS: u32 = 256; // Matches MAX_MAPPINGS in harbor_kernel.zig
 
     var i: u32 = 0;
     while (i < MAX_MAPPINGS) : (i += 1) {
@@ -99,7 +99,7 @@ fn cleanup_process_mappings(
 /// Returns: Number of handles closed.
 /// Grain Style: Explicit types, bounded operations, static allocation.
 fn cleanup_process_handles(
-    kernel: *BasinKernel,
+    kernel: *HarborKernel,
     process_id: u32,
 ) u32 {
     // Assert: Kernel must be initialized (precondition).
@@ -112,7 +112,7 @@ fn cleanup_process_handles(
     // Close all file handles owned by this process.
     // Why: Process file handles should be closed on exit.
     var handles_closed: u32 = 0;
-    const MAX_HANDLES: u32 = 256; // Matches MAX_HANDLES in basin_kernel.zig
+    const MAX_HANDLES: u32 = 256; // Matches MAX_HANDLES in harbor_kernel.zig
 
     var i: u32 = 0;
     while (i < MAX_HANDLES) : (i += 1) {
@@ -142,7 +142,7 @@ fn cleanup_process_handles(
 /// Returns: Number of channels closed.
 /// Grain Style: Explicit types, bounded operations, static allocation.
 fn cleanup_process_channels(
-    kernel: *BasinKernel,
+    kernel: *HarborKernel,
     process_id: u32,
 ) u32 {
     // Assert: Kernel must be initialized (precondition).

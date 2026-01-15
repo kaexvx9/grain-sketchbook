@@ -3,12 +3,12 @@
 
 const std = @import("std");
 const testing = std.testing;
-const basin_kernel = @import("basin_kernel");
+const harbor_kernel = @import("harbor_kernel");
 const KernelLogLevel = @import("kernel_log_buffer.zig").KernelLogLevel;
 const KernelLogEntry = @import("kernel_log_buffer.zig").KernelLogEntry;
 
 test "kernel log reading syscall" {
-    var kernel = basin_kernel.BasinKernel.init();
+    var kernel = harbor_kernel.HarborKernel.init();
     
     // Add some test log entries to the buffer.
     kernel.log_buffer.add_entry(
@@ -27,8 +27,8 @@ test "kernel log reading syscall" {
     const buffer_len: u64 = 1024; // Enough for multiple KernelLogEntry structures
     const max_entries: u64 = 16;
     
-    const read_log_num = @intFromEnum(basin_kernel.Syscall.read_kernel_log);
-    const handle_syscall = basin_kernel.handle_syscall;
+    const read_log_num = @intFromEnum(harbor_kernel.Syscall.read_kernel_log);
+    const handle_syscall = harbor_kernel.handle_syscall;
     const result = try handle_syscall(&kernel, read_log_num, buffer_ptr, buffer_len, max_entries, 0);
     
     // Should succeed and return number of entries.
@@ -37,21 +37,21 @@ test "kernel log reading syscall" {
 }
 
 test "kernel log reading with invalid buffer" {
-    var kernel = basin_kernel.BasinKernel.init();
+    var kernel = harbor_kernel.HarborKernel.init();
     
     // Test with null buffer pointer.
-    const read_log_num = @intFromEnum(basin_kernel.Syscall.read_kernel_log);
-    const handle_syscall = basin_kernel.handle_syscall;
+    const read_log_num = @intFromEnum(harbor_kernel.Syscall.read_kernel_log);
+    const handle_syscall = harbor_kernel.handle_syscall;
     const result1 = try handle_syscall(&kernel, read_log_num, 0, 1024, 16, 0);
     try testing.expect(result1 == .err);
-    try testing.expect(result1.err == basin_kernel.BasinError.invalid_argument);
+    try testing.expect(result1.err == harbor_kernel.HarborError.invalid_argument);
     
     // Test with buffer too small.
     const buffer_ptr: u64 = 0x1000;
     const KERNEL_LOG_ENTRY_SIZE: u64 = @sizeOf(KernelLogEntry);
     const result2 = try handle_syscall(&kernel, read_log_num, buffer_ptr, KERNEL_LOG_ENTRY_SIZE - 1, 16, 0);
     try testing.expect(result2 == .err);
-    try testing.expect(result2.err == basin_kernel.BasinError.invalid_argument);
+    try testing.expect(result2.err == harbor_kernel.HarborError.invalid_argument);
 }
 
 test "kernel log entry structure layout" {

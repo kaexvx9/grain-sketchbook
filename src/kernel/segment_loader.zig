@@ -5,10 +5,10 @@
 const std = @import("std");
 const Debug = @import("debug.zig");
 const elf_parser = @import("elf_parser.zig");
-const BasinKernel = @import("basin_kernel.zig").BasinKernel;
-const MapFlags = @import("basin_kernel.zig").MapFlags;
-const SyscallResult = @import("basin_kernel.zig").SyscallResult;
-const syscall_map = @import("basin_kernel.zig").syscall_map;
+const HarborKernel = @import("harbor_kernel.zig").HarborKernel;
+const MapFlags = @import("harbor_kernel.zig").MapFlags;
+const SyscallResult = @import("harbor_kernel.zig").SyscallResult;
+const syscall_map = @import("harbor_kernel.zig").syscall_map;
 
 /// Load a single program segment into VM memory.
 /// Why: Extract segment loading logic to reduce nesting in syscall_spawn.
@@ -20,7 +20,7 @@ pub fn load_program_segment(
     executable: u64,
     read_fn: *const fn (addr: u64, len: u32, buffer: []u8) ?u32,
     write_fn: *const fn (addr: u64, len: u32, data: []const u8) ?u32,
-    kernel: *BasinKernel,
+    kernel: *HarborKernel,
 ) bool {
     // Assert: Segment must be valid (precondition).
     Debug.kassert(segment.valid, "Segment not valid", .{});

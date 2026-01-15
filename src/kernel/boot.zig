@@ -4,7 +4,7 @@
 
 const std = @import("std");
 const Debug = @import("debug.zig");
-const BasinKernel = @import("basin_kernel.zig").BasinKernel;
+const HarborKernel = @import("harbor_kernel.zig").HarborKernel;
 
 /// Boot phase enumeration.
 /// Why: Explicit boot phases for clear initialization order.
@@ -127,7 +127,7 @@ pub const BootSequence = struct {
 /// Why: Initialize all kernel subsystems in correct order with validation.
 /// Contract: kernel must be uninitialized (all subsystems at default state).
 /// Postcondition: All subsystems initialized, boot sequence complete.
-pub fn boot_kernel(kernel: *BasinKernel) void {
+pub fn boot_kernel(kernel: *HarborKernel) void {
     // Assert: Kernel timer must be initialized (precondition).
     Debug.kassert(kernel.timer.initialized, "Timer not initialized", .{});
     
@@ -138,7 +138,7 @@ pub fn boot_kernel(kernel: *BasinKernel) void {
     boot.start(&kernel.timer);
     Debug.log(.info, "Boot sequence started", .{});
     
-    // Phase 1: Timer (already initialized in BasinKernel.init()).
+    // Phase 1: Timer (already initialized in HarborKernel.init()).
     // Why: Timer is needed for all time-based operations.
     Debug.kassert(kernel.timer.initialized, "Timer not initialized", .{});
     boot.advance(.timer);

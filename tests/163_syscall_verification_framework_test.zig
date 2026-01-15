@@ -17,30 +17,30 @@ const testing = std.testing;
 const kernel_vm = @import("kernel_vm");
 const Integration = kernel_vm.Integration;
 const VM = kernel_vm.VM;
-const basin_kernel = @import("basin_kernel");
-const BasinKernel = basin_kernel.BasinKernel;
-const Syscall = basin_kernel.Syscall;
-const BasinError = basin_kernel.BasinError;
-const SyscallResult = basin_kernel.SyscallResult;
-const handle_syscall = basin_kernel.handle_syscall;
-const RawIO = basin_kernel.RawIO;
+const harbor_kernel = @import("harbor_kernel");
+const HarborKernel = harbor_kernel.HarborKernel;
+const Syscall = harbor_kernel.Syscall;
+const HarborError = harbor_kernel.HarborError;
+const SyscallResult = harbor_kernel.SyscallResult;
+const handle_syscall = harbor_kernel.handle_syscall;
+const RawIO = harbor_kernel.RawIO;
 
 // Test execution bounds (Grain Style: explicit limits).
 const MAX_TEST_STEPS: u32 = 1000; // Maximum steps for test execution.
 const MAX_SYSCALL_ITERATIONS: u32 = 100; // Maximum syscall iterations per test.
 
 /// Helper: Create kernel on heap to avoid stack overflow.
-/// Why: BasinKernel is large (~75KB), stack allocation can cause overflow.
-fn create_test_kernel() !*BasinKernel {
-    const kernel = try testing.allocator.create(BasinKernel);
-    BasinKernel.init_in_place(kernel);
+/// Why: HarborKernel is large (~75KB), stack allocation can cause overflow.
+fn create_test_kernel() !*HarborKernel {
+    const kernel = try testing.allocator.create(HarborKernel);
+    HarborKernel.init_in_place(kernel);
     return kernel;
 }
 
 /// Test integration environment with automatic cleanup.
 const TestIntegration = struct {
     vm: *VM,
-    kernel: *BasinKernel,
+    kernel: *HarborKernel,
     integration: Integration,
     
     pub fn deinit(self: *TestIntegration) void {
@@ -80,30 +80,30 @@ fn create_test_integration() TestIntegration {
     };
 }
 
-/// Helper: Decode u64 result from VM register to BasinError.
+/// Helper: Decode u64 result from VM register to HarborError.
 /// Why: Integration layer returns negative i64 (bitcast to u64) for errors.
 /// Contract: result_value is the value from a0 register after syscall.
-/// Returns: BasinError if result is negative, null if success.
-fn decode_error_code(result_value: u64) ?BasinError {
+/// Returns: HarborError if result is negative, null if success.
+fn decode_error_code(result_value: u64) ?HarborError {
     // Check if result is negative (when interpreted as i64).
     const result_i64 = @as(i64, @bitCast(result_value));
     if (result_i64 < 0) {
-        // Decode error code (negative values map to BasinError).
+        // Decode error code (negative values map to HarborError).
         return switch (result_i64) {
-            -1 => BasinError.invalid_handle,
-            -2 => BasinError.invalid_argument,
-            -3 => BasinError.permission_denied,
-            -4 => BasinError.not_found,
-            -5 => BasinError.out_of_memory,
-            -6 => BasinError.would_block,
-            -7 => BasinError.interrupted,
-            -8 => BasinError.invalid_syscall,
-            -9 => BasinError.invalid_address,
-            -10 => BasinError.unaligned_access,
-            -11 => BasinError.out_of_bounds,
-            -12 => BasinError.user_not_found,
-            -13 => BasinError.invalid_user,
-            else => BasinError.invalid_syscall, // Unknown error code
+            -1 => HarborError.invalid_handle,
+            -2 => HarborError.invalid_argument,
+            -3 => HarborError.permission_denied,
+            -4 => HarborError.not_found,
+            -5 => HarborError.out_of_memory,
+            -6 => HarborError.would_block,
+            -7 => HarborError.interrupted,
+            -8 => HarborError.invalid_syscall,
+            -9 => HarborError.invalid_address,
+            -10 => HarborError.unaligned_access,
+            -11 => HarborError.out_of_bounds,
+            -12 => HarborError.user_not_found,
+            -13 => HarborError.invalid_user,
+            else => HarborError.invalid_syscall, // Unknown error code
         };
     }
     return null; // Success (non-negative value)
@@ -151,10 +151,10 @@ fn call_syscall_via_vm(
     // Note: execute_ecall reads from registers, doesn't need instruction encoding.
     // Note: exit syscall (2) will halt the VM.
     vm.execute_ecall() catch |err| {
-        // If ECALL execution fails, convert to BasinError.
+        // If ECALL execution fails, convert to HarborError.
         // Note: This shouldn't happen for valid syscalls, but handle it for safety.
         _ = err;
-        return SyscallResult.fail(BasinError.invalid_syscall);
+        return SyscallResult.fail(HarborError.invalid_syscall);
     };
     
     // Get result from a0 register (RISC-V convention: return value in a0).
@@ -324,7 +324,7 @@ test "syscall verification: get_process_info (syscall 52)" {
     
     // Verify invalid PID returns error.
     if (vm_result_invalid == .err) {
-        _ = try testing.expect(vm_result_invalid.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_invalid.err == HarborError.invalid_argument);
     }
     
     // Test get_process_info with valid pointer but non-existent PID.
@@ -359,7 +359,7 @@ test "syscall verification: get_priority (syscall 55)" {
     
     // Verify invalid PID returns error.
     if (vm_result_invalid == .err) {
-        _ = try testing.expect(vm_result_invalid.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_invalid.err == HarborError.invalid_argument);
     }
     
     // Test get_priority with non-existent PID.
@@ -372,7 +372,7 @@ test "syscall verification: get_priority (syscall 55)" {
     
     // Verify non-existent PID returns error.
     if (vm_result_not_found == .err) {
-        _ = try testing.expect(vm_result_not_found.err == BasinError.not_found);
+        _ = try testing.expect(vm_result_not_found.err == HarborError.not_found);
     }
 }
 
@@ -395,7 +395,7 @@ test "syscall verification: getpgid (syscall 57)" {
     
     // Verify invalid PID returns error.
     if (vm_result_invalid == .err) {
-        _ = try testing.expect(vm_result_invalid.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_invalid.err == HarborError.invalid_argument);
     }
     
     // Test getpgid with non-existent PID.
@@ -408,7 +408,7 @@ test "syscall verification: getpgid (syscall 57)" {
     
     // Verify non-existent PID returns error.
     if (vm_result_not_found == .err) {
-        _ = try testing.expect(vm_result_not_found.err == BasinError.not_found);
+        _ = try testing.expect(vm_result_not_found.err == HarborError.not_found);
     }
 }
 
@@ -431,7 +431,7 @@ test "syscall verification: getsid (syscall 59)" {
     
     // Verify invalid PID returns error.
     if (vm_result_invalid == .err) {
-        _ = try testing.expect(vm_result_invalid.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_invalid.err == HarborError.invalid_argument);
     }
     
     // Test getsid with non-existent PID.
@@ -444,7 +444,7 @@ test "syscall verification: getsid (syscall 59)" {
     
     // Verify non-existent PID returns error.
     if (vm_result_not_found == .err) {
-        _ = try testing.expect(vm_result_not_found.err == BasinError.not_found);
+        _ = try testing.expect(vm_result_not_found.err == HarborError.not_found);
     }
 }
 
@@ -489,7 +489,7 @@ test "syscall verification: unmap (syscall 11)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.unaligned_access);
+        _ = try testing.expect(vm_result.err == HarborError.unaligned_access);
     }
 }
 
@@ -518,7 +518,7 @@ test "syscall verification: clock_gettime (syscall 40)" {
     };
     
     if (vm_result_null == .err) {
-        _ = try testing.expect(vm_result_null.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null.err == HarborError.invalid_argument);
     }
 }
 
@@ -534,7 +534,7 @@ test "syscall verification: wait (syscall 4)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result.err == HarborError.invalid_argument);
     }
 }
 
@@ -550,7 +550,7 @@ test "syscall verification: open (syscall 30)" {
     };
     
     if (vm_result_null == .err) {
-        _ = try testing.expect(vm_result_null.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null.err == HarborError.invalid_argument);
     }
 }
 
@@ -579,7 +579,7 @@ test "syscall verification: close (syscall 33)" {
     };
     
     if (vm_result_zero == .err) {
-        _ = try testing.expect(vm_result_zero.err == BasinError.invalid_handle);
+        _ = try testing.expect(vm_result_zero.err == HarborError.invalid_handle);
     }
 }
 
@@ -610,7 +610,7 @@ test "syscall verification: read (syscall 31)" {
     };
     
     if (vm_result_zero == .err) {
-        _ = try testing.expect(vm_result_zero.err == BasinError.invalid_handle);
+        _ = try testing.expect(vm_result_zero.err == HarborError.invalid_handle);
     }
     
     // Test read with null buffer pointer (should return error).
@@ -620,7 +620,7 @@ test "syscall verification: read (syscall 31)" {
     };
     
     if (vm_result_null == .err) {
-        _ = try testing.expect(vm_result_null.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null.err == HarborError.invalid_argument);
     }
 }
 
@@ -651,7 +651,7 @@ test "syscall verification: write (syscall 32)" {
     };
     
     if (vm_result_zero == .err) {
-        _ = try testing.expect(vm_result_zero.err == BasinError.invalid_handle);
+        _ = try testing.expect(vm_result_zero.err == HarborError.invalid_handle);
     }
     
     // Test write with null buffer pointer (should return error).
@@ -661,7 +661,7 @@ test "syscall verification: write (syscall 32)" {
     };
     
     if (vm_result_null == .err) {
-        _ = try testing.expect(vm_result_null.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null.err == HarborError.invalid_argument);
     }
     
     // Test write with zero length (should succeed or return error, depends on implementation).
@@ -690,7 +690,7 @@ test "syscall verification: mkdir (syscall 36)" {
     };
     
     if (vm_result_null == .err) {
-        _ = try testing.expect(vm_result_null.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null.err == HarborError.invalid_argument);
     }
 }
 
@@ -706,7 +706,7 @@ test "syscall verification: opendir (syscall 37)" {
     };
     
     if (vm_result_null == .err) {
-        _ = try testing.expect(vm_result_null.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null.err == HarborError.invalid_argument);
     }
 }
 
@@ -737,7 +737,7 @@ test "syscall verification: readdir (syscall 38)" {
     };
     
     if (vm_result_zero == .err) {
-        _ = try testing.expect(vm_result_zero.err == BasinError.invalid_handle);
+        _ = try testing.expect(vm_result_zero.err == HarborError.invalid_handle);
     }
     
     // Test readdir with null buffer pointer (should return error).
@@ -747,7 +747,7 @@ test "syscall verification: readdir (syscall 38)" {
     };
     
     if (vm_result_null == .err) {
-        _ = try testing.expect(vm_result_null.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null.err == HarborError.invalid_argument);
     }
 }
 
@@ -776,7 +776,7 @@ test "syscall verification: closedir (syscall 39)" {
     };
     
     if (vm_result_zero == .err) {
-        _ = try testing.expect(vm_result_zero.err == BasinError.invalid_handle);
+        _ = try testing.expect(vm_result_zero.err == HarborError.invalid_handle);
     }
 }
 
@@ -800,7 +800,7 @@ test "syscall verification: protect (syscall 12)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.unaligned_access);
+        _ = try testing.expect(vm_result.err == HarborError.unaligned_access);
     }
 }
 
@@ -816,7 +816,7 @@ test "syscall verification: spawn (syscall 1)" {
     };
     
     if (vm_result_null == .err) {
-        _ = try testing.expect(vm_result_null.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null.err == HarborError.invalid_argument);
     }
 }
 
@@ -835,7 +835,7 @@ test "syscall verification: set_priority (syscall 54)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.not_found);
+        _ = try testing.expect(vm_result.err == HarborError.not_found);
     }
     
     // Test set_priority with PID 0 (should return error).
@@ -845,7 +845,7 @@ test "syscall verification: set_priority (syscall 54)" {
     };
     
     if (vm_result_zero == .err) {
-        _ = try testing.expect(vm_result_zero.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_zero.err == HarborError.invalid_argument);
     }
 }
 
@@ -864,7 +864,7 @@ test "syscall verification: setpgid (syscall 56)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.not_found);
+        _ = try testing.expect(vm_result.err == HarborError.not_found);
     }
 }
 
@@ -899,7 +899,7 @@ test "syscall verification: unlink (syscall 34)" {
     };
     
     if (vm_result_null == .err) {
-        _ = try testing.expect(vm_result_null.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null.err == HarborError.invalid_argument);
     }
 }
 
@@ -915,7 +915,7 @@ test "syscall verification: rename (syscall 35)" {
     };
     
     if (vm_result_null_old == .err) {
-        _ = try testing.expect(vm_result_null_old.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null_old.err == HarborError.invalid_argument);
     }
     
     // Test rename with null new path pointer (should return error).
@@ -925,7 +925,7 @@ test "syscall verification: rename (syscall 35)" {
     };
     
     if (vm_result_null_new == .err) {
-        _ = try testing.expect(vm_result_null_new.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null_new.err == HarborError.invalid_argument);
     }
 }
 
@@ -952,7 +952,7 @@ test "syscall verification: sleep_until (syscall 41)" {
     };
     
     if (vm_result_null == .err) {
-        _ = try testing.expect(vm_result_null.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null.err == HarborError.invalid_argument);
     }
 }
 
@@ -968,7 +968,7 @@ test "syscall verification: enumerate_processes (syscall 51)" {
     };
     
     if (vm_result_null == .err) {
-        _ = try testing.expect(vm_result_null.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null.err == HarborError.invalid_argument);
     }
 }
 
@@ -984,7 +984,7 @@ test "syscall verification: read_kernel_log (syscall 53)" {
     };
     
     if (vm_result_null == .err) {
-        _ = try testing.expect(vm_result_null.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null.err == HarborError.invalid_argument);
     }
 }
 
@@ -1034,7 +1034,7 @@ test "syscall verification: channel_send (syscall 21)" {
     };
     
     if (vm_result_null == .err) {
-        _ = try testing.expect(vm_result_null.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null.err == HarborError.invalid_argument);
     }
 }
 
@@ -1065,7 +1065,7 @@ test "syscall verification: channel_recv (syscall 22)" {
     };
     
     if (vm_result_null == .err) {
-        _ = try testing.expect(vm_result_null.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null.err == HarborError.invalid_argument);
     }
 }
 
@@ -1084,7 +1084,7 @@ test "syscall verification: kill (syscall 80)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.not_found);
+        _ = try testing.expect(vm_result.err == HarborError.not_found);
     }
     
     // Test kill with PID 0 (should return error).
@@ -1094,7 +1094,7 @@ test "syscall verification: kill (syscall 80)" {
     };
     
     if (vm_result_zero == .err) {
-        _ = try testing.expect(vm_result_zero.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_zero.err == HarborError.invalid_argument);
     }
 }
 
@@ -1154,7 +1154,7 @@ test "syscall verification: sigaction (syscall 82)" {
     };
     
     if (vm_result_null == .err) {
-        _ = try testing.expect(vm_result_null.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null.err == HarborError.invalid_argument);
     }
 }
 
@@ -1170,7 +1170,7 @@ test "syscall verification: read_input_event (syscall 60)" {
     };
     
     if (vm_result_null == .err) {
-        _ = try testing.expect(vm_result_null.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null.err == HarborError.invalid_argument);
     }
 }
 
@@ -1259,7 +1259,7 @@ test "syscall verification: network_create_interface (syscall 90)" {
     };
     
     if (vm_result_null == .err) {
-        _ = try testing.expect(vm_result_null.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null.err == HarborError.invalid_argument);
     }
 }
 
@@ -1278,7 +1278,7 @@ test "syscall verification: network_get_interface (syscall 93)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.not_found);
+        _ = try testing.expect(vm_result.err == HarborError.not_found);
     }
     
     // Test network_get_interface with null info pointer (should return error).
@@ -1288,7 +1288,7 @@ test "syscall verification: network_get_interface (syscall 93)" {
     };
     
     if (vm_result_null == .err) {
-        _ = try testing.expect(vm_result_null.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null.err == HarborError.invalid_argument);
     }
 }
 
@@ -1311,7 +1311,7 @@ test "syscall verification: tcp_bind (syscall 101)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.invalid_handle);
+        _ = try testing.expect(vm_result.err == HarborError.invalid_handle);
     }
 }
 
@@ -1330,7 +1330,7 @@ test "syscall verification: tcp_connect (syscall 104)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.invalid_handle);
+        _ = try testing.expect(vm_result.err == HarborError.invalid_handle);
     }
 }
 
@@ -1348,7 +1348,7 @@ test "syscall verification: tcp_close (syscall 107)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.invalid_handle);
+        _ = try testing.expect(vm_result.err == HarborError.invalid_handle);
     }
 }
 
@@ -1382,7 +1382,7 @@ test "syscall verification: udp_bind (syscall 111)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.invalid_handle);
+        _ = try testing.expect(vm_result.err == HarborError.invalid_handle);
     }
 }
 
@@ -1401,7 +1401,7 @@ test "syscall verification: network_set_state (syscall 91)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.not_found);
+        _ = try testing.expect(vm_result.err == HarborError.not_found);
     }
 }
 
@@ -1419,7 +1419,7 @@ test "syscall verification: network_delete_interface (syscall 95)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.not_found);
+        _ = try testing.expect(vm_result.err == HarborError.not_found);
     }
 }
 
@@ -1442,7 +1442,7 @@ test "syscall verification: tcp_listen (syscall 102)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.invalid_handle);
+        _ = try testing.expect(vm_result.err == HarborError.invalid_handle);
     }
 }
 
@@ -1462,7 +1462,7 @@ test "syscall verification: tcp_send (syscall 105)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.invalid_handle);
+        _ = try testing.expect(vm_result.err == HarborError.invalid_handle);
     }
     
     // Test tcp_send with null data pointer (should return error).
@@ -1472,7 +1472,7 @@ test "syscall verification: tcp_send (syscall 105)" {
     };
     
     if (vm_result_null == .err) {
-        _ = try testing.expect(vm_result_null.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null.err == HarborError.invalid_argument);
     }
 }
 
@@ -1492,7 +1492,7 @@ test "syscall verification: tcp_recv (syscall 106)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.invalid_handle);
+        _ = try testing.expect(vm_result.err == HarborError.invalid_handle);
     }
     
     // Test tcp_recv with null buffer pointer (should return error).
@@ -1502,7 +1502,7 @@ test "syscall verification: tcp_recv (syscall 106)" {
     };
     
     if (vm_result_null == .err) {
-        _ = try testing.expect(vm_result_null.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null.err == HarborError.invalid_argument);
     }
 }
 
@@ -1520,7 +1520,7 @@ test "syscall verification: udp_close (syscall 114)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.invalid_handle);
+        _ = try testing.expect(vm_result.err == HarborError.invalid_handle);
     }
 }
 
@@ -1540,7 +1540,7 @@ test "syscall verification: network_set_ipv4 (syscall 92)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.not_found);
+        _ = try testing.expect(vm_result.err == HarborError.not_found);
     }
 }
 
@@ -1556,7 +1556,7 @@ test "syscall verification: network_enumerate_interfaces (syscall 96)" {
     };
     
     if (vm_result_null == .err) {
-        _ = try testing.expect(vm_result_null.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null.err == HarborError.invalid_argument);
     }
 }
 
@@ -1579,7 +1579,7 @@ test "syscall verification: tcp_accept (syscall 103)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.invalid_handle);
+        _ = try testing.expect(vm_result.err == HarborError.invalid_handle);
     }
 }
 
@@ -1600,7 +1600,7 @@ test "syscall verification: udp_sendto (syscall 112)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.invalid_handle);
+        _ = try testing.expect(vm_result.err == HarborError.invalid_handle);
     }
 }
 
@@ -1621,7 +1621,7 @@ test "syscall verification: udp_recvfrom (syscall 113)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.invalid_handle);
+        _ = try testing.expect(vm_result.err == HarborError.invalid_handle);
     }
 }
 
@@ -1640,7 +1640,7 @@ test "syscall verification: network_get_stats (syscall 97)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.not_found);
+        _ = try testing.expect(vm_result.err == HarborError.not_found);
     }
     
     // Test network_get_stats with null stats pointer (should return error).
@@ -1650,7 +1650,7 @@ test "syscall verification: network_get_stats (syscall 97)" {
     };
     
     if (vm_result_null == .err) {
-        _ = try testing.expect(vm_result_null.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null.err == HarborError.invalid_argument);
     }
 }
 
@@ -1666,7 +1666,7 @@ test "syscall verification: audio_create_device (syscall 120)" {
     };
     
     if (vm_result_null == .err) {
-        _ = try testing.expect(vm_result_null.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null.err == HarborError.invalid_argument);
     }
 }
 
@@ -1685,7 +1685,7 @@ test "syscall verification: audio_get_device (syscall 128)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.not_found);
+        _ = try testing.expect(vm_result.err == HarborError.not_found);
     }
 }
 
@@ -1701,7 +1701,7 @@ test "syscall verification: audio_enumerate_devices (syscall 132)" {
     };
     
     if (vm_result_null == .err) {
-        _ = try testing.expect(vm_result_null.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null.err == HarborError.invalid_argument);
     }
 }
 
@@ -1724,7 +1724,7 @@ test "syscall verification: audio_set_volume (syscall 121)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.not_found);
+        _ = try testing.expect(vm_result.err == HarborError.not_found);
     }
 }
 
@@ -1742,7 +1742,7 @@ test "syscall verification: audio_delete_device (syscall 133)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.not_found);
+        _ = try testing.expect(vm_result.err == HarborError.not_found);
     }
 }
 
@@ -1761,7 +1761,7 @@ test "syscall verification: audio_get_stats (syscall 134)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.not_found);
+        _ = try testing.expect(vm_result.err == HarborError.not_found);
     }
 }
 
@@ -1777,7 +1777,7 @@ test "syscall verification: kernel_get_stats (syscall 135)" {
     };
     
     if (vm_result_null == .err) {
-        _ = try testing.expect(vm_result_null.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null.err == HarborError.invalid_argument);
     }
 }
 
@@ -1808,7 +1808,7 @@ test "syscall verification: get_resource_usage (syscall 137)" {
     };
     
     if (vm_result_null == .err) {
-        _ = try testing.expect(vm_result_null.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null.err == HarborError.invalid_argument);
     }
 }
 
@@ -1849,7 +1849,7 @@ test "syscall verification: audio_set_state (syscall 123)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.not_found);
+        _ = try testing.expect(vm_result.err == HarborError.not_found);
     }
 }
 
@@ -1868,7 +1868,7 @@ test "syscall verification: audio_set_format (syscall 129)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.not_found);
+        _ = try testing.expect(vm_result.err == HarborError.not_found);
     }
 }
 
@@ -1888,7 +1888,7 @@ test "syscall verification: audio_read (syscall 130)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.not_found);
+        _ = try testing.expect(vm_result.err == HarborError.not_found);
     }
     
     // Test audio_read with null buffer pointer (should return error).
@@ -1898,7 +1898,7 @@ test "syscall verification: audio_read (syscall 130)" {
     };
     
     if (vm_result_null == .err) {
-        _ = try testing.expect(vm_result_null.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null.err == HarborError.invalid_argument);
     }
 }
 
@@ -1918,7 +1918,7 @@ test "syscall verification: audio_write (syscall 131)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.not_found);
+        _ = try testing.expect(vm_result.err == HarborError.not_found);
     }
     
     // Test audio_write with null buffer pointer (should return error).
@@ -1928,7 +1928,7 @@ test "syscall verification: audio_write (syscall 131)" {
     };
     
     if (vm_result_null == .err) {
-        _ = try testing.expect(vm_result_null.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null.err == HarborError.invalid_argument);
     }
 }
 
@@ -1944,7 +1944,7 @@ test "syscall verification: tcp_enumerate_sockets (syscall 108)" {
     };
     
     if (vm_result_null == .err) {
-        _ = try testing.expect(vm_result_null.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null.err == HarborError.invalid_argument);
     }
 }
 
@@ -1963,7 +1963,7 @@ test "syscall verification: tcp_get_stats (syscall 109)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.invalid_handle);
+        _ = try testing.expect(vm_result.err == HarborError.invalid_handle);
     }
 }
 
@@ -1979,7 +1979,7 @@ test "syscall verification: udp_enumerate_sockets (syscall 115)" {
     };
     
     if (vm_result_null == .err) {
-        _ = try testing.expect(vm_result_null.err == BasinError.invalid_argument);
+        _ = try testing.expect(vm_result_null.err == HarborError.invalid_argument);
     }
 }
 
@@ -1998,7 +1998,7 @@ test "syscall verification: udp_get_stats (syscall 116)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.invalid_handle);
+        _ = try testing.expect(vm_result.err == HarborError.invalid_handle);
     }
 }
 
@@ -2021,7 +2021,7 @@ test "syscall verification: audio_set_mute (syscall 122)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.not_found);
+        _ = try testing.expect(vm_result.err == HarborError.not_found);
     }
 }
 
@@ -2039,7 +2039,7 @@ test "syscall verification: audio_set_active_output (syscall 124)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.not_found);
+        _ = try testing.expect(vm_result.err == HarborError.not_found);
     }
 }
 
@@ -2057,7 +2057,7 @@ test "syscall verification: audio_set_active_input (syscall 125)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.not_found);
+        _ = try testing.expect(vm_result.err == HarborError.not_found);
     }
 }
 
@@ -2110,7 +2110,7 @@ test "syscall verification: network_set_ipv6 (syscall 94)" {
     };
     
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.not_found);
+        _ = try testing.expect(vm_result.err == HarborError.not_found);
     }
 }
 
@@ -2134,7 +2134,7 @@ test "syscall verification: udp_sendto_with_timeout (syscall 138)" {
     
     // Note: timeout parameter is typically passed via separate mechanism, but test basic error handling.
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.invalid_handle);
+        _ = try testing.expect(vm_result.err == HarborError.invalid_handle);
     }
 }
 
@@ -2157,7 +2157,7 @@ test "syscall verification: udp_recvfrom_with_timeout (syscall 139)" {
     
     // Note: timeout parameter is typically passed via separate mechanism, but test basic error handling.
     if (vm_result == .err) {
-        _ = try testing.expect(vm_result.err == BasinError.invalid_handle);
+        _ = try testing.expect(vm_result.err == HarborError.invalid_handle);
     }
 }
 

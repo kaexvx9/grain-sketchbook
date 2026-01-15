@@ -4,20 +4,20 @@
 
 const std = @import("std");
 const VM = @import("vm.zig").VM;
-const basin_kernel = @import("basin_kernel");
-const BasinKernel = basin_kernel.BasinKernel;
-const BasinError = basin_kernel.BasinError;
-const SyscallResult = basin_kernel.SyscallResult;
-const ProcessContext = basin_kernel.ProcessContext;
-const process_execution = basin_kernel.process_execution;
+const harbor_kernel = @import("harbor_kernel");
+const HarborKernel = harbor_kernel.HarborKernel;
+const HarborError = harbor_kernel.HarborError;
+const SyscallResult = harbor_kernel.SyscallResult;
+const ProcessContext = harbor_kernel.ProcessContext;
+const process_execution = harbor_kernel.process_execution;
 const loadKernel = @import("loader.zig").loadKernel;
-const handle_syscall = @import("basin_kernel").handle_syscall;
+const handle_syscall = @import("harbor_kernel").handle_syscall;
 
 /// Module-level kernel pointer for syscall handler access.
 /// Why: VM syscall handler interface doesn't support closures, so we use module-level storage.
 /// Contract: Must be set before syscall_handler_wrapper is called (set by Integration.finish_init).
 /// Note: Safe for single-threaded execution only.
-var global_kernel_ptr: ?*BasinKernel = null;
+var global_kernel_ptr: ?*HarborKernel = null;
 
 /// Module-level VM pointer for input event access.
 /// Why: Input event syscall needs VM access, but kernel doesn't have VM reference.
@@ -237,7 +237,7 @@ pub const Integration = struct {
     vm: *VM,
     /// Kernel instance pointer (Grain Basin kernel).
     /// Why: Store pointer instead of value to avoid copying ~75KB struct (users array).
-    kernel: *BasinKernel,
+    kernel: *HarborKernel,
     /// Whether integration is initialized.
     initialized: bool,
 
@@ -288,14 +288,14 @@ pub const Integration = struct {
     ///   Output: Uninitialized Integration instance (caller must call finish_init())
     /// Why: Allow caller to allocate kernel on heap to avoid stack overflow.
     /// GrainStyle: In-place initialization pattern - caller provides storage.
-    pub fn init_with_kernel(vm_ptr: *VM, kernel_ptr: *BasinKernel) Self {
+    pub fn init_with_kernel(vm_ptr: *VM, kernel_ptr: *HarborKernel) Self {
         // Contract: VM and kernel pointers must be valid.
         const vm_addr = @intFromPtr(vm_ptr);
         const kernel_addr = @intFromPtr(kernel_ptr);
         std.debug.assert(vm_addr != 0);
         std.debug.assert(kernel_addr != 0);
         std.debug.assert(vm_addr % @alignOf(VM) == 0);
-        std.debug.assert(kernel_addr % @alignOf(BasinKernel) == 0);
+        std.debug.assert(kernel_addr % @alignOf(HarborKernel) == 0);
 
         return Self{
             .vm = vm_ptr,
@@ -318,7 +318,7 @@ pub const Integration = struct {
         // Contract: kernel pointer must be valid.
         const kernel_ptr = @intFromPtr(self.kernel);
         std.debug.assert(kernel_ptr != 0);
-        std.debug.assert(kernel_ptr % @alignOf(BasinKernel) == 0);
+        std.debug.assert(kernel_ptr % @alignOf(HarborKernel) == 0);
         
         // Set module-level storage (accessed by syscall_handler_wrapper).
         // Note: Allow resetting if already set (for testing scenarios).
@@ -633,14 +633,14 @@ pub const Integration = struct {
     ///   Input: Integration must be initialized
     ///   Output: Non-null pointer to kernel instance
     /// Why: Allow external access to kernel for testing/debugging.
-    pub fn get_kernel(self: *Self) *BasinKernel {
+    pub fn get_kernel(self: *Self) *HarborKernel {
         // Contract: Integration must be initialized.
         std.debug.assert(self.initialized);
 
         // Contract: Kernel pointer must be valid.
         const kernel_ptr = @intFromPtr(&self.kernel);
         std.debug.assert(kernel_ptr != 0);
-        std.debug.assert(kernel_ptr % @alignOf(BasinKernel) == 0);
+        std.debug.assert(kernel_ptr % @alignOf(HarborKernel) == 0);
 
         return &self.kernel;
     }
@@ -754,7 +754,7 @@ fn syscall_handler_wrapper(
         };
         const kernel_addr = @intFromPtr(kernel);
         std.debug.assert(kernel_addr != 0);
-        std.debug.assert(kernel_addr % @alignOf(BasinKernel) == 0);
+        std.debug.assert(kernel_addr % @alignOf(HarborKernel) == 0);
         
         const vm = global_vm_ptr orelse {
             @panic("syscall_handler_wrapper called before Integration.finish_init");
@@ -975,18 +975,18 @@ fn syscall_handler_wrapper(
     // Contract: kernel pointer must be valid.
     const kernel_addr = @intFromPtr(kernel);
     std.debug.assert(kernel_addr != 0);
-    std.debug.assert(kernel_addr % @alignOf(BasinKernel) == 0);
+    std.debug.assert(kernel_addr % @alignOf(HarborKernel) == 0);
 
     return syscall_handler_wrapper_impl(kernel, syscall_num, arg1, arg2, arg3, arg4);
 }
 
 /// Internal syscall handler implementation.
 /// Contract:
-///   Input: kernel must be valid BasinKernel pointer, syscall_num >= 10
+///   Input: kernel must be valid HarborKernel pointer, syscall_num >= 10
 ///   Output: u64 result (negative = error code, non-negative = success value)
 /// Why: Separate implementation from wrapper for clarity.
 fn syscall_handler_wrapper_impl(
-    kernel: *BasinKernel,
+    kernel: *HarborKernel,
     syscall_num: u32,
     arg1: u64,
     arg2: u64,
@@ -999,54 +999,54 @@ fn syscall_handler_wrapper_impl(
     // Contract: kernel pointer must be valid.
     const kernel_ptr = @intFromPtr(kernel);
     std.debug.assert(kernel_ptr != 0);
-    std.debug.assert(kernel_ptr % @alignOf(BasinKernel) == 0);
+    std.debug.assert(kernel_ptr % @alignOf(HarborKernel) == 0);
 
     // Call kernel syscall handler.
-    // Contract: handle_syscall returns BasinError!SyscallResult.
+    // Contract: handle_syscall returns HarborError!SyscallResult.
     // Defensive check: ensure kernel pointer is valid before calling
     const kernel_check = @intFromPtr(kernel);
     if (kernel_check == 0) {
         return @as(u64, @bitCast(@as(i64, -8))); // invalid_syscall
     }
     const result = handle_syscall(kernel, syscall_num, arg1, arg2, arg3, arg4) catch |err| {
-        // Contract: BasinError must be converted to negative u64.
+        // Contract: HarborError must be converted to negative u64.
         // RISC-V convention: Negative values = error codes.
         // Error codes: -1 = invalid_handle, -2 = invalid_argument, etc.
         const error_code: i64 = switch (err) {
-            BasinError.invalid_handle => -1,
-            BasinError.invalid_argument => -2,
-            BasinError.permission_denied => -3,
-            BasinError.not_found => -4,
-            BasinError.out_of_memory => -5,
-            BasinError.would_block => -6,
-            BasinError.interrupted => -7,
-            BasinError.invalid_syscall => -8,
-            BasinError.invalid_address => -9,
-            BasinError.unaligned_access => -10,
-            BasinError.out_of_bounds => -11,
-            BasinError.user_not_found => -12,
-            BasinError.invalid_user => -13,
-            BasinError.too_many_processes => -14,
-            BasinError.too_many_connections => -15,
-            BasinError.too_many_files => -16,
-            BasinError.channel_closed => -17,
-            BasinError.ipc_timeout => -18,
-            BasinError.channel_empty => -19,
-            BasinError.channel_full => -20,
-            BasinError.resource_exhausted => -21,
-            BasinError.network_error => -22,
-            BasinError.connection_failed => -23,
-            BasinError.connection_timeout => -24,
-            BasinError.connection_refused => -25,
-            BasinError.network_timeout => -26,
-            BasinError.file_io_timeout => -27,
-            BasinError.file_not_found => -28,
-            BasinError.file_exists => -29,
-            BasinError.file_too_large => -30,
-            BasinError.directory_not_empty => -31,
-            BasinError.process_not_found => -32,
-            BasinError.process_already_running => -33,
-            BasinError.process_terminated => -34,
+            HarborError.invalid_handle => -1,
+            HarborError.invalid_argument => -2,
+            HarborError.permission_denied => -3,
+            HarborError.not_found => -4,
+            HarborError.out_of_memory => -5,
+            HarborError.would_block => -6,
+            HarborError.interrupted => -7,
+            HarborError.invalid_syscall => -8,
+            HarborError.invalid_address => -9,
+            HarborError.unaligned_access => -10,
+            HarborError.out_of_bounds => -11,
+            HarborError.user_not_found => -12,
+            HarborError.invalid_user => -13,
+            HarborError.too_many_processes => -14,
+            HarborError.too_many_connections => -15,
+            HarborError.too_many_files => -16,
+            HarborError.channel_closed => -17,
+            HarborError.ipc_timeout => -18,
+            HarborError.channel_empty => -19,
+            HarborError.channel_full => -20,
+            HarborError.resource_exhausted => -21,
+            HarborError.network_error => -22,
+            HarborError.connection_failed => -23,
+            HarborError.connection_timeout => -24,
+            HarborError.connection_refused => -25,
+            HarborError.network_timeout => -26,
+            HarborError.file_io_timeout => -27,
+            HarborError.file_not_found => -28,
+            HarborError.file_exists => -29,
+            HarborError.file_too_large => -30,
+            HarborError.directory_not_empty => -31,
+            HarborError.process_not_found => -32,
+            HarborError.process_already_running => -33,
+            HarborError.process_terminated => -34,
         };
         return @as(u64, @bitCast(error_code));
     };
@@ -1061,40 +1061,40 @@ fn syscall_handler_wrapper_impl(
         .err => |err| {
             // Contract: Error must be converted to negative u64.
             const error_code: i64 = switch (err) {
-            BasinError.invalid_handle => -1,
-            BasinError.invalid_argument => -2,
-            BasinError.permission_denied => -3,
-            BasinError.not_found => -4,
-            BasinError.out_of_memory => -5,
-            BasinError.would_block => -6,
-            BasinError.interrupted => -7,
-            BasinError.invalid_syscall => -8,
-            BasinError.invalid_address => -9,
-            BasinError.unaligned_access => -10,
-            BasinError.out_of_bounds => -11,
-            BasinError.user_not_found => -12,
-            BasinError.invalid_user => -13,
-            BasinError.too_many_processes => -14,
-            BasinError.too_many_connections => -15,
-            BasinError.too_many_files => -16,
-            BasinError.channel_closed => -17,
-            BasinError.ipc_timeout => -18,
-            BasinError.channel_empty => -19,
-            BasinError.channel_full => -20,
-            BasinError.resource_exhausted => -21,
-            BasinError.network_error => -22,
-            BasinError.connection_failed => -23,
-            BasinError.connection_timeout => -24,
-            BasinError.connection_refused => -25,
-            BasinError.network_timeout => -26,
-            BasinError.file_io_timeout => -27,
-            BasinError.file_not_found => -28,
-            BasinError.file_exists => -29,
-            BasinError.file_too_large => -30,
-            BasinError.directory_not_empty => -31,
-            BasinError.process_not_found => -32,
-            BasinError.process_already_running => -33,
-            BasinError.process_terminated => -34,
+            HarborError.invalid_handle => -1,
+            HarborError.invalid_argument => -2,
+            HarborError.permission_denied => -3,
+            HarborError.not_found => -4,
+            HarborError.out_of_memory => -5,
+            HarborError.would_block => -6,
+            HarborError.interrupted => -7,
+            HarborError.invalid_syscall => -8,
+            HarborError.invalid_address => -9,
+            HarborError.unaligned_access => -10,
+            HarborError.out_of_bounds => -11,
+            HarborError.user_not_found => -12,
+            HarborError.invalid_user => -13,
+            HarborError.too_many_processes => -14,
+            HarborError.too_many_connections => -15,
+            HarborError.too_many_files => -16,
+            HarborError.channel_closed => -17,
+            HarborError.ipc_timeout => -18,
+            HarborError.channel_empty => -19,
+            HarborError.channel_full => -20,
+            HarborError.resource_exhausted => -21,
+            HarborError.network_error => -22,
+            HarborError.connection_failed => -23,
+            HarborError.connection_timeout => -24,
+            HarborError.connection_refused => -25,
+            HarborError.network_timeout => -26,
+            HarborError.file_io_timeout => -27,
+            HarborError.file_not_found => -28,
+            HarborError.file_exists => -29,
+            HarborError.file_too_large => -30,
+            HarborError.directory_not_empty => -31,
+            HarborError.process_not_found => -32,
+            HarborError.process_already_running => -33,
+            HarborError.process_terminated => -34,
         };
         return @as(u64, @bitCast(error_code));
         },

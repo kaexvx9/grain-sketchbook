@@ -3,18 +3,18 @@
 //! Grain Style: Explicit types (u64 not usize), minimum 2 assertions per function.
 
 const std = @import("std");
-const basin_kernel = @import("basin_kernel");
-const BasinKernel = basin_kernel.BasinKernel;
-const ProcessState = basin_kernel.ProcessState;
+const harbor_kernel = @import("harbor_kernel");
+const HarborKernel = harbor_kernel.HarborKernel;
+const ProcessState = harbor_kernel.ProcessState;
 const MAX_PROCESSES: u32 = 16;
-const RawIO = basin_kernel.RawIO;
-const handle_syscall = basin_kernel.handle_syscall;
-const Syscall = basin_kernel.Syscall;
+const RawIO = harbor_kernel.RawIO;
+const handle_syscall = harbor_kernel.handle_syscall;
+const Syscall = harbor_kernel.Syscall;
 
 // Helper: Create kernel on heap to avoid stack overflow.
-fn create_test_kernel() !*BasinKernel {
-    const kernel = try std.testing.allocator.create(BasinKernel);
-    BasinKernel.init_in_place(kernel);
+fn create_test_kernel() !*HarborKernel {
+    const kernel = try std.testing.allocator.create(HarborKernel);
+    HarborKernel.init_in_place(kernel);
     return kernel;
 }
 

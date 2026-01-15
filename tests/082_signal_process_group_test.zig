@@ -4,15 +4,15 @@
 
 const std = @import("std");
 const testing = std.testing;
-const basin_kernel = @import("basin_kernel");
-const BasinKernel = basin_kernel.basin_kernel.BasinKernel;
-const BasinError = basin_kernel.basin_kernel.BasinError;
-const SyscallResult = basin_kernel.basin_kernel.SyscallResult;
-const Signal = basin_kernel.basin_kernel.Signal;
+const harbor_kernel = @import("harbor_kernel");
+const HarborKernel = harbor_kernel.harbor_kernel.HarborKernel;
+const HarborError = harbor_kernel.harbor_kernel.HarborError;
+const SyscallResult = harbor_kernel.harbor_kernel.SyscallResult;
+const Signal = harbor_kernel.harbor_kernel.Signal;
 
 // Test: send signal to process group using negative PID.
 test "kill process group with negative pid" {
-    var kernel = BasinKernel.init();
+    var kernel = HarborKernel.init();
     defer kernel.deinit();
     
     // Spawn two processes.
@@ -50,7 +50,7 @@ test "kill process group with negative pid" {
 
 // Test: send signal to single process (positive PID).
 test "kill single process with positive pid" {
-    var kernel = BasinKernel.init();
+    var kernel = HarborKernel.init();
     defer kernel.deinit();
     
     // Spawn a process.
@@ -69,7 +69,7 @@ test "kill single process with positive pid" {
 
 // Test: error handling for invalid process group.
 test "kill invalid process group" {
-    var kernel = BasinKernel.init();
+    var kernel = HarborKernel.init();
     defer kernel.deinit();
     
     // Try to send signal to non-existent process group.
@@ -77,12 +77,12 @@ test "kill invalid process group" {
     const negative_pgid = pgid | 0x8000000000000000;
     const signal_num = @intFromEnum(Signal.sigterm);
     const result = kernel.syscall_kill(negative_pgid, signal_num, 0, 0);
-    try testing.expect(result.err == BasinError.not_found); // Process group not found
+    try testing.expect(result.err == HarborError.not_found); // Process group not found
 }
 
 // Test: SIGKILL terminates all processes in group.
 test "kill process group with sigkill" {
-    var kernel = BasinKernel.init();
+    var kernel = HarborKernel.init();
     defer kernel.deinit();
     
     // Spawn two processes.
@@ -118,7 +118,7 @@ test "kill process group with sigkill" {
 
 // Test: send signal to empty process group.
 test "kill empty process group" {
-    var kernel = BasinKernel.init();
+    var kernel = HarborKernel.init();
     defer kernel.deinit();
     
     // Create a process group but don't add any processes to it.
@@ -128,6 +128,6 @@ test "kill empty process group" {
     const negative_pgid = pgid | 0x8000000000000000;
     const signal_num = @intFromEnum(Signal.sigterm);
     const result = kernel.syscall_kill(negative_pgid, signal_num, 0, 0);
-    try testing.expect(result.err == BasinError.not_found); // Process group not found or empty
+    try testing.expect(result.err == HarborError.not_found); // Process group not found or empty
 }
 

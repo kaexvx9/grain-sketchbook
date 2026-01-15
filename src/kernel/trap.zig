@@ -4,7 +4,7 @@
 
 const Panic = @import("panic.zig");
 const InterruptController = @import("interrupt.zig").InterruptController;
-const BasinKernel = @import("basin_kernel.zig").BasinKernel;
+const HarborKernel = @import("harbor_kernel.zig").HarborKernel;
 const Debug = @import("debug.zig");
 const page_fault_stats = @import("page_fault_stats.zig");
 const exception_types = @import("exception_types.zig");
@@ -20,11 +20,11 @@ pub const ExceptionType = exception_types.ExceptionType;
 /// Note: In VM, syscalls are handled by VM's syscall handler.
 ///       This loop processes pending interrupts and exceptions.
 /// GrainStyle: Bounded loops, explicit state tracking, no recursion.
-pub fn loop_with_kernel(kernel: *BasinKernel) noreturn {
+pub fn loop_with_kernel(kernel: *HarborKernel) noreturn {
     // Assert: Kernel pointer must be valid (precondition).
     const kernel_ptr = @intFromPtr(kernel);
     Debug.kassert(kernel_ptr != 0, "Kernel ptr is null", .{});
-    Debug.kassert(kernel_ptr % @alignOf(BasinKernel) == 0, "Kernel ptr unaligned", .{});
+    Debug.kassert(kernel_ptr % @alignOf(HarborKernel) == 0, "Kernel ptr unaligned", .{});
     
     Panic.write("grain kernel: entering trap loop\n");
     
@@ -80,7 +80,7 @@ pub fn loop() noreturn {
 /// GrainStyle: Explicit error handling, bounded execution.
 /// Note: Exception statistics are tracked by VM, not kernel.
 pub fn handle_exception(
-    kernel: *BasinKernel,
+    kernel: *HarborKernel,
     exception_type: ExceptionType,
     exception_pc: u64,
     exception_value: u64,
@@ -88,7 +88,7 @@ pub fn handle_exception(
     // Assert: Kernel pointer must be valid (precondition).
     const kernel_ptr = @intFromPtr(kernel);
     Debug.kassert(kernel_ptr != 0, "Kernel ptr is null", .{});
-    Debug.kassert(kernel_ptr % @alignOf(BasinKernel) == 0, "Kernel ptr unaligned", .{});
+    Debug.kassert(kernel_ptr % @alignOf(HarborKernel) == 0, "Kernel ptr unaligned", .{});
     
     // Assert: Exception type must be valid (precondition).
     const exception_id = @intFromEnum(exception_type);
@@ -223,14 +223,14 @@ fn is_fatal_exception(exception_type: ExceptionType) bool {
 /// Contract: Kernel must be initialized, current process must exist.
 /// GrainStyle: Explicit error handling, bounded execution.
 fn terminate_process_on_exception(
-    kernel: *BasinKernel,
+    kernel: *HarborKernel,
     exception_type: ExceptionType,
     exception_pc: u64,
 ) void {
     // Assert: Kernel pointer must be valid (precondition).
     const kernel_ptr = @intFromPtr(kernel);
     Debug.kassert(kernel_ptr != 0, "Kernel ptr is null", .{});
-    Debug.kassert(kernel_ptr % @alignOf(BasinKernel) == 0, "Kernel ptr unaligned", .{});
+    Debug.kassert(kernel_ptr % @alignOf(HarborKernel) == 0, "Kernel ptr unaligned", .{});
     
     // Get current process ID from scheduler.
     const current_process_id = kernel.scheduler.get_current();
@@ -249,7 +249,7 @@ fn terminate_process_on_exception(
         found = idx_val;
     } else {
         // Fallback: linear search if cache miss.
-        const max_processes: u32 = 16; // MAX_PROCESSES constant (from BasinKernel).
+        const max_processes: u32 = 16; // MAX_PROCESSES constant (from HarborKernel).
         var i: u32 = 0;
         while (i < max_processes) : (i += 1) {
             if (kernel.processes[i].allocated and kernel.processes[i].id == current_process_id) {

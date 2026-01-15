@@ -4,7 +4,7 @@
 const std = @import("std");
 
 /// Handle ECALL syscall with Grain Basin kernel.
-/// Why: Separate function that can be called from VM when basin_kernel is available.
+/// Why: Separate function that can be called from VM when harbor_kernel is available.
 pub fn handleSyscall(
     kernel: anytype,
     syscall_num: u32,

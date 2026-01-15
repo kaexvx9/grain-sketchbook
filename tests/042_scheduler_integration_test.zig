@@ -7,17 +7,17 @@ const testing = std.testing;
 const kernel_vm = @import("kernel_vm");
 const VM = kernel_vm.VM;
 const Integration = kernel_vm.Integration;
-const basin_kernel = @import("basin_kernel");
-const BasinKernel = basin_kernel.BasinKernel;
+const harbor_kernel = @import("harbor_kernel");
+const HarborKernel = harbor_kernel.HarborKernel;
 // ProcessContext not needed for this test
-const handle_syscall = basin_kernel.handle_syscall;
-const Syscall = basin_kernel.Syscall;
+const handle_syscall = harbor_kernel.handle_syscall;
+const Syscall = harbor_kernel.Syscall;
 
 // Test: run_current_process executes current process.
 test "run_current_process executes current process" {
     var vm: VM = undefined;
     VM.init(&vm, &[_]u8{}, 0);
-    var kernel = BasinKernel.init();
+    var kernel = HarborKernel.init();
     
     // Spawn a process.
     const spawn_num = @intFromEnum(Syscall.spawn);
@@ -46,7 +46,7 @@ test "run_current_process executes current process" {
 test "schedule_and_run_next schedules and runs next process" {
     var vm: VM = undefined;
     VM.init(&vm, &[_]u8{}, 0);
-    var kernel = BasinKernel.init();
+    var kernel = HarborKernel.init();
     
     // Spawn a process.
     const spawn_num = @intFromEnum(Syscall.spawn);
@@ -70,7 +70,7 @@ test "schedule_and_run_next schedules and runs next process" {
 test "schedule_and_run_next returns false when no runnable process" {
     var vm: VM = undefined;
     VM.init(&vm, &[_]u8{}, 0);
-    var kernel = BasinKernel.init();
+    var kernel = HarborKernel.init();
     
     // Create integration (no processes spawned).
     var integration = Integration.init_with_kernel(&vm, &kernel);
@@ -88,7 +88,7 @@ test "schedule_and_run_next returns false when no runnable process" {
 test "run_current_process returns false when no current process" {
     var vm: VM = undefined;
     VM.init(&vm, &[_]u8{}, 0);
-    var kernel = BasinKernel.init();
+    var kernel = HarborKernel.init();
     
     // Create integration (no current process).
     var integration = Integration.init_with_kernel(&vm, &kernel);

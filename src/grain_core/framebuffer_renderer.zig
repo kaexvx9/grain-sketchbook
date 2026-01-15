@@ -5,7 +5,7 @@
 //! GrainStyle: grain_case, u32/u64, bounded allocations, assertions.
 
 const std = @import("std");
-const basin_kernel = @import("basin_kernel");
+const harbor_kernel = @import("harbor_kernel");
 const font_renderer = @import("font_renderer.zig");
 
 // Bounded: Max text length for rendering.
@@ -23,7 +23,7 @@ pub const COLOR_GREEN: u32 = 0x00FF00FF;
 pub const COLOR_BLUE: u32 = 0x0000FFFF;
 pub const COLOR_DARK_BG: u32 = 0x1E1E2EFF;
 
-// Syscall numbers (matching kernel/basin_kernel.zig).
+// Syscall numbers (matching kernel/harbor_kernel.zig).
 const SYSCALL_FB_CLEAR: u32 = 70;
 const SYSCALL_FB_DRAW_PIXEL: u32 = 71;
 const SYSCALL_FB_DRAW_TEXT: u32 = 72;

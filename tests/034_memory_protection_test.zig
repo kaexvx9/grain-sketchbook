@@ -3,13 +3,13 @@
 //! Grain Style: Explicit types (u32/u64 not usize), minimum 2 assertions per function.
 
 const std = @import("std");
-const basin_kernel = @import("basin_kernel");
-const BasinKernel = basin_kernel.basin_kernel.BasinKernel;
-const MapFlags = basin_kernel.basin_kernel.MapFlags;
+const harbor_kernel = @import("harbor_kernel");
+const HarborKernel = harbor_kernel.harbor_kernel.HarborKernel;
+const MapFlags = harbor_kernel.harbor_kernel.MapFlags;
 
 // Test memory protection read-only mapping.
 test "memory protection read only" {
-    var kernel = BasinKernel.init();
+    var kernel = HarborKernel.init();
     
     // Assert: Kernel must be initialized (precondition).
     try std.testing.expect(kernel.scheduler.initialized);
@@ -41,7 +41,7 @@ test "memory protection read only" {
 
 // Test memory protection write-only mapping.
 test "memory protection write only" {
-    var kernel = BasinKernel.init();
+    var kernel = HarborKernel.init();
     
     // Assert: Kernel must be initialized (precondition).
     try std.testing.expect(kernel.scheduler.initialized);
@@ -69,7 +69,7 @@ test "memory protection write only" {
 
 // Test memory protection execute-only mapping.
 test "memory protection execute only" {
-    var kernel = BasinKernel.init();
+    var kernel = HarborKernel.init();
     
     // Assert: Kernel must be initialized (precondition).
     try std.testing.expect(kernel.scheduler.initialized);
@@ -97,7 +97,7 @@ test "memory protection execute only" {
 
 // Test memory protection kernel space always accessible.
 test "memory protection kernel space" {
-    var kernel = BasinKernel.init();
+    var kernel = HarborKernel.init();
     
     // Assert: Kernel must be initialized (precondition).
     try std.testing.expect(kernel.scheduler.initialized);
@@ -119,7 +119,7 @@ test "memory protection kernel space" {
 
 // Test memory protection framebuffer always readable/writable.
 test "memory protection framebuffer" {
-    var kernel = BasinKernel.init();
+    var kernel = HarborKernel.init();
     
     // Assert: Kernel must be initialized (precondition).
     try std.testing.expect(kernel.scheduler.initialized);
@@ -141,7 +141,7 @@ test "memory protection framebuffer" {
 
 // Test memory protection unmapped address.
 test "memory protection unmapped address" {
-    var kernel = BasinKernel.init();
+    var kernel = HarborKernel.init();
     
     // Assert: Kernel must be initialized (precondition).
     try std.testing.expect(kernel.scheduler.initialized);
@@ -158,7 +158,7 @@ test "memory protection unmapped address" {
 
 // Test memory protection read-write-execute mapping.
 test "memory protection read write execute" {
-    var kernel = BasinKernel.init();
+    var kernel = HarborKernel.init();
     
     // Assert: Kernel must be initialized (precondition).
     try std.testing.expect(kernel.scheduler.initialized);
@@ -186,7 +186,7 @@ test "memory protection read write execute" {
 
 // Test memory protection multiple mappings.
 test "memory protection multiple mappings" {
-    var kernel = BasinKernel.init();
+    var kernel = HarborKernel.init();
     
     // Assert: Kernel must be initialized (precondition).
     try std.testing.expect(kernel.scheduler.initialized);

@@ -1,30 +1,31 @@
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                                                             │
-│                    teamcarry11                              │
+│                    teambrick06                              │
 │                                                             │
-│                  ' carry water '                            │
+│                  ' build foundations '                      │
 │                                                             │
-│         ⚫ / XVII. The Star                                  │
+│         ⚫ / Virgo Gemini Cancer                           │
 │                                                             │
-│    the wisdom carriers who preserve                        │
-│    knowledge and pour it forward.                          │
+│    the brick-and-mortar builders who create                │
+│    foundations that enable driving forward.                │
 │                                                             │
-│    the star brings external waters                         │
-│    (repos) into internal pools                             │
-│    (grainstore) for study and learning.                     │
+│    the clutch enables the car,                             │
+│    the framework enables the cursor.                       │
 │                                                             │
-│    we mirror external repositories                         │
-│    into our monorepo structure,                            │
-│    maintaining a single source of truth                     │
-│    while preserving the original context                    │
-│    and history of each project.                            │
+│    we build mechanical precision,                          │
+│    enabling infrastructure that supports                   │
+│    creative work and technical innovation.                │
+│                                                             │
+│    virgo: practical precision,                             │
+│    gemini: enabling communication,                        │
+│    cancer: nurturing workspace.                            │
 │                                                             │
 │    tools:                                                   │
 │    - grainmirror: external repo mirroring                   │
 │    - grainorder: chronological file naming                  │
 │    - graintime: temporal awareness                          │
-│    - xy-mathematics: grain os development                  │
+│    - yz: clutch os development                            │
 │                                                             │
 │    contact:                                                 │
 │    kj3x39@gmail.com                                         │
@@ -32,3 +33,4 @@
 └─────────────────────────────────────────────────────────────┘
 ```
 
+**Clutch OS Variant**: This repository is a variant of Grain OS (teamcarry11/xy-mathematics) with distinct aesthetic identity inspired by Virgo Gemini Cancer energy. The technical codebase is shared, but the semantic meaning and philosophical foundation differ.

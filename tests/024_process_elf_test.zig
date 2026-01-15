@@ -3,12 +3,12 @@
 //! Grain Style: Explicit types (u64 not usize), minimum 2 assertions per function.
 
 const std = @import("std");
-const basin_kernel = @import("basin_kernel");
-const BasinKernel = basin_kernel.BasinKernel;
+const harbor_kernel = @import("harbor_kernel");
+const HarborKernel = harbor_kernel.HarborKernel;
 const ProcessContext = @import("process.zig").ProcessContext;
-const RawIO = basin_kernel.RawIO;
-const handle_syscall = basin_kernel.handle_syscall;
-const Syscall = basin_kernel.Syscall;
+const RawIO = harbor_kernel.RawIO;
+const handle_syscall = harbor_kernel.handle_syscall;
+const Syscall = harbor_kernel.Syscall;
 
 // Test process context initialization.
 test "process context init" {
@@ -51,7 +51,7 @@ test "kernel spawn process context" {
     RawIO.disable();
     defer RawIO.enable();
     
-    var kernel = BasinKernel.init();
+    var kernel = HarborKernel.init();
     
     // Spawn a process.
     const executable: u64 = 0x1000;
@@ -109,7 +109,7 @@ test "kernel spawn process context" {
 
 // Test process context after exit.
 test "process context after exit" {
-    var kernel = BasinKernel.init();
+    var kernel = HarborKernel.init();
     
     // Spawn a process.
     const executable: u64 = 0x1000;
@@ -157,7 +157,7 @@ test "process context after exit" {
 
 // Test multiple processes with contexts.
 test "multiple processes contexts" {
-    var kernel = BasinKernel.init();
+    var kernel = HarborKernel.init();
     
     // Spawn first process.
     const exec1: u64 = 0x1000;
