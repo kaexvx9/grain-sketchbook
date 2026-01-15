@@ -6,12 +6,21 @@ const std = @import("std");
 const Debug = @import("debug.zig");
 const RawIO = @import("raw_io.zig");
 const BasinKernel = @import("basin_kernel.zig").BasinKernel;
+const grainscript = @import("grainscript");
+const Lexer = grainscript.Lexer;
+const Parser = grainscript.Parser;
+const Interpreter = grainscript.Interpreter;
 
 /// Simple REPL for kernel interactive mode.
 /// Why: Allow interactive commands during development.
 pub const Repl = struct {
     kernel: *BasinKernel,
     running: bool,
+    /// Fixed buffer allocator for Grainscript execution.
+    /// Why: Provide memory allocation for Grainscript interpreter in freestanding kernel.
+    /// Grain Style: Bounded allocation (64KB buffer), explicit lifetime.
+    allocator_buffer: [64 * 1024]u8 = undefined, // 64KB buffer for Grainscript
+    fixed_allocator: std.heap.FixedBufferAllocator,
 
     const Self = @This();
     const MAX_LINE_LEN: u32 = 512;
@@ -19,10 +28,15 @@ pub const Repl = struct {
 
     /// Initialize REPL.
     pub fn init(kernel: *BasinKernel) Self {
-        return Self{
+        var repl = Self{
             .kernel = kernel,
             .running = true,
+            .allocator_buffer = undefined,
+            .fixed_allocator = undefined,
         };
+        // Initialize fixed buffer allocator for Grainscript
+        repl.fixed_allocator = std.heap.FixedBufferAllocator.init(&repl.allocator_buffer);
+        return repl;
     }
 
     /// Run REPL loop.
@@ -138,6 +152,7 @@ pub const Repl = struct {
             Debug.kprint("  sysinfo       - Show system information\n", .{});
             Debug.kprint("  ps            - List processes\n", .{});
             Debug.kprint("  echo <text>   - Print text\n", .{});
+            Debug.kprint("  eval <code>   - Execute Grainscript code\n", .{});
             Debug.kprint("  exit          - Exit REPL\n", .{});
             return;
         }
@@ -164,6 +179,12 @@ pub const Repl = struct {
         // Echo command
         if (std.mem.eql(u8, command, "echo")) {
             self.cmd_echo(args);
+            return;
+        }
+
+        // Eval command (Grainscript execution)
+        if (std.mem.eql(u8, command, "eval")) {
+            self.cmd_eval(args);
             return;
         }
 
@@ -240,5 +261,112 @@ pub const Repl = struct {
             }
         }
         Debug.kprint("\n", .{});
+    }
+
+    /// Execute eval command (Grainscript execution).
+    /// Why: Execute Grainscript code in kernel REPL for testing and development.
+    fn cmd_eval(self: *Self, args: []const []const u8) void {
+        if (args.len == 0) {
+            Debug.kprint("Error: eval requires code argument\n", .{});
+            Debug.kprint("Usage: eval <grainscript_code>\n", .{});
+            Debug.kprint("Example: eval \"42 + 8;\"\n", .{});
+            return;
+        }
+
+        // Join all arguments into source code (with spaces)
+        var source_buf: [MAX_LINE_LEN]u8 = undefined;
+        var source_len: u32 = 0;
+        var first = true;
+
+        for (args) |arg| {
+            if (!first) {
+                if (source_len < source_buf.len) {
+                    source_buf[source_len] = ' ';
+                    source_len += 1;
+                }
+            }
+            first = false;
+
+            for (arg) |c| {
+                if (source_len >= source_buf.len) {
+                    Debug.kprint("Error: Code too long (max {d} chars)\n", .{MAX_LINE_LEN});
+                    return;
+                }
+                source_buf[source_len] = c;
+                source_len += 1;
+            }
+        }
+
+        const source = source_buf[0..source_len];
+
+        // Reset fixed buffer allocator for new execution
+        self.fixed_allocator.reset();
+        const allocator = self.fixed_allocator.allocator();
+
+        // Execute Grainscript
+        cmd_eval_internal(self, allocator, source) catch |err| {
+            Debug.kprint("Grainscript error: ", .{});
+            // Handle various error types from Grainscript components
+            const err_msg = switch (err) {
+                error.OutOfMemory => "Out of memory",
+                // Parser errors
+                error.ExpectedIdentifier => "Expected identifier",
+                error.ExpectedLeftParen => "Expected '('",
+                error.ExpectedRightParen => "Expected ')'",
+                error.ExpectedComma => "Expected ','",
+                error.ExpectedSemicolon => "Expected ';'",
+                error.ExpectedAssign => "Expected '='",
+                error.ExpectedType => "Expected type",
+                error.UnexpectedToken => "Unexpected token",
+                error.UnexpectedEof => "Unexpected end of file",
+                error.InvalidOperator => "Invalid operator",
+                error.InvalidLiteral => "Invalid literal",
+                error.InvalidNode => "Invalid AST node",
+                // Interpreter errors
+                error.variable_not_found => "Variable not found",
+                error.variable_already_exists => "Variable already exists",
+                error.function_not_found => "Function not found",
+                error.type_mismatch => "Type mismatch",
+                error.division_by_zero => "Division by zero",
+                error.invalid_argument => "Invalid argument",
+                error.string_too_long => "String too long",
+                error.call_stack_overflow => "Call stack overflow",
+                error.too_many_variables => "Too many variables",
+                error.too_many_functions => "Too many functions",
+                error.too_many_call_args => "Too many call arguments",
+                error.runtime_error => "Runtime error",
+            };
+            Debug.kprint("{s}\n", .{err_msg});
+        };
+    }
+
+    /// Internal Grainscript execution (with error handling).
+    fn cmd_eval_internal(self: *Self, allocator: std.mem.Allocator, source: []const u8) !void {
+        _ = self; // Kernel reference available if needed for syscalls
+
+        // Initialize Grainscript components
+        var lexer = try Lexer.init(allocator, source);
+        defer lexer.deinit();
+
+        try lexer.tokenize();
+
+        var parser = try Parser.init(allocator, &lexer);
+        defer parser.deinit();
+
+        try parser.parse();
+
+        var interpreter = try Interpreter.init(allocator, &parser);
+        defer interpreter.deinit();
+
+        // Execute Grainscript
+        try interpreter.execute();
+
+        // Print result (if any)
+        const exit_code = interpreter.get_exit_code();
+        if (exit_code == 0) {
+            Debug.kprint("OK (exit code: {d})\n", .{exit_code});
+        } else {
+            Debug.kprint("Exit code: {d}\n", .{exit_code});
+        }
     }
 };
