@@ -1,0 +1,131 @@
+//! Grain Flow: Workflow orchestration, agent coordination, and automation flows.
+//!
+//! Why: Provides the orchestration layer that coordinates multiple agents using
+//! Core's system services. Flow Agent integrates seamlessly with Grain Core
+//! orchestration, enabling event-driven workflows and agent-to-agent coordination.
+//!
+//! Architecture: Flow depends on Core (API Server, WebSocket, Auth) and
+//! coordinates all other agents via event bus and workflows. Flow provides:
+//! - Event Bus: Centralized event routing for agent communication
+//! - Agent Coordinator: Agent registry, health monitoring, RPC
+//! - Workflow Engine: DAG-based workflow execution
+//! - Workflow Visualizer: Visual workflow representation
+//!
+//! GrainStyle: grain_case, u32/u64, bounded allocations, assertions.
+//!
+//! 2025-12-07-040000-pst: Initial module structure
+
+const std = @import("std");
+
+// Event bus for agent-to-agent communication.
+pub const event_bus = @import("event_bus.zig");
+
+// Agent coordinator for agent registry and coordination.
+pub const agent_coordinator = @import("agent_coordinator.zig");
+
+// Workflow engine for DAG-based workflow execution.
+pub const workflow_engine = @import("workflow_engine.zig");
+
+// Workflow visualizer for visual workflow representation.
+pub const workflow_visualizer = @import("workflow_visualizer.zig");
+
+// Workflow templates for pre-built workflow patterns.
+pub const workflow_templates = @import("workflow_templates.zig");
+
+// Workflow metrics for observability.
+pub const workflow_metrics = @import("workflow_metrics.zig");
+
+// Agent coordination metrics for observability.
+pub const agent_coordination_metrics = @import("agent_coordination_metrics.zig");
+
+// Failure pattern metrics for observability.
+pub const failure_pattern_metrics = @import("failure_pattern_metrics.zig");
+
+// Performance metrics for observability.
+pub const performance_metrics = @import("performance_metrics.zig");
+
+// Workflow observatory for metrics aggregation and dashboard.
+pub const workflow_observatory = @import("workflow_observatory.zig");
+
+// Dashboard API for HTTP endpoints.
+pub const dashboard_api = @import("dashboard_api.zig");
+
+// Workflow scheduler for scheduled and recurring workflows.
+pub const workflow_scheduler = @import("workflow_scheduler.zig");
+
+// Realistic metrics generator for Step 3 validation.
+pub const realistic_metrics_generator = @import("realistic_metrics_generator.zig");
+
+// Global shared Event Bus instance (initialized during Flow Agent startup).
+var global_shared_event_bus: ?event_bus.EventBus = null;
+
+// Initialize shared Event Bus (called during Flow Agent startup).
+pub fn init_shared_event_bus() void {
+    if (global_shared_event_bus == null) {
+        global_shared_event_bus = event_bus.EventBus.init();
+    }
+}
+
+// Get shared Event Bus instance (for other agents).
+pub fn get_shared_event_bus() ?*event_bus.EventBus {
+    return if (global_shared_event_bus) |*bus| bus else null;
+}
+
+// Module exports.
+pub const EventBus = event_bus.EventBus;
+pub const EventType = event_bus.EventType;
+pub const Event = event_bus.Event;
+
+pub const AgentCoordinator = agent_coordinator.AgentCoordinator;
+pub const Agent = agent_coordinator.Agent;
+pub const AgentStatus = agent_coordinator.AgentStatus;
+pub const AgentCapability = agent_coordinator.AgentCapability;
+pub const RpcRequest = agent_coordinator.RpcRequest;
+pub const WorkflowEngine = workflow_engine.WorkflowEngine;
+pub const Workflow = workflow_engine.Workflow;
+pub const WorkflowNode = workflow_engine.WorkflowNode;
+pub const WorkflowEdge = workflow_engine.WorkflowEdge;
+pub const WorkflowStatus = workflow_engine.WorkflowStatus;
+pub const NodeStatus = workflow_engine.NodeStatus;
+pub const EdgeType = workflow_engine.EdgeType;
+pub const WorkflowVisualizer = workflow_visualizer.WorkflowVisualizer;
+pub const NodeVisual = workflow_visualizer.NodeVisual;
+pub const EdgeVisual = workflow_visualizer.EdgeVisual;
+pub const NodePosition = workflow_visualizer.NodePosition;
+
+pub const WorkflowTemplateBuilder = workflow_templates.WorkflowTemplateBuilder;
+pub const WorkflowTemplate = workflow_templates.WorkflowTemplate;
+
+pub const WorkflowMetricsCollector = workflow_metrics.WorkflowMetricsCollector;
+pub const WorkflowExecutionRecord = workflow_metrics.WorkflowExecutionRecord;
+pub const WorkflowExecutionStatus = workflow_metrics.WorkflowExecutionStatus;
+
+pub const AgentCoordinationMetricsCollector = agent_coordination_metrics.AgentCoordinationMetricsCollector;
+pub const AgentCoordinationRecord = agent_coordination_metrics.AgentCoordinationRecord;
+pub const AgentCoordinationStatus = agent_coordination_metrics.AgentCoordinationStatus;
+pub const AgentPairPattern = agent_coordination_metrics.AgentPairPattern;
+
+pub const FailurePatternMetricsCollector = failure_pattern_metrics.FailurePatternMetricsCollector;
+pub const FailureRecord = failure_pattern_metrics.FailureRecord;
+pub const FailureType = failure_pattern_metrics.FailureType;
+pub const WorkflowComplexity = failure_pattern_metrics.WorkflowComplexity;
+
+pub const PerformanceMetricsCollector = performance_metrics.PerformanceMetricsCollector;
+pub const ResourceUsageRecord = performance_metrics.ResourceUsageRecord;
+pub const QueueDepthSample = performance_metrics.QueueDepthSample;
+pub const WaitTimeRecord = performance_metrics.WaitTimeRecord;
+
+pub const WorkflowObservatory = workflow_observatory.WorkflowObservatory;
+
+pub const DashboardApiContext = dashboard_api.DashboardApiContext;
+pub const set_dashboard_context = dashboard_api.set_dashboard_context;
+pub const register_dashboard_endpoints = dashboard_api.register_dashboard_endpoints;
+pub const handle_dashboard_request = dashboard_api.handle_dashboard_request;
+pub const handle_summary_request = dashboard_api.handle_summary_request;
+pub const handle_metrics_request = dashboard_api.handle_metrics_request;
+
+pub const WorkflowScheduler = workflow_scheduler.WorkflowScheduler;
+pub const ScheduledWorkflow = workflow_scheduler.ScheduledWorkflow;
+pub const ScheduleType = workflow_scheduler.ScheduleType;
+
+pub const RealisticMetricsGenerator = realistic_metrics_generator.RealisticMetricsGenerator;

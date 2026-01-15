@@ -1,0 +1,685 @@
+# Aurora IDE Dream Browser Agent: Task List
+
+**Agent**: Grain Aurora IDE Dream Browser Agent (2nd Agent)  
+**Status**: Active — All Core Agent coordination decisions integrated ✅ — JG Project responsibilities assigned ✅  
+**Last Updated**: 2025-12-29-112345-PST
+
+---
+
+## Current Work: Phase 2 - Shared Module Refactoring (Continued)
+
+**Priority**: **HIGH** — Code deduplication, shared maintenance  
+**Status**: **IN PROGRESS** — Phase 1.2 (Font Renderer) Complete  
+**Estimated Time**: Ongoing (multi-phase)
+
+### Tasks
+
+#### Phase 1.2: Font Renderer Unification ✅ **COMPLETE**
+
+- [x] Migrate `src/aurora_text_renderer.zig` to use shared font renderer
+- [x] Replace custom `getCharPattern()` with shared font renderer API
+- [x] Update `TextRenderer` to use `shared.FontRenderer` (8x8 font, ASCII basic)
+- [x] Add `init()` method for proper initialization
+- [x] Update `draw_char()` to use `render_char_to_pixels()` from shared module
+- [x] Remove duplicate font pattern code (195 lines removed)
+- [x] Update test to use `TextRenderer.init()` API
+- [x] Add shared module import to build.zig test configuration
+- [x] GrainStyle compliance (grain_case, u32 types, max 70 lines per function, max 73 chars per line)
+- [x] Verify all functions comply with line length limits (73 chars max)
+- [x] Update `docs/plan.md` and `docs/tasks.md` with completion
+- **Date**: 2025-12-03-162659-PST
+
+#### Phase 2.2: Layout System Comprehensive Tests ✅ **COMPLETE**
+
+- [x] Create comprehensive test suite (`tests/112_aurora_layout_test.zig`)
+- [x] Tests for workspace creation, pane splitting (horizontal/vertical)
+- [x] Tests for focus navigation, pane resizing, workspace switching
+- [x] Tests for bounded allocations (MAX_PANES, MAX_WORKSPACES)
+- [x] Tests for pane tree structure and focus management
+- [x] Add `aurora_layout_module` to build.zig
+- [x] GrainStyle compliance (grain_case, u32 types, max 73 chars per line)
+- [x] All tests pass with proper assertions
+- [x] Update `docs/plans/plan_aurora.md` and `docs/tasks/tasks_aurora.md`
+- **Date**: 2025-12-04-095411-PST
+
+#### Phase 2.3: Editor Comprehensive Tests ⚠️ **CREATED (BLOCKED)**
+
+- [x] Create comprehensive test suite (`tests/113_aurora_editor_test.zig`)
+- [x] Tests for editor initialization, text insertion, deletion
+- [x] Tests for undo/redo operations, cursor movement
+- [x] Tests for folding operations, completion rejection
+- [x] Add `aurora_editor_module` to build.zig
+- [x] GrainStyle compliance (grain_case, u32 types, max 73 chars per line)
+- [ ] Tests pass (BLOCKED by Zig 0.15.2 comptime evaluation issue)
+- [x] Update `docs/plans/plan_aurora.md` and `docs/tasks/tasks_aurora.md`
+- **Date**: 2025-12-06-232932-PST
+- **Status**: Tests written and ready, but cannot run due to Zig 0.15.2 comptime issue with `Editor.init` when importing through module. See `src/aurora_editor.zig:2164` for related comment.
+
+#### Phase 2.4: Dream Browser Viewport Comprehensive Tests ✅ **COMPLETE**
+
+- [x] Create comprehensive test suite (`tests/114_dream_browser_viewport_test.zig`)
+- [x] Tests for viewport initialization, size setting, content size
+- [x] Tests for scrolling operations (scroll_by, scroll_to)
+- [x] Tests for scroll bounds checking and can_scroll methods
+- [x] Tests for navigation history (add, back, forward, can_navigate)
+- [x] Tests for viewport state retrieval
+- [x] Add `dream_browser_viewport_module` to build.zig
+- [x] GrainStyle compliance (grain_case, u32 types, max 73 chars per line)
+- [x] All tests pass with proper assertions
+- [x] Update `docs/plans/plan_aurora.md` and `docs/tasks/tasks_aurora.md`
+- **Date**: 2025-12-07-042307-PST
+
+#### Phase 2.5: Dream Browser Parser Comprehensive Tests ✅ **COMPLETE**
+
+- [x] Create comprehensive test suite (`tests/115_dream_browser_parser_test.zig`)
+- [x] Tests for HTML parsing (simple elements, attributes, nested elements)
+- [x] Tests for CSS parsing (simple rules, multiple rules, class/id selectors)
+- [x] Tests for style computation (cascade, specificity)
+- [x] Tests for bounds checking (HTML size, CSS rules count)
+- [x] Tests for error handling (invalid HTML, empty HTML)
+- [x] Add `dream_browser_parser_module` to build.zig
+- [x] GrainStyle compliance (grain_case, u32 types, max 73 chars per line)
+- [x] All tests pass with proper assertions
+- [x] Update `docs/plans/plan_aurora.md` and `docs/tasks/tasks_aurora.md`
+- **Date**: 2025-12-07-071305-PST
+
+#### Phase 2.6: Dream Browser Renderer Comprehensive Tests ✅ **COMPLETE**
+
+- [x] Create comprehensive test suite (`tests/116_dream_browser_renderer_test.zig`)
+- [x] Tests for renderer initialization and deinitialization
+- [x] Tests for display type determination (block, inline, headings, lists)
+- [x] Tests for layout operations (simple blocks, inline elements, nested structures)
+- [x] Tests for rendering to Aurora components (with and without CSS)
+- [x] Tests for readonly and editable spans creation
+- [x] Tests for complete page rendering
+- [x] Tests for viewport bounds handling
+- [x] Add `dream_browser_renderer_module` to build.zig
+- [x] GrainStyle compliance (grain_case, u32 types, max 73 chars per line)
+- [x] All tests pass with proper assertions
+- [x] Update `docs/plans/plan_aurora.md` and `docs/tasks/tasks_aurora.md`
+- **Date**: 2025-12-19-191728-PST
+
+#### Phase 2.7: LSP Client Comprehensive Tests ✅ **COMPLETE**
+
+- [x] Create comprehensive test suite (`tests/117_aurora_lsp_test.zig`)
+- [x] Tests for LSP client initialization and deinitialization
+- [x] Tests for document lifecycle (didOpen, didChange, didClose)
+- [x] Tests for snapshot management and versioning
+- [x] Tests for diagnostics storage
+- [x] Tests for incremental edits and multiple changes
+- [x] Tests for bounds checking and cleanup
+- [x] Add `aurora_lsp_module` and `lsp_test_file` to build.zig
+- [x] GrainStyle compliance (grain_case, u32 types, max 73 chars per line)
+- [x] All tests pass with proper assertions
+- [x] Update `docs/plans/plan_aurora.md` and `docs/tasks/tasks_aurora.md`
+- **Date**: 2025-12-20-143848-PST
+
+#### Phase 2.8: AI Provider Comprehensive Tests ✅ **COMPLETE**
+
+- [x] Create comprehensive test suite (`tests/118_aurora_ai_provider_test.zig`)
+- [x] Tests for AI provider constants and types
+- [x] Tests for message, completion request, and chunk structures
+- [x] Tests for transform types and parameters (refactor_rename, extract_function, multi_file_edit)
+- [x] Tests for transform request and result structures
+- [x] Tests for file edit, tool call request/result structures
+- [x] Tests for provider config structure
+- [x] Tests for bounds checking (message size, messages count, context tokens)
+- [x] Add `aurora_ai_provider_module` and `ai_provider_test_file` to build.zig
+- [x] GrainStyle compliance (grain_case, u32 types, max 73 chars per line)
+- [x] All tests pass with proper assertions
+- [x] Update `docs/plans/plan_aurora.md` and `docs/tasks/tasks_aurora.md`
+- **Date**: 2025-12-20-161128-PST
+
+#### Phase 2.9: AI Transforms Comprehensive Tests ✅ **COMPLETE**
+
+- [x] Create comprehensive test suite (`tests/119_aurora_ai_transforms_test.zig`)
+- [x] Tests for AI transforms constants and transform types
+- [x] Tests for file content, file edit, and applied edit structures
+- [x] Tests for transform result structure (with and without errors)
+- [x] Tests for bounds checking (symbol name, file URI, file edit size, transformations count, files per transform)
+- [x] Tests for file edit line ranges and multiple edits
+- [x] Tests for transform types coverage and multiple file contents
+- [x] Add `aurora_ai_transforms_module` and `ai_transforms_test_file` to build.zig
+- [x] GrainStyle compliance (grain_case, u32 types, max 73 chars per line)
+- [x] All tests pass with proper assertions
+- [x] Update `docs/plans/plan_aurora.md` and `docs/tasks/tasks_aurora.md`
+- **Date**: 2025-12-20-175007-PST
+
+#### Phase 2.10: DAG Integration Comprehensive Tests ✅ **COMPLETE**
+
+- [x] Create comprehensive test suite (`tests/120_aurora_dag_integration_test.zig`)
+- [x] Tests for DAG integration constants and edit types
+- [x] Tests for initialization and deinitialization
+- [x] Tests for parse and map operations (AST-to-DAG mapping)
+- [x] Tests for edit-to-event mapping (insert, delete, replace, refactor)
+- [x] Tests for event processing
+- [x] Tests for semantic graph operations (node count, position finding)
+- [x] Tests for dependency counting
+- [x] Tests for bounds checking
+- [x] Add `aurora_dag_integration_module` and `dag_integration_test_file` to build.zig
+- [x] GrainStyle compliance (grain_case, u32 types, max 73 chars per line)
+- [x] All tests pass with proper assertions
+- [x] Update `docs/plans/plan_aurora.md` and `docs/tasks/tasks_aurora.md`
+- **Date**: 2025-12-20-182841-PST
+
+#### Phase 2.11: Folding Comprehensive Tests ✅ **COMPLETE**
+
+- [x] Create comprehensive test suite (`tests/121_aurora_folding_test.zig`)
+- [x] Tests for folding constants and fold structure
+- [x] Tests for initialization and deinitialization
+- [x] Tests for parse operations (functions, structs, enums, unions)
+- [x] Tests for toggle fold operations
+- [x] Tests for fold state checking (isFolded, getFold)
+- [x] Tests for fold retrieval (getAllFolds)
+- [x] Tests for bounds checking and edge cases
+- [x] Add `aurora_folding_module` and `folding_test_file` to build.zig
+- [x] GrainStyle compliance (grain_case, u32 types, max 73 chars per line)
+- [x] All tests pass with proper assertions
+- [x] Update `docs/plans/plan_aurora.md` and `docs/tasks/tasks_aurora.md`
+- **Date**: 2025-12-20-200935-PST
+
+#### Phase 2.12: Tree-sitter Comprehensive Tests ✅ **COMPLETE**
+
+- [x] Create comprehensive test suite (`tests/122_aurora_tree_sitter_test.zig`)
+- [x] Tests for Tree-sitter constants (MAX_NODES, MAX_DEPTH, MAX_TOKENS)
+- [x] Tests for token type enum
+- [x] Tests for initialization and deinitialization
+- [x] Tests for parse operations (functions, structs, enums, unions)
+- [x] Tests for token extraction (keywords, strings, comments, numbers)
+- [x] Tests for node and token retrieval operations
+- [x] Tests for function name extraction
+- [x] Tests for bounds checking and structure validation
+- [x] Add `aurora_tree_sitter_module` and `tree_sitter_test_file` to build.zig
+- [x] GrainStyle compliance (grain_case, u32 types, max 73 chars per line)
+- [x] All tests pass with proper assertions
+- [x] Update `docs/plans/plan_aurora.md` and `docs/tasks/tasks_aurora.md`
+- **Date**: 2025-12-21-083012-PST
+
+#### Phase 2.13: Tab Manager Comprehensive Tests ✅ **COMPLETE**
+
+- [x] Create comprehensive test suite (`tests/123_aurora_tab_manager_test.zig`)
+- [x] Tests for tab manager constants (MAX_EDITOR_TABS, MAX_BROWSER_TABS, MAX_TAB_GROUPS, MAX_GROUP_NAME_LENGTH)
+- [x] Tests for TabMetadata structure (last_accessed, is_pinned, group_id, order)
+- [x] Tests for TabGroup structure (id, name, editor_tabs, browser_tabs, created_at)
+- [x] Tests for TabStorage structure
+- [x] Tests for bounds checking and edge cases
+- [x] Tests for metadata operations (pinned, order, timestamps)
+- [x] Add `aurora_tab_manager_module` and `tab_manager_test_file` to build.zig
+- [x] GrainStyle compliance (grain_case, u32 types, max 73 chars per line)
+- [x] All tests pass with proper assertions
+- [x] Update `docs/plans/plan_aurora.md` and `docs/tasks/tasks_aurora.md`
+- **Date**: 2025-12-21-090618-PST
+
+#### Phase 2.14: Text Renderer Comprehensive Tests ✅ **COMPLETE**
+
+- [x] Create comprehensive test suite (`tests/124_aurora_text_renderer_test.zig`)
+- [x] Tests for renderer initialization and dimensions
+- [x] Tests for rendering operations (empty text, single character, multiple characters)
+- [x] Tests for newline handling
+- [x] Tests for long text truncation
+- [x] Tests for foreground and background colors
+- [x] Tests for different color combinations
+- [x] Tests for special characters, numbers, and mixed content
+- [x] Tests for multiple renders and bounds checking
+- [x] Add `aurora_text_renderer_module` and `text_renderer_test_file` to build.zig
+- [x] GrainStyle compliance (grain_case, u32 types, max 73 chars per line)
+- [x] All tests pass with proper assertions
+- [x] Update `docs/plans/plan_aurora.md` and `docs/tasks/tasks_aurora.md`
+- **Date**: 2025-12-21-094149-PST
+
+#### Phase 2.15: Filter Comprehensive Tests ✅ **COMPLETE**
+
+- [x] Create comprehensive test suite (`tests/125_aurora_filter_test.zig`)
+- [x] Tests for filter mode enum (none, darkroom)
+- [x] Tests for FluxState initialization and toggle operations
+- [x] Tests for filter apply operations (none mode, darkroom mode)
+- [x] Tests for darkroom filter effects (red channel clamp, green/blue division)
+- [x] Tests for alpha channel preservation
+- [x] Tests for invalid pixel length handling
+- [x] Tests for multiple pixels and consistency
+- [x] Add `aurora_filter_module` and `filter_test_file` to build.zig
+- [x] GrainStyle compliance (grain_case, u32 types, max 73 chars per line)
+- [x] All tests pass with proper assertions
+- [x] Update `docs/plans/plan_aurora.md` and `docs/tasks/tasks_aurora.md`
+- **Date**: 2025-12-21-120349-PST
+
+#### Phase 2.17: VCS Comprehensive Tests ✅ **COMPLETE**
+
+- [x] Create comprehensive test suite (`tests/126_aurora_vcs_test.zig`)
+- [x] Tests for VCS constants (MAX_VIRTUAL_FILES, MAX_PENDING_COMMANDS)
+- [x] Tests for ReadonlyType enum (commit_hash, parent_info, file_path, diff_header)
+- [x] Tests for ReadonlyRange structure
+- [x] Tests for VcsClient initialization and deinitialization
+- [x] Tests for status output parsing (headers, commit hash, parent info, file paths, hunk headers)
+- [x] Tests for diff output parsing (diff headers, index lines, file headers, hunk headers)
+- [x] Tests for virtual file retrieval
+- [x] Tests for bounds checking and edge cases
+- [x] Add `aurora_vcs_module` and `vcs_test_file` to build.zig
+- [x] GrainStyle compliance (grain_case, u32 types, max 73 chars per line)
+- [x] All tests pass with proper assertions
+- [x] Update `docs/plans/plan_aurora.md` and `docs/tasks/tasks_aurora.md`
+- **Date**: 2025-12-21-145649-PST
+
+#### Phase 2.18: GrainBank Comprehensive Tests ✅ **COMPLETE**
+
+- [x] Create comprehensive test suite (`tests/127_aurora_grainbank_test.zig`)
+- [x] Tests for GrainBank constants (MAX_ACTIVE_CONTRACTS, MAX_PENDING_PAYMENTS, MAX_CURRENCIES_PER_USER)
+- [x] Tests for ContractState and PaymentState enums
+- [x] Tests for Policy and Transfer structures
+- [x] Tests for AuroraGrainBank initialization and deinitialization
+- [x] Tests for contract creation and retrieval
+- [x] Tests for action execution (mint, burn, transfer, collect_tax)
+- [x] Tests for payment creation and processing
+- [x] Tests for bounds checking and state coverage
+- [x] Add `aurora_grainbank_module`, `dag_core_module`, and `grainbank_test_file` to build.zig
+- [x] GrainStyle compliance (grain_case, u32 types, max 73 chars per line)
+- [x] All tests pass with proper assertions
+- [x] Update `docs/plans/plan_aurora.md` and `docs/tasks/tasks_aurora.md`
+- **Date**: 2025-12-21-170706-PST
+
+#### Phase 2.20: Crash Handler Comprehensive Tests ✅ **COMPLETE**
+
+- [x] Create comprehensive test suite (`tests/128_aurora_crash_test.zig`)
+- [x] Tests for crash handler initialization and deinitialization
+- [x] Tests for crash log formatting (with and without stack trace)
+- [x] Tests for timestamp and platform information
+- [x] Tests for system context and Cocoa context (macOS)
+- [x] Tests for stack trace formatting (single and multiple frames)
+- [x] Tests for log structure and section ordering
+- [x] Tests for special characters and unicode handling
+- [x] Tests for log buffer reuse and bounds checking
+- [x] Add `aurora_crash_module` and `crash_test_file` to build.zig
+- [x] GrainStyle compliance (grain_case, u32 types, max 73 chars per line)
+- [x] All tests pass with proper assertions
+- [x] Update `docs/plans/plan_aurora.md` and `docs/tasks/tasks_aurora.md`
+- **Date**: 2025-12-21-180551-PST
+
+#### Phase 2.21: Live Preview Comprehensive Tests ✅ **COMPLETE**
+
+- [x] Create comprehensive test suite (`tests/129_aurora_live_preview_test.zig`)
+- [x] Tests for Live Preview constants (MAX_SYNC_SUBSCRIPTIONS, MAX_UPDATES_PER_SECOND)
+- [x] Tests for SyncDirection and UpdateSource enums
+- [x] Tests for Live Preview initialization and deinitialization
+- [x] Tests for subscription management (subscribe, get_subscription, set_sync_enabled)
+- [x] Tests for sync directions (editor_to_browser, browser_to_editor, bidirectional)
+- [x] Tests for multiple subscriptions and bounds checking
+- [x] Tests for editor edit and Nostr event handling (with DAG integration dependencies)
+- [x] Add `aurora_live_preview_module`, `dream_browser_renderer_module`, `dream_browser_dag_integration_module`, `grain_aurora_module`, and `live_preview_test_file` to build.zig
+- [x] GrainStyle compliance (grain_case, u32 types, max 73 chars per line)
+- [x] All tests pass with proper assertions
+- [x] Update `docs/plans/plan_aurora.md` and `docs/tasks/tasks_aurora.md`
+- **Date**: 2025-12-21-185652-PST
+
+#### Phase 2.22: GLM-4.6 Provider Comprehensive Tests ✅ **COMPLETE**
+
+- [x] Create comprehensive test suite (`tests/130_aurora_glm46_provider_test.zig`)
+- [x] Tests for GLM-4.6 provider initialization and deinitialization
+- [x] Tests for provider type retrieval
+- [x] Tests for VTable implementation
+- [x] Tests for transformation requests (not yet implemented)
+- [x] Tests for tool call requests (process spawning, output handling)
+- [x] Tests for bounds checking (API key, tool name, arguments, output size)
+- [x] Tests for exit code handling and error output
+- [x] Add `aurora_glm46_provider_module`, `aurora_glm46_module`, and `glm46_provider_test_file` to build.zig
+- [x] GrainStyle compliance (grain_case, u32 types, max 73 chars per line)
+- [x] All tests pass with proper assertions
+- [x] Update `docs/plans/plan_aurora.md` and `docs/tasks/tasks_aurora.md`
+- **Date**: 2025-12-21-234944-PST
+
+#### Phase 2.24: GLM-4.6 Client Comprehensive Tests ✅ **COMPLETE**
+
+- [x] Create comprehensive test suite (`tests/131_aurora_glm46_test.zig`)
+- [x] Tests for GLM-4.6 client constants (MAX_CONTEXT_TOKENS, MAX_MESSAGE_SIZE)
+- [x] Tests for Message, CompletionRequest, CompletionChunk, Choice, Delta structures
+- [x] Tests for client initialization and deinitialization
+- [x] Tests for default model and API URL
+- [x] Tests for context window bounds checking
+- [x] Tests for message size bounds checking
+- [x] Tests for multiple messages support
+- [x] Tests for transformation request structure (stub)
+- [x] Tests for tool call request structure (stub)
+- [x] Tests for tool name and args bounds checking
+- [x] Tests for completion request with/without max tokens
+- [x] Tests for temperature range
+- [x] Tests for choice finish reasons
+- [x] Tests for delta role/content combinations
+- [x] Tests for multiple instances
+- [x] Add `aurora_glm46_module` and `glm46_test_file` to build.zig
+- [x] GrainStyle compliance (grain_case, u32 types, max 73 chars per line)
+- [x] All tests pass with proper assertions
+- [x] Update `docs/plans/plan_aurora.md` and `docs/tasks/tasks_aurora.md`
+- **Date**: 2025-12-23-163810-PST
+
+#### Phase 2.25: Cocoa Comprehensive Tests ✅ **COMPLETE**
+
+- [x] Create comprehensive test suite (`tests/132_aurora_cocoa_test.zig`)
+- [x] Tests for MenuEntry structure (with and without action)
+- [x] Tests for WindowConfig structure (default title, custom title, with menu)
+- [x] Tests for App initialization and deinitialization
+- [x] Tests for App present operations (empty menu, single entry, multiple entries)
+- [x] Tests for menu entries with actions and without actions
+- [x] Tests for mixed menu entries
+- [x] Tests for multiple app instances
+- [x] Tests for edge cases (long title, empty title, long menu title, long action)
+- [x] Tests for multiple present calls
+- [x] Add `aurora_cocoa_module` and `cocoa_test_file` to build.zig
+- [x] GrainStyle compliance (grain_case, u32 types, max 73 chars per line)
+- [x] All tests pass with proper assertions
+- [x] Update `docs/plans/plan_aurora.md` and `docs/tasks/tasks_aurora.md`
+- **Date**: 2025-12-23-165214-PST
+
+#### Phase 2.26: Cross Integration Comprehensive Tests ✅ **COMPLETE**
+
+#### Phase 2.28: Core Agent Coordination Decisions Integration ✅ **COMPLETE**
+
+- [x] HTTP Client Timeout/Error Handling Integration (2025-12-28-184118-pst)
+  - [x] Add timeout parameter support (`timeout_ms: ?u32`)
+  - [x] Integrate Core Agent's `HttpClientError` enum
+  - [x] Add timeout checking during request lifecycle
+  - [x] Map errors to Core Agent error types
+  - [x] Add retry logic with exponential backoff
+  - [x] Update `src/dream_http_client.zig`
+- [x] WebSocket Client Timeout/Error Handling Integration (2025-12-29-204520-pst)
+  - [x] Add timeout parameter support (`connect_timeout_ms`, `message_timeout_ms`)
+  - [x] Integrate Core Agent's `WebSocketError` enum
+  - [x] Add timeout checking in connect/send/receive/reconnect
+  - [x] Map errors to Core Agent error types
+  - [x] Add connection activity tracking
+  - [x] Update `src/dream_browser_websocket.zig`
+- [x] GLM-4.6 Client Timeout/Error Handling Integration (2025-12-29-204520-pst)
+  - [x] Add timeout parameter support (`timeout_ms: ?u32`, default: 60s)
+  - [x] Integrate Core Agent's HTTP client timeout/error handling
+  - [x] Add retry logic with exponential backoff
+  - [x] Update `src/aurora_glm46.zig`
+- [x] Dream Browser Component API Implementation (2025-12-28-155635-pst)
+  - [x] Create Dream Browser Component API structure
+  - [x] Define browser-specific components (Navigation, AddressBar, Tab, BrowserView)
+  - [x] Use Workspace Agent's Component base types
+  - [x] Add component state/size/theme variant support
+  - [x] Update `src/dream_browser_components.zig`
+- [x] Update coordination document with integration status
+- [x] Update plan and tasks documents
+- **Date**: 2025-12-29-204520-pst
+
+#### Phase 2.29: JG Project Responsibilities Assigned ✅ **COMPLETE**
+
+- [x] JG Project Design Review (2025-12-28-232324-pst)
+- [x] JG Project Responsibilities Assigned (2025-12-29-105655-pst)
+- [x] Update coordination document with JG project responsibilities
+- [x] Update plan and tasks documents with JG project phases
+- **Date**: 2025-12-29-105655-pst
+
+- [x] Create comprehensive test suite (`tests/133_aurora_cross_integration_test.zig`)
+- [x] Tests for constants (MAX_CLIPBOARD_SIZE, MAX_URL_LENGTH, MAX_FILE_PATH_LENGTH, MAX_SEARCH_RESULTS)
+- [x] Tests for enum types (ClipboardSource, ComponentType, NavigationType)
+- [x] Tests for structure initialization (Clipboard, NavigationTarget, SearchResult, BrowserTab)
+- [x] Tests for integration initialization and deinitialization
+- [x] Tests for clipboard operations (copy from editor, copy from browser, replacement, empty clipboard)
+- [x] Tests for URL extraction (HTTP, HTTPS, Nostr URLs, with newline, not found, at start/end)
+- [x] Tests for file path extraction (file:// URLs, Unix paths, Windows paths, with space, not found)
+- [x] Tests for bounds checking (clipboard size, URL length, file path length)
+- [x] Tests for multiple clipboard operations and multiple instances
+- [x] Add `aurora_cross_integration_module` and `cross_integration_test_file` to build.zig
+- [x] GrainStyle compliance (grain_case, u32 types, max 73 chars per line)
+- [x] All tests pass with proper assertions
+- [x] Update `docs/plans/plan_aurora.md` and `docs/tasks/tasks_aurora.md`
+- **Date**: 2025-12-23-202253-PST
+- [x] Tests for delta role/content combinations
+- [x] Tests for multiple instances
+- [x] Add `aurora_glm46_module` and `glm46_test_file` to build.zig
+- [x] GrainStyle compliance (grain_case, u32 types, max 73 chars per line)
+- [x] All tests pass with proper assertions
+- [x] Update `docs/plans/plan_aurora.md` and `docs/tasks/tasks_aurora.md`
+- **Date**: 2025-12-23-163810-PST
+
+### Grain Style Requirements
+
+- All functions use `grain_case` naming
+- Bounded allocations: Fixed-size arrays for spans and strings
+- Minimum 2 assertions per function
+- Max 70 lines per function
+- Max 103 characters per line (graincard compatibility)
+- All compiler warnings enabled
+- Explicit types (`u32`/`u64`, no `usize`)
+
+### Dependencies
+
+- **Needs**: Shared font renderer from Grain Skate Agent (Phase 1) ✅ Complete
+- **Provides**: Font renderer migration example for Grain Core Agent (Phase 1.3)
+- **Coordinates with**: Grain Skate Agent (shared module plan), Grain Core Agent (font renderer migration)
+
+---
+
+## Planned: Phase 3 - JG Project UI Components (Months 7-12)
+
+**Priority**: **HIGH** — JG Project UI Components  
+**Status**: **READY** (JG Project responsibilities assigned)  
+**Estimated Time**: 6 months (Months 7-12)
+
+### Tasks
+
+#### Phase 3.1: 3D Visualization Components (Months 7-9)
+
+- [ ] Review JG project design document (`docs/zyx/grainbank_mmt_job_guarantee_housing_program_2025-12-28-232324-pst.md`)
+- [ ] Coordinate with Workspace Agent on Component API
+- [ ] Coordinate with Bubble Agent on 3D visualization component design patterns
+- [ ] Design 3D architectural visualization components
+- [ ] Design site layout visualization components
+- [ ] Design material quantity visualization components
+- [ ] Design energy efficiency visualization components
+- [ ] Implement 3D visualization components
+- [ ] Add comprehensive tests
+- [ ] Update documentation
+
+#### Phase 3.2: Dashboard Components (Months 10-11)
+
+- [ ] Coordinate with Core Agent on API contracts for JG modules
+- [ ] Design project management dashboard components
+- [ ] Design task tracking dashboard components
+- [ ] Design inventory management dashboard components
+- [ ] Design supply chain visualization components
+- [ ] Implement dashboard components
+- [ ] Integrate with Workspace Agent desktop dashboards
+- [ ] Add comprehensive tests
+- [ ] Update documentation
+
+#### Phase 3.3: Mobile UI Components (Month 12)
+
+- [ ] Coordinate with Carry Agent on mobile app API contracts
+- [ ] Design worker mobile app UI components
+- [ ] Design resident mobile app UI components
+- [ ] Design cooperative mobile app UI components
+- [ ] Implement mobile UI components
+- [ ] Add comprehensive tests
+- [ ] Update documentation
+
+### Dependencies
+
+- **Needs**: Workspace Agent Component API ✅ Complete
+- **Needs**: Core Agent JG module API contracts (Months 1-6)
+- **Coordinates with**: Workspace Agent (desktop dashboards), Core Agent (API contracts), Bubble Agent (component design patterns), Carry Agent (mobile app API contracts)
+
+### Grain Style Compliance
+
+- All functions use `grain_case` naming
+- Bounded allocations for all components
+- Explicit types (`u32`/`u64`, no `usize`)
+- Max 70 lines per function
+- Max 73 characters per line
+- All compiler warnings enabled
+
+---
+
+## Planned: Phase 4 - Text Buffer Unification
+
+**Priority**: **MEDIUM** — Code deduplication  
+**Status**: **READY** (GrainBuffer u32/u64 compliant)  
+**Estimated Time**: 1-2 weeks
+
+### Tasks
+
+- [x] Update `GrainBuffer` to use `u32`/`u64` instead of `usize`/`isize` — Complete (2025-12-06-004609-pst)
+- [x] Update `aurora_editor.zig` to use `u32` for GrainBuffer operations — Complete
+- [ ] Coordinate with Grain Skate Agent on `GrainBuffer` API compatibility
+- [ ] Review Grain Skate `TextBuffer` implementation
+- [ ] Identify API differences and migration path
+- [ ] Create migration plan document
+- [ ] Migrate Grain Skate editor to use `GrainBuffer`
+- [ ] Update tests for unified text buffer
+- [ ] Remove duplicate text buffer code
+- [ ] Update documentation
+
+### Dependencies
+
+- **Needs**: Grain Skate Agent coordination
+- **Provides**: `GrainBuffer` API for Grain Skate (u32/u64 compliant)
+- **Coordinates with**: Grain Skate Agent (text buffer migration)
+
+### Grain Style Compliance
+
+- ✅ **GrainBuffer u32/u64 Compliance** (2025-12-06-004609-pst) — Complete
+  - Updated all `usize`/`isize` to `u32`/`u64`/`i64` in `GrainBuffer`
+  - Updated `Segment` struct: `start: u32, end: u32`
+  - Updated function signatures: `markReadOnly(start: u32, end: u32)`, `isReadOnly(pos: u32)`, `insert(index: u32, ...)`, `erase(index: u32, count: u32)`, etc.
+  - Updated `shiftSegments(pivot: u32, delta: i64)` and `shiftIndex(value: u32, delta: i64)`
+  - Updated all tests to use `u32`
+  - Updated `aurora_editor.zig` to use `u32` for GrainBuffer operations
+  - **Unblocks**: Phase 2 Text Buffer Unification (no adapter layer needed)
+
+---
+
+## Planned: Phase 5 - DAG Integration
+
+**Priority**: **MEDIUM** — Event ordering and consensus  
+**Status**: **PLANNED**  
+**Estimated Time**: 2-3 weeks
+
+### Tasks
+
+- [ ] Integrate DAG Core into editor for event ordering
+- [ ] Integrate DAG Core into browser for event ordering
+- [ ] **Map Aurora UI components to DAG nodes** (text, column, row, button → DAG nodes)
+- [ ] **Extend DAG Core with design_component node type** (coordinate with Bubble Agent)
+- [ ] **Define shared component interface** (coordinate with Bubble Agent)
+- [ ] Implement consensus mechanism for collaborative editing
+- [ ] Implement state synchronization
+- [ ] Add DAG event handlers for editor operations
+- [ ] Add DAG event handlers for browser operations
+- [ ] **Coordinate with Bubble Agent on unified DAG architecture**
+- [ ] Create tests for DAG integration
+- [ ] Update documentation
+
+### Dependencies
+
+- **Needs**: DAG Core (Phase 0.4) ✅ Complete
+- **Coordinates with**: Grain Bubble Agent (DAG integration, component system unification)
+- **Coordinates with**: Grain Skate Agent (DAG integration)
+- **Provides**: DAG integration example, shared component model
+
+### DAG Code Sharing Analysis
+
+See [`docs/agent-communications/bubble_aurora_dag_sharing_analysis.md`](../agent-communications/bubble_aurora_dag_sharing_analysis.md) for detailed analysis of code sharing opportunities between Aurora and Bubble, especially around DAG UI synthesis (`docs/dag_ui_synthesis.md`).
+
+**Key Opportunities**:
+1. **DAG Core Integration**: Both Aurora and Bubble should use `src/dag_core.zig` for state management
+2. **Component System Unification**: Aurora's UI components and Bubble's design components could share DAG node structure
+3. **Streaming Updates**: Hyperfiddle-style deterministic updates (see `docs/dag_ui_synthesis.md`)
+4. **HashDAG Consensus**: Event ordering for UI state (enables collaboration)
+
+---
+
+## Planned: Phase 6 - UI Rendering Unification
+
+**Priority**: **LOW** — Component-based UI  
+**Status**: **PLANNED**  
+**Estimated Time**: 2-3 weeks
+
+### Tasks
+
+- [ ] Evaluate `GrainAurora` component-first rendering for Grain Skate
+- [ ] Coordinate with Grain Skate Agent on component API
+- [ ] Create unified component API if needed
+- [ ] Migrate Grain Skate to use `GrainAurora` components
+- [ ] Update tests for unified UI rendering
+- [ ] Remove duplicate UI rendering code
+- [ ] Update documentation
+
+### Dependencies
+
+- **Needs**: Grain Skate Agent evaluation
+- **Provides**: `GrainAurora` component API
+- **Coordinates with**: Grain Skate Agent (UI rendering unification)
+
+---
+
+## Completed Phases (Summary)
+
+### Phase 0: Shared Foundation ✅ **COMPLETE**
+
+- ✅ GrainBuffer Enhancement (0.1)
+- ✅ GLM-4.6 Client (0.2)
+- ✅ Dream Protocol (0.3)
+- ✅ DAG Core Foundation (0.4)
+
+### Phase 1: Dream Editor Core ✅ **COMPLETE**
+
+- ✅ Readonly Spans Integration (1.1)
+- ✅ Method Folding (1.2)
+- ✅ GLM-4.6 Integration (1.3)
+- ✅ Complete LSP Implementation (1.4)
+- ✅ LSP Visual Rendering Features (1.5)
+- ✅ RenderResult Grain/Tiger Style Refactoring (1.6)
+- ✅ Grain/Tiger Style Compliance (usize → u32) (1.7)
+- ✅ Magit-Style VCS (1.8)
+- ✅ Editor Enhancements (1.9)
+
+### Phase 2: Shared Module Refactoring ✅ **IN PROGRESS**
+
+- ✅ Font Renderer Unification (1.2) — Complete
+- 📋 Text Buffer Unification (2) — Planned
+- 📋 DAG Integration (3) — Planned
+- 📋 UI Rendering Unification (4) — Planned
+
+---
+
+## Coordination Tasks
+
+### With Grain Core Agent
+
+- [x] Font renderer migration (Phase 1.2) — Complete
+- [ ] Coordinate on Grain Core Agent font renderer migration (Phase 1.3)
+- [ ] Coordinate on text buffer unification (Phase 2)
+- [ ] Coordinate on DAG integration (Phase 3)
+- [ ] Coordinate on UI rendering unification (Phase 4)
+- [x] Acknowledge WebSocket support (Phase 61) — Complete (not immediately needed)
+- [x] Acknowledge file storage support (Phase 62) — Complete (not immediately needed)
+- [x] Grain Style u32/u64 enforcement audit — Complete (fully compliant)
+
+### With Grain Skate Agent
+
+- [x] Font renderer creation (Phase 1) — Complete
+- [ ] Coordinate on Grain Skate Agent font renderer migration (Phase 1.4)
+- [ ] Coordinate on text buffer unification (Phase 2)
+- [ ] Coordinate on DAG integration (Phase 3)
+- [ ] Coordinate on UI rendering unification (Phase 4)
+
+### With Other Agents
+
+- [ ] Coordinate with Vantage Agent on file I/O syscalls (if needed)
+- [ ] Coordinate with Database Agent on state persistence (if needed)
+- [ ] Coordinate with Carry Agent on UI components (if needed)
+
+---
+
+## References
+
+- **Grain Style**: [`docs/grain_style.md`](../grain_style.md)
+- **Core Tasks**: [`docs/tasks.md`](../tasks.md)
+- **Grain Core Agent Tasks**: [`docs/tasks/tasks_core.md`](tasks_core.md)
+- **Grain Skate Future Enhancements**: [`docs/grain_skate_future_enhancements.md`](../grain_skate_future_enhancements.md)
+- **Shared Module Coordination**: [`docs/grain_os_font_renderer_coordination.md`](../grain_os_font_renderer_coordination.md)
+
+---
+
+**Note**: This is a detailed task list for the Aurora IDE Dream Browser Agent. For high-level overview, see [`docs/tasks.md`](../tasks.md).
+

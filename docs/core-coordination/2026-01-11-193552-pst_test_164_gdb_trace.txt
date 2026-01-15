@@ -1,0 +1,89 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+1/61 164_end_to_end_integration_test.test.process lifecycle: spawn integration...
+Program received signal SIGSEGV, Segmentation fault.
+0x0000000001059f7d in 164_end_to_end_integration_test.test.process lifecycle: spawn integration ()
+
+=== CRASH DETECTED (Signal $_siginfo.si_signo) ===
+=== Backtrace ===
+#0  0x0000000001059f7d in 164_end_to_end_integration_test.test.process lifecycle: spawn integration ()
+#1  0x00000000013522d1 in test_runner.mainTerminal ()
+#2  0x000000000134fbc2 in test_runner.main ()
+#3  0x000000000134a1a6 in start.main (c_argc=1, c_argv=0x7fffffffda18, c_envp=0x7fffffffda28)
+
+=== Registers ===
+rax            0x1059f70           17145712
+rbx            0x0                 0
+rcx            0x0                 0
+rdx            0x13b823c           20677180
+rsi            0x13b823c           20677180
+rdi            0x1                 1
+rbp            0x7fffffffcdf0      0x7fffffffcdf0
+rsp            0x7fffe9a93a60      0x7fffe9a93a60
+r8             0x1                 1
+r9             0x7fffffffd790      140737488344976
+r10            0x1556c390          358007696
+r11            0x25                37
+r12            0x1                 1
+r13            0x0                 0
+r14            0x7ffff7ffe2e0      140737354130144
+r15            0x7ffff7ffd000      140737354125312
+rip            0x1059f7d           0x1059f7d <164_end_to_end_integration_test.test.process lifecycle: spawn integration+13>
+eflags         0x10206             [ PF IF RF ]
+cs             0x33                51
+ss             0x2b                43
+ds             0x0                 0
+es             0x0                 0
+fs             0x0                 0
+gs             0x0                 0
+k0             0x2000000           33554432
+k1             0x100000            1048576
+k2             0x0                 0
+k3             0x0                 0
+k4             0x0                 0
+k5             0x0                 0
+k6             0x0                 0
+k7             0x0                 0
+fs_base        0x7ffff7ebd740      140737352816448
+gs_base        0x0                 0
+
+=== Instruction at PC ===
+=> 0x1059f7d <164_end_to_end_integration_test.test.process lifecycle: spawn integration+13>:	test   %esp,-0x1000(%rsp,%r10,1)
+   0x1059f85 <164_end_to_end_integration_test.test.process lifecycle: spawn integration+21>:	sub    $0x1000,%r10
+   0x1059f8c <164_end_to_end_integration_test.test.process lifecycle: spawn integration+28>:	jae    0x1059f7d <164_end_to_end_integration_test.test.process lifecycle: spawn integration+13>
+   0x1059f92 <164_end_to_end_integration_test.test.process lifecycle: spawn integration+34>:	lea    0xb2b4978(%rsp),%rax
+   0x1059f9a <164_end_to_end_integration_test.test.process lifecycle: spawn integration+42>:	call   0x105a4c0 <164_end_to_end_integration_test.FullStackTestEnv.init>
+   0x1059f9f <164_end_to_end_integration_test.test.process lifecycle: spawn integration+47>:	lea    (%rsp),%rax
+   0x1059fa3 <164_end_to_end_integration_test.test.process lifecycle: spawn integration+51>:	mov    %rax,0x165692f0(%rsp)
+   0x1059fab <164_end_to_end_integration_test.test.process lifecycle: spawn integration+59>:	mov    0x165692f0(%rsp),%rdi
+   0x1059fb3 <164_end_to_end_integration_test.test.process lifecycle: spawn integration+67>:	lea    0xb2b4978(%rsp),%rax
+   0x1059fbb <164_end_to_end_integration_test.test.process lifecycle: spawn integration+75>:	mov    %rax,0x165692f8(%rsp)
+   0x1059fc3 <164_end_to_end_integration_test.test.process lifecycle: spawn integration+83>:	mov    0x165692f8(%rsp),%rsi
+   0x1059fcb <164_end_to_end_integration_test.test.process lifecycle: spawn integration+91>:	movq   $0xb2b4978,0x16569300(%rsp)
+   0x1059fd7 <164_end_to_end_integration_test.test.process lifecycle: spawn integration+103>:	mov    0x16569300(%rsp),%rcx
+   0x1059fdf <164_end_to_end_integration_test.test.process lifecycle: spawn integration+111>:	rep movsb %ds:(%rsi),%es:(%rdi)
+   0x1059fe1 <164_end_to_end_integration_test.test.process lifecycle: spawn integration+113>:	lea    (%rsp),%rax
+   0x1059fe5 <164_end_to_end_integration_test.test.process lifecycle: spawn integration+117>:	call   0x105b360 <164_end_to_end_integration_test.FullStackTestEnv.get_integration>
+   0x1059fea <164_end_to_end_integration_test.test.process lifecycle: spawn integration+122>:	mov    %rax,0x16569308(%rsp)
+   0x1059ff2 <164_end_to_end_integration_test.test.process lifecycle: spawn integration+130>:	mov    %rax,0x16569310(%rsp)
+   0x1059ffa <164_end_to_end_integration_test.test.process lifecycle: spawn integration+138>:	lea    (%rsp),%rax
+   0x1059ffe <164_end_to_end_integration_test.test.process lifecycle: spawn integration+142>:	call   0x105b390 <164_end_to_end_integration_test.FullStackTestEnv.get_vm>
+
+=== Stack Frame ===
+Stack level 0, frame at 0x7fffffffce00:
+ rip = 0x1059f7d in 164_end_to_end_integration_test.test.process lifecycle: spawn integration; saved rip = 0x13522d1
+ called by frame at 0x7fffffffd3a0
+ Arglist at 0x7fffffffcdf0, args: 
+ Locals at 0x7fffffffcdf0, Previous frame's sp is 0x7fffffffce00
+ Saved registers:
+  rbp at 0x7fffffffcdf0, rip at 0x7fffffffcdf8
+
+=== Memory at PC ===
+0x1059f7d <164_end_to_end_integration_test.test.process lifecycle: spawn integration+13>:	0x14a48542	0xfffff000	0x00ea8149	0x0f000010
+0x1059f8d <164_end_to_end_integration_test.test.process lifecycle: spawn integration+29>:	0xffffeb83	0x848d48ff	0x2b497824	0x0521e80b
+0x1059f9d <164_end_to_end_integration_test.test.process lifecycle: spawn integration+45>:	0x8d480000	0x89482404	0x92f02484	0x8b481656
+0x1059fad <164_end_to_end_integration_test.test.process lifecycle: spawn integration+61>:	0x92f024bc	0x8d481656	0x49782484	0x89480b2b
+0x1059fbd <164_end_to_end_integration_test.test.process lifecycle: spawn integration+77>:	0x92f82484	0x8b481656	0x92f824b4	0xc7481656
+0x1059fcd <164_end_to_end_integration_test.test.process lifecycle: spawn integration+93>:	0x93002484	0x49781656	0x8b480b2b	0x9300248c
+0x1059fdd <164_end_to_end_integration_test.test.process lifecycle: spawn integration+109>:	0xa4f31656	0x24048d48	0x001376e8	0x84894800
+0x1059fed <164_end_to_end_integration_test.test.process lifecycle: spawn integration+125>:	0x56930824	0x84894816	0x56931024	0x048d4816

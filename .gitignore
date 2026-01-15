@@ -1,0 +1,7 @@
+.zig-cache/
+zig-out/
+*.tar.gz
+*.zip
+!archive_bundles/*.sha256
+!archive_bundles/*_archive_summary.md
+!archive_bundles/README.md
