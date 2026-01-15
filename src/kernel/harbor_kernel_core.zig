@@ -1,5 +1,5 @@
 //! Basin Kernel Core
-//! Why: Core BasinKernel struct definition, initialization, and common helper functions.
+//! Why: Core HarborKernel struct definition, initialization, and common helper functions.
 //! Grain Style: Explicit types, static allocation, comprehensive assertions.
 
 const std = @import("std");
@@ -50,7 +50,7 @@ const User = types.User;
 const UserContext = types.UserContext;
 const UserId = types.UserId;
 const MapFlags = types.MapFlags;
-const BasinError = types.BasinError;
+const HarborError = types.HarborError;
 const SyscallResult = types.SyscallResult;
 const Syscall = types.Syscall;
 const MAX_MAPPINGS = types.MAX_MAPPINGS;
@@ -62,7 +62,7 @@ const MAX_USERS = types.MAX_USERS;
 /// Basin Kernel main struct.
 /// Why: Central kernel state, all subsystems, resource tables.
 /// Grain Style: Static allocation, explicit state tracking.
-pub const BasinKernel = struct {
+pub const HarborKernel = struct {
     /// Memory mapping table (static allocation).
     /// Why: Track memory mappings for map/unmap/protect syscalls.
     /// Grain Style: Static allocation, max 256 entries.
@@ -274,8 +274,8 @@ pub const BasinKernel = struct {
     
     /// Initialize Basin Kernel.
     /// Why: Explicit initialization, validate kernel state.
-    pub fn init() BasinKernel {
-        var kernel = BasinKernel{
+    pub fn init() HarborKernel {
+        var kernel = HarborKernel{
             .timer = Timer.init(),
             .interrupt_controller = InterruptController.init(),
             .scheduler = Scheduler.init(),
@@ -353,10 +353,10 @@ pub const BasinKernel = struct {
     }
     
     /// Why: For heap-allocated kernels, initialize directly to avoid stack overflow.
-    /// Contract: target must point to valid memory large enough for BasinKernel.
+    /// Contract: target must point to valid memory large enough for HarborKernel.
     /// Initialize core subsystems (timer, interrupt, scheduler).
     /// Why: Split initialization into smaller functions to avoid size issues.
-    fn init_core_subsystems(target: *BasinKernel) void {
+    fn init_core_subsystems(target: *HarborKernel) void {
         Debug.vprint("Initializing timer...", .{});
         target.timer = Timer.init();
         Debug.vprint("Timer initialized", .{});
@@ -372,7 +372,7 @@ pub const BasinKernel = struct {
     
     /// Initialize process group managers.
     /// Why: Split into even smaller functions.
-    fn init_process_group_managers(target: *BasinKernel) void {
+    fn init_process_group_managers(target: *HarborKernel) void {
         Debug.vprint("Initializing process group managers...", .{});
         // Initialize ProcessGroupManager directly to avoid stack overflow
         const ProcessGroup = process_group.ProcessGroup;
@@ -409,7 +409,7 @@ pub const BasinKernel = struct {
     
     /// Initialize network managers (interfaces, TCP, UDP).
     /// Why: Split into smaller functions to avoid function size issues.
-    fn init_network_managers(target: *BasinKernel) void {
+    fn init_network_managers(target: *HarborKernel) void {
         Debug.vprint("Initializing network managers...", .{});
         
         // Initialize NetworkInterfaceManager in-place
@@ -468,7 +468,7 @@ pub const BasinKernel = struct {
     /// Initialize audio device manager.
     /// Why: Split into smaller functions to avoid function size issues.
     /// Note: AudioDevice.init() returns a struct with 2×64KB buffers = 128KB, so we initialize fields directly.
-    fn init_audio_manager(target: *BasinKernel) void {
+    fn init_audio_manager(target: *HarborKernel) void {
         Debug.vprint("Initializing audio device manager...", .{});
         // Initialize AudioDeviceManager in-place
         var i: u32 = 0;
@@ -500,7 +500,7 @@ pub const BasinKernel = struct {
     
     /// Initialize managers (process groups, network, etc.).
     /// Why: Split initialization into smaller functions to avoid size issues.
-    fn init_managers(target: *BasinKernel) void {
+    fn init_managers(target: *HarborKernel) void {
         Debug.vprint("Initializing kernel managers...", .{});
         init_process_group_managers(target);
         init_network_managers(target);
@@ -510,7 +510,7 @@ pub const BasinKernel = struct {
     
     /// Initialize channel table.
     /// Why: Split into smaller functions to avoid function size issues.
-    fn init_channels(target: *BasinKernel) void {
+    fn init_channels(target: *HarborKernel) void {
         Debug.vprint("Initializing channels...", .{});
         // ChannelTable.init() creates 8MB temporary (64 channels × 32 messages × 4KB), so initialize in-place
         var i: u32 = 0;
@@ -537,7 +537,7 @@ pub const BasinKernel = struct {
     
     /// Initialize storage, keyboard, and mouse.
     /// Why: Split into smaller functions to avoid function size issues.
-    fn init_storage_keyboard_mouse(target: *BasinKernel) void {
+    fn init_storage_keyboard_mouse(target: *HarborKernel) void {
         Debug.vprint("Initializing storage...", .{});
         // Storage.init() creates large temporary (128 files × 64KB + 32 directories), so initialize in-place
         var i: u32 = 0;
@@ -575,7 +575,7 @@ pub const BasinKernel = struct {
     
     /// Initialize I/O subsystems (channels, storage, keyboard, mouse).
     /// Why: Split initialization into smaller functions to avoid size issues.
-    fn init_io_subsystems(target: *BasinKernel) void {
+    fn init_io_subsystems(target: *HarborKernel) void {
         Debug.vprint("Initializing I/O subsystems...", .{});
         init_channels(target);
         init_storage_keyboard_mouse(target);
@@ -584,7 +584,7 @@ pub const BasinKernel = struct {
     
     /// Initialize memory subsystems (memory pool, page table, stats, COW, profiler).
     /// Why: Split into smaller functions to avoid function size issues.
-    fn init_memory_subsystems(target: *BasinKernel) void {
+    fn init_memory_subsystems(target: *HarborKernel) void {
         Debug.vprint("Initializing memory subsystems...", .{});
         Debug.vprint("Initializing memory pool...", .{});
         // MemoryPool.init() creates a 4MB buffer, so initialize in-place
@@ -616,7 +616,7 @@ pub const BasinKernel = struct {
     
     /// Initialize I/O and memory subsystems.
     /// Why: Split initialization into smaller functions to avoid size issues.
-    fn init_io_and_memory(target: *BasinKernel) void {
+    fn init_io_and_memory(target: *HarborKernel) void {
         Debug.vprint("Initializing I/O and memory subsystems...", .{});
         init_io_subsystems(target);
         init_memory_subsystems(target);
@@ -624,8 +624,8 @@ pub const BasinKernel = struct {
     }
     
     /// Why: For heap-allocated kernels, initialize directly to avoid stack overflow.
-    /// Contract: target must point to valid memory large enough for BasinKernel.
-    pub fn init_in_place(target: *BasinKernel) void {
+    /// Contract: target must point to valid memory large enough for HarborKernel.
+    pub fn init_in_place(target: *HarborKernel) void {
         // Initialize all fields directly in target (no stack temporary)
         // Split into smaller functions to avoid function size issues
         Debug.vprint("Starting kernel initialization...", .{});

@@ -1,13 +1,13 @@
-//! Basin Kernel Type Definitions
+//! Harbor Kernel Type Definitions
 //! Why: Centralized type definitions for kernel API and internal structures.
-//! Grain Style: Explicit types (u32/u64 not usize), static allocation, comprehensive assertions.
+//! Clutch Style: Explicit types (u32/u64 not usize), static allocation, comprehensive assertions.
 
 const std = @import("std");
 const Debug = @import("debug.zig");
 const SignalTable = @import("signal.zig").SignalTable;
 const ProcessContext = @import("process.zig").ProcessContext;
 
-/// Basin Kernel syscall numbers.
+/// Harbor Kernel syscall numbers.
 /// Why: Explicit syscall enumeration for type safety and clarity.
 pub const Syscall = enum(u32) {
     // Process & Thread Management
@@ -415,7 +415,7 @@ pub const UserContext = struct {
 
 /// Basin Kernel error types.
 /// Why: Explicit error types instead of POSIX errno.
-pub const BasinError = error{
+pub const HarborError = error{
     invalid_handle,
     invalid_argument,
     permission_denied,
@@ -461,7 +461,7 @@ pub const BasinError = error{
 /// Why: Explicit result type, prevent confusion with raw return values.
 pub const SyscallResult = union(enum) {
     success: u64,
-    err: BasinError,
+    err: HarborError,
     
     /// Create success result.
     /// Why: Explicit construction, type safety.
@@ -471,7 +471,7 @@ pub const SyscallResult = union(enum) {
     
     /// Create error result.
     /// Why: Explicit construction, type safety.
-    pub fn fail(err: BasinError) SyscallResult {
+    pub fn fail(err: HarborError) SyscallResult {
         return SyscallResult{ .err = err };
     }
 };
@@ -487,7 +487,7 @@ pub const ProcessState = enum(u8) {
     free,
 };
 
-// Internal types (used by BasinKernel struct)
+// Internal types (used by HarborKernel struct)
 
 /// Memory mapping entry.
 /// Why: Track memory mappings for map/unmap/protect syscalls.
