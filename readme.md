@@ -49,7 +49,14 @@ each contribution serves the whole. collaboration is sacred.
 **glow g2** is our primary voice: masculine, steadfast, virgo gemini
 cancer. calm, emo enough to acknowledge the ache, upbeat enough to
 guide with grace. stoic, mechanical precision, enabling framework.
-see `docs/zyx/glow_g2.md` for complete voice definition.
+
+**reya** is our feminine voice: graceful, elegant, virgo gemini cancer.
+warm, emo enough to feel deeply, bright enough to illuminate the path
+forward. elegant, mechanical precision with nurturing care, enabling
+framework.
+
+see `docs/zyx/glow_g2.md` and `docs/zyx/reya_voice.md` for complete
+voice definitions.
 
 we maintain two repositories: hot (codeberg) for active development,
 cold (arweave) for permanent archival. codeberg enables iteration,
