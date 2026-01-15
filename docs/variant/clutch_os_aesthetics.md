@@ -10,15 +10,15 @@
 
 **Aesthetic**: Mechanical, enabling, framework-based  
 **Energy**: Virgo Gemini Cancer (practical, communicative, nurturing)  
-**Metaphor**: Clutch enabling car driving, brick-and-ocean foundation
+**Metaphor**: Industrial transport of materials from source over road/river/sea to destination (Harbor), brick-and-ocean foundation
 
 ---
 
 ## Core Philosophy
 
-**Framework-Oriented**: Clutch OS is the framework that enables "driving" the Cursor base. Like a clutch in a car enables the engine to drive the wheels, Clutch OS enables developers to drive their creative work.
+**Framework-Oriented**: Clutch OS is the industrial transport framework that moves materials (data, processes, work) from source to destination. Like industrial logistics systems coordinate transport over roads, rivers, and seas to reach the Harbor, Clutch OS coordinates the flow of work from origin to completion.
 
-**Brick-and-Ocean Foundation**: Solid, practical foundations (brick) that interface with the dynamic flow of work (ocean). Each component is a brick in the harbor wall, each module a dock in the port. The **Harbor** (kernel) is the destination where everything docks and is contained, **Vantage** (VM/subcore) coordinates distribution and strategic positioning across the ocean of processes.
+**Brick-and-Ocean Foundation**: Solid, practical foundations (brick) that interface with the dynamic flow of materials (ocean). Each component is a brick in the harbor wall, each module a dock in the port. Materials flow from source over road/river/sea to the **Harbor** (kernel) destination where everything docks and is contained. **Vantage** (VM/subcore) coordinates transport routes and strategic positioning across the industrial logistics network.
 
 **Mechanical Precision**: Virgo energy brings attention to detail, precision in implementation, practical optimization.
 
@@ -36,10 +36,10 @@
 |-------------------|----------------|-------------------|
 | `Basin` (Kernel) | **Harbor** | The destination where everything docks and is contained. Mechanical/industrial/urban (ports, shipping, logistics). More mechanical than "Basin" (which is organic/water-based). Fits Virgo precision, Gemini communication/transportation, Cancer nurturing safe haven. |
 | `Vantage` (VM/Subcore) | **Vantage** | Neutral aesthetic abstraction - works for both Grain OS and Clutch OS. Strategic position, coordination center. |
-| `LlmProvider` | Clutch Engine | The mechanical engine that enables driving the Cursor base |
-| `TokenEfficiency` | Clutch Efficiency | Mechanical efficiency optimization, smooth power transfer |
-| `ZonFormat` | Clutch Transmission | Efficient transmission of data, smooth data flow |
-| `Compute` | Clutch Workspace | Mechanical workspace for parallel processing |
+| `LlmProvider` | Clutch Engine | The industrial engine that powers material transport and processing |
+| `TokenEfficiency` | Clutch Efficiency | Industrial efficiency optimization, smooth material flow, minimal waste |
+| `ZonFormat` | Clutch Transmission | Efficient transmission of materials over transport routes (road/river/sea) |
+| `Compute` | Clutch Workspace | Industrial workspace for parallel material processing and coordination |
 
 ---
 
@@ -52,25 +52,25 @@
 - Methodical approach to problem-solving
 
 ### Gemini (Communication)
-- Clear data transmission
-- Efficient communication protocols
+- Clear material transport protocols
+- Efficient routing over road/river/sea
 - Smooth information flow
-- Transparent system design
+- Transparent logistics coordination
 
 ### Cancer (Nurturing)
-- Supportive workspace environments
-- Parallel processing that cares for each task
-- Framework that nurtures creativity
-- Enabling infrastructure
+- Safe harbor for all materials
+- Parallel processing that cares for each transport route
+- Framework that nurtures reliable delivery
+- Enabling industrial infrastructure
 
 ---
 
 ## Design Principles
 
-1. **Framework First**: Every component is designed as a framework that enables something else
-2. **Mechanical Precision**: Attention to detail, practical optimization, methodical implementation
-3. **Enabling Communication**: Clear data flow, efficient transmission, transparent design
-4. **Nurturing Workspace**: Supportive environments, parallel processing, creative enabling
+1. **Framework First**: Every component is designed as an industrial transport framework that enables material flow
+2. **Mechanical Precision**: Attention to detail, practical optimization, methodical implementation of transport routes
+3. **Enabling Communication**: Clear material flow, efficient routing over road/river/sea, transparent logistics
+4. **Nurturing Workspace**: Safe harbor for all materials, parallel processing, reliable delivery infrastructure
 
 ---
 
