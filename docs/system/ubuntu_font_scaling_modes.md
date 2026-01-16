@@ -23,14 +23,14 @@ gsettings set org.gnome.desktop.interface text-scaling-factor 1.0
 
 ### Laptop Mode
 **Use case**: Framework laptop screen, coffee shop, portable use  
-**Font scaling factor**: `1.0` (default)  
+**Font scaling factor**: `1.15`  
 **Command to apply**:
 ```bash
-gsettings set org.gnome.desktop.interface text-scaling-factor 1.0
+gsettings set org.gnome.desktop.interface text-scaling-factor 1.15
 ```
 
 **Date saved**: 2026-01-16  
-**Context**: Standard font size for laptop screen viewing distance
+**Context**: Larger font size optimized for laptop screen viewing distance
 
 ---
 
@@ -48,7 +48,7 @@ gsettings set org.gnome.desktop.interface text-scaling-factor 1.0
 
 **Set to Laptop Mode**:
 ```bash
-gsettings set org.gnome.desktop.interface text-scaling-factor 1.0
+gsettings set org.gnome.desktop.interface text-scaling-factor 1.15
 ```
 
 **Note**: Changes apply immediately, no restart required.
