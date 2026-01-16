@@ -4,7 +4,7 @@
 
 const Panic = @import("panic.zig");
 const InterruptController = @import("interrupt.zig").InterruptController;
-const HarborKernel = @import("harbor_kernel.zig").HarborKernel;
+const HarborKernel = @import("basin_kernel.zig").HarborKernel;
 const Debug = @import("debug.zig");
 const page_fault_stats = @import("page_fault_stats.zig");
 const exception_types = @import("exception_types.zig");

@@ -4,7 +4,7 @@
 
 const std = @import("std");
 const Debug = @import("debug.zig");
-const Process = @import("harbor_kernel.zig").Process;
+const Process = @import("basin_kernel.zig").Process;
 
 /// Maximum number of process groups.
 /// Why: Bounded allocation for process group tracking.

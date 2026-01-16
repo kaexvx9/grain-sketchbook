@@ -4,9 +4,9 @@
 
 const std = @import("std");
 const builtin = @import("builtin");
-// Import Debug through harbor_kernel module to avoid module conflicts.
-const harbor_kernel = @import("harbor_kernel");
-const Debug = harbor_kernel.Debug;
+// Import Debug through basin_kernel module to avoid module conflicts.
+const basin_kernel = @import("basin_kernel");
+const Debug = basin_kernel.Debug;
 const host_macos = @import("host_macos.zig");
 
 /// Host memory protection flags.

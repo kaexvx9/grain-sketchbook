@@ -5,10 +5,10 @@
 const std = @import("std");
 const Debug = @import("debug.zig");
 const elf_parser = @import("elf_parser.zig");
-const HarborKernel = @import("harbor_kernel.zig").HarborKernel;
-const MapFlags = @import("harbor_kernel.zig").MapFlags;
-const SyscallResult = @import("harbor_kernel.zig").SyscallResult;
-const syscall_map = @import("harbor_kernel.zig").syscall_map;
+const HarborKernel = @import("basin_kernel.zig").HarborKernel;
+const MapFlags = @import("basin_kernel.zig").MapFlags;
+const SyscallResult = @import("basin_kernel.zig").SyscallResult;
+const syscall_map = @import("basin_kernel.zig").syscall_map;
 
 /// Load a single program segment into VM memory.
 /// Why: Extract segment loading logic to reduce nesting in syscall_spawn.

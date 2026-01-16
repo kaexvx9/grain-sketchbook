@@ -26,7 +26,7 @@ pub fn create_tahoe_executable(
             .optimize = ctx.optimize,
             .imports = &.{
                 .{ .name = "kernel_vm", .module = kernel_modules.kernel_vm },
-                .{ .name = "harbor_kernel", .module = kernel_modules.harbor_kernel },
+                .{ .name = "basin_kernel", .module = kernel_modules.basin_kernel },
                 .{ .name = "sbi", .module = kernel_modules.sbi },
             },
         }),

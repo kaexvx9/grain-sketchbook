@@ -4,8 +4,8 @@
 
 const std = @import("std");
 const Debug = @import("debug.zig");
-const HarborKernel = @import("harbor_kernel.zig").HarborKernel;
-const ProcessState = @import("harbor_kernel.zig").ProcessState;
+const HarborKernel = @import("basin_kernel.zig").HarborKernel;
+const ProcessState = @import("basin_kernel.zig").ProcessState;
 
 /// Clean up all resources owned by a process.
 /// Why: Free memory mappings, handles, and channels when process exits.
@@ -69,7 +69,7 @@ fn cleanup_process_mappings(
     // Free all memory mappings owned by this process.
     // Why: Process memory mappings should be freed on exit.
     var mappings_freed: u32 = 0;
-    const MAX_MAPPINGS: u32 = 256; // Matches MAX_MAPPINGS in harbor_kernel.zig
+    const MAX_MAPPINGS: u32 = 256; // Matches MAX_MAPPINGS in basin_kernel.zig
 
     var i: u32 = 0;
     while (i < MAX_MAPPINGS) : (i += 1) {
@@ -112,7 +112,7 @@ fn cleanup_process_handles(
     // Close all file handles owned by this process.
     // Why: Process file handles should be closed on exit.
     var handles_closed: u32 = 0;
-    const MAX_HANDLES: u32 = 256; // Matches MAX_HANDLES in harbor_kernel.zig
+    const MAX_HANDLES: u32 = 256; // Matches MAX_HANDLES in basin_kernel.zig
 
     var i: u32 = 0;
     while (i < MAX_HANDLES) : (i += 1) {

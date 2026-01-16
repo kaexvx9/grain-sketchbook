@@ -123,7 +123,7 @@ pub const AArch64VM = struct {
     
     /// Syscall handler callback (optional).
     /// Why: Allow external syscall handling (e.g., Grain Basin kernel).
-    /// Note: Type-erased to avoid requiring harbor_kernel import at module level.
+    /// Note: Type-erased to avoid requiring basin_kernel import at module level.
     syscall_handler: ?*const fn (
         syscall_num: u32,
         arg1: u64,
@@ -138,7 +138,7 @@ pub const AArch64VM = struct {
     
     /// Memory permission check callback (optional).
     /// Why: Enforce memory protection by checking read/write/execute permissions.
-    /// Note: Type-erased to avoid requiring harbor_kernel import at module level.
+    /// Note: Type-erased to avoid requiring basin_kernel import at module level.
     /// Returns: u32 with permission bits (bit 0=read, bit 1=write, bit 2=execute),
     /// or 0 if not mapped.
     permission_checker: ?*const fn (addr: u64) u32 = null,

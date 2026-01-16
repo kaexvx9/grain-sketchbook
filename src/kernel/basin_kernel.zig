@@ -1,16 +1,16 @@
-//! Clutch Harbor kernel — The destination where everything docks
+//! Basin kernel — The container where everything flows
 //!
-//! Clutch Harbor kernel is a Zig monolith kernel for RISC-V64, designed for the next 30 years.
+//! Basin kernel is a Zig monolith kernel for RISC-V64, designed for the next 30 years.
 //! Non-POSIX, type-safe, minimal syscall surface, Clutch Style safety.
 //!
-//! **Homebrew Bundle**: `clutchharbor`
+//! **Homebrew Bundle**: `basin`
 //!
 //! **Vision**: Modern kernel design inspired by seL4 (minimal), Aero OS (monolithic),
 //! and Fuchsia (capability-based), but built in pure Zig for RISC-V.
 //!
 //! **Note**: Theseus OS uses SAS/SPL architecture (not traditional monolithic).
 //! Aero OS proves monolithic kernels work (runs real apps), but targets x86_64 only.
-//! Clutch Harbor kernel fills the gap: RISC-V native, non-POSIX, minimal syscall surface.
+//! Basin kernel fills the gap: RISC-V native, non-POSIX, minimal syscall surface.
 //!
 //! **Target**: Framework 13 DeepComputing RISC-V Mainboard
 //! **Development**: macOS Tahoe IDE with RISC-V VM for testing
@@ -62,29 +62,29 @@ const kernel_stats_aggregator = @import("kernel_stats_aggregator.zig");
 const KernelStatsSnapshot = kernel_stats_aggregator.KernelStatsSnapshot;
 
 // Import types from separate module
-const types = @import("harbor_kernel_types.zig");
+const types = @import("basin_kernel_types.zig");
 
 // Import core HarborKernel struct and helpers
-const core = @import("harbor_kernel_core.zig");
+const core = @import("basin_kernel_core.zig");
 
 // Import process syscalls
-const process_syscalls = @import("harbor_kernel_syscalls_process.zig");
+const process_syscalls = @import("basin_kernel_syscalls_process.zig");
 const ProcessSyscalls = process_syscalls.ProcessSyscalls;
 
 // Import file syscalls
-const file_syscalls = @import("harbor_kernel_syscalls_file.zig");
+const file_syscalls = @import("basin_kernel_syscalls_file.zig");
 const FileSyscalls = file_syscalls.FileSyscalls;
 
 // Import network syscalls
-const network_syscalls = @import("harbor_kernel_syscalls_network.zig");
+const network_syscalls = @import("basin_kernel_syscalls_network.zig");
 const NetworkSyscalls = network_syscalls.NetworkSyscalls;
 
 // Import audio syscalls
-const audio_syscalls = @import("harbor_kernel_syscalls_audio.zig");
+const audio_syscalls = @import("basin_kernel_syscalls_audio.zig");
 const AudioSyscalls = audio_syscalls.AudioSyscalls;
 
 // Import stats syscalls
-const stats_syscalls = @import("harbor_kernel_syscalls_stats.zig");
+const stats_syscalls = @import("basin_kernel_syscalls_stats.zig");
 const StatsSyscalls = stats_syscalls.StatsSyscalls;
 
 // Re-export all public types for backward compatibility
@@ -100,7 +100,7 @@ pub const UserId = types.UserId;
 pub const GroupId = types.GroupId;
 pub const User = types.User;
 pub const UserContext = types.UserContext;
-pub const HarborError = types.HarborError;
+pub const BasinError = types.BasinError;
 pub const SyscallResult = types.SyscallResult;
 pub const ProcessState = types.ProcessState;
 pub const Process = types.Process;
@@ -134,7 +134,7 @@ comptime {
 }
 
 // Re-export HarborKernel from core module
-pub const HarborKernel = core.HarborKernel;
+pub const BasinKernel = core.BasinKernel;
 
 /// Handle syscall from user space.
 /// Why: Central syscall entry point, validate syscall number and arguments.
@@ -1587,22 +1587,22 @@ pub fn handle_syscall(
 /// Basin Kernel module exports.
 /// Why: Explicit exports, clear public API.
 pub const harbor_kernel = struct {
-    pub const Syscall = @import("harbor_kernel.zig").Syscall;
-    pub const handle_syscall = @import("harbor_kernel.zig").handle_syscall;
-    pub const MapFlags = @import("harbor_kernel.zig").MapFlags;
-    pub const OpenFlags = @import("harbor_kernel.zig").OpenFlags;
-    pub const ClockId = @import("harbor_kernel.zig").ClockId;
-    pub const Handle = @import("harbor_kernel.zig").Handle;
+    pub const Syscall = @import("basin_kernel.zig").Syscall;
+    pub const handle_syscall = @import("basin_kernel.zig").handle_syscall;
+    pub const MapFlags = @import("basin_kernel.zig").MapFlags;
+    pub const OpenFlags = @import("basin_kernel.zig").OpenFlags;
+    pub const ClockId = @import("basin_kernel.zig").ClockId;
+    pub const Handle = @import("basin_kernel.zig").Handle;
     pub const Signal = @import("signal.zig").Signal;
-    pub const SysInfo = @import("harbor_kernel.zig").SysInfo;
-    pub const HarborError = @import("harbor_kernel.zig").HarborError;
-    pub const SyscallResult = @import("harbor_kernel.zig").SyscallResult;
-    pub const HarborKernel = @import("harbor_kernel.zig").HarborKernel;
+    pub const SysInfo = @import("basin_kernel.zig").SysInfo;
+    pub const BasinError = @import("basin_kernel.zig").BasinError;
+    pub const SyscallResult = @import("basin_kernel.zig").SyscallResult;
+    pub const BasinKernel = @import("basin_kernel.zig").BasinKernel;
     pub const ProcessContext = @import("process.zig").ProcessContext;
     pub const KernelLogBuffer = @import("kernel_log_buffer.zig").KernelLogBuffer;
     pub const KernelLogEntry = @import("kernel_log_buffer.zig").KernelLogEntry;
     pub const KernelLogLevel = @import("kernel_log_buffer.zig").KernelLogLevel;
-    pub const Process = @import("harbor_kernel.zig").Process;
+    pub const Process = @import("basin_kernel.zig").Process;
     pub const process_execution = @import("process_execution.zig");
     pub const Storage = @import("storage.zig").Storage;
     pub const FileEntry = @import("storage.zig").FileEntry;

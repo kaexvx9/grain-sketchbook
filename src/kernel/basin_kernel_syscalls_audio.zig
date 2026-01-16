@@ -7,61 +7,61 @@ const Debug = @import("debug.zig");
 const audio = @import("audio.zig");
 
 // Import types
-const types = @import("harbor_kernel_types.zig");
-const HarborError = types.HarborError;
+const types = @import("basin_kernel_types.zig");
+const BasinError = types.BasinError;
 const SyscallResult = types.SyscallResult;
 const MAX_PROCESSES = types.MAX_PROCESSES;
 
 // Import core
-const core = @import("harbor_kernel_core.zig");
-const HarborKernel = core.HarborKernel;
+const core = @import("basin_kernel_core.zig");
+const BasinKernel = core.BasinKernel;
 
-/// Audio syscall handlers for HarborKernel.
+/// Audio syscall handlers for BasinKernel.
 /// Why: Extract audio syscalls to separate module for organization.
 pub const AudioSyscalls = struct {
     /// Create an audio device.
     /// Why: Add a new audio device.
     /// Contract: name_ptr, name_len, and device_type must be valid.
     pub fn syscall_audio_create_device(
-        self: *HarborKernel,
+        self: *BasinKernel,
         name_ptr: u64,
         name_len: u64,
         device_type: u64,
         _arg4: u64,
-    ) HarborError!SyscallResult {
+    ) BasinError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg4;
         
         // Assert: Name pointer must be valid (non-zero, within VM memory).
         if (name_ptr == 0) {
-            return HarborError.invalid_argument; // Null pointer
+            return BasinError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE_AUDIO: u64 = 4 * 1024 * 1024; // 4MB default
         if (name_ptr >= VM_MEMORY_SIZE_AUDIO) {
-            return HarborError.invalid_argument; // Name pointer exceeds VM memory
+            return BasinError.invalid_argument; // Name pointer exceeds VM memory
         }
         
         // Assert: Name length must be reasonable (max device name length).
         if (name_len == 0) {
-            return HarborError.invalid_argument; // Zero-length name
+            return BasinError.invalid_argument; // Zero-length name
         }
         if (name_len > 128) {
-            return HarborError.invalid_argument; // Name too long
+            return BasinError.invalid_argument; // Name too long
         }
         
         // Assert: Name must fit within VM memory.
         if (name_ptr + name_len > VM_MEMORY_SIZE_AUDIO) {
-            return HarborError.invalid_argument; // Name exceeds VM memory
+            return BasinError.invalid_argument; // Name exceeds VM memory
         }
         
         // Assert: Device type must be valid.
         if (device_type > 5) {
-            return HarborError.invalid_argument; // Invalid device type
+            return BasinError.invalid_argument; // Invalid device type
         }
         
         // Get current process ID from scheduler.
@@ -76,7 +76,7 @@ pub const AudioSyscalls = struct {
         
         // Create device.
         const device_id = self.audio_devices.create_device(name, audio_device_type, owner_process_id) orelse {
-            return HarborError.out_of_memory; // No free device slot
+            return BasinError.out_of_memory; // No free device slot
         };
         
         const result = SyscallResult.ok(device_id);
@@ -91,28 +91,28 @@ pub const AudioSyscalls = struct {
     /// Why: Control device volume.
     /// Contract: device_id and volume must be valid.
     pub fn syscall_audio_set_volume(
-        self: *HarborKernel,
+        self: *BasinKernel,
         device_id: u64,
         volume: u64,
         _arg3: u64,
         _arg4: u64,
-    ) HarborError!SyscallResult {
+    ) BasinError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg3;
         _ = _arg4;
         
         // Assert: Device ID must be non-zero.
         if (device_id == 0) {
-            return HarborError.invalid_argument; // Invalid device ID
+            return BasinError.invalid_argument; // Invalid device ID
         }
         
         // Assert: Volume must be valid (0-100).
         if (volume > 100) {
-            return HarborError.invalid_argument; // Invalid volume
+            return BasinError.invalid_argument; // Invalid volume
         }
         
         const dev_id = @as(u32, @truncate(device_id));
@@ -120,7 +120,7 @@ pub const AudioSyscalls = struct {
         
         // Set device volume.
         if (!self.audio_devices.set_device_volume(dev_id, vol)) {
-            return HarborError.not_found; // Device not found
+            return BasinError.not_found; // Device not found
         }
         
         const result = SyscallResult.ok(0);
@@ -135,28 +135,28 @@ pub const AudioSyscalls = struct {
     /// Why: Control device mute state.
     /// Contract: device_id and muted must be valid.
     pub fn syscall_audio_set_mute(
-        self: *HarborKernel,
+        self: *BasinKernel,
         device_id: u64,
         muted: u64,
         _arg3: u64,
         _arg4: u64,
-    ) HarborError!SyscallResult {
+    ) BasinError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg3;
         _ = _arg4;
         
         // Assert: Device ID must be non-zero.
         if (device_id == 0) {
-            return HarborError.invalid_argument; // Invalid device ID
+            return BasinError.invalid_argument; // Invalid device ID
         }
         
         // Assert: Muted must be valid (0 or 1).
         if (muted > 1) {
-            return HarborError.invalid_argument; // Invalid mute value
+            return BasinError.invalid_argument; // Invalid mute value
         }
         
         const dev_id = @as(u32, @truncate(device_id));
@@ -164,7 +164,7 @@ pub const AudioSyscalls = struct {
         
         // Set device mute state.
         if (!self.audio_devices.set_device_mute(dev_id, is_muted)) {
-            return HarborError.not_found; // Device not found
+            return BasinError.not_found; // Device not found
         }
         
         const result = SyscallResult.ok(0);
@@ -179,28 +179,28 @@ pub const AudioSyscalls = struct {
     /// Why: Control device state.
     /// Contract: device_id and state must be valid.
     pub fn syscall_audio_set_state(
-        self: *HarborKernel,
+        self: *BasinKernel,
         device_id: u64,
         state: u64,
         _arg3: u64,
         _arg4: u64,
-    ) HarborError!SyscallResult {
+    ) BasinError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg3;
         _ = _arg4;
         
         // Assert: Device ID must be non-zero.
         if (device_id == 0) {
-            return HarborError.invalid_argument; // Invalid device ID
+            return BasinError.invalid_argument; // Invalid device ID
         }
         
         // Assert: State must be valid (0-3).
         if (state > 3) {
-            return HarborError.invalid_argument; // Invalid state
+            return BasinError.invalid_argument; // Invalid state
         }
         
         const dev_id = @as(u32, @truncate(device_id));
@@ -208,7 +208,7 @@ pub const AudioSyscalls = struct {
         
         // Set device state.
         if (!self.audio_devices.set_device_state(dev_id, audio_state)) {
-            return HarborError.not_found; // Device not found
+            return BasinError.not_found; // Device not found
         }
         
         const result = SyscallResult.ok(0);
@@ -223,16 +223,16 @@ pub const AudioSyscalls = struct {
     /// Why: Select active output device.
     /// Contract: device_id must be valid (or 0 to clear).
     pub fn syscall_audio_set_active_output(
-        self: *HarborKernel,
+        self: *BasinKernel,
         device_id: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) HarborError!SyscallResult {
+    ) BasinError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg2;
         _ = _arg3;
@@ -242,7 +242,7 @@ pub const AudioSyscalls = struct {
         
         // Set active output device.
         if (!self.audio_devices.set_active_output_device(dev_id)) {
-            return HarborError.not_found; // Device not found or invalid type
+            return BasinError.not_found; // Device not found or invalid type
         }
         
         const result = SyscallResult.ok(0);
@@ -257,16 +257,16 @@ pub const AudioSyscalls = struct {
     /// Why: Select active input device.
     /// Contract: device_id must be valid (or 0 to clear).
     pub fn syscall_audio_set_active_input(
-        self: *HarborKernel,
+        self: *BasinKernel,
         device_id: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) HarborError!SyscallResult {
+    ) BasinError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg2;
         _ = _arg3;
@@ -276,7 +276,7 @@ pub const AudioSyscalls = struct {
         
         // Set active input device.
         if (!self.audio_devices.set_active_input_device(dev_id)) {
-            return HarborError.not_found; // Device not found or invalid type
+            return BasinError.not_found; // Device not found or invalid type
         }
         
         const result = SyscallResult.ok(0);
@@ -291,16 +291,16 @@ pub const AudioSyscalls = struct {
     /// Why: Control master volume.
     /// Contract: volume must be valid (0-100).
     pub fn syscall_audio_set_master_volume(
-        self: *HarborKernel,
+        self: *BasinKernel,
         volume: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) HarborError!SyscallResult {
+    ) BasinError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg2;
         _ = _arg3;
@@ -308,14 +308,14 @@ pub const AudioSyscalls = struct {
         
         // Assert: Volume must be valid (0-100).
         if (volume > 100) {
-            return HarborError.invalid_argument; // Invalid volume
+            return BasinError.invalid_argument; // Invalid volume
         }
         
         const vol = @as(u32, @truncate(volume));
         
         // Set master volume.
         if (!self.audio_devices.set_master_volume(vol)) {
-            return HarborError.invalid_argument; // Invalid volume
+            return BasinError.invalid_argument; // Invalid volume
         }
         
         const result = SyscallResult.ok(0);
@@ -330,16 +330,16 @@ pub const AudioSyscalls = struct {
     /// Why: Control master mute state.
     /// Contract: muted must be valid (0 or 1).
     pub fn syscall_audio_set_master_mute(
-        self: *HarborKernel,
+        self: *BasinKernel,
         muted: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) HarborError!SyscallResult {
+    ) BasinError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg2;
         _ = _arg3;
@@ -347,7 +347,7 @@ pub const AudioSyscalls = struct {
         
         // Assert: Muted must be valid (0 or 1).
         if (muted > 1) {
-            return HarborError.invalid_argument; // Invalid mute value
+            return BasinError.invalid_argument; // Invalid mute value
         }
         
         const is_muted = muted != 0;
@@ -367,40 +367,40 @@ pub const AudioSyscalls = struct {
     /// Why: Retrieve device configuration.
     /// Contract: device_id must be valid, info_ptr must be valid VM address.
     pub fn syscall_audio_get_device(
-        self: *HarborKernel,
+        self: *BasinKernel,
         device_id: u64,
         info_ptr: u64,
         _arg3: u64,
         _arg4: u64,
-    ) HarborError!SyscallResult {
+    ) BasinError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg3;
         _ = _arg4;
         
         // Assert: Device ID must be non-zero.
         if (device_id == 0) {
-            return HarborError.invalid_argument; // Invalid device ID
+            return BasinError.invalid_argument; // Invalid device ID
         }
         
         // Assert: Info pointer must be valid (non-zero, within VM memory).
         if (info_ptr == 0) {
-            return HarborError.invalid_argument; // Null pointer
+            return BasinError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE_AUDIO_GET: u64 = 4 * 1024 * 1024; // 4MB default
         if (info_ptr >= VM_MEMORY_SIZE_AUDIO_GET) {
-            return HarborError.invalid_argument; // Info pointer exceeds VM memory
+            return BasinError.invalid_argument; // Info pointer exceeds VM memory
         }
         
         const dev_id = @as(u32, @truncate(device_id));
         
         // Get device.
         const device = self.audio_devices.get_device(dev_id) orelse {
-            return HarborError.not_found; // Device not found
+            return BasinError.not_found; // Device not found
         };
         
         // Write device information to VM memory (stub: would use vm_memory_writer).
@@ -420,30 +420,30 @@ pub const AudioSyscalls = struct {
     /// Why: Configure audio format (sample rate, channels, bit depth).
     /// Contract: device_id must be valid, format parameters must be valid.
     pub fn syscall_audio_set_format(
-        self: *HarborKernel,
+        self: *BasinKernel,
         device_id: u64,
         sample_rate: u64,
         channels: u64,
         bit_depth: u64,
-    ) HarborError!SyscallResult {
+    ) BasinError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
         
         // Assert: Device ID must be non-zero.
         if (device_id == 0) {
-            return HarborError.invalid_argument; // Invalid device ID
+            return BasinError.invalid_argument; // Invalid device ID
         }
         
         // Assert: Sample rate must be reasonable (8kHz to 192kHz).
         if (sample_rate < 8000 or sample_rate > 192000) {
-            return HarborError.invalid_argument; // Invalid sample rate
+            return BasinError.invalid_argument; // Invalid sample rate
         }
         
         // Assert: Channels must be reasonable (1 to 8).
         if (channels == 0 or channels > 8) {
-            return HarborError.invalid_argument; // Invalid channels
+            return BasinError.invalid_argument; // Invalid channels
         }
         
         // Assert: Bit depth must be valid (8, 16, 24, 32).
@@ -451,7 +451,7 @@ pub const AudioSyscalls = struct {
             bit_depth != 16 and
             bit_depth != 24 and
             bit_depth != 32) {
-            return HarborError.invalid_argument; // Invalid bit depth
+            return BasinError.invalid_argument; // Invalid bit depth
         }
         
         const dev_id = @as(u32, @truncate(device_id));
@@ -468,7 +468,7 @@ pub const AudioSyscalls = struct {
         // Set format.
         const success = self.audio_devices.set_device_format(dev_id, format);
         if (!success) {
-            return HarborError.not_found; // Device not found or format invalid
+            return BasinError.not_found; // Device not found or format invalid
         }
         
         const result = SyscallResult.ok(0);
@@ -483,45 +483,45 @@ pub const AudioSyscalls = struct {
     /// Why: Read audio data from input device.
     /// Contract: device_id must be valid, buffer_ptr and buffer_len must be valid.
     pub fn syscall_audio_read(
-        self: *HarborKernel,
+        self: *BasinKernel,
         device_id: u64,
         buffer_ptr: u64,
         buffer_len: u64,
         _arg4: u64,
-    ) HarborError!SyscallResult {
+    ) BasinError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg4;
         
         // Assert: Device ID must be non-zero.
         if (device_id == 0) {
-            return HarborError.invalid_argument; // Invalid device ID
+            return BasinError.invalid_argument; // Invalid device ID
         }
         
         // Assert: Buffer pointer must be valid (non-zero, within VM memory).
         if (buffer_ptr == 0) {
-            return HarborError.invalid_argument; // Null pointer
+            return BasinError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE_AUDIO: u64 = 4 * 1024 * 1024; // 4MB default
         if (buffer_ptr >= VM_MEMORY_SIZE_AUDIO) {
-            return HarborError.invalid_argument; // Buffer pointer exceeds VM memory
+            return BasinError.invalid_argument; // Buffer pointer exceeds VM memory
         }
         
         // Assert: Buffer length must be reasonable (max 64KB per read).
         if (buffer_len == 0) {
-            return HarborError.invalid_argument; // Zero-length buffer
+            return BasinError.invalid_argument; // Zero-length buffer
         }
         if (buffer_len > 64 * 1024) {
-            return HarborError.invalid_argument; // Buffer too large (> 64KB)
+            return BasinError.invalid_argument; // Buffer too large (> 64KB)
         }
         
         // Assert: Buffer must fit within VM memory.
         if (buffer_ptr + buffer_len > VM_MEMORY_SIZE_AUDIO) {
-            return HarborError.invalid_argument; // Buffer exceeds VM memory
+            return BasinError.invalid_argument; // Buffer exceeds VM memory
         }
         
         const dev_id = @as(u32, @truncate(device_id));
@@ -535,7 +535,7 @@ pub const AudioSyscalls = struct {
         // Read audio data.
         const bytes_read_opt = self.audio_devices.read_audio(dev_id, buffer);
         const bytes_read = bytes_read_opt orelse {
-            return HarborError.not_found; // Device not found or not input-capable
+            return BasinError.not_found; // Device not found or not input-capable
         };
         
         // Note: In real implementation, would write to VM memory at buffer_ptr.
@@ -555,45 +555,45 @@ pub const AudioSyscalls = struct {
     /// Why: Write audio data to output device.
     /// Contract: device_id must be valid, data_ptr and data_len must be valid.
     pub fn syscall_audio_write(
-        self: *HarborKernel,
+        self: *BasinKernel,
         device_id: u64,
         data_ptr: u64,
         data_len: u64,
         _arg4: u64,
-    ) HarborError!SyscallResult {
+    ) BasinError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg4;
         
         // Assert: Device ID must be non-zero.
         if (device_id == 0) {
-            return HarborError.invalid_argument; // Invalid device ID
+            return BasinError.invalid_argument; // Invalid device ID
         }
         
         // Assert: Data pointer must be valid (non-zero, within VM memory).
         if (data_ptr == 0) {
-            return HarborError.invalid_argument; // Null pointer
+            return BasinError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE_AUDIO: u64 = 4 * 1024 * 1024; // 4MB default
         if (data_ptr >= VM_MEMORY_SIZE_AUDIO) {
-            return HarborError.invalid_argument; // Data pointer exceeds VM memory
+            return BasinError.invalid_argument; // Data pointer exceeds VM memory
         }
         
         // Assert: Data length must be reasonable (max 64KB per write).
         if (data_len == 0) {
-            return HarborError.invalid_argument; // Zero-length data
+            return BasinError.invalid_argument; // Zero-length data
         }
         if (data_len > 64 * 1024) {
-            return HarborError.invalid_argument; // Data too large (> 64KB)
+            return BasinError.invalid_argument; // Data too large (> 64KB)
         }
         
         // Assert: Data must fit within VM memory.
         if (data_ptr + data_len > VM_MEMORY_SIZE_AUDIO) {
-            return HarborError.invalid_argument; // Data exceeds VM memory
+            return BasinError.invalid_argument; // Data exceeds VM memory
         }
         
         const dev_id = @as(u32, @truncate(device_id));
@@ -612,7 +612,7 @@ pub const AudioSyscalls = struct {
         // Write audio data.
         const bytes_written_opt = self.audio_devices.write_audio(dev_id, data);
         const bytes_written = bytes_written_opt orelse {
-            return HarborError.not_found; // Device not found or not output-capable
+            return BasinError.not_found; // Device not found or not output-capable
         };
         
         const result = SyscallResult.ok(@as(u64, @intCast(bytes_written)));
@@ -628,40 +628,40 @@ pub const AudioSyscalls = struct {
     /// Why: Get list of all audio devices.
     /// Contract: device_ids_ptr must be valid VM address, max_count must be valid.
     pub fn syscall_audio_enumerate_devices(
-        self: *HarborKernel,
+        self: *BasinKernel,
         device_ids_ptr: u64,
         max_count: u64,
         _arg3: u64,
         _arg4: u64,
-    ) HarborError!SyscallResult {
+    ) BasinError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg3;
         _ = _arg4;
         
         // Assert: Device IDs pointer must be valid (non-zero, within VM memory).
         if (device_ids_ptr == 0) {
-            return HarborError.invalid_argument; // Null pointer
+            return BasinError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default
         if (device_ids_ptr >= VM_MEMORY_SIZE) {
-            return HarborError.invalid_argument; // Device IDs pointer exceeds VM memory
+            return BasinError.invalid_argument; // Device IDs pointer exceeds VM memory
         }
         
         // Assert: Max count must be reasonable (max 16 devices).
         const max_cnt = @as(u32, @truncate(max_count));
         if (max_cnt > 16) {
-            return HarborError.invalid_argument; // Max count too large
+            return BasinError.invalid_argument; // Max count too large
         }
         
         // Assert: Device IDs array must fit within VM memory (max 16 * 4 bytes = 64 bytes).
         const DEVICE_IDS_SIZE: u64 = max_cnt * 4; // u32 per device ID
         if (device_ids_ptr + DEVICE_IDS_SIZE > VM_MEMORY_SIZE) {
-            return HarborError.invalid_argument; // Device IDs array exceeds VM memory
+            return BasinError.invalid_argument; // Device IDs array exceeds VM memory
         }
         
         // Create temporary device IDs array.
@@ -687,16 +687,16 @@ pub const AudioSyscalls = struct {
     /// Why: Provide audio device statistics to userspace.
     /// Contract: stats_ptr must be valid pointer to AudioDeviceStats structure.
     pub fn syscall_audio_get_stats(
-        self: *HarborKernel,
+        self: *BasinKernel,
         stats_ptr: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) HarborError!SyscallResult {
+    ) BasinError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg2;
         _ = _arg3;
@@ -704,19 +704,19 @@ pub const AudioSyscalls = struct {
         
         // Assert: Stats pointer must be valid (non-zero, within VM memory).
         if (stats_ptr == 0) {
-            return HarborError.invalid_argument; // Null pointer
+            return BasinError.invalid_argument; // Null pointer
         }
         
         const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default
         if (stats_ptr >= VM_MEMORY_SIZE) {
-            return HarborError.invalid_argument; // Stats pointer exceeds VM memory
+            return BasinError.invalid_argument; // Stats pointer exceeds VM memory
         }
         
         // Assert: AudioDeviceStats structure must fit within VM memory.
         // AudioDeviceStats size: 15 fields (6 u64 + 1 u32 + 8 u64) = 6*8 + 4 + 8*8 = 116 bytes
         const AUDIO_STATS_SIZE: u64 = 116;
         if (stats_ptr + AUDIO_STATS_SIZE > VM_MEMORY_SIZE) {
-            return HarborError.invalid_argument; // Stats structure exceeds VM memory
+            return BasinError.invalid_argument; // Stats structure exceeds VM memory
         }
         
         // Note: Statistics structure will be written by integration layer.
@@ -735,16 +735,16 @@ pub const AudioSyscalls = struct {
     /// Why: Remove audio device.
     /// Contract: device_id must be valid.
     pub fn syscall_audio_delete_device(
-        self: *HarborKernel,
+        self: *BasinKernel,
         device_id: u64,
         _arg2: u64,
         _arg3: u64,
         _arg4: u64,
-    ) HarborError!SyscallResult {
+    ) BasinError!SyscallResult {
         // Assert: self pointer must be valid.
         const self_ptr = @intFromPtr(self);
         Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(HarborKernel) == 0, "Self ptr unaligned", .{});
+        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
         
         _ = _arg2;
         _ = _arg3;
@@ -752,14 +752,14 @@ pub const AudioSyscalls = struct {
         
         // Assert: Device ID must be non-zero.
         if (device_id == 0) {
-            return HarborError.invalid_argument; // Invalid device ID
+            return BasinError.invalid_argument; // Invalid device ID
         }
         
         const dev_id = @as(u32, @truncate(device_id));
         
         // Delete device.
         if (!self.audio_devices.delete_device(dev_id)) {
-            return HarborError.not_found; // Device not found
+            return BasinError.not_found; // Device not found
         }
         
         const result = SyscallResult.ok(0);

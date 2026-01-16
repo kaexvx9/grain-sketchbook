@@ -8,10 +8,10 @@
 
 const std = @import("std");
 const testing = std.testing;
-const harbor_kernel = @import("harbor_kernel");
-const HarborKernel = harbor_kernel.HarborKernel;
-const Syscall = harbor_kernel.Syscall;
-const RawIO = harbor_kernel.RawIO;
+const basin_kernel = @import("basin_kernel");
+const BasinKernel = basin_kernel.BasinKernel;
+const Syscall = basin_kernel.Syscall;
+const RawIO = basin_kernel.RawIO;
 const grainscript = @import("grainscript");
 const Lexer = grainscript.Lexer;
 const Parser = grainscript.Parser;
@@ -29,8 +29,8 @@ test "qemu basin + grainscript: kernel and grainscript integration" {
     const allocator = arena.allocator();
     
     // Allocate Kernel via arena (Grain Style: bounded, explicit)
-    const kernel = try allocator.create(HarborKernel);
-    HarborKernel.init_in_place(kernel);
+    const kernel = try allocator.create(BasinKernel);
+    BasinKernel.init_in_place(kernel);
     
     // Simulate QEMU environment: Initialize Grainscript interpreter
     // In QEMU, this would be done via REPL command "eval <code>"
@@ -68,11 +68,11 @@ test "qemu basin + grainscript: syscall from grainscript context" {
     const allocator = arena.allocator();
     
     // Allocate Kernel via arena
-    const kernel = try allocator.create(HarborKernel);
-    HarborKernel.init_in_place(kernel);
+    const kernel = try allocator.create(BasinKernel);
+    BasinKernel.init_in_place(kernel);
     
     // Test that we can call kernel syscalls (simulating from Grainscript in QEMU)
-    const result = harbor_kernel.handle_syscall(
+    const result = basin_kernel.handle_syscall(
         kernel,
         @intFromEnum(Syscall.sysinfo),
         0x1000, // stats pointer
@@ -101,8 +101,8 @@ test "qemu basin + grainscript: qemu readiness check" {
     defer arena.deinit();
     const allocator = arena.allocator();
     
-    const kernel = try allocator.create(HarborKernel);
-    HarborKernel.init_in_place(kernel);
+    const kernel = try allocator.create(BasinKernel);
+    BasinKernel.init_in_place(kernel);
     
     // Verify Grainscript can be initialized (required for QEMU)
     const source = "1;";

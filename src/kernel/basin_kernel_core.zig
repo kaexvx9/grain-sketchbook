@@ -41,7 +41,7 @@ const syscall_performance_profiler = @import("syscall_performance_profiler.zig")
 const SyscallPerformanceProfiler = syscall_performance_profiler.SyscallPerformanceProfiler;
 
 // Import types
-const types = @import("harbor_kernel_types.zig");
+const types = @import("basin_kernel_types.zig");
 const MemoryMapping = types.MemoryMapping;
 const FileHandle = types.FileHandle;
 const DirectoryHandle = types.DirectoryHandle;
@@ -62,7 +62,7 @@ const MAX_USERS = types.MAX_USERS;
 /// Basin Kernel main struct.
 /// Why: Central kernel state, all subsystems, resource tables.
 /// Grain Style: Static allocation, explicit state tracking.
-pub const HarborKernel = struct {
+pub const BasinKernel = struct {
     /// Memory mapping table (static allocation).
     /// Why: Track memory mappings for map/unmap/protect syscalls.
     /// Grain Style: Static allocation, max 256 entries.

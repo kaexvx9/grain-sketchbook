@@ -1,4 +1,4 @@
-//! Harbor Kernel Type Definitions
+//! Basin Kernel Type Definitions
 //! Why: Centralized type definitions for kernel API and internal structures.
 //! Clutch Style: Explicit types (u32/u64 not usize), static allocation, comprehensive assertions.
 
@@ -7,7 +7,7 @@ const Debug = @import("debug.zig");
 const SignalTable = @import("signal.zig").SignalTable;
 const ProcessContext = @import("process.zig").ProcessContext;
 
-/// Harbor Kernel syscall numbers.
+/// Basin Kernel syscall numbers.
 /// Why: Explicit syscall enumeration for type safety and clarity.
 pub const Syscall = enum(u32) {
     // Process & Thread Management
@@ -415,7 +415,7 @@ pub const UserContext = struct {
 
 /// Basin Kernel error types.
 /// Why: Explicit error types instead of POSIX errno.
-pub const HarborError = error{
+pub const BasinError = error{
     invalid_handle,
     invalid_argument,
     permission_denied,

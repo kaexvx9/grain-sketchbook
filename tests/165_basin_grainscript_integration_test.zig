@@ -4,10 +4,10 @@
 
 const std = @import("std");
 const testing = std.testing;
-const harbor_kernel = @import("harbor_kernel");
-const HarborKernel = harbor_kernel.HarborKernel;
-const Syscall = harbor_kernel.Syscall;
-const RawIO = harbor_kernel.RawIO;
+const basin_kernel = @import("basin_kernel");
+const BasinKernel = basin_kernel.BasinKernel;
+const Syscall = basin_kernel.Syscall;
+const RawIO = basin_kernel.RawIO;
 const grainscript = @import("grainscript");
 const Lexer = grainscript.Lexer;
 const Parser = grainscript.Parser;
@@ -25,8 +25,8 @@ test "basin + grainscript: kernel syscall from grainscript" {
     const allocator = arena.allocator();
     
     // Allocate Kernel via arena (Grain Style: bounded, explicit)
-    const kernel = try allocator.create(HarborKernel);
-    HarborKernel.init_in_place(kernel);
+    const kernel = try allocator.create(BasinKernel);
+    BasinKernel.init_in_place(kernel);
     
     // Initialize Grainscript interpreter
     const source = "42;"; // Simple expression
@@ -63,11 +63,11 @@ test "basin + grainscript: syscall validation" {
     const allocator = arena.allocator();
     
     // Allocate Kernel via arena
-    const kernel = try allocator.create(HarborKernel);
-    HarborKernel.init_in_place(kernel);
+    const kernel = try allocator.create(BasinKernel);
+    BasinKernel.init_in_place(kernel);
     
     // Test that we can call kernel syscalls (simulating from Grainscript)
-    const result = harbor_kernel.handle_syscall(
+    const result = basin_kernel.handle_syscall(
         kernel,
         @intFromEnum(Syscall.sysinfo),
         0x1000, // stats pointer

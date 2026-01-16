@@ -5,7 +5,7 @@
 // Import sbi module (provided by build.zig imports)
 const sbi = @import("sbi");
 // Import Debug and platform through harbor_kernel to avoid module conflicts
-const harbor_kernel = @import("harbor_kernel");
+const harbor_kernel = @import("basin_kernel");
 const Debug = harbor_kernel.Debug;
 pub const platform = harbor_kernel.platform;
 

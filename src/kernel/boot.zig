@@ -4,7 +4,7 @@
 
 const std = @import("std");
 const Debug = @import("debug.zig");
-const HarborKernel = @import("harbor_kernel.zig").HarborKernel;
+const HarborKernel = @import("basin_kernel.zig").HarborKernel;
 
 /// Boot phase enumeration.
 /// Why: Explicit boot phases for clear initialization order.

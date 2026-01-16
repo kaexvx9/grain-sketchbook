@@ -13,7 +13,7 @@ const helpers = @import("helpers.zig");
 // Kernel and VM modules structure.
 pub const KernelModules = struct {
     elf_parser: *Build.Module,
-    harbor_kernel: *Build.Module,
+    basin_kernel: *Build.Module,
     sbi: *Build.Module,
     kernel_vm: *Build.Module,
 };
@@ -27,10 +27,10 @@ pub fn create_kernel_modules(
         "elf_parser",
         "src/kernel/elf_parser.zig",
     );
-    const harbor_kernel_mod = helpers.add_simple_module(
+    const basin_kernel_mod = helpers.add_simple_module(
         ctx,
-        "harbor_kernel",
-        "src/kernel/harbor_kernel.zig",
+        "basin_kernel",
+        "src/kernel/basin_kernel.zig",
     );
     const sbi_mod = helpers.add_simple_module(
         ctx,
@@ -43,13 +43,13 @@ pub fn create_kernel_modules(
         "src/kernel_vm/kernel_vm.zig",
         &.{
             .{ .name = "sbi", .module = sbi_mod },
-            .{ .name = "harbor_kernel", .module = harbor_kernel_mod },
+            .{ .name = "basin_kernel", .module = basin_kernel_mod },
         },
     );
     
     return KernelModules{
         .elf_parser = elf_parser_mod,
-        .harbor_kernel = harbor_kernel_mod,
+        .basin_kernel = basin_kernel_mod,
         .sbi = sbi_mod,
         .kernel_vm = kernel_vm_mod,
     };
@@ -125,7 +125,7 @@ pub fn create_kernel_vm_test_executable(
         "src/kernel_vm/test.zig",
         &.{
             .{ .name = "kernel_vm", .module = kernel_modules.kernel_vm },
-            .{ .name = "harbor_kernel", .module = kernel_modules.harbor_kernel },
+            .{ .name = "basin_kernel", .module = kernel_modules.basin_kernel },
         },
     );
 }
@@ -153,7 +153,7 @@ pub fn create_benchmark_jit_executable(
         "src/kernel_vm/benchmark_jit.zig",
         &.{
             .{ .name = "kernel_vm", .module = kernel_modules.kernel_vm },
-            .{ .name = "harbor_kernel", .module = kernel_modules.harbor_kernel },
+            .{ .name = "basin_kernel", .module = kernel_modules.basin_kernel },
         },
     );
 }
