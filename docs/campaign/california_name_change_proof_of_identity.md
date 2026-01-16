@@ -38,10 +38,27 @@
 
 ## California-Specific Requirements
 
+### Online Form Preparation: LawHelp Interactive
+
+**Streamlined Option**: California offers an online tool to help prepare name change forms:
+- **Website**: LawHelp Interactive (lawhelpinteractive.org)
+- **Service**: Interactive interview that helps fill out required forms
+- **Supported Types**:
+  - Changing one's own name
+  - Changing name to match gender identity (adult only)
+  - Changing name(s) of one or more children
+  - Family group name changes
+  - Gender change recognition with name change and new birth certificate
+- **Eligibility**: Must be 18 years or older
+- **Note**: Program prepares forms but does NOT file them—you still need to print and file at court
+- **Exclusions**: Does not help with name changes during/after divorce, adding/removing parent names on birth certificates, or minor gender/name changes
+
+**Benefits**: Streamlines form preparation, ensures correct information, guides through eligibility questions
+
 ### For Filing the Name Change Petition
 
 **Required Documents**:
-- Name change petition form (county-specific)
+- Name change petition form (county-specific, can be prepared via LawHelp Interactive)
 - **Proof of identity** (one or more of the above primary documents)
 - Filing fee ($400-$500, varies by county)
 - Publication notice (unless change is for gender identity matching)
@@ -135,10 +152,13 @@ Agencies and courts typically verify:
 
 ## Next Steps
 
-1. **Gather primary documents** (birth certificate, driver's license, Social Security card)
-2. **Order certified copies** if needed (allow 2-4 weeks for mail)
-3. **Contact county court** for exact requirements and forms
-4. **File petition** with proof of identity
+1. **Use LawHelp Interactive** (optional but recommended):
+   - Visit lawhelpinteractive.org
+   - Complete interactive interview to prepare forms
+   - Print completed forms
+2. **Gather primary documents** (birth certificate, driver's license, Social Security card)
+3. **Order certified copies** if needed (allow 2-4 weeks for mail)
+4. **File petition** at county court with proof of identity and completed forms
 5. **Attend court hearing** (if required)
 6. **Get certified copies of decree** (order multiple copies)
 7. **Update all records** (Social Security, DMV, voter registration, etc.)
@@ -147,6 +167,7 @@ Agencies and courts typically verify:
 
 ## Resources
 
+- **LawHelp Interactive**: https://lawhelpinteractive.org (online form preparation tool)
 - **California Courts Self-Help**: https://selfhelp.courts.ca.gov/name-change/name-adult
 - **County Superior Court**: Contact local court clerk's office
 - **Vital Records**: Order certified birth certificates from California Department of Public Health
