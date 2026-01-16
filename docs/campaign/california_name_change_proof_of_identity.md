@@ -142,18 +142,19 @@ Agencies and courts typically verify:
 
 ### Filing Location
 
-**Physical Address**: 201 North First Street, San Jose, CA 95113
+**Correct Filing Address**: **201 North First Street, San Jose, CA 95113**
 
-**Important Note**: There may be confusion about which department/division handles name changes:
-- **Probate Division** (Superior Court) - Some sources list this as the filing location
-- **Family Justice Center** - Also at the same address, handles FAMILY and SELF-HELP matters
-- Both are at the same physical address but may be different departments
+**Department**: Santa Clara County Superior Court – **Probate Division**
 
-**Recommended Action**: 
-1. **Call ahead to confirm**: (408) 534-5600 or visit www.scscourt.org
-2. **Ask specifically**: "Where do I file a name change petition - Probate Division or Family Justice Center?"
-3. **Self-Help Center**: Located at 201 N. First Street, San Jose - offers assistance M-Thu: 8:30AM-3:00PM, F: 8:30AM-12:30PM
-4. **Form Review**: Email completed forms to SHCDocReview@scscourt.org for pre-filing review (no legal advice)
+**Important**: This is the **primary location to file legal name change petitions**, including name and gender changes, in Santa Clara County.
+
+**Note on Court Locations**:
+- **201 North First Street** = Family Justice Center / Probate Division (handles FAMILY, PROBATE, SELF-HELP, JUVENILE DEPENDENCY) - **Use this address for name changes**
+- **191 North First Street** = Downtown Superior Court (handles CIVIL, PROBATE, SMALL CLAIMS) - Different location, not for name changes
+
+**Self-Help Center**: Located at 201 N. First Street, San Jose - offers assistance M-Thu: 8:30AM-3:00PM, F: 8:30AM-12:30PM
+
+**Form Review**: Email completed forms to SHCDocReview@scscourt.org for pre-filing review (no legal advice)
 
 ### Filing Fee
 
@@ -184,8 +185,9 @@ Agencies and courts typically verify:
 - The address on your **petition** (your residence address) is different from the **court filing address**
 - You must file in Santa Clara County if you legally reside in Santa Clara County
 - Use your **current, verifiable residence address** on the petition (the one you can prove with bills, lease, DMV records)
-- The **court filing address** is always 201 North First Street, San Jose, CA 95113
-- If unsure, call (408) 534-5600 to confirm which department/division to file with
+- The **court filing address** is always **201 North First Street, San Jose, CA 95113** (Probate Division)
+- **Do not use 191 North First Street** - that's a different court location for different matters
+- If unsure, call (408) 534-5600 to confirm
 
 ---
 
