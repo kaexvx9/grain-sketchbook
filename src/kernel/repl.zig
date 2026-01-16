@@ -153,6 +153,7 @@ pub const Repl = struct {
             Debug.kprint("  ps            - List processes\n", .{});
             Debug.kprint("  echo <text>   - Print text\n", .{});
             Debug.kprint("  eval <code>   - Execute Grainscript code\n", .{});
+            Debug.kprint("  clear         - Clear screen\n", .{});
             Debug.kprint("  exit          - Exit REPL\n", .{});
             return;
         }
@@ -185,6 +186,12 @@ pub const Repl = struct {
         // Eval command (Grainscript execution)
         if (std.mem.eql(u8, command, "eval")) {
             self.cmd_eval(args);
+            return;
+        }
+
+        // Clear command
+        if (std.mem.eql(u8, command, "clear")) {
+            self.cmd_clear();
             return;
         }
 
@@ -240,6 +247,14 @@ pub const Repl = struct {
         if (count == 0) {
             Debug.kprint("  (no processes)\n", .{});
         }
+    }
+
+    /// Execute clear command.
+    /// Why: Clear screen for better REPL experience.
+    fn cmd_clear(self: *Self) void {
+        _ = self;
+        // ANSI escape sequence to clear screen and move cursor to top-left
+        Debug.kprint("\x1b[2J\x1b[H", .{});
     }
 
     /// Execute echo command.
