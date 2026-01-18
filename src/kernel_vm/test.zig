@@ -325,29 +325,70 @@ fn test_kernel_elf_loading(allocator: std.mem.Allocator) !void {
     
     // Map kernel memory region with execute permission.
     // The kernel is loaded at physical address 0, but uses virtual address 0x80000000.
-    // Only map kernel code/data region (first ~1MB is enough for initial execution).
+    // Map entire kernel text+rodata region (~1MB).
     // Note: MAX_PAGE_TABLE_ENTRIES is 1024, so we can map ~4MB with 4KB pages.
     const RWX: u8 = 0x07;
-    const KERNEL_SIZE: u64 = 1024 * 1024; // 1MB - enough for kernel text
+    const KERNEL_SIZE: u64 = 1024 * 1024; // 1MB - covers kernel text + rodata
     var page: u64 = 0;
+    var mapped_count: u32 = 0;
     while (page < KERNEL_SIZE) : (page += 4096) {
         // Map virtual address 0x80000000+offset to physical address offset.
-        _ = vm2.memory_protection.map_page(0x80000000 + page, page, RWX);
+        if (vm2.memory_protection.map_page(0x80000000 + page, page, RWX)) {
+            mapped_count += 1;
+        }
     }
-    std.debug.print("[kernel_vm_test] Mapped {} pages for kernel\n", .{KERNEL_SIZE / 4096});
+    std.debug.print("[kernel_vm_test] Mapped {} pages for kernel (requested {})\n", .{
+        mapped_count,
+        KERNEL_SIZE / 4096,
+    });
+    
+    // Set up stack pointer. The kernel expects sp to be valid.
+    // Use top of physical memory as stack (grows downward).
+    // Stack is at virtual address 0x80000000 + (8MB - 4KB) = 0x807FF000
+    const STACK_TOP: u64 = 0x80000000 + (8 * 1024 * 1024) - 4096;
+    vm2.regs.set(2, STACK_TOP); // x2 = sp
+    vm2.regs.set(8, STACK_TOP); // x8 = fp/s0
+    std.debug.print("[kernel_vm_test] Stack pointer set to 0x{x}\n", .{STACK_TOP});
+    
+    // Map stack region with RW permissions
+    const RW: u8 = 0x03;
+    var stack_page: u64 = 7 * 1024 * 1024; // 7MB to 8MB for stack
+    while (stack_page < 8 * 1024 * 1024) : (stack_page += 4096) {
+        _ = vm2.memory_protection.map_page(0x80000000 + stack_page, stack_page, RW);
+    }
+    std.debug.print("[kernel_vm_test] Mapped stack region (7MB-8MB)\n", .{});
     
     // Execute a few instructions to verify kernel starts.
     vm2.start();
     var instructions_executed: u32 = 0;
-    const MAX_INSTRUCTIONS: u32 = 1000;
+    const MAX_INSTRUCTIONS: u32 = 10000;
     
+    var prev_sp: u64 = vm2.regs.get(2);
     while (instructions_executed < MAX_INSTRUCTIONS) : (instructions_executed += 1) {
+        const pc_before = vm2.regs.pc;
+        const sp_before = vm2.regs.get(2);
+        
+        // Track SP changes
+        if (sp_before != prev_sp) {
+            std.debug.print(
+                "[kernel_vm_test] SP changed: 0x{x} -> 0x{x} (at PC 0x{x})\n",
+                .{ prev_sp, sp_before, pc_before },
+            );
+            prev_sp = sp_before;
+        }
+        
         vm2.step() catch |err| {
             if (err == error.halted) {
                 std.debug.print("[kernel_vm_test] VM halted after {} instructions\n", .{instructions_executed});
                 break;
             }
-            std.debug.print("[kernel_vm_test] Execution error at PC 0x{x}: {}\n", .{ vm2.regs.pc, err });
+            // Debug: check if PC is in mapped range
+            const phys_pc = vm2.translate_address(pc_before);
+            const page_perms = vm2.memory_protection.get_permissions(pc_before);
+            std.debug.print(
+                "[kernel_vm_test] Error at PC 0x{x} (phys={?x}, perms={?x}): {}\n",
+                .{ pc_before, phys_pc, page_perms, err },
+            );
             break;
         };
         

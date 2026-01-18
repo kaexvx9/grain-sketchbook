@@ -1152,8 +1152,8 @@ pub const VM = struct {
         const pc = self.regs.pc;
 
         // Assert: PC must be within memory bounds (need 4 bytes for instruction).
-        // Assert: PC must be 4-byte aligned (RISC-V instruction alignment).
-        if (pc % 4 != 0) {
+        // Assert: PC must be 2-byte aligned (RVC allows 16-bit instructions).
+        if (pc % 2 != 0) {
             // Record exception (instruction address misaligned, code 0).
             self.exception_stats.record_exception(0);
             return VMError.unaligned_instruction;
@@ -1209,11 +1209,31 @@ pub const VM = struct {
             }
         }
 
-        // Read 32-bit instruction (little-endian) using physical address.
-        const bytes = self.memory[@intCast(phys_pc)..][0..4];
-        const inst = std.mem.readInt(u32, bytes, .little);
-
-        return inst;
+        // Read instruction (16 or 32-bit, little-endian) using physical address.
+        // RVC (compressed): if bits [1:0] != 0b11, it's 16-bit
+        const bytes16 = self.memory[@intCast(phys_pc)..][0..2];
+        const inst16 = std.mem.readInt(u16, bytes16, .little);
+        
+        // Check if this is a compressed (16-bit) or full (32-bit) instruction
+        if ((inst16 & 0b11) != 0b11) {
+            // Compressed instruction: return 16-bit value with marker
+            // Use upper 16 bits as zero to indicate compressed
+            return @as(u32, inst16);
+        }
+        
+        // Full 32-bit instruction
+        const bytes32 = self.memory[@intCast(phys_pc)..][0..4];
+        return std.mem.readInt(u32, bytes32, .little);
+    }
+    
+    /// Check if instruction is compressed (16-bit).
+    fn is_compressed_instruction(inst: u32) bool {
+        return (inst & 0b11) != 0b11;
+    }
+    
+    /// Get instruction size in bytes.
+    fn instruction_size(inst: u32) u64 {
+        return if (is_compressed_instruction(inst)) 2 else 4;
     }
 
     /// Execute single instruction (decode and execute).
@@ -1233,14 +1253,14 @@ pub const VM = struct {
             return;
         }
 
-        // Assert: PC must be 4-byte aligned.
-        std.debug.assert(pc_before % 4 == 0);
+        // Assert: PC must be 2-byte aligned (RVC allows 16-bit instructions).
+        std.debug.assert(pc_before % 2 == 0);
         
         // Note: PC may be a virtual address (e.g., 0x80000000 for kernel).
         // The translate_address() function will map it to physical address.
         // We verify the physical address is valid in fetch_instruction().
 
-        // Fetch instruction at PC.
+        // Fetch instruction at PC (may be 16 or 32 bits).
         const inst = try self.fetch_instruction();
         
         // Track instruction execution (performance monitoring).
@@ -1263,23 +1283,451 @@ pub const VM = struct {
         // Record instruction trace (before execution).
         self.instruction_trace.record_instruction(self, pc_before, inst);
 
-        // Execute based on opcode.
-        // Why: RISC-V uses opcode-based instruction decoding.
-        try self.execute_opcode(opcode, inst);
+        // Execute based on instruction type (compressed or full).
+        const inst_size = instruction_size(inst);
+        
+        if (is_compressed_instruction(inst)) {
+            // Execute compressed (16-bit) instruction
+            try self.execute_compressed(@as(u16, @truncate(inst)));
+        } else {
+            // Execute full (32-bit) instruction
+            try self.execute_opcode(opcode, inst);
+        }
 
-        // Advance PC to next instruction (4 bytes).
-        // Note: Branch instructions modify PC directly, so check if PC was modified.
+        // Advance PC to next instruction (2 or 4 bytes).
+        // Note: Branch/jump instructions modify PC directly, check if PC was modified.
         if (self.regs.pc == pc_before) {
-            // Normal case: PC unchanged by instruction, advance by 4 bytes.
-            self.regs.pc += 4;
+            // Normal case: PC unchanged by instruction, advance.
+            self.regs.pc += inst_size;
         }
         // Else: PC was modified by branch instruction, don't increment again.
 
-        // Assert: PC must be 4-byte aligned after instruction execution.
-        std.debug.assert(self.regs.pc % 4 == 0);
+        // Assert: PC must be 2-byte aligned after instruction execution.
+        std.debug.assert(self.regs.pc % 2 == 0);
 
         // Note: PC may be a virtual address (e.g., 0x80000000+ for kernel).
         // We don't check bounds here since translate_address() handles that.
+    }
+    
+    /// Execute compressed (16-bit RVC) instruction.
+    /// RVC quadrants: bits [1:0] determine instruction quadrant.
+    fn execute_compressed(self: *Self, inst: u16) VMError!void {
+        const quadrant = @as(u2, @truncate(inst));
+        const funct3 = @as(u3, @truncate(inst >> 13));
+        
+        switch (quadrant) {
+            0b00 => try self.execute_c0(inst, funct3),
+            0b01 => try self.execute_c1(inst, funct3),
+            0b10 => try self.execute_c2(inst, funct3),
+            0b11 => unreachable, // Not a compressed instruction
+        }
+    }
+    
+    /// Execute C0 quadrant compressed instruction.
+    fn execute_c0(self: *Self, inst: u16, funct3: u3) VMError!void {
+        switch (funct3) {
+            0b000 => {
+                // C.ADDI4SPN: addi rd', sp, imm
+                const rd_prime = @as(u3, @truncate(inst >> 2));
+                const rd: u5 = @as(u5, rd_prime) + 8; // rd' maps to x8-x15
+                // imm = [5:4|9:6|2|3] scaled by 4
+                const nzuimm_5_4 = @as(u2, @truncate(inst >> 11));
+                const nzuimm_9_6 = @as(u4, @truncate(inst >> 7));
+                const nzuimm_2 = @as(u1, @truncate(inst >> 6));
+                const nzuimm_3 = @as(u1, @truncate(inst >> 5));
+                const imm: u64 = (@as(u64, nzuimm_5_4) << 4) |
+                    (@as(u64, nzuimm_9_6) << 6) |
+                    (@as(u64, nzuimm_2) << 2) |
+                    (@as(u64, nzuimm_3) << 3);
+                const sp = self.regs.get(2);
+                self.regs.set(rd, sp +% imm);
+            },
+            0b010 => {
+                // C.LW: lw rd', offset(rs1')
+                const rd_prime = @as(u3, @truncate(inst >> 2));
+                const rs1_prime = @as(u3, @truncate(inst >> 7));
+                const rd: u5 = @as(u5, rd_prime) + 8;
+                const rs1: u5 = @as(u5, rs1_prime) + 8;
+                // offset = [5:3|2|6]
+                const uimm_5_3 = @as(u3, @truncate(inst >> 10));
+                const uimm_2 = @as(u1, @truncate(inst >> 6));
+                const uimm_6 = @as(u1, @truncate(inst >> 5));
+                const offset: u64 = (@as(u64, uimm_5_3) << 3) |
+                    (@as(u64, uimm_2) << 2) |
+                    (@as(u64, uimm_6) << 6);
+                const base = self.regs.get(rs1);
+                const eff_addr = base +% offset;
+                const phys = self.translate_address(eff_addr) orelse return VMError.invalid_memory_access;
+                if (phys + 4 > self.memory_size) return VMError.invalid_memory_access;
+                const val = std.mem.readInt(i32, self.memory[@intCast(phys)..][0..4], .little);
+                self.regs.set(rd, @bitCast(@as(i64, val)));
+            },
+            0b011 => {
+                // C.LD: ld rd', offset(rs1')
+                const rd_prime = @as(u3, @truncate(inst >> 2));
+                const rs1_prime = @as(u3, @truncate(inst >> 7));
+                const rd: u5 = @as(u5, rd_prime) + 8;
+                const rs1: u5 = @as(u5, rs1_prime) + 8;
+                // offset = [5:3|7:6]
+                const uimm_5_3 = @as(u3, @truncate(inst >> 10));
+                const uimm_7_6 = @as(u2, @truncate(inst >> 5));
+                const offset: u64 = (@as(u64, uimm_5_3) << 3) | (@as(u64, uimm_7_6) << 6);
+                const base = self.regs.get(rs1);
+                const eff_addr = base +% offset;
+                const phys = self.translate_address(eff_addr) orelse return VMError.invalid_memory_access;
+                if (phys + 8 > self.memory_size) return VMError.invalid_memory_access;
+                const val = std.mem.readInt(u64, self.memory[@intCast(phys)..][0..8], .little);
+                self.regs.set(rd, val);
+            },
+            0b110 => {
+                // C.SW: sw rs2', offset(rs1')
+                const rs2_prime = @as(u3, @truncate(inst >> 2));
+                const rs1_prime = @as(u3, @truncate(inst >> 7));
+                const rs2: u5 = @as(u5, rs2_prime) + 8;
+                const rs1: u5 = @as(u5, rs1_prime) + 8;
+                const uimm_5_3 = @as(u3, @truncate(inst >> 10));
+                const uimm_2 = @as(u1, @truncate(inst >> 6));
+                const uimm_6 = @as(u1, @truncate(inst >> 5));
+                const offset: u64 = (@as(u64, uimm_5_3) << 3) |
+                    (@as(u64, uimm_2) << 2) |
+                    (@as(u64, uimm_6) << 6);
+                const base = self.regs.get(rs1);
+                const eff_addr = base +% offset;
+                const phys = self.translate_address(eff_addr) orelse return VMError.invalid_memory_access;
+                if (phys + 4 > self.memory_size) return VMError.invalid_memory_access;
+                const val = @as(u32, @truncate(self.regs.get(rs2)));
+                @memcpy(self.memory[@intCast(phys)..][0..4], &std.mem.toBytes(val));
+            },
+            0b111 => {
+                // C.SD: sd rs2', offset(rs1')
+                const rs2_prime = @as(u3, @truncate(inst >> 2));
+                const rs1_prime = @as(u3, @truncate(inst >> 7));
+                const rs2: u5 = @as(u5, rs2_prime) + 8;
+                const rs1: u5 = @as(u5, rs1_prime) + 8;
+                const uimm_5_3 = @as(u3, @truncate(inst >> 10));
+                const uimm_7_6 = @as(u2, @truncate(inst >> 5));
+                const offset: u64 = (@as(u64, uimm_5_3) << 3) | (@as(u64, uimm_7_6) << 6);
+                const base = self.regs.get(rs1);
+                const eff_addr = base +% offset;
+                const phys = self.translate_address(eff_addr) orelse return VMError.invalid_memory_access;
+                if (phys + 8 > self.memory_size) return VMError.invalid_memory_access;
+                const val = self.regs.get(rs2);
+                @memcpy(self.memory[@intCast(phys)..][0..8], &std.mem.toBytes(val));
+            },
+            else => {
+                std.debug.print("DEBUG vm.zig: Unknown C0 funct3=0b{b:0>3}\n", .{funct3});
+                return VMError.invalid_instruction;
+            },
+        }
+    }
+    
+    /// Execute C1 quadrant compressed instruction.
+    fn execute_c1(self: *Self, inst: u16, funct3: u3) VMError!void {
+        switch (funct3) {
+            0b000 => {
+                // C.ADDI / C.NOP
+                const rd = @as(u5, @truncate(inst >> 7));
+                const imm_5 = @as(u1, @truncate(inst >> 12));
+                const imm_4_0 = @as(u5, @truncate(inst >> 2));
+                const imm6 = (@as(u6, imm_5) << 5) | imm_4_0;
+                const imm_signed = @as(i64, @as(i6, @bitCast(imm6)));
+                if (rd != 0) {
+                    const val = self.regs.get(rd);
+                    self.regs.set(rd, val +% @as(u64, @bitCast(imm_signed)));
+                }
+            },
+            0b001 => {
+                // C.ADDIW (RV64)
+                const rd = @as(u5, @truncate(inst >> 7));
+                const imm_5 = @as(u1, @truncate(inst >> 12));
+                const imm_4_0 = @as(u5, @truncate(inst >> 2));
+                const imm6 = (@as(u6, imm_5) << 5) | imm_4_0;
+                const imm_signed = @as(i32, @as(i6, @bitCast(imm6)));
+                if (rd != 0) {
+                    const val32 = @as(i32, @truncate(@as(i64, @bitCast(self.regs.get(rd)))));
+                    const result32 = val32 +% imm_signed;
+                    self.regs.set(rd, @bitCast(@as(i64, result32)));
+                }
+            },
+            0b010 => {
+                // C.LI
+                const rd = @as(u5, @truncate(inst >> 7));
+                const imm_5 = @as(u1, @truncate(inst >> 12));
+                const imm_4_0 = @as(u5, @truncate(inst >> 2));
+                const imm6 = (@as(u6, imm_5) << 5) | imm_4_0;
+                const imm_signed = @as(i64, @as(i6, @bitCast(imm6)));
+                if (rd != 0) {
+                    self.regs.set(rd, @bitCast(imm_signed));
+                }
+            },
+            0b011 => {
+                // C.LUI / C.ADDI16SP
+                const rd = @as(u5, @truncate(inst >> 7));
+                if (rd == 2) {
+                    // C.ADDI16SP: add sp, sp, imm*16
+                    const imm_9 = @as(u1, @truncate(inst >> 12));
+                    const imm_4 = @as(u1, @truncate(inst >> 6));
+                    const imm_6 = @as(u1, @truncate(inst >> 5));
+                    const imm_8_7 = @as(u2, @truncate(inst >> 3));
+                    const imm_5 = @as(u1, @truncate(inst >> 2));
+                    const imm10: u10 = (@as(u10, imm_9) << 9) |
+                        (@as(u10, imm_8_7) << 7) |
+                        (@as(u10, imm_6) << 6) |
+                        (@as(u10, imm_5) << 5) |
+                        (@as(u10, imm_4) << 4);
+                    const imm_signed = @as(i64, @as(i10, @bitCast(imm10)));
+                    const sp = self.regs.get(2);
+                    self.regs.set(2, sp +% @as(u64, @bitCast(imm_signed)));
+                } else if (rd != 0) {
+                    // C.LUI
+                    const imm_17 = @as(u1, @truncate(inst >> 12));
+                    const imm_16_12 = @as(u5, @truncate(inst >> 2));
+                    const imm18: u18 = (@as(u18, imm_17) << 17) | (@as(u18, imm_16_12) << 12);
+                    const imm_signed = @as(i64, @as(i18, @bitCast(imm18)));
+                    self.regs.set(rd, @bitCast(imm_signed));
+                }
+            },
+            0b100 => try self.execute_c1_misc(inst),
+            0b101 => {
+                // C.J: unconditional jump
+                const imm_11 = @as(u1, @truncate(inst >> 12));
+                const imm_4 = @as(u1, @truncate(inst >> 11));
+                const imm_9_8 = @as(u2, @truncate(inst >> 9));
+                const imm_10 = @as(u1, @truncate(inst >> 8));
+                const imm_6 = @as(u1, @truncate(inst >> 7));
+                const imm_7 = @as(u1, @truncate(inst >> 6));
+                const imm_3_1 = @as(u3, @truncate(inst >> 3));
+                const imm_5 = @as(u1, @truncate(inst >> 2));
+                const offset12: u12 = (@as(u12, imm_11) << 11) |
+                    (@as(u12, imm_10) << 10) |
+                    (@as(u12, imm_9_8) << 8) |
+                    (@as(u12, imm_7) << 7) |
+                    (@as(u12, imm_6) << 6) |
+                    (@as(u12, imm_5) << 5) |
+                    (@as(u12, imm_4) << 4) |
+                    (@as(u12, imm_3_1) << 1);
+                const offset_signed = @as(i64, @as(i12, @bitCast(offset12)));
+                self.regs.pc = self.regs.pc +% @as(u64, @bitCast(offset_signed));
+            },
+            0b110, 0b111 => {
+                // C.BEQZ / C.BNEZ
+                const rs1_prime = @as(u3, @truncate(inst >> 7));
+                const rs1: u5 = @as(u5, rs1_prime) + 8;
+                const imm_8 = @as(u1, @truncate(inst >> 12));
+                const imm_4_3 = @as(u2, @truncate(inst >> 10));
+                const imm_7_6 = @as(u2, @truncate(inst >> 5));
+                const imm_2_1 = @as(u2, @truncate(inst >> 3));
+                const imm_5 = @as(u1, @truncate(inst >> 2));
+                const offset9: u9 = (@as(u9, imm_8) << 8) |
+                    (@as(u9, imm_7_6) << 6) |
+                    (@as(u9, imm_5) << 5) |
+                    (@as(u9, imm_4_3) << 3) |
+                    (@as(u9, imm_2_1) << 1);
+                const offset_signed = @as(i64, @as(i9, @bitCast(offset9)));
+                const rs1_val = self.regs.get(rs1);
+                const take_branch = if (funct3 == 0b110) (rs1_val == 0) else (rs1_val != 0);
+                if (take_branch) {
+                    self.regs.pc = self.regs.pc +% @as(u64, @bitCast(offset_signed));
+                }
+            },
+        }
+    }
+    
+    /// Execute C1 misc ALU operations (funct3 = 0b100).
+    fn execute_c1_misc(self: *Self, inst: u16) VMError!void {
+        const funct2 = @as(u2, @truncate(inst >> 10));
+        const rd_prime = @as(u3, @truncate(inst >> 7));
+        const rd: u5 = @as(u5, rd_prime) + 8;
+        
+        switch (funct2) {
+            0b00 => {
+                // C.SRLI
+                const shamt_5 = @as(u1, @truncate(inst >> 12));
+                const shamt_4_0 = @as(u5, @truncate(inst >> 2));
+                const shamt: u6 = (@as(u6, shamt_5) << 5) | shamt_4_0;
+                const val = self.regs.get(rd);
+                self.regs.set(rd, val >> @truncate(shamt));
+            },
+            0b01 => {
+                // C.SRAI
+                const shamt_5 = @as(u1, @truncate(inst >> 12));
+                const shamt_4_0 = @as(u5, @truncate(inst >> 2));
+                const shamt: u6 = (@as(u6, shamt_5) << 5) | shamt_4_0;
+                const val = @as(i64, @bitCast(self.regs.get(rd)));
+                self.regs.set(rd, @bitCast(val >> @truncate(shamt)));
+            },
+            0b10 => {
+                // C.ANDI
+                const imm_5 = @as(u1, @truncate(inst >> 12));
+                const imm_4_0 = @as(u5, @truncate(inst >> 2));
+                const imm6 = (@as(u6, imm_5) << 5) | imm_4_0;
+                const imm_signed = @as(i64, @as(i6, @bitCast(imm6)));
+                const val = self.regs.get(rd);
+                self.regs.set(rd, val & @as(u64, @bitCast(imm_signed)));
+            },
+            0b11 => try self.execute_c1_alu(inst, rd),
+        }
+    }
+    
+    /// Execute C1 register-register ALU (funct2 = 0b11).
+    fn execute_c1_alu(self: *Self, inst: u16, rd: u5) VMError!void {
+        const funct1 = @as(u1, @truncate(inst >> 12));
+        const funct2_lo = @as(u2, @truncate(inst >> 5));
+        const rs2_prime = @as(u3, @truncate(inst >> 2));
+        const rs2: u5 = @as(u5, rs2_prime) + 8;
+        
+        const rd_val = self.regs.get(rd);
+        const rs2_val = self.regs.get(rs2);
+        
+        if (funct1 == 0) {
+            // RV64C
+            switch (funct2_lo) {
+                0b00 => self.regs.set(rd, rd_val -% rs2_val), // C.SUB
+                0b01 => self.regs.set(rd, rd_val ^ rs2_val), // C.XOR
+                0b10 => self.regs.set(rd, rd_val | rs2_val), // C.OR
+                0b11 => self.regs.set(rd, rd_val & rs2_val), // C.AND
+            }
+        } else {
+            // RV64C word operations
+            const rd32 = @as(i32, @truncate(@as(i64, @bitCast(rd_val))));
+            const rs232 = @as(i32, @truncate(@as(i64, @bitCast(rs2_val))));
+            switch (funct2_lo) {
+                0b00 => { // C.SUBW
+                    const result = rd32 -% rs232;
+                    self.regs.set(rd, @bitCast(@as(i64, result)));
+                },
+                0b01 => { // C.ADDW
+                    const result = rd32 +% rs232;
+                    self.regs.set(rd, @bitCast(@as(i64, result)));
+                },
+                else => return VMError.invalid_instruction,
+            }
+        }
+    }
+    
+    /// Execute C2 quadrant compressed instruction.
+    fn execute_c2(self: *Self, inst: u16, funct3: u3) VMError!void {
+        switch (funct3) {
+            0b000 => {
+                // C.SLLI
+                const rd = @as(u5, @truncate(inst >> 7));
+                const shamt_5 = @as(u1, @truncate(inst >> 12));
+                const shamt_4_0 = @as(u5, @truncate(inst >> 2));
+                const shamt: u6 = (@as(u6, shamt_5) << 5) | shamt_4_0;
+                if (rd != 0) {
+                    const val = self.regs.get(rd);
+                    self.regs.set(rd, val << @truncate(shamt));
+                }
+            },
+            0b010 => {
+                // C.LWSP
+                const rd = @as(u5, @truncate(inst >> 7));
+                const uimm_5 = @as(u1, @truncate(inst >> 12));
+                const uimm_4_2 = @as(u3, @truncate(inst >> 4));
+                const uimm_7_6 = @as(u2, @truncate(inst >> 2));
+                const offset: u64 = (@as(u64, uimm_5) << 5) |
+                    (@as(u64, uimm_4_2) << 2) |
+                    (@as(u64, uimm_7_6) << 6);
+                const sp = self.regs.get(2);
+                const eff_addr = sp +% offset;
+                const phys = self.translate_address(eff_addr) orelse return VMError.invalid_memory_access;
+                if (phys + 4 > self.memory_size) return VMError.invalid_memory_access;
+                const val = std.mem.readInt(i32, self.memory[@intCast(phys)..][0..4], .little);
+                if (rd != 0) {
+                    self.regs.set(rd, @bitCast(@as(i64, val)));
+                }
+            },
+            0b011 => {
+                // C.LDSP
+                const rd = @as(u5, @truncate(inst >> 7));
+                const uimm_5 = @as(u1, @truncate(inst >> 12));
+                const uimm_4_3 = @as(u2, @truncate(inst >> 5));
+                const uimm_8_6 = @as(u3, @truncate(inst >> 2));
+                const offset: u64 = (@as(u64, uimm_5) << 5) |
+                    (@as(u64, uimm_4_3) << 3) |
+                    (@as(u64, uimm_8_6) << 6);
+                const sp = self.regs.get(2);
+                const eff_addr = sp +% offset;
+                const phys = self.translate_address(eff_addr) orelse return VMError.invalid_memory_access;
+                if (phys + 8 > self.memory_size) return VMError.invalid_memory_access;
+                const val = std.mem.readInt(u64, self.memory[@intCast(phys)..][0..8], .little);
+                if (rd != 0) {
+                    self.regs.set(rd, val);
+                }
+            },
+            0b100 => try self.execute_c2_jr_mv_add(inst),
+            0b110 => {
+                // C.SWSP
+                const rs2 = @as(u5, @truncate(inst >> 2));
+                const uimm_5_2 = @as(u4, @truncate(inst >> 9));
+                const uimm_7_6 = @as(u2, @truncate(inst >> 7));
+                const offset: u64 = (@as(u64, uimm_5_2) << 2) | (@as(u64, uimm_7_6) << 6);
+                const sp = self.regs.get(2);
+                const eff_addr = sp +% offset;
+                const phys = self.translate_address(eff_addr) orelse return VMError.invalid_memory_access;
+                if (phys + 4 > self.memory_size) return VMError.invalid_memory_access;
+                const val = @as(u32, @truncate(self.regs.get(rs2)));
+                @memcpy(self.memory[@intCast(phys)..][0..4], &std.mem.toBytes(val));
+            },
+            0b111 => {
+                // C.SDSP
+                const rs2 = @as(u5, @truncate(inst >> 2));
+                const uimm_5_3 = @as(u3, @truncate(inst >> 10));
+                const uimm_8_6 = @as(u3, @truncate(inst >> 7));
+                const offset: u64 = (@as(u64, uimm_5_3) << 3) | (@as(u64, uimm_8_6) << 6);
+                const sp = self.regs.get(2);
+                const eff_addr = sp +% offset;
+                const phys = self.translate_address(eff_addr) orelse return VMError.invalid_memory_access;
+                if (phys + 8 > self.memory_size) return VMError.invalid_memory_access;
+                const val = self.regs.get(rs2);
+                @memcpy(self.memory[@intCast(phys)..][0..8], &std.mem.toBytes(val));
+            },
+            else => {
+                std.debug.print("DEBUG vm.zig: Unknown C2 funct3=0b{b:0>3}\n", .{funct3});
+                return VMError.invalid_instruction;
+            },
+        }
+    }
+    
+    /// Execute C2 JR/MV/ADD instructions (funct3 = 0b100).
+    fn execute_c2_jr_mv_add(self: *Self, inst: u16) VMError!void {
+        const funct1 = @as(u1, @truncate(inst >> 12));
+        const rd = @as(u5, @truncate(inst >> 7));
+        const rs2 = @as(u5, @truncate(inst >> 2));
+        
+        if (funct1 == 0) {
+            if (rs2 == 0) {
+                // C.JR: jalr x0, rs1, 0
+                const target = self.regs.get(rd);
+                const phys = self.translate_address(target) orelse return VMError.invalid_memory_access;
+                if (phys >= self.memory_size) return VMError.invalid_memory_access;
+                self.regs.pc = target;
+            } else {
+                // C.MV: add rd, x0, rs2
+                if (rd != 0) {
+                    self.regs.set(rd, self.regs.get(rs2));
+                }
+            }
+        } else {
+            if (rs2 == 0) {
+                if (rd == 0) {
+                    // C.EBREAK
+                    self.state = .halted;
+                } else {
+                    // C.JALR: jalr ra, rs1, 0
+                    const target = self.regs.get(rd);
+                    const phys = self.translate_address(target) orelse return VMError.invalid_memory_access;
+                    if (phys >= self.memory_size) return VMError.invalid_memory_access;
+                    self.regs.set(1, self.regs.pc + 2); // return address
+                    self.regs.pc = target;
+                }
+            } else {
+                // C.ADD: add rd, rd, rs2
+                if (rd != 0) {
+                    self.regs.set(rd, self.regs.get(rd) +% self.regs.get(rs2));
+                }
+            }
+        }
     }
 
     /// Execute instruction based on opcode.
@@ -1312,6 +1760,10 @@ pub const VM = struct {
             
             // System instructions
             0b1110011 => try self.execute_system(inst), // ECALL
+            
+            // RV64I word-sized instructions (32-bit operations, sign-extended to 64-bit)
+            0b0011011 => try self.execute_i_type_word(inst), // ADDIW, SLLIW, SRLIW, SRAIW
+            0b0111011 => try self.execute_r_type_word(inst), // ADDW, SUBW, SLLW, SRLW, SRAW
             
             // Zig compiler compatibility opcodes
             0b0000001 => try self.execute_zig_compat_i_type(0x01, inst),
@@ -1350,6 +1802,100 @@ pub const VM = struct {
             self.exception_stats.record_exception(2);
             return VMError.invalid_instruction;
         }
+    }
+
+    /// Execute I-type word instruction (ADDIW, SLLIW, SRLIW, SRAIW).
+    /// Why: RV64I 32-bit immediate operations, result sign-extended to 64-bit.
+    fn execute_i_type_word(self: *Self, inst: u32) VMError!void {
+        const rd = @as(u5, @truncate(inst >> 7));
+        const rs1 = @as(u5, @truncate(inst >> 15));
+        const funct3 = @as(u3, @truncate(inst >> 12));
+        const imm12 = @as(u12, @truncate(inst >> 20));
+        
+        const rs1_val = self.regs.get(rs1);
+        const rs1_32 = @as(i32, @truncate(@as(i64, @bitCast(rs1_val))));
+        
+        const result_32: i32 = switch (funct3) {
+            0b000 => blk: {
+                // ADDIW: rd = sign_ext(rs1[31:0] + imm)
+                const imm_signed = @as(i12, @bitCast(imm12));
+                break :blk rs1_32 +% @as(i32, imm_signed);
+            },
+            0b001 => blk: {
+                // SLLIW: rd = sign_ext(rs1[31:0] << shamt)
+                const shamt = @as(u5, @truncate(imm12));
+                break :blk rs1_32 << shamt;
+            },
+            0b101 => blk: {
+                // SRLIW or SRAIW
+                const shamt = @as(u5, @truncate(imm12));
+                const funct7 = @as(u7, @truncate(inst >> 25));
+                if (funct7 == 0b0000000) {
+                    // SRLIW: logical right shift
+                    break :blk @as(i32, @bitCast(@as(u32, @bitCast(rs1_32)) >> shamt));
+                } else {
+                    // SRAIW: arithmetic right shift
+                    break :blk rs1_32 >> shamt;
+                }
+            },
+            else => {
+                self.state = .errored;
+                self.last_error = VMError.invalid_instruction;
+                return VMError.invalid_instruction;
+            },
+        };
+        
+        // Sign-extend 32-bit result to 64-bit
+        const result_64 = @as(u64, @bitCast(@as(i64, result_32)));
+        self.regs.set(rd, result_64);
+        self.regs.pc += 4;
+    }
+    
+    /// Execute R-type word instruction (ADDW, SUBW, SLLW, SRLW, SRAW).
+    /// Why: RV64I 32-bit register operations, result sign-extended to 64-bit.
+    fn execute_r_type_word(self: *Self, inst: u32) VMError!void {
+        const rd = @as(u5, @truncate(inst >> 7));
+        const rs1 = @as(u5, @truncate(inst >> 15));
+        const rs2 = @as(u5, @truncate(inst >> 20));
+        const funct3 = @as(u3, @truncate(inst >> 12));
+        const funct7 = @as(u7, @truncate(inst >> 25));
+        
+        const rs1_val = self.regs.get(rs1);
+        const rs2_val = self.regs.get(rs2);
+        const rs1_32 = @as(i32, @truncate(@as(i64, @bitCast(rs1_val))));
+        const rs2_32 = @as(i32, @truncate(@as(i64, @bitCast(rs2_val))));
+        const shamt = @as(u5, @truncate(rs2_val));
+        
+        const result_32: i32 = switch (funct3) {
+            0b000 => blk: {
+                if (funct7 == 0b0000000) {
+                    // ADDW
+                    break :blk rs1_32 +% rs2_32;
+                } else {
+                    // SUBW
+                    break :blk rs1_32 -% rs2_32;
+                }
+            },
+            0b001 => rs1_32 << shamt, // SLLW
+            0b101 => blk: {
+                if (funct7 == 0b0000000) {
+                    // SRLW
+                    break :blk @as(i32, @bitCast(@as(u32, @bitCast(rs1_32)) >> shamt));
+                } else {
+                    // SRAW
+                    break :blk rs1_32 >> shamt;
+                }
+            },
+            else => {
+                self.state = .errored;
+                self.last_error = VMError.invalid_instruction;
+                return VMError.invalid_instruction;
+            },
+        };
+        
+        const result_64 = @as(u64, @bitCast(@as(i64, result_32)));
+        self.regs.set(rd, result_64);
+        self.regs.pc += 4;
     }
 
     /// Execute R-type instruction (ADD, SUB, etc.).
@@ -3007,6 +3553,10 @@ pub const VM = struct {
 
         // Translate virtual address to physical offset
         const phys_offset = self.translate_address(eff_addr) orelse {
+            std.debug.print(
+                "DEBUG vm.zig: SD failed: eff_addr=0x{x}, base=0x{x}, offset=0x{x}\n",
+                .{ eff_addr, base_addr, offset },
+            );
             self.state = .errored;
             self.last_error = VMError.invalid_memory_access;
             return VMError.invalid_memory_access;
@@ -3014,6 +3564,10 @@ pub const VM = struct {
 
         // Assert: physical offset + 8 must be within memory bounds.
         if (phys_offset + 8 > self.memory_size) {
+            std.debug.print(
+                "DEBUG vm.zig: SD OOB: phys=0x{x}+8 > mem_size=0x{x}\n",
+                .{ phys_offset, self.memory_size },
+            );
             self.state = .errored;
             self.last_error = VMError.invalid_memory_access;
             return VMError.invalid_memory_access;
