@@ -393,8 +393,8 @@ fn test_kernel_elf_loading(allocator: std.mem.Allocator) !void {
             const phys_pc = vm2.translate_address(pc_before);
             const page_perms = vm2.memory_protection.get_permissions(pc_before);
             std.debug.print(
-                "[kernel_vm_test] Error at PC 0x{x} (phys={?x}, perms={?x}): {}\n",
-                .{ pc_before, phys_pc, page_perms, err },
+                "[kernel_vm_test] Error at PC 0x{x} (phys={?x}, perms={?x}) after {} instructions: {}\n",
+                .{ pc_before, phys_pc, page_perms, instructions_executed, err },
             );
             break;
         };

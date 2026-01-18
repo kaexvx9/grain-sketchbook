@@ -3992,20 +3992,13 @@ pub const VM = struct {
         const imm64 = @as(i64, imm12);
         const offset: u64 = @bitCast(imm64);
 
-        // Calculate jump target: (rs1 + offset) & ~1 (clear LSB for alignment).
-        // Note: RISC-V JALR clears the LSB, but we need 4-byte alignment for instructions.
-        // So we clear the bottom 2 bits: & ~3
+        // Calculate jump target: (rs1 + offset) & ~1 (clear LSB per RISC-V spec).
+        // RVC allows 2-byte aligned targets, so only clear bit 0.
         const jump_target_raw = base_addr +% offset;
-        const jump_target = jump_target_raw & ~@as(u64, 3);
+        const jump_target = jump_target_raw & ~@as(u64, 1);
 
-        // Debug: Print JALR execution for troubleshooting.
-        std.debug.print(
-            "DEBUG vm.zig: JALR instruction: rs1={} (x{}), base_addr=0x{x}, imm12={} (0x{x}), offset=0x{x}, jump_target_raw=0x{x}, jump_target=0x{x}, memory_size=0x{x}\n",
-            .{ rs1, rs1, base_addr, imm12, imm12, offset, jump_target_raw, jump_target, self.memory_size },
-        );
-
-        // Assert: jump target must be 4-byte aligned (enforced by & ~3).
-        std.debug.assert(jump_target % 4 == 0);
+        // Assert: jump target must be at least 2-byte aligned.
+        std.debug.assert(jump_target % 2 == 0);
 
         // Check: jump target must translate to valid physical address.
         // Note: jump_target may be virtual (e.g., 0x80000000+ for kernel).
