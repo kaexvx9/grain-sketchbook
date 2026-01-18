@@ -26,53 +26,46 @@ Show HN: What happens when you let Cursor Auto Mode run for weeks – 170k lines
 
 ## Post Text
 
-### Short Version (recommended for HN)
+### HN Post Text (under 4000 chars)
 
 ```
 This entire codebase was built using Cursor Ultra ($200/month) in Auto Mode.
 
-170,000+ lines of Zig. 500+ source files. 249 passing tests. A complete RISC-V64 operating system with JIT compiler, networking stack, and scripting language — built by AI agents working autonomously.
+170k lines of Zig. 500+ source files. 249 tests. A RISC-V64 OS with JIT compiler, networking, and scripting language — built by AI agents working autonomously.
 
-What we learned running Cursor Ultra Auto Mode for extended sessions:
+What we learned:
 
-1. **Auto Mode is the unlock** — The $200/month tier gives extended autonomous sessions. The AI reads code, writes tests, fixes bugs, refactors, documents — all without constant prompting.
+1. Auto Mode is the unlock — $200/month tier gives extended autonomous sessions. AI reads code, writes tests, fixes bugs, refactors — without constant prompting.
 
-2. **Style guides matter more with AI** — We created "Grain Style" (64-line function limit, 2+ assertions per function, explicit types). The AI follows rules more consistently than humans.
+2. Style guides matter more — We created "Grain Style" (64-line function limit, explicit types, 2+ assertions). AI follows rules more consistently than humans.
 
-3. **Tests become essential** — 249 tests because that's how you verify AI-written code. The AI writes the tests too.
+3. Tests are essential — 249 tests to verify AI code. AI writes the tests too.
 
-4. **The economics are simple** — $200/month for what would cost $20,000+ in developer time. This would have taken a team months. We built it in weeks.
+4. Economics — $200/month for what would cost $20k+ in dev time. Built in weeks, not months.
 
-The kernel includes:
-- Pure Zig (no C except host tools)
-- Boots on QEMU RISC-V64
-- x86_64 JIT compiler for near-native RISC-V execution
-- 60+ syscalls (process, memory, IPC, network, audio)
-- TCP/UDP networking stack
+The kernel:
+- Pure Zig, boots on QEMU RISC-V64
+- x86_64 JIT for near-native RISC-V execution
+- 60+ syscalls, TCP/UDP networking
 - Grainscript shell (lexer, parser, interpreter)
-- ELF loader and process spawning
+- ELF loader, process spawning
 
-**Roadmap to Alpha:**
+Roadmap to Alpha:
 
-The bottleneck is getting Basin kernel working on Vantage VM for Framework x86_64. Once that's done, we're targeting **first-responder dispatch software** — emergency services need reliable, auditable, safety-critical systems.
+Bottleneck: Basin kernel → Vantage VM → Framework x86_64. Target: first-responder dispatch software — emergency services need reliable, auditable systems.
 
-Technical contributors needed for:
-- ARM aarch64 (Apple Silicon) target — Zig → C → Swift macOS Tahoe app
-- Aurora: open-source iOS Cursor alternative with two inference backends:
-  - [Cursor CLI Ultra Auto Mode](https://cursor.com) ($200/month)
-  - [Cerebras Wafer Scale Engine](https://cerebras.ai) — spatial RAM, single-threaded bounded compute, orders of magnitude faster inference with open models
+Contributors needed:
+- ARM aarch64 (Apple Silicon): Zig → C → Swift macOS app
+- Aurora: open-source iOS Cursor alternative with two backends:
+  - Cursor CLI Ultra (https://cursor.com)
+  - Cerebras WSE (https://cerebras.ai) — spatial RAM, deterministic inference
 
-Built with Zig 0.15.2. Follows [Grain Style](docs/grain_style.md) (64-line functions, explicit types, bounded allocations).
+Grain Style: https://codeberg.org/teamlibra/ry/src/branch/main/docs/grain_style.md
 
-Happy to answer questions about:
-- Using Cursor Ultra Auto Mode for large codebases
-- Zig for OS development
-- Our coding style choices
-- The JIT compiler architecture
-- The Cerebras/spatial compute path for local AI inference
-
-GitHub: [link]
+Happy to discuss Cursor Auto Mode, Zig for OS dev, or Cerebras spatial compute.
 ```
+
+**Character count: ~1,650** (well under 4000 limit)
 
 ---
 
