@@ -8276,6 +8276,21 @@ pub fn build(b: *std.Build) void {
     const vm_shell_spawn_tests_run = b.addRunArtifact(vm_shell_spawn_tests);
     test_step.dependOn(&vm_shell_spawn_tests_run.step);
 
+    // Framework x86 Full Stack Test (Phase 4: End-to-end integration)
+    const framework_x86_full_stack_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("tests/169_framework_x86_full_stack_test.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "kernel_vm", .module = kernel_vm_module },
+                .{ .name = "basin_kernel", .module = basin_kernel_module },
+            },
+        }),
+    });
+    const framework_x86_full_stack_tests_run = b.addRunArtifact(framework_x86_full_stack_tests);
+    test_step.dependOn(&framework_x86_full_stack_tests_run.step);
+
     // Grain Bubble component tests
     // TEMPORARILY DISABLED: const grain_bubble_component_tests = b.addTest(.{
     // TEMPORARILY DISABLED: .root_module = b.createModule(.{
