@@ -8,11 +8,13 @@ const Debug = @import("debug.zig");
 /// Maximum message size (bytes).
 /// Why: Bounded message size for safety and static allocation.
 /// Note: Must match kernel validation (64KB max per message).
-pub const MAX_MESSAGE_SIZE: u32 = 4096;
+// Reduced for VM testing (was 4096)
+pub const MAX_MESSAGE_SIZE: u32 = 512;
 
 /// Maximum messages per channel.
 /// Why: Bounded queue size for safety and static allocation.
-pub const MAX_MESSAGES: u32 = 32;
+// Reduced for VM testing (was 32)
+pub const MAX_MESSAGES: u32 = 8;
 
 /// Channel message.
 /// Why: Store message data in channel queue.
@@ -189,7 +191,8 @@ pub const Channel = struct {
 /// Grain Style: Static allocation, max 64 channels.
 pub const ChannelTable = struct {
     /// Channels array (static allocation).
-    channels: [64]Channel,
+    // Reduced for VM testing (was 64)
+    channels: [8]Channel,
     /// Number of allocated channels.
     channel_count: u32,
     /// Next channel ID (starts at 1).
@@ -199,7 +202,7 @@ pub const ChannelTable = struct {
     /// Why: Set up channel table state.
     pub fn init() ChannelTable {
         return ChannelTable{
-            .channels = [_]Channel{Channel.init()} ** 64,
+            .channels = [_]Channel{Channel.init()} ** 8,
             .channel_count = 0,
             .next_channel_id = 1,
         };
@@ -214,7 +217,7 @@ pub const ChannelTable = struct {
         
         // Find free channel slot.
         var slot: ?u32 = null;
-        for (0..64) |i| {
+        for (0..self.channels.len) |i| {
             if (!self.channels[i].allocated) {
                 slot = @as(u32, @intCast(i));
                 break;
@@ -256,7 +259,7 @@ pub const ChannelTable = struct {
         // Assert: Channel ID must be non-zero.
         Debug.kassert(channel_id != 0, "Channel ID is 0", .{});
         
-        for (0..64) |i| {
+        for (0..self.channels.len) |i| {
             if (self.channels[i].allocated and self.channels[i].id == channel_id) {
                 // Assert: Channel must be allocated.
                 Debug.kassert(self.channels[i].allocated, "Channel not allocated", .{});

@@ -8,7 +8,8 @@ const AudioDeviceStats = @import("audio_device_stats.zig").AudioDeviceStats;
 
 /// Maximum number of audio devices.
 /// Why: Bounded allocation for device tracking.
-const MAX_AUDIO_DEVICES: u32 = 16;
+// Reduced for VM testing (was 16)
+const MAX_AUDIO_DEVICES: u32 = 4;
 
 /// Maximum device name length.
 /// Why: Bounded string storage for device names.
@@ -16,7 +17,8 @@ const MAX_DEVICE_NAME_LEN: u32 = 128;
 
 /// Maximum audio buffer size (64KB).
 /// Why: Bounded allocation for audio I/O buffers.
-const MAX_AUDIO_BUFFER_SIZE: u32 = 64 * 1024;
+// Reduced for VM testing (was 64KB)
+const MAX_AUDIO_BUFFER_SIZE: u32 = 4 * 1024;
 
 /// Audio device type.
 /// Why: Categorize audio devices (speaker, headphone, microphone, etc.).

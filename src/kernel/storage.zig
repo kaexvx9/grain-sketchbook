@@ -7,7 +7,8 @@ const Debug = @import("debug.zig");
 
 /// Maximum file size (bytes).
 /// Why: Bounded file size for safety and static allocation.
-pub const MAX_FILE_SIZE: u32 = 64 * 1024; // 64KB
+// Reduced for VM testing (was 64KB)
+pub const MAX_FILE_SIZE: u32 = 4 * 1024; // 4KB
 
 /// Maximum file name length (bytes, including null terminator).
 /// Why: Bounded file name length for safety.
@@ -15,7 +16,8 @@ pub const MAX_FILENAME_LEN: u32 = 256;
 
 /// Maximum directory entries.
 /// Why: Bounded directory size for safety and static allocation.
-pub const MAX_DIR_ENTRIES: u32 = 64;
+// Reduced for VM testing (was 64)
+pub const MAX_DIR_ENTRIES: u32 = 16;
 
 /// File entry in filesystem.
 /// Why: Store file data and metadata.

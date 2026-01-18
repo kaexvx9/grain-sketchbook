@@ -8,11 +8,13 @@ const TcpSocketStats = @import("tcp_socket_stats.zig").TcpSocketStats;
 
 /// Maximum number of TCP sockets.
 /// Why: Bounded allocation for socket tracking.
-const MAX_TCP_SOCKETS: u32 = 64;
+// Reduced for VM testing (was 64)
+const MAX_TCP_SOCKETS: u32 = 8;
 
 /// Maximum socket buffer size (64KB).
 /// Why: Bounded buffer allocation for socket data.
-const MAX_SOCKET_BUFFER_SIZE: u32 = 64 * 1024;
+// Reduced for VM testing (was 64KB)
+const MAX_SOCKET_BUFFER_SIZE: u32 = 4 * 1024;
 
 /// TCP socket state.
 /// Why: Track socket state for connection management.

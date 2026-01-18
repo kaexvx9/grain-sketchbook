@@ -3591,20 +3591,18 @@ pub const VM = struct {
             // Calculate branch target: PC + offset.
             const branch_target = self.regs.pc +% offset;
 
-            // Align branch target to 4-byte boundary (clear bottom 2 bits).
-            // Why: RISC-V instructions must be 4-byte aligned,
-            // but branch offsets can be misaligned.
-            const aligned_target = branch_target & ~@as(u64, 3);
+            // RVC: Only require 2-byte alignment (clear bit 0 only).
+            const aligned_target = branch_target & ~@as(u64, 1);
 
-            // Assert: branch target must be within memory bounds.
-            if (aligned_target >= self.memory_size) {
+            // Validate branch target via address translation.
+            const phys_target = self.translate_address(aligned_target) orelse {
                 self.state = .errored;
                 self.last_error = VMError.invalid_memory_access;
                 return VMError.invalid_memory_access;
-            }
+            };
+            _ = phys_target;
 
-            // Update PC to branch target (PC update happens before normal +4 increment).
-            // Note: We'll skip the normal PC += 4 after this instruction.
+            // Update PC to branch target.
             self.regs.pc = aligned_target;
 
             // Track branch statistics.
@@ -3840,16 +3838,16 @@ pub const VM = struct {
         const offset: u64 = @bitCast(imm64);
             const branch_target = self.regs.pc +% offset;
 
-            // Align branch target to 4-byte boundary (clear bottom 2 bits).
-            // Why: RISC-V instructions must be 4-byte aligned,
-            // but branch offsets can be misaligned.
-            const aligned_target = branch_target & ~@as(u64, 3);
+            // RVC: Only require 2-byte alignment (clear bit 0 only).
+            const aligned_target = branch_target & ~@as(u64, 1);
 
-            if (aligned_target >= self.memory_size) {
+            // Validate branch target via address translation.
+            const phys_target = self.translate_address(aligned_target) orelse {
                 self.state = .errored;
                 self.last_error = VMError.invalid_memory_access;
                 return VMError.invalid_memory_access;
-            }
+            };
+            _ = phys_target;
 
             self.regs.pc = aligned_target;
             
@@ -3944,18 +3942,18 @@ pub const VM = struct {
         const offset: u64 = @bitCast(imm64);
         const jump_target = self.regs.pc +% offset;
 
-        // Align jump target to 4-byte boundary (clear bottom 2 bits).
-        // Why: RISC-V instructions must be 4-byte aligned, but JAL offsets can be misaligned.
-        const aligned_target = jump_target & ~@as(u64, 3);
+        // RVC: Only require 2-byte alignment (clear bit 0 only).
+        const aligned_target = jump_target & ~@as(u64, 1);
 
-        // Assert: jump target must be within memory bounds.
-        if (aligned_target >= self.memory_size) {
+        // Validate jump target via address translation.
+        const phys_target = self.translate_address(aligned_target) orelse {
             self.state = .errored;
             self.last_error = VMError.invalid_memory_access;
             return VMError.invalid_memory_access;
-        }
+        };
+        _ = phys_target;
 
-        // Update PC to jump target (PC update happens before normal +4 increment).
+        // Update PC to jump target.
         self.regs.pc = aligned_target;
 
         // Return early to skip normal PC increment.

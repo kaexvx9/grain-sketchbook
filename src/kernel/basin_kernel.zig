@@ -133,6 +133,7 @@ pub const PAGE_SIZE = @import("memory.zig").PAGE_SIZE;
 pub const MAX_PAGES = @import("memory.zig").MAX_PAGES;
 pub const Channel = @import("channel.zig").Channel;
 pub const MAX_MESSAGE_SIZE = @import("channel.zig").MAX_MESSAGE_SIZE;
+pub const MAX_MESSAGES = @import("channel.zig").MAX_MESSAGES;
 // Note: KernelLogLevel and KernelLogEntry are available via basin_kernel.harbor_kernel struct
 
 // Compile-time assertions for handle table size.

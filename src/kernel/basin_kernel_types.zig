@@ -602,17 +602,20 @@ pub const DirectoryHandle = struct {
 /// Memory mapping table.
 /// Why: Track all memory mappings for kernel memory management.
 /// Grain Style: Static allocation, max 256 entries (sufficient for 4MB VM).
-pub const MAX_MAPPINGS: u32 = 256;
+// Reduced for VM testing (was 256)
+pub const MAX_MAPPINGS: u32 = 32;
 
 /// File handle table.
 /// Why: Track all file handles for kernel file system management.
 /// Grain Style: Static allocation, max 64 entries.
-pub const MAX_HANDLES: u32 = 64;
+// Reduced for VM testing (was 64)
+pub const MAX_HANDLES: u32 = 16;
 
 /// Directory handle table.
 /// Why: Track all directory handles for kernel directory operations.
 /// Grain Style: Static allocation, max 32 entries.
-pub const MAX_DIR_HANDLES: u32 = 32;
+// Reduced for VM testing (was 32)
+pub const MAX_DIR_HANDLES: u32 = 8;
 
 /// Process table.
 /// Why: Track all processes for kernel process management.
@@ -622,7 +625,8 @@ pub const MAX_PROCESSES: u32 = 16;
 /// User table (static allocation).
 /// Why: Fixed-size user table, no dynamic allocation
 /// Grain Style: Static array, max 256 users
-pub const MAX_USERS: u32 = 256;
+// Reduced for VM testing (was 256)
+pub const MAX_USERS: u32 = 8;
 
 /// Process entry.
 /// Why: Track process information for spawn/wait/exit syscalls.

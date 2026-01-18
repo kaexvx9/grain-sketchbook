@@ -9,6 +9,7 @@ const BasinError = basin_kernel.BasinError;
 const Channel = basin_kernel.Channel;
 const ChannelTable = basin_kernel.ChannelTable;
 const MAX_MESSAGE_SIZE = basin_kernel.MAX_MESSAGE_SIZE;
+const MAX_MESSAGES = basin_kernel.MAX_MESSAGES;
 const basin_kernel_mod = basin_kernel; // Alias for handle_syscall
 const RawIO = basin_kernel.RawIO;
 
@@ -94,16 +95,17 @@ test "channel queue full" {
     channel_instance.allocated = true;
     channel_instance.id = 1;
     
-    // Fill channel queue (32 messages max).
+    // Fill channel queue (MAX_MESSAGES = 8 for VM testing).
+    const max_msgs = MAX_MESSAGES;
     var i: u32 = 0;
-    while (i < 32) : (i += 1) {
+    while (i < max_msgs) : (i += 1) {
         const data = "X";
         const sent = channel_instance.send(data);
         try std.testing.expect(sent);
     }
     
     // Assert: Channel must be full.
-    try std.testing.expect(channel_instance.message_count == 32);
+    try std.testing.expect(channel_instance.message_count == max_msgs);
     
     // Try to send one more (should fail).
     const data = "Y";
@@ -111,7 +113,7 @@ test "channel queue full" {
     
     // Assert: Send must fail (queue full).
     try std.testing.expect(!sent);
-    try std.testing.expect(channel_instance.message_count == 32);
+    try std.testing.expect(channel_instance.message_count == max_msgs);
 }
 
 // Test channel receive empty.
