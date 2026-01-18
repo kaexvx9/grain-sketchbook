@@ -40,10 +40,9 @@ test "vm elf loading: load kernel ELF into VM memory" {
         
         // Assert: ELF magic must be correct.
         std.debug.assert(std.mem.eql(u8, elf_magic, &expected_magic));
-    } else |err| {
+    } else |_| {
         // If file doesn't exist, that's OK (test may run before kernel is built).
         // Just verify error is reasonable.
-        _ = err;
     }
 }
 

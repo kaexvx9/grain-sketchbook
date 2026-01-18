@@ -8261,6 +8261,21 @@ pub fn build(b: *std.Build) void {
     const vm_elf_loading_tests_run = b.addRunArtifact(vm_elf_loading_tests);
     test_step.dependOn(&vm_elf_loading_tests_run.step);
 
+    // VM Shell Spawn Test (Phase 3: Spawn process from ELF)
+    const vm_shell_spawn_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("tests/168_vm_shell_spawn_test.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "kernel_vm", .module = kernel_vm_module },
+                .{ .name = "basin_kernel", .module = basin_kernel_module },
+            },
+        }),
+    });
+    const vm_shell_spawn_tests_run = b.addRunArtifact(vm_shell_spawn_tests);
+    test_step.dependOn(&vm_shell_spawn_tests_run.step);
+
     // Grain Bubble component tests
     // TEMPORARILY DISABLED: const grain_bubble_component_tests = b.addTest(.{
     // TEMPORARILY DISABLED: .root_module = b.createModule(.{
