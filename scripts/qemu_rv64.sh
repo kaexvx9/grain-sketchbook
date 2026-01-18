@@ -10,12 +10,14 @@ if [ ! -f "$KERNEL" ]; then
   exit 1
 fi
 
+# Use -bios none to avoid OpenSBI conflict at 0x80000000
+# Our kernel loads at 0x80000000, same as OpenSBI's default address
 qemu-system-riscv64 \
   -machine virt \
   -cpu rv64 \
   -m 512M \
   -nographic \
-  -bios default \
+  -bios none \
   -kernel "$KERNEL" \
   -serial mon:stdio \
   -monitor telnet:127.0.0.1:5555,server,nowait
