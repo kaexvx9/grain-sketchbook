@@ -6,7 +6,7 @@
 
 ## Current State (Updated 2026-01-18)
 
-**MILESTONE ACHIEVED**: The Basin kernel now executes **10,000+ RISC-V instructions** in the Vantage VM and reaches the REPL input loop!
+**MILESTONE ACHIEVED**: The Basin kernel now executes **500K+ RISC-V instructions** in the Vantage VM and produces console output!
 
 Key accomplishments:
 
@@ -15,10 +15,22 @@ Key accomplishments:
 - Function calls work (JALR, C.JR, C.JALR)
 - Branch instructions work (BEQ, BNE, BLTU, etc.)
 - Stack management works (C.ADDI16SP, C.SDSP, C.LDSP)
-- UART mapped at 0x10000000 for serial output
+- **UART MMIO implemented** - kernel produces "G" output
 - BSS reduced from 44.5MB to 6.3MB to fit in 8MB VM
-- Kernel reaches REPL loop (waiting for input)
+- Serial input buffer ready for keyboard commands
 - 249/249 tests pass
+
+### Console I/O Implementation
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Serial output (SB to UART) | Working | Characters captured |
+| Serial input (LBU from UART) | Working | Input buffer implemented |
+| LSR status register | Working | Bit 0=data ready, Bit 5=THR empty |
+| SBI CONSOLE_PUTCHAR | Working | Via serial output |
+| SBI CONSOLE_GETCHAR | Working | Via serial input |
+
+Performance: ~500K instructions per output character (interpreted execution)
 
 ### BSS Reduction Summary
 
