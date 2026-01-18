@@ -5,12 +5,12 @@
 //! GrainStyle: grain_case, u32/u64, bounded allocations, assertions.
 
 const std = @import("std");
-const harbor_kernel = @import("harbor_kernel");
+const basin_kernel = @import("basin_kernel");
 
 // Bounded: Max input event buffer size (32 bytes per event).
 pub const MAX_EVENT_SIZE: u32 = 32;
 
-// Syscall number (matching kernel/harbor_kernel.zig).
+// Syscall number (matching kernel/basin_kernel.zig).
 const SYSCALL_READ_INPUT_EVENT: u32 = 60;
 
 // Syscall function type.

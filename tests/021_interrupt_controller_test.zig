@@ -3,11 +3,11 @@
 //! Grain Style: Explicit types (u64 not usize), minimum 2 assertions per function.
 
 const std = @import("std");
-const harbor_kernel = @import("harbor_kernel");
-const HarborKernel = harbor_kernel.HarborKernel;
-const InterruptController = harbor_kernel.InterruptController;
-const InterruptType = harbor_kernel.InterruptType;
-const InterruptHandler = @import("interrupt.zig").InterruptHandler;
+const basin_kernel = @import("basin_kernel");
+const BasinKernel = basin_kernel.BasinKernel;
+const InterruptController = basin_kernel.harbor_kernel.InterruptController;
+const InterruptType = basin_kernel.harbor_kernel.InterruptType;
+const InterruptHandler = basin_kernel.harbor_kernel.InterruptHandler;
 
 // Test interrupt controller initialization.
 test "interrupt controller init" {
@@ -142,15 +142,16 @@ test "interrupt controller handler context" {
     
     const handler: InterruptHandler = struct {
         fn handle_wrapper(interrupt_type: InterruptType, context: ?*anyopaque) void {
-            const state = @as(*HandlerState, @ptrCast(context.?));
+            const state = @as(*HandlerState, @alignCast(@ptrCast(context.?)));
             HandlerState.handle(state, interrupt_type, context);
         }
     }.handle_wrapper;
     
-    controller.register_timer_handler(handler, &handler_state);
+    var controller_mut = controller;
+    controller_mut.register_timer_handler(handler, &handler_state);
     
     // Test handler call with context.
-    controller.handle_interrupt(.timer);
+    controller_mut.handle_interrupt(.timer);
     
     // Assert: Context must be passed to handler.
     try std.testing.expect(handler_state.received_context != null);
@@ -249,7 +250,7 @@ test "interrupt controller no handler" {
 
 // Test kernel interrupt controller integration.
 test "kernel interrupt controller integration" {
-    const kernel = HarborKernel.init();
+    var kernel = BasinKernel.init();
     
     // Assert: Kernel interrupt controller must be initialized.
     try std.testing.expect(kernel.interrupt_controller.initialized);
@@ -268,7 +269,7 @@ test "kernel interrupt controller integration" {
     
     const handler: InterruptHandler = struct {
         fn handle_wrapper(interrupt_type: InterruptType, context: ?*anyopaque) void {
-            const state = @as(*HandlerState, @ptrCast(context.?));
+            const state = @as(*HandlerState, @alignCast(@ptrCast(context.?)));
             HandlerState.handle(state, interrupt_type, null);
         }
     }.handle_wrapper;

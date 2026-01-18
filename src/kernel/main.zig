@@ -1,7 +1,7 @@
 const Panic = @import("panic.zig");
 const Trap = @import("trap.zig");
-const HarborKernel = @import("basin_kernel.zig").HarborKernel;
-const HarborKernelCore = @import("basin_kernel_core.zig").HarborKernel;
+const BasinKernel = @import("basin_kernel.zig").BasinKernel;
+const BasinKernelCore = @import("basin_kernel_core.zig").BasinKernel;
 const Debug = @import("debug.zig");
 const Framebuffer = @import("framebuffer.zig").Framebuffer;
 const boot = @import("boot.zig");
@@ -10,7 +10,7 @@ const platform_riscv = @import("platform_riscv.zig");
 const TimeSource = @import("time_source.zig").TimeSource;
 
 // Global kernel instance
-var kernel: HarborKernel = undefined;
+var kernel: BasinKernel = undefined;
 
 // Global framebuffer (initialized in kmain)
 // Why: Static allocation for framebuffer state.
@@ -36,19 +36,19 @@ pub export fn kmain() noreturn {
     Debug.kprint("/ /_/ / /  / /_/ / / / / /  / /_/ /___/ / \n", .{});
     Debug.kprint("\\____/_/   \\__,_/_/_/ /_/   \\____//____/  \n", .{});
     Debug.kprint("                                          \n", .{});
-    Debug.kprint("Clutch Harbor Kernel v0.1.0 (RISC-V64)\n", .{});
+    Debug.kprint("Basin Kernel v0.1.0 (RISC-V64)\n", .{});
     Debug.kprint("Copyright (c) 2026 Team Carry\n\n", .{});
 
     // 2. Initialize Kernel
     Debug.log(.info, "Initializing Basin...", .{});
-    // Note: Use init_in_place() to avoid stack overflow (HarborKernel is ~76KB, stack is only 16KB)
+    // Note: Use init_in_place() to avoid stack overflow (BasinKernel is ~76KB, stack is only 16KB)
     // Verbose mode can be enabled via CLI flag (future: kernel parameter)
     // For now, verbose mode is disabled by default (set to true for detailed debugging)
     Debug.set_verbose(false);
     
     Debug.vprint("Starting kernel initialization...", .{});
     const kernel_ptr = &kernel;
-    @call(.auto, HarborKernelCore.init_in_place, .{kernel_ptr});
+    @call(.auto, BasinKernelCore.init_in_place, .{kernel_ptr});
     Debug.vprint("Kernel initialization complete", .{});
     
     // 3. Execute boot sequence (validate all subsystems initialized).

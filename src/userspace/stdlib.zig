@@ -4,7 +4,7 @@
 
 const std = @import("std");
 
-/// Syscall numbers (must match kernel/harbor_kernel.zig).
+/// Syscall numbers (must match kernel/basin_kernel.zig).
 /// Why: Explicit syscall enumeration for type safety.
 pub const Syscall = enum(u32) {
     // Process & Thread Management

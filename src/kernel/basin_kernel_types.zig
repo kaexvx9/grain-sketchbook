@@ -461,7 +461,7 @@ pub const BasinError = error{
 /// Why: Explicit result type, prevent confusion with raw return values.
 pub const SyscallResult = union(enum) {
     success: u64,
-    err: HarborError,
+    err: BasinError,
     
     /// Create success result.
     /// Why: Explicit construction, type safety.
@@ -471,7 +471,7 @@ pub const SyscallResult = union(enum) {
     
     /// Create error result.
     /// Why: Explicit construction, type safety.
-    pub fn fail(err: HarborError) SyscallResult {
+    pub fn fail(err: BasinError) SyscallResult {
         return SyscallResult{ .err = err };
     }
 };
@@ -487,7 +487,7 @@ pub const ProcessState = enum(u8) {
     free,
 };
 
-// Internal types (used by HarborKernel struct)
+// Internal types (used by BasinKernel struct)
 
 /// Memory mapping entry.
 /// Why: Track memory mappings for map/unmap/protect syscalls.

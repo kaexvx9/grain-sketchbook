@@ -13,8 +13,8 @@
 //! Why: Test the full stack: VM -> Kernel -> Syscalls -> Framebuffer -> Display
 
 const std = @import("std");
-const harbor_kernel = @import("harbor_kernel");
-const Syscall = harbor_kernel.Syscall;
+const basin_kernel = @import("basin_kernel");
+const Syscall = basin_kernel.Syscall;
 
 // Framebuffer syscall numbers (must match kernel/harbor_kernel.zig).
 const FB_CLEAR: u32 = 70;

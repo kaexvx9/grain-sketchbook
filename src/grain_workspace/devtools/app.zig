@@ -542,10 +542,10 @@ pub const DevToolsApp = struct {
 
             // Check for newline
             if (c == '\n') {
-                // Check line length (grainwrap-100)
+                // Check line length (grainwrap-128)
                 const line_len = i - line_start;
-                if (line_len > 100) {
-                    const msg = "Line exceeds 100 characters (grainwrap-100)";
+            if (line_len > 128) {
+                const msg = "Line exceeds 128 characters (grainwrap-128)";
                     _ = self.add_linter_message(
                         file_path,
                         line_number,
@@ -618,9 +618,9 @@ pub const DevToolsApp = struct {
                 }
                 // Simple heuristic: if brace is at start of line or after whitespace
                 if (check_pos == line_start or (check_pos < i and source_code[check_pos + 1] == '}')) {
-                    // Check function length (grain validate-70)
-                    if (function_line_count > 70) {
-                        const msg = "Function exceeds 70 lines (grain validate-70)";
+                    // Check function length (grain validate-64)
+                    if (function_line_count > 64) {
+                        const msg = "Function exceeds 64 lines (grain validate-64)";
                         _ = self.add_linter_message(
                             file_path,
                             function_start_line,
@@ -638,8 +638,8 @@ pub const DevToolsApp = struct {
         // Check last line if no newline at end
         if (line_start < source_code.len) {
             const line_len = source_code.len - line_start;
-            if (line_len > 100) {
-                const msg = "Line exceeds 100 characters (grainwrap-100)";
+            if (line_len > 128) {
+                const msg = "Line exceeds 128 characters (grainwrap-128)";
                 _ = self.add_linter_message(
                     file_path,
                     line_number,
@@ -687,7 +687,7 @@ pub const DevToolsApp = struct {
             if (i + 4 < source_code.len and std.mem.eql(u8, source_code[i..i+4], "var ")) {
                 // Look ahead for array syntax
                 var j: u32 = i + 4;
-                while (j < source_code.len and j < i + 100) : (j += 1) {
+                while (j < source_code.len and j < i + 128) : (j += 1) {
                     if (source_code[j] == '[') {
                         // Found array declaration, check if it has MAX_ constant
                         var has_max: bool = false;

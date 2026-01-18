@@ -5,7 +5,7 @@
 //! GrainStyle: grain_case, u32/u64, bounded allocations, assertions.
 
 const std = @import("std");
-const harbor_kernel = @import("harbor_kernel");
+const basin_kernel = @import("basin_kernel");
 
 // Bounded: Max history entries.
 pub const MAX_HISTORY_ENTRIES: u32 = 64;
@@ -223,11 +223,11 @@ pub const ResourceMonitor = struct {
             sysinfo_buf[i] = 0;
         }
         const sysinfo_ptr = @intFromPtr(&sysinfo_buf);
-        const result = self.syscall_fn.?(@intFromEnum(harbor_kernel.Syscall.sysinfo), sysinfo_ptr, 0, 0, 0);
+        const result = self.syscall_fn.?(@intFromEnum(basin_kernel.Syscall.sysinfo), sysinfo_ptr, 0, 0, 0);
         if (result < 0) {
             return false;
         }
-        const info = @as(*harbor_kernel.SysInfo, @ptrCast(&sysinfo_buf));
+        const info = @as(*basin_kernel.SysInfo, @ptrCast(&sysinfo_buf));
         // Use enhanced sysinfo fields: used_memory, process counts.
         const cpu_percent: f64 = @as(f64, @floatFromInt(info.load_avg_1min)) / 10.0;
         const clamped_cpu = @min(cpu_percent, 100.0);

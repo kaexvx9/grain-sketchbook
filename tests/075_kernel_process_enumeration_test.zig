@@ -3,15 +3,15 @@
 
 const std = @import("std");
 const testing = std.testing;
-const harbor_kernel = @import("harbor_kernel");
-const handle_syscall = harbor_kernel.handle_syscall;
-const Syscall = harbor_kernel.Syscall;
-const RawIO = harbor_kernel.RawIO;
+const basin_kernel = @import("basin_kernel");
+const handle_syscall = basin_kernel.handle_syscall;
+const Syscall = basin_kernel.Syscall;
+const RawIO = basin_kernel.RawIO;
 
 // Helper: Create kernel on heap to avoid stack overflow.
-fn create_test_kernel() !*harbor_kernel.HarborKernel {
-    const kernel = try testing.allocator.create(harbor_kernel.HarborKernel);
-    harbor_kernel.HarborKernel.init_in_place(kernel);
+fn create_test_kernel() !*basin_kernel.BasinKernel {
+    const kernel = try testing.allocator.create(basin_kernel.BasinKernel);
+    basin_kernel.BasinKernel.init_in_place(kernel);
     return kernel;
 }
 
@@ -49,32 +49,32 @@ test "process enumeration with invalid buffer" {
     // Test with null buffer pointer.
     const enum_num = @intFromEnum(Syscall.enumerate_processes);
     const result1 = handle_syscall(kernel, enum_num, 0, 1024, 16, 0) catch |err| {
-        try testing.expect(err == harbor_kernel.HarborError.invalid_argument);
+        try testing.expect(err == basin_kernel.BasinError.invalid_argument);
         // Test with buffer too small.
         const buffer_ptr: u64 = 0x1000;
         const PROCESS_INFO_SIZE: u64 = 32;
         const enum_num2 = @intFromEnum(Syscall.enumerate_processes);
         const result2 = handle_syscall(kernel, enum_num2, buffer_ptr, PROCESS_INFO_SIZE - 1, 16, 0) catch |err2| {
-            try testing.expect(err2 == harbor_kernel.HarborError.invalid_argument);
+            try testing.expect(err2 == basin_kernel.BasinError.invalid_argument);
             return;
         };
         try testing.expect(result2 == .err);
-        try testing.expect(result2.err == harbor_kernel.HarborError.invalid_argument);
+        try testing.expect(result2.err == basin_kernel.BasinError.invalid_argument);
         return;
     };
     try testing.expect(result1 == .err);
-    try testing.expect(result1.err == harbor_kernel.HarborError.invalid_argument);
+    try testing.expect(result1.err == basin_kernel.BasinError.invalid_argument);
     
     // Test with buffer too small.
     const buffer_ptr: u64 = 0x1000;
     const PROCESS_INFO_SIZE: u64 = 32;
     const enum_num2 = @intFromEnum(Syscall.enumerate_processes);
     const result2 = handle_syscall(kernel, enum_num2, buffer_ptr, PROCESS_INFO_SIZE - 1, 16, 0) catch |err| {
-        try testing.expect(err == harbor_kernel.HarborError.invalid_argument);
+        try testing.expect(err == basin_kernel.BasinError.invalid_argument);
         return;
     };
     try testing.expect(result2 == .err);
-    try testing.expect(result2.err == harbor_kernel.HarborError.invalid_argument);
+    try testing.expect(result2.err == basin_kernel.BasinError.invalid_argument);
 }
 
 test "get process info syscall" {
@@ -88,53 +88,53 @@ test "get process info syscall" {
     const info_ptr: u64 = 0x1000;
     const get_info_num = @intFromEnum(Syscall.get_process_info);
     const result1 = handle_syscall(kernel, get_info_num, 0, info_ptr, 0, 0) catch |err| {
-        try testing.expect(err == harbor_kernel.HarborError.invalid_argument);
+        try testing.expect(err == basin_kernel.BasinError.invalid_argument);
         // Test with non-existent process.
         const get_info_num2 = @intFromEnum(Syscall.get_process_info);
         const result2 = handle_syscall(kernel, get_info_num2, 999, info_ptr, 0, 0) catch |err2| {
-            try testing.expect(err2 == harbor_kernel.HarborError.not_found);
+            try testing.expect(err2 == basin_kernel.BasinError.not_found);
             // Test with null info pointer.
             const get_info_num3 = @intFromEnum(Syscall.get_process_info);
             const result3 = handle_syscall(kernel, get_info_num3, 1, 0, 0, 0) catch |err3| {
-                try testing.expect(err3 == harbor_kernel.HarborError.invalid_argument);
+                try testing.expect(err3 == basin_kernel.BasinError.invalid_argument);
                 return;
             };
             try testing.expect(result3 == .err);
-            try testing.expect(result3.err == harbor_kernel.HarborError.invalid_argument);
+            try testing.expect(result3.err == basin_kernel.BasinError.invalid_argument);
             return;
         };
         try testing.expect(result2 == .err);
-        try testing.expect(result2.err == harbor_kernel.HarborError.not_found);
+        try testing.expect(result2.err == basin_kernel.BasinError.not_found);
         return;
     };
     try testing.expect(result1 == .err);
-    try testing.expect(result1.err == harbor_kernel.HarborError.invalid_argument);
+    try testing.expect(result1.err == basin_kernel.BasinError.invalid_argument);
     
     // Test with non-existent process.
     const get_info_num2 = @intFromEnum(Syscall.get_process_info);
     const result2 = handle_syscall(kernel, get_info_num2, 999, info_ptr, 0, 0) catch |err| {
-        try testing.expect(err == harbor_kernel.HarborError.not_found);
+        try testing.expect(err == basin_kernel.BasinError.not_found);
         // Test with null info pointer.
         const get_info_num3 = @intFromEnum(Syscall.get_process_info);
         const result3 = handle_syscall(kernel, get_info_num3, 1, 0, 0, 0) catch |err3| {
-            try testing.expect(err3 == harbor_kernel.HarborError.invalid_argument);
+            try testing.expect(err3 == basin_kernel.BasinError.invalid_argument);
             return;
         };
         try testing.expect(result3 == .err);
-        try testing.expect(result3.err == harbor_kernel.HarborError.invalid_argument);
+        try testing.expect(result3.err == basin_kernel.BasinError.invalid_argument);
         return;
     };
     try testing.expect(result2 == .err);
-    try testing.expect(result2.err == harbor_kernel.HarborError.not_found);
+    try testing.expect(result2.err == basin_kernel.BasinError.not_found);
     
     // Test with null info pointer.
     const get_info_num3 = @intFromEnum(Syscall.get_process_info);
     const result3 = handle_syscall(kernel, get_info_num3, 1, 0, 0, 0) catch |err| {
-        try testing.expect(err == harbor_kernel.HarborError.invalid_argument);
+        try testing.expect(err == basin_kernel.BasinError.invalid_argument);
         return;
     };
     try testing.expect(result3 == .err);
-    try testing.expect(result3.err == harbor_kernel.HarborError.invalid_argument);
+    try testing.expect(result3.err == basin_kernel.BasinError.invalid_argument);
 }
 
 test "process info structure layout" {
@@ -143,7 +143,7 @@ test "process info structure layout" {
     defer RawIO.enable();
     
     // Verify ProcessInfo structure size and layout.
-    const info = harbor_kernel.ProcessInfo.init();
+    const info = basin_kernel.ProcessInfo.init();
     
     // Structure should be 32 bytes:
     // pid: u32 (4) + parent_pid: u32 (4) + state: u8 (1) + padding (3) = 12
@@ -151,7 +151,7 @@ test "process info structure layout" {
     // memory_used: u64 (8) = 28 (but u64 alignment means offset 24)
     // Total: 32 bytes with padding
     
-    try testing.expect(@sizeOf(harbor_kernel.ProcessInfo) == 32);
+    try testing.expect(@sizeOf(basin_kernel.ProcessInfo) == 32);
     try testing.expect(info.pid == 0);
     try testing.expect(info.parent_pid == 0);
     try testing.expect(info.state == 0);

@@ -29,10 +29,10 @@ pub const wrap = wrap_mod.wrap;
 
 // Default configuration for graincard compatibility.
 //
-// 73 characters is the graincard content width (75 total - 2 borders).
+// 128 characters is the graincard content width (2^7, binary-aligned).
 // This ensures code fits perfectly when displayed in graincards.
 pub const default_config = types.WrapConfig{
-    .max_width = 73,
+    .max_width = 128,
     .preserve_indentation = true,
     .break_on_operators = true,
 };

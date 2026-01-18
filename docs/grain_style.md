@@ -271,14 +271,14 @@ Code](https://spinroot.com/gerard/pdf/P10.pdf) will change the way you code fore
   variables, unnecessary scope, unnecessary complexity.
 
 - Restrict the length of function bodies to reduce the probability of poorly structured code. We
-  enforce a **hard limit of 70 lines per function**.
+  enforce a **hard limit of 64 lines per function** (2^6, binary-aligned).
 
   **A function that is too long is a path without heart.** It makes you curse your life. It weakens
   you. It turns against you and destroys you. A function that is the right length is a path with
   heart. It makes for a joyful journey. It makes you strong.
 
   Splitting code into functions requires taste. There are many ways to cut a wall of code into
-  chunks of 70 lines, but only a few splits will feel right. Some rules of thumb:
+  chunks of 64 lines, but only a few splits will feel right. Some rules of thumb:
 
   * Good function shape is often the inverse of an hourglass: a few parameters, a simple return
     type, and a lot of meaty logic between the braces.
@@ -737,13 +737,13 @@ Beyond these rules:
 - Use 4 spaces of indentation, rather than 2 spaces, as that is more obvious to the eye at a
   distance.
 
-- **Hard limit all line lengths to at most 103 columns** for graincard compatibility. This ensures
-  code fits perfectly in graincard content areas (103×80 characters, entirely content). Use it up.
+- **Hard limit all line lengths to at most 128 columns** (2^7, binary-aligned). This ensures
+  code fits perfectly in graincard content areas (128×64 characters, entirely content). Use it up.
   Never go beyond. Nothing should be hidden by a horizontal scrollbar. Let your editor help you by
   setting a column ruler. To wrap a function signature, call or data structure, add a trailing
   comma, close your eyes and let `zig fmt` do the rest.
 
-  **The 103-column limit is like the path with heart.** It makes for a joyful journey. It makes
+  **The 128-column limit is like the path with heart.** It makes for a joyful journey. It makes
   you strong. It is a shield that protects you from the onslaughts of horizontal scrolling.
 
 - Add braces to the `if` statement unless it fits on a single line for consistency and defense in
@@ -754,26 +754,28 @@ Beyond these rules:
 
 ## Graincard Constraints
 
-Graincards are 103×80 monospace teaching cards used throughout the grain network. All zig code
+Graincards are 128×64 monospace teaching cards used throughout the grain network. All zig code
 should be written to fit within these constraints.
 
 ### Dimensions
 
-- **Total size**: 103 characters wide × 80 lines tall (entirely content)
+- **Total size**: 128 characters wide × 64 lines tall (entirely content, binary-aligned)
 - **No borders in count**: Borders and padding are handled by printer software, not included in
   character count
 
 This means:
-- **Zig code lines**: max 103 characters per line (hard wrap)
-- **Zig functions**: max 70 lines (leaves 10 lines for title/metadata)
-- **Content only**: All 103×80 characters are content; printer handles margins/borders
+- **Zig code lines**: max 128 characters per line (hard wrap, 2^7)
+- **Zig functions**: max 64 lines (entire graincard height, 2^6)
+- **Content only**: All 128×64 characters are content; printer handles margins/borders
 
 ### Why These Constraints?
 
 **Aspect Ratio Rationale**: Graincards are optimized for portrait-printed 8.5×11" standard printer
-paper. With monospace character aspect ratio of ~0.6 (width:height), 103×80 characters produces a
-visual aspect ratio of 0.772, matching the paper's 0.773 aspect ratio. This ensures graincards
-display optimally when printed, with proper utilization of page space while maintaining readability.
+paper. With monospace character aspect ratio of ~0.6 (width:height), 128×64 characters produces a
+visual aspect ratio of 1.2 (128 × 0.6 / 64 = 1.2), providing wider content area while maintaining
+readability. Binary-aligned dimensions (128 = 2^7, 64 = 2^6) ensure clean alignment and efficient
+processing. The 1.2 aspect ratio provides comfortable reading width while fitting portrait paper
+orientation.
 
 **Simplified Specification**: By removing borders from the character count, we eliminate confusion
 about what counts as content vs. formatting. Printer software handles margins and borders;
@@ -782,9 +784,10 @@ graincards are pure content.
 Graincards are designed to be:
 - **Portable**: viewable in any terminal
 - **Printable**: optimized for portrait 8.5×11" paper with proper aspect ratio
-- **Consistent**: all cards same size (103×80 characters)
+- **Consistent**: all cards same size (128×64 characters, binary-aligned)
 - **Focused**: forces concise, clear code
 - **Simple**: content-only specification, printer handles formatting
+- **Binary-aligned**: 128 (2^7) width, 64 (2^6) height and function limit for efficient processing
 
 **The graincard constraints are like the path with heart.** They make for a joyful journey. They
 make you strong. They force you to be concise, to be clear, to focus. They are shields that

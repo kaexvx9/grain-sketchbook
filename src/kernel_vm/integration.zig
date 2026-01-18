@@ -9,7 +9,7 @@ const BasinKernel = basin_kernel.BasinKernel;
 const BasinError = basin_kernel.BasinError;
 const SyscallResult = basin_kernel.SyscallResult;
 const ProcessContext = basin_kernel.ProcessContext;
-const process_execution = basin_kernel.process_execution;
+const process_execution = @import("process_execution.zig");
 const loadKernel = @import("loader.zig").loadKernel;
 const handle_syscall = @import("basin_kernel").handle_syscall;
 
@@ -436,7 +436,9 @@ pub const Integration = struct {
             return false; // Process has no context
         }
         
-        const process_context = process.context.?;
+        // Note: process.context is ?ProcessContext (value, not pointer)
+        // We need to get a mutable reference to pass to execute_process
+        var process_context = process.context.?;
         
         // Assert: Process context must be initialized (precondition).
         std.debug.assert(process_context.initialized);
@@ -452,7 +454,7 @@ pub const Integration = struct {
         // Why: Enable time slice-based preemption for fair scheduling.
         const should_continue = process_execution.execute_process(
             self.vm,
-            process_context,
+            &process_context,
             max_steps,
             &self.kernel.scheduler,
         );
@@ -465,6 +467,10 @@ pub const Integration = struct {
         // Update process CPU time.
         // Why: Track total CPU time used by process.
         process.cpu_time_ns +%= elapsed_ns; // Saturating add to prevent overflow
+        
+        // Update process context back to process struct.
+        // Why: Save any changes made during execution.
+        process.context = process_context;
         
         // Check if process exited (state changed to exited).
         // Why: Update scheduler if process terminated.

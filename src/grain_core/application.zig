@@ -5,7 +5,7 @@
 //! GrainStyle: grain_case, u32/u64, bounded allocations, assertions.
 
 const std = @import("std");
-const harbor_kernel = @import("harbor_kernel");
+const basin_kernel = @import("basin_kernel");
 
 // Bounded: Max number of applications.
 pub const MAX_APPLICATIONS: u32 = 256;
@@ -212,7 +212,7 @@ pub const ApplicationLauncher = struct {
                 const cmd_ptr = @intFromPtr(&app.command);
                 const cmd_len: u64 = app.command_len;
                 const result = syscall_ptr(
-                    @intFromEnum(harbor_kernel.Syscall.spawn),
+                    @intFromEnum(basin_kernel.Syscall.spawn),
                     path_ptr,
                     path_len,
                     cmd_ptr,

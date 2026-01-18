@@ -4,7 +4,7 @@
 
 const std = @import("std");
 const Debug = @import("debug.zig");
-const HarborKernel = @import("basin_kernel.zig").HarborKernel;
+const BasinKernel = @import("basin_kernel.zig").BasinKernel;
 const ProcessState = @import("basin_kernel.zig").ProcessState;
 
 /// Clean up all resources owned by a process.
@@ -13,13 +13,13 @@ const ProcessState = @import("basin_kernel.zig").ProcessState;
 /// Returns: Number of resources cleaned up (mappings + handles + channels).
 /// Grain Style: Explicit types, bounded operations, static allocation.
 pub fn cleanup_process_resources(
-    kernel: *HarborKernel,
+    kernel: *BasinKernel,
     process_id: u32,
 ) u32 {
     // Assert: Kernel must be initialized (precondition).
     const kernel_ptr = @intFromPtr(kernel);
     Debug.kassert(kernel_ptr != 0, "Kernel ptr is null", .{});
-    Debug.kassert(kernel_ptr % @alignOf(HarborKernel) == 0, "Kernel ptr unaligned", .{});
+    Debug.kassert(kernel_ptr % @alignOf(BasinKernel) == 0, "Kernel ptr unaligned", .{});
 
     // Assert: Process ID must be valid (non-zero).
     Debug.kassert(process_id != 0, "Process ID is 0", .{});
@@ -56,7 +56,7 @@ pub fn cleanup_process_resources(
 /// Returns: Number of mappings freed.
 /// Grain Style: Explicit types, bounded operations, static allocation.
 fn cleanup_process_mappings(
-    kernel: *HarborKernel,
+    kernel: *BasinKernel,
     process_id: u32,
 ) u32 {
     // Assert: Kernel must be initialized (precondition).
@@ -99,7 +99,7 @@ fn cleanup_process_mappings(
 /// Returns: Number of handles closed.
 /// Grain Style: Explicit types, bounded operations, static allocation.
 fn cleanup_process_handles(
-    kernel: *HarborKernel,
+    kernel: *BasinKernel,
     process_id: u32,
 ) u32 {
     // Assert: Kernel must be initialized (precondition).
@@ -142,7 +142,7 @@ fn cleanup_process_handles(
 /// Returns: Number of channels closed.
 /// Grain Style: Explicit types, bounded operations, static allocation.
 fn cleanup_process_channels(
-    kernel: *HarborKernel,
+    kernel: *BasinKernel,
     process_id: u32,
 ) u32 {
     // Assert: Kernel must be initialized (precondition).

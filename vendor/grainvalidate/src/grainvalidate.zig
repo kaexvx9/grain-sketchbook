@@ -108,11 +108,11 @@ fn count_functions(code: []const u8) usize {
 
 // Default configuration for grain style validation.
 //
-// 70 lines per function, 73 characters per line. These constraints
-// ensure code fits in graincards while maintaining readability.
+// 64 lines per function (2^6), 128 characters per line (2^7). These constraints
+// ensure code fits in graincards while maintaining readability and binary alignment.
 pub const default_config = ValidateConfig{
-    .max_function_length = 70,
-    .max_line_width = 73,
+    .max_function_length = 64,
+    .max_line_width = 128,
     .check_naming = true,
     .check_errors = true,
 };

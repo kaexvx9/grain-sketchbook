@@ -9,8 +9,8 @@ const TestArchitecture = arch_detection.TestArchitecture;
 const kernel_vm = @import("kernel_vm");
 const Integration = kernel_vm.Integration;
 const VM = kernel_vm.VM;
-const harbor_kernel = @import("harbor_kernel");
-const HarborKernel = harbor_kernel.HarborKernel;
+const basin_kernel = @import("basin_kernel");
+const BasinKernel = basin_kernel.BasinKernel;
 
 /// Maximum test results (Grain Style: bounded allocation).
 const MAX_TEST_RESULTS: u32 = 1000;
@@ -20,7 +20,7 @@ const MAX_TEST_RESULTS: u32 = 1000;
 /// GrainStyle: Explicit types, bounded operations.
 pub const TestSetup = struct {
     vm: VM,
-    kernel: HarborKernel,
+    kernel: BasinKernel,
     integration: Integration,
     arch: TestArchitecture,
 
@@ -67,7 +67,7 @@ pub fn create_test_integration() TestSetup {
     // Assert: VM must be initialized (postcondition).
     std.debug.assert(vm.state == .halted);
 
-    var kernel = HarborKernel.init();
+    var kernel = BasinKernel.init();
     var integration = Integration.init_with_kernel(&vm, &kernel);
     integration.finish_init();
 

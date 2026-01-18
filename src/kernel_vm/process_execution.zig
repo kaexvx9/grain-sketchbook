@@ -3,10 +3,11 @@
 //! Grain Style: Explicit types (u32/u64 not usize), static allocation, comprehensive assertions.
 
 const std = @import("std");
-const Debug = @import("debug.zig");
-const ProcessContext = @import("process.zig").ProcessContext;
-const VM = @import("kernel_vm").VM;
-const Scheduler = @import("scheduler.zig").Scheduler;
+const basin_kernel = @import("basin_kernel");
+const Debug = basin_kernel.Debug;
+const ProcessContext = basin_kernel.harbor_kernel.ProcessContext;
+const VM = @import("vm.zig").VM;
+const Scheduler = basin_kernel.Scheduler;
 
 /// Switch VM to process context (set VM registers from ProcessContext).
 /// Why: Prepare VM to execute a process by loading its context.
@@ -111,9 +112,8 @@ pub fn execute_process(
         
         // Execute one VM step (use JIT if enabled, falls back to interpreter).
         // Why: Execute one instruction at a time with JIT acceleration.
-        vm.step_jit() catch |err| {
+        vm.step_jit() catch {
             // VM execution error: save context and return false (process exited).
-            _ = err;
             save_process_context(vm, process_context);
             return false;
         };

@@ -3,17 +3,17 @@
 //! Grain Style: Explicit types (u64 not usize), minimum 2 assertions per function.
 
 const std = @import("std");
-const harbor_kernel = @import("harbor_kernel");
-const MemoryPool = harbor_kernel.harbor_kernel.MemoryPool;
-const PAGE_SIZE = harbor_kernel.harbor_kernel.PAGE_SIZE;
-const MAX_PAGES = harbor_kernel.harbor_kernel.MAX_PAGES;
-const HarborKernel = harbor_kernel.HarborKernel;
-const RawIO = harbor_kernel.RawIO;
+const basin_kernel = @import("basin_kernel");
+const MemoryPool = basin_kernel.MemoryPool;
+const PAGE_SIZE = basin_kernel.PAGE_SIZE;
+const MAX_PAGES = basin_kernel.MAX_PAGES;
+const BasinKernel = basin_kernel.BasinKernel;
+const RawIO = basin_kernel.RawIO;
 
 // Helper: Create kernel on heap to avoid stack overflow.
-fn create_test_kernel() !*HarborKernel {
-    const kernel = try std.testing.allocator.create(HarborKernel);
-    HarborKernel.init_in_place(kernel);
+fn create_test_kernel() !*BasinKernel {
+    const kernel = try std.testing.allocator.create(BasinKernel);
+    BasinKernel.init_in_place(kernel);
     return kernel;
 }
 

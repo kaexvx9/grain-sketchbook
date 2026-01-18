@@ -3,8 +3,8 @@
 
 const std = @import("std");
 const testing = std.testing;
-const vm_mod = @import("kernel_vm/vm.zig");
-const harbor_kernel = @import("harbor_kernel");
+const vm_mod = @import("kernel_vm");
+const basin_kernel = @import("basin_kernel");
 const builtin = @import("builtin");
 
 test "kernel boot with JIT enabled" {
@@ -17,7 +17,7 @@ test "kernel boot with JIT enabled" {
     
     // Minimal kernel boot sequence: initialize kernel, set up basic state.
     // Why: Test that kernel can boot with JIT acceleration.
-    const kernel = harbor_kernel.HarborKernel.init();
+    const kernel = basin_kernel.BasinKernel.init();
     defer _ = kernel;
     
     // Initialize VM with JIT.
@@ -100,7 +100,7 @@ test "kernel boot sequence integration" {
     const allocator = testing.allocator;
     
     // Test full kernel boot sequence with JIT.
-    const kernel = harbor_kernel.HarborKernel.init();
+    const kernel = basin_kernel.BasinKernel.init();
     defer _ = kernel;
     
     // Initialize VM with JIT.

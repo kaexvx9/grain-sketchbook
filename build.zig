@@ -205,6 +205,9 @@ pub fn build(b: *std.Build) void {
         },
     });
 
+    // Note: process_execution.zig is now in kernel_vm directory
+    // Why: Avoids circular dependency - kernel_vm/integration.zig imports it as a file
+
     // Multi-architecture testing framework module.
     const test_framework_module = b.addModule("test_framework", .{
         .root_source_file = b.path("src/test_framework/root.zig"),
@@ -1054,13 +1057,14 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
-    const outputs_tests = b.addTest(.{
-        .root_module = b.createModule(.{
-            .root_source_file = b.path("tests/unit/outputs_desc_order.zig"),
-            .target = target,
-            .optimize = optimize,
-        }),
-    });
+    // ARCHIVED 2026-01-17: Test file not found - outputs_desc_order.zig doesn't exist
+    // const outputs_tests = b.addTest(.{
+    //     .root_module = b.createModule(.{
+    //         .root_source_file = b.path("tests/unit/outputs_desc_order.zig"),
+    //         .target = target,
+    //         .optimize = optimize,
+    //     }),
+    // });
 
     // ARCHIVED 2026-01-13: Test references archived grain_carry_core module
     // const grain_carry_core_validation_tests = b.addTest(.{
@@ -1750,8 +1754,9 @@ pub fn build(b: *std.Build) void {
     // ARCHIVED 2026-01-13 03:54:03 PST: Test archived - not essential for kernel/x86 Framework
     //     test_step.dependOn(&run_syscall_performance_benchmark_tests.step);
     
-    const run_outputs_tests = b.addRunArtifact(outputs_tests);
-    test_step.dependOn(&run_outputs_tests.step);
+    // ARCHIVED 2026-01-17: Test file not found - outputs_desc_order.zig doesn't exist
+    // const run_outputs_tests = b.addRunArtifact(outputs_tests);
+    // test_step.dependOn(&run_outputs_tests.step);
     // ARCHIVED 2026-01-13: Tests reference archived grain_carry_core module
     // const run_grain_carry_core_validation_tests = b.addRunArtifact(grain_carry_core_validation_tests);
     // test_step.dependOn(&run_grain_carry_core_validation_tests.step);

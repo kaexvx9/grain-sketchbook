@@ -20,8 +20,8 @@ pub const MAX_FUNCTION_LINES: u32 = 200;
 
 // Violation type: Type of Grain Style violation.
 pub const ViolationType = enum(u8) {
-    line_too_long, // Line exceeds grainwrap-100 (100 chars)
-    function_too_long, // Function exceeds grain validate-70 (70 lines)
+    line_too_long, // Line exceeds grainwrap-128 (128 chars, 2^7)
+    function_too_long, // Function exceeds grain validate-64 (64 lines, 2^6)
     uses_usize, // Uses usize instead of u32/u64
     uses_isize, // Uses isize instead of i32/i64
     missing_bounded_allocation, // Missing MAX_ constant
@@ -114,7 +114,7 @@ pub const CodeAnalyzer = struct {
         };
     }
 
-    // Check line length violation (grainwrap-100).
+    // Check line length violation (grainwrap-128).
     fn check_line_length(
         self: *CodeAnalyzer,
         violations: *std.ArrayListUnmanaged(Violation),
@@ -124,10 +124,10 @@ pub const CodeAnalyzer = struct {
         std.debug.assert(line_number > 0);
         std.debug.assert(line_len <= MAX_LINE_LEN);
 
-        if (line_len > 100) {
+        if (line_len > 128) {
             const msg = try std.fmt.allocPrint(
                 self.allocator,
-                "Line {d} exceeds grainwrap-100: {d} chars",
+                "Line {d} exceeds grainwrap-128: {d} chars",
                 .{ line_number, line_len },
             );
             defer self.allocator.free(msg);

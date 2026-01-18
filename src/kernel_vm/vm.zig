@@ -1502,37 +1502,37 @@ pub const VM = struct {
     fn execute_zig_compat_i_type(self: *Self, opcode_val: u8, inst: u32) VMError!void {
         const funct3 = @as(u3, @truncate(inst >> 12));
         std.debug.print(
-            "DEBUG vm.zig: Opcode 0x{x:02X} detected: inst=0x{x}, funct3=0b{b:0>3}\n",
+            "DEBUG vm.zig: Opcode 0x{x:0>2} detected: inst=0x{x}, funct3=0b{b:0>3}\n",
             .{ opcode_val, inst, funct3 },
         );
 
         if (funct3 == 0b000) {
             std.debug.print(
-                "DEBUG vm.zig: Executing opcode 0x{x:02X} with funct3=0b000 as ADDI\n",
+                "DEBUG vm.zig: Executing opcode 0x{X:0>2} with funct3=0b000 as ADDI\n",
                 .{opcode_val},
             );
             try self.execute_addi(inst);
         } else if (funct3 == 0b100) {
             std.debug.print(
-                "DEBUG vm.zig: Executing opcode 0x{x:02X} with funct3=0b100 as XORI\n",
+                "DEBUG vm.zig: Executing opcode 0x{X:0>2} with funct3=0b100 as XORI\n",
                 .{opcode_val},
             );
             try self.execute_xori(inst);
         } else if (funct3 == 0b110) {
             std.debug.print(
-                "DEBUG vm.zig: Executing opcode 0x{x:02X} with funct3=0b110 as ORI\n",
+                "DEBUG vm.zig: Executing opcode 0x{X:0>2} with funct3=0b110 as ORI\n",
                 .{opcode_val},
             );
             try self.execute_ori(inst);
         } else if (funct3 == 0b111) {
             std.debug.print(
-                "DEBUG vm.zig: Executing opcode 0x{x:02X} with funct3=0b111 as ANDI\n",
+                "DEBUG vm.zig: Executing opcode 0x{X:0>2} with funct3=0b111 as ANDI\n",
                 .{opcode_val},
             );
             try self.execute_andi(inst);
         } else {
             std.debug.print(
-                "DEBUG vm.zig: Unknown opcode 0x{x:02X} variant (funct3=0b{b:0>3}), treating as NOP\n",
+                "DEBUG vm.zig: Unknown opcode 0x{X:0>2} variant (funct3=0b{b:0>3}), treating as NOP\n",
                 .{ opcode_val, funct3 },
             );
         }

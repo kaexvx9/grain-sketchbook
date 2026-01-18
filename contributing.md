@@ -42,9 +42,9 @@ We follow **Grain Style** coding standards. See `docs/grain_style.md` for comple
 - Safety first: Assert preconditions and postconditions (minimum 2 assertions per function)
 
 **Format standards**:
-- Line width: 103 characters (hard wrap) — Graincard compatibility
-- Function length: Max 70 lines (Grain Style `grainvalidate-70`)
-- Graincard format: 103×80 monospace teaching cards (content-only, optimized for portrait 8.5×11" paper)
+- Line width: 128 characters (hard wrap, 2^7) — Graincard compatibility
+- Function length: Max 64 lines (Grain Style `grainvalidate-64`, 2^6)
+- Graincard format: 128×64 monospace teaching cards (content-only, binary-aligned, optimized for portrait 8.5×11" paper)
 
 ### Glow G2 Voice
 
@@ -156,7 +156,7 @@ If you're asked to help with archive creation, follow these guides:
 
 ### Graincards
 
-We use **Graincard format** (103×80 monospace teaching cards) for knowledge preservation. See `docs/zyx/graincard_repo_template_103x80_2025-12-22-020323-pst.md` for format specifications.
+We use **Graincard format** (128×64 monospace teaching cards, binary-aligned) for knowledge preservation. See `docs/zyx/graincard_repo_template_103x80_2025-12-22-020323-pst.md` for format specifications.
 
 ---
 

@@ -31,8 +31,8 @@ const kernel_vm = @import("kernel_vm");
 const Integration = kernel_vm.Integration;
 const VM = kernel_vm.VM;
 const loadKernel = kernel_vm.loadKernel;
-const harbor_kernel = @import("harbor_kernel");
-const HarborKernel = harbor_kernel.HarborKernel;
+const basin_kernel = @import("basin_kernel");
+const BasinKernel = basin_kernel.BasinKernel;
 const framebuffer = @import("framebuffer");
 
 // Framebuffer constants (explicit types, no usize).
@@ -102,7 +102,7 @@ test "Kernel Boot: Integration layer initialization" {
     };
     
     // Set up integration layer (VM + Kernel).
-    var kernel = HarborKernel.init();
+    var kernel = BasinKernel.init();
     var integration = Integration.init_with_kernel(&vm, &kernel);
     integration.finish_init();
     
@@ -143,7 +143,7 @@ test "Kernel Boot: Execute kernel boot sequence" {
     };
     
     // Set up integration layer.
-    var kernel = HarborKernel.init();
+    var kernel = BasinKernel.init();
     var integration = Integration.init_with_kernel(&vm, &kernel);
     integration.finish_init();
     
@@ -195,7 +195,7 @@ test "Stress Test: Long-running program execution" {
     try testing.expect(vm.regs.pc == 0x1000);
     
     // Set up integration layer.
-    var kernel = HarborKernel.init();
+    var kernel = BasinKernel.init();
     var integration = Integration.init_with_kernel(&vm, &kernel);
     integration.finish_init();
     
@@ -295,7 +295,7 @@ test "Edge Case: Syscall error handling" {
     var vm: VM = undefined;
     VM.init(&vm, &[_]u8{}, 0x80000000);
     
-    var kernel = HarborKernel.init();
+    var kernel = BasinKernel.init();
     var integration = Integration.init_with_kernel(&vm, &kernel);
     integration.finish_init();
     
@@ -381,7 +381,7 @@ test "Memory Leak Detection: Framebuffer memory consistency" {
     var vm: VM = undefined;
     VM.init(&vm, &[_]u8{}, 0x80000000);
     
-    var kernel = HarborKernel.init();
+    var kernel = BasinKernel.init();
     var integration = Integration.init_with_kernel(&vm, &kernel);
     integration.finish_init();
     

@@ -5,7 +5,7 @@
 //! GrainStyle: grain_case, u32/u64, bounded allocations, assertions.
 
 const std = @import("std");
-const harbor_kernel = @import("harbor_kernel");
+const basin_kernel = @import("basin_kernel");
 const font_renderer = @import("font_renderer.zig");
 
 // Bounded: Max text length for rendering.

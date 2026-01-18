@@ -5,7 +5,7 @@
 //! GrainStyle: grain_case, u32/u64, bounded allocations, assertions.
 
 const std = @import("std");
-const harbor_kernel = @import("harbor_kernel");
+const basin_kernel = @import("basin_kernel");
 
 // Bounded: Max processes.
 pub const MAX_PROCESSES: u32 = 256;
@@ -209,7 +209,7 @@ pub const ProcessManager = struct {
             return false;
         }
         const priority_u64: u64 = @as(u64, @intCast(@as(i32, nice_value) + 20));
-        const result = self.syscall_fn.?(@intFromEnum(harbor_kernel.Syscall.set_priority), process_id, priority_u64, 0, 0);
+        const result = self.syscall_fn.?(@intFromEnum(basin_kernel.Syscall.set_priority), process_id, priority_u64, 0, 0);
         if (result < 0) {
             return false;
         }
@@ -231,7 +231,7 @@ pub const ProcessManager = struct {
         if (self.syscall_fn == null) {
             return null;
         }
-        const result = self.syscall_fn.?(@intFromEnum(harbor_kernel.Syscall.get_priority), process_id, 0, 0, 0);
+        const result = self.syscall_fn.?(@intFromEnum(basin_kernel.Syscall.get_priority), process_id, 0, 0, 0);
         if (result < 0) {
             return null;
         }
@@ -367,7 +367,7 @@ pub const ProcessManager = struct {
         }
         const path_ptr = @intFromPtr(&path_buf);
         const path_len_u64: u64 = path_len;
-        const result = self.syscall_fn.?(@intFromEnum(harbor_kernel.Syscall.spawn), path_ptr, path_len_u64, 0, 0);
+        const result = self.syscall_fn.?(@intFromEnum(basin_kernel.Syscall.spawn), path_ptr, path_len_u64, 0, 0);
         if (result < 0) {
             return null;
         }
@@ -411,7 +411,7 @@ pub const ProcessManager = struct {
         }
         std.debug.assert(process_id > 0);
         const signal: u64 = 15;
-        const result = self.syscall_fn.?(@intFromEnum(harbor_kernel.Syscall.kill), process_id, signal, 0, 0);
+        const result = self.syscall_fn.?(@intFromEnum(basin_kernel.Syscall.kill), process_id, signal, 0, 0);
         if (result < 0) {
             return false;
         }

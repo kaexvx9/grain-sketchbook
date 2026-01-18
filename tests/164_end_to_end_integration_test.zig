@@ -7,12 +7,12 @@ const testing = std.testing;
 const kernel_vm = @import("kernel_vm");
 const Integration = kernel_vm.Integration;
 const VM = kernel_vm.VM;
-const harbor_kernel = @import("harbor_kernel");
-const HarborKernel = harbor_kernel.HarborKernel;
-const HarborError = harbor_kernel.HarborError;
-const Syscall = harbor_kernel.Syscall;
-const SyscallResult = harbor_kernel.SyscallResult;
-const RawIO = harbor_kernel.RawIO;
+const basin_kernel = @import("basin_kernel");
+const BasinKernel = basin_kernel.BasinKernel;
+const BasinError = basin_kernel.BasinError;
+const Syscall = basin_kernel.Syscall;
+const SyscallResult = basin_kernel.SyscallResult;
+const RawIO = basin_kernel.RawIO;
 // Init System supervision library (module import)
 const supervision = @import("supervision");
 const Supervisor = supervision.Supervisor;
@@ -68,7 +68,7 @@ pub const VMOnlyTestEnv = struct {
 /// Use: For kernel syscall tests that don't need integration layer.
 pub const VMKernelTestEnv = struct {
     vm: *VM,  // Grain Style: Pointer, not value
-    kernel: *HarborKernel,  // Grain Style: Pointer, not value
+    kernel: *BasinKernel,  // Grain Style: Pointer, not value
     arena: std.heap.ArenaAllocator,
 
     pub fn init() !*VMKernelTestEnv {
@@ -80,8 +80,8 @@ pub const VMKernelTestEnv = struct {
         env.vm = try allocator.create(VM);
         VM.init(env.vm, &[_]u8{}, 0x80000000);
         
-        env.kernel = try allocator.create(HarborKernel);
-        HarborKernel.init_in_place(env.kernel);
+        env.kernel = try allocator.create(BasinKernel);
+        BasinKernel.init_in_place(env.kernel);
         
         return env;
     }
@@ -95,7 +95,7 @@ pub const VMKernelTestEnv = struct {
         return self.vm;
     }
 
-    pub fn get_kernel(self: *VMKernelTestEnv) *HarborKernel {
+    pub fn get_kernel(self: *VMKernelTestEnv) *BasinKernel {
         return self.kernel;
     }
 };
@@ -105,7 +105,7 @@ pub const VMKernelTestEnv = struct {
 /// Use: For integration tests that test VM-Kernel communication.
 pub const VMKernelIntegrationTestEnv = struct {
     vm: *VM,  // Grain Style: Pointer, not value (avoids stack allocation)
-    kernel: *HarborKernel,  // Grain Style: Pointer, not value
+    kernel: *BasinKernel,  // Grain Style: Pointer, not value
     integration: *Integration,  // Grain Style: Pointer, not value
     arena: std.heap.ArenaAllocator,  // Grain Style: Arena allocator
 
@@ -122,8 +122,8 @@ pub const VMKernelIntegrationTestEnv = struct {
         VM.init(env.vm, &[_]u8{}, 0x80000000);
         
         // Allocate Kernel via arena (Grain Style: bounded, explicit)
-        env.kernel = try allocator.create(HarborKernel);
-        HarborKernel.init_in_place(env.kernel);
+        env.kernel = try allocator.create(BasinKernel);
+        BasinKernel.init_in_place(env.kernel);
         
         // Allocate Integration via arena (Grain Style: bounded, explicit)
         env.integration = try allocator.create(Integration);
@@ -145,7 +145,7 @@ pub const VMKernelIntegrationTestEnv = struct {
         return self.vm;
     }
 
-    pub fn get_kernel(self: *VMKernelIntegrationTestEnv) *HarborKernel {
+    pub fn get_kernel(self: *VMKernelIntegrationTestEnv) *BasinKernel {
         return self.kernel;
     }
 
@@ -244,7 +244,7 @@ pub const ShellTestEnv = struct {
 /// Note: Only use for tests that truly need all layers. Prefer smaller test environments when possible.
 pub const FullStackTestEnv = struct {
     vm: *VM,  // Grain Style: Pointer, not value (avoids stack allocation)
-    kernel: *HarborKernel,  // Grain Style: Pointer, not value
+    kernel: *BasinKernel,  // Grain Style: Pointer, not value
     integration: *Integration,  // Grain Style: Pointer, not value
     supervisor: Supervisor,
     service_manager: ServiceManager,
@@ -270,8 +270,8 @@ pub const FullStackTestEnv = struct {
         VM.init(env.vm, &[_]u8{}, 0x80000000);
 
         // Allocate Kernel via arena (Grain Style: bounded, explicit)
-        env.kernel = try allocator.create(HarborKernel);
-        HarborKernel.init_in_place(env.kernel);
+        env.kernel = try allocator.create(BasinKernel);
+        BasinKernel.init_in_place(env.kernel);
 
         // Allocate Integration via arena (Grain Style: bounded, explicit)
         env.integration = try allocator.create(Integration);
@@ -375,7 +375,7 @@ pub const FullStackTestEnv = struct {
 
     /// Get Kernel reference.
     /// Why: Allow tests to access Kernel for direct testing.
-    pub fn get_kernel(self: *FullStackTestEnv) *HarborKernel {
+    pub fn get_kernel(self: *FullStackTestEnv) *BasinKernel {
         return &self.kernel;
     }
 
@@ -410,47 +410,47 @@ pub const FullStackTestEnv = struct {
     }
 };
 
-/// Helper: Decode u64 result from VM register to HarborError.
+/// Helper: Decode u64 result from VM register to BasinError.
 // Why: Integration layer returns negative i64 (bitcast to u64) for errors.
 // Contract: result_value is the value from a0 register after syscall.
-/// Returns: HarborError if result is negative, null if success.
-fn decode_error_code(result_value: u64) ?HarborError {
+/// Returns: BasinError if result is negative, null if success.
+fn decode_error_code(result_value: u64) ?BasinError {
     // Check if result is negative (when interpreted as i64).
     const result_i64 = @as(i64, @bitCast(result_value));
     if (result_i64 < 0) {
-        // Map negative error codes to HarborError.
+        // Map negative error codes to BasinError.
         const error_code = @as(u64, @intCast(-result_i64));
         return switch (error_code) {
-            1 => HarborError.invalid_handle,
-            2 => HarborError.invalid_argument,
-            3 => HarborError.permission_denied,
-            4 => HarborError.not_found,
-            5 => HarborError.out_of_memory,
-            6 => HarborError.would_block,
-            7 => HarborError.interrupted,
-            8 => HarborError.invalid_syscall,
-            9 => HarborError.invalid_address,
-            10 => HarborError.unaligned_access,
-            11 => HarborError.out_of_bounds,
-            12 => HarborError.user_not_found,
-            13 => HarborError.invalid_user,
-            14 => HarborError.too_many_processes,
-            15 => HarborError.too_many_connections,
-            16 => HarborError.too_many_files,
-            17 => HarborError.channel_closed,
-            18 => HarborError.ipc_timeout,
-            19 => HarborError.channel_empty,
-            20 => HarborError.channel_full,
-            21 => HarborError.resource_exhausted,
-            22 => HarborError.network_error,
-            23 => HarborError.connection_failed,
-            24 => HarborError.connection_timeout,
-            25 => HarborError.connection_refused,
-            26 => HarborError.network_timeout,
-            27 => HarborError.file_io_timeout,
-            28 => HarborError.file_not_found,
-            29 => HarborError.process_terminated,
-            else => HarborError.invalid_syscall,
+            1 => BasinError.invalid_handle,
+            2 => BasinError.invalid_argument,
+            3 => BasinError.permission_denied,
+            4 => BasinError.not_found,
+            5 => BasinError.out_of_memory,
+            6 => BasinError.would_block,
+            7 => BasinError.interrupted,
+            8 => BasinError.invalid_syscall,
+            9 => BasinError.invalid_address,
+            10 => BasinError.unaligned_access,
+            11 => BasinError.out_of_bounds,
+            12 => BasinError.user_not_found,
+            13 => BasinError.invalid_user,
+            14 => BasinError.too_many_processes,
+            15 => BasinError.too_many_connections,
+            16 => BasinError.too_many_files,
+            17 => BasinError.channel_closed,
+            18 => BasinError.ipc_timeout,
+            19 => BasinError.channel_empty,
+            20 => BasinError.channel_full,
+            21 => BasinError.resource_exhausted,
+            22 => BasinError.network_error,
+            23 => BasinError.connection_failed,
+            24 => BasinError.connection_timeout,
+            25 => BasinError.connection_refused,
+            26 => BasinError.network_timeout,
+            27 => BasinError.file_io_timeout,
+            28 => BasinError.file_not_found,
+            29 => BasinError.process_terminated,
+            else => BasinError.invalid_syscall,
         };
     }
     return null;
@@ -492,9 +492,9 @@ fn call_syscall_via_vm(
 
     // Execute ECALL instruction (triggers syscall handler).
     vm.execute_ecall() catch |err| {
-        // If ECALL execution fails, convert to HarborError.
+        // If ECALL execution fails, convert to BasinError.
         _ = err;
-        return SyscallResult.fail(HarborError.invalid_syscall);
+        return SyscallResult.fail(BasinError.invalid_syscall);
     };
 
     // Get result from a0 register (RISC-V convention: return value in a0).
@@ -550,8 +550,8 @@ test "minimal: VM + Kernel + Integration (no finish_init)" {
     const vm = try allocator.create(VM);
     VM.init(vm, &[_]u8{}, 0x80000000);
     
-    const kernel = try allocator.create(HarborKernel);
-    HarborKernel.init_in_place(kernel);
+    const kernel = try allocator.create(BasinKernel);
+    BasinKernel.init_in_place(kernel);
     
     const integration = try allocator.create(Integration);
     integration.* = Integration.init_with_kernel(vm, kernel);

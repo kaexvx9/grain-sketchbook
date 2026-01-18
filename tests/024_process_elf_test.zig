@@ -3,12 +3,12 @@
 //! Grain Style: Explicit types (u64 not usize), minimum 2 assertions per function.
 
 const std = @import("std");
-const harbor_kernel = @import("harbor_kernel");
-const HarborKernel = harbor_kernel.HarborKernel;
-const ProcessContext = @import("process.zig").ProcessContext;
-const RawIO = harbor_kernel.RawIO;
-const handle_syscall = harbor_kernel.handle_syscall;
-const Syscall = harbor_kernel.Syscall;
+const basin_kernel = @import("basin_kernel");
+const BasinKernel = basin_kernel.BasinKernel;
+const ProcessContext = basin_kernel.harbor_kernel.ProcessContext;
+const RawIO = basin_kernel.RawIO;
+const handle_syscall = basin_kernel.handle_syscall;
+const Syscall = basin_kernel.Syscall;
 
 // Test process context initialization.
 test "process context init" {
@@ -51,7 +51,7 @@ test "kernel spawn process context" {
     RawIO.disable();
     defer RawIO.enable();
     
-    var kernel = HarborKernel.init();
+    var kernel = BasinKernel.init();
     
     // Spawn a process.
     const executable: u64 = 0x1000;
@@ -109,7 +109,7 @@ test "kernel spawn process context" {
 
 // Test process context after exit.
 test "process context after exit" {
-    var kernel = HarborKernel.init();
+    var kernel = BasinKernel.init();
     
     // Spawn a process.
     const executable: u64 = 0x1000;
@@ -137,14 +137,19 @@ test "process context after exit" {
     
     // Exit process.
     // Use syscall number directly (exit = 2)
-    const exit_result = kernel.handle_syscall(
+    const exit_result = handle_syscall(
+        &kernel,
         2, // exit syscall
         42,
         0,
         0,
         0,
-    );
+    ) catch {
+        // Assert: Exit syscall must not fail.
+        return error.UnexpectedError;
+    };
     
+    // Assert: Exit syscall must succeed.
     try std.testing.expect(exit_result == .success);
     
     // Assert: Process must be exited.
@@ -157,7 +162,7 @@ test "process context after exit" {
 
 // Test multiple processes with contexts.
 test "multiple processes contexts" {
-    var kernel = HarborKernel.init();
+    var kernel = BasinKernel.init();
     
     // Spawn first process.
     const exec1: u64 = 0x1000;

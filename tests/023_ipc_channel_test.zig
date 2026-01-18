@@ -3,19 +3,19 @@
 //! Grain Style: Explicit types (u64 not usize), minimum 2 assertions per function.
 
 const std = @import("std");
-const harbor_kernel = @import("harbor_kernel");
-const HarborKernel = harbor_kernel.HarborKernel;
-const HarborError = harbor_kernel.HarborError;
-const Channel = harbor_kernel.harbor_kernel.Channel;
-const ChannelTable = harbor_kernel.harbor_kernel.ChannelTable;
-const MAX_MESSAGE_SIZE = harbor_kernel.harbor_kernel.MAX_MESSAGE_SIZE;
-const harbor_kernel_mod = harbor_kernel; // Alias for handle_syscall
-const RawIO = harbor_kernel.RawIO;
+const basin_kernel = @import("basin_kernel");
+const BasinKernel = basin_kernel.BasinKernel;
+const BasinError = basin_kernel.BasinError;
+const Channel = basin_kernel.Channel;
+const ChannelTable = basin_kernel.ChannelTable;
+const MAX_MESSAGE_SIZE = basin_kernel.MAX_MESSAGE_SIZE;
+const basin_kernel_mod = basin_kernel; // Alias for handle_syscall
+const RawIO = basin_kernel.RawIO;
 
 // Helper: Create kernel on heap to avoid stack overflow.
-fn create_test_kernel() !*HarborKernel {
-    const kernel = try std.testing.allocator.create(HarborKernel);
-    HarborKernel.init_in_place(kernel);
+fn create_test_kernel() !*BasinKernel {
+    const kernel = try std.testing.allocator.create(BasinKernel);
+    BasinKernel.init_in_place(kernel);
     return kernel;
 }
 
@@ -187,7 +187,7 @@ test "kernel channel create" {
     const kernel = try create_test_kernel();
     defer std.testing.allocator.destroy(kernel);
     
-    const result = harbor_kernel_mod.handle_syscall(
+    const result = basin_kernel_mod.handle_syscall(
         kernel,
         20, // channel_create syscall number
         0,
@@ -212,7 +212,7 @@ test "kernel channel send validation" {
     defer std.testing.allocator.destroy(kernel);
     
     // Create channel first.
-    const create_result_raw = harbor_kernel_mod.handle_syscall(
+    const create_result_raw = basin_kernel_mod.handle_syscall(
         kernel,
         20, // channel_create syscall number
         0,
@@ -228,7 +228,7 @@ test "kernel channel send validation" {
     const channel_id = create_result.success;
     
     // Try to send with invalid channel ID.
-    const send_result_invalid = harbor_kernel_mod.handle_syscall(
+    const send_result_invalid = basin_kernel_mod.handle_syscall(
         kernel,
         21, // channel_send syscall number (corrected from 81)
         999, // Invalid channel ID
@@ -242,10 +242,10 @@ test "kernel channel send validation" {
     // Assert: Send must fail (channel not found).
     const send_result_unwrapped = send_result_invalid;
     try std.testing.expect(send_result_unwrapped == .err);
-    try std.testing.expect(send_result_unwrapped.err == HarborError.not_found);
+    try std.testing.expect(send_result_unwrapped.err == BasinError.not_found);
     
     // Try to send with valid channel ID (but invalid data pointer).
-    const send_result_null = harbor_kernel_mod.handle_syscall(
+    const send_result_null = basin_kernel_mod.handle_syscall(
         kernel,
         21, // channel_send syscall number (corrected from 81)
         channel_id,
@@ -259,7 +259,7 @@ test "kernel channel send validation" {
     // Assert: Send must fail (null pointer).
     try std.testing.expect(send_result_null == .err);
     if (send_result_null == .err) {
-        try std.testing.expect(send_result_null.err == HarborError.invalid_argument);
+        try std.testing.expect(send_result_null.err == BasinError.invalid_argument);
     }
 }
 
@@ -269,7 +269,7 @@ test "kernel channel recv validation" {
     defer std.testing.allocator.destroy(kernel);
     
     // Create channel first.
-    const create_result_raw = harbor_kernel_mod.handle_syscall(
+    const create_result_raw = basin_kernel_mod.handle_syscall(
         kernel,
         20, // channel_create syscall number
         0,
@@ -285,7 +285,7 @@ test "kernel channel recv validation" {
     const channel_id = create_result.success;
     
     // Try to receive with invalid channel ID.
-    const recv_result_invalid = harbor_kernel_mod.handle_syscall(
+    const recv_result_invalid = basin_kernel_mod.handle_syscall(
         kernel,
         22, // channel_recv syscall number (corrected from 82)
         999, // Invalid channel ID
@@ -299,10 +299,10 @@ test "kernel channel recv validation" {
     // Assert: Receive must fail (channel not found).
     const recv_result_unwrapped = recv_result_invalid;
     try std.testing.expect(recv_result_unwrapped == .err);
-    try std.testing.expect(recv_result_unwrapped.err == HarborError.not_found);
+    try std.testing.expect(recv_result_unwrapped.err == BasinError.not_found);
     
     // Try to receive with valid channel ID but empty queue.
-    const recv_result_empty = harbor_kernel_mod.handle_syscall(
+    const recv_result_empty = basin_kernel_mod.handle_syscall(
         kernel,
         22, // channel_recv syscall number (corrected from 82)
         channel_id,
@@ -316,7 +316,7 @@ test "kernel channel recv validation" {
     // Assert: Receive must fail (queue empty).
     try std.testing.expect(recv_result_empty == .err);
     if (recv_result_empty == .err) {
-        try std.testing.expect(recv_result_empty.err == HarborError.would_block);
+        try std.testing.expect(recv_result_empty.err == BasinError.would_block);
     }
 }
 

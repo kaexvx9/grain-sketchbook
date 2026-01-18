@@ -82,8 +82,8 @@ pub const OutputFormat = enum(u8) {
 pub const CLIConfig = struct {
     use_color: bool, // Enable color output
     output_format: OutputFormat, // Output format
-    max_line_length: u32, // Max line length (default 100)
-    max_function_length: u32, // Max function length (default 70)
+    max_line_length: u32, // Max line length (default 128, 2^7)
+    max_function_length: u32, // Max function length (default 64, 2^6)
     max_violations: u32, // Max violations before early exit (default 1000)
 };
 
@@ -111,8 +111,8 @@ pub const GrainStyleCLI = struct {
             .config = CLIConfig{
                 .use_color = true,
                 .output_format = .text,
-                .max_line_length = 100,
-                .max_function_length = 70,
+                .max_line_length = 128,
+                .max_function_length = 64,
                 .max_violations = MAX_VIOLATIONS_BEFORE_EXIT,
             },
             .ignore_patterns = undefined,
@@ -180,10 +180,10 @@ pub const GrainStyleCLI = struct {
                     self.config.output_format = .text;
                 }
             } else if (std.mem.eql(u8, key, "max_line_length")) {
-                const parsed = std.fmt.parseInt(u32, value, 10) catch 100;
+                const parsed = std.fmt.parseInt(u32, value, 10) catch 128;
                 self.config.max_line_length = parsed;
             } else if (std.mem.eql(u8, key, "max_function_length")) {
-                const parsed = std.fmt.parseInt(u32, value, 10) catch 70;
+                const parsed = std.fmt.parseInt(u32, value, 10) catch 64;
                 self.config.max_function_length = parsed;
             } else if (std.mem.eql(u8, key, "max_violations")) {
                 const parsed = std.fmt.parseInt(u32, value, 10) catch MAX_VIOLATIONS_BEFORE_EXIT;
