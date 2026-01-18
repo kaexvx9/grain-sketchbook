@@ -377,13 +377,13 @@ fn test_kernel_elf_loading(allocator: std.mem.Allocator) !void {
     const pushed = serial_input.pushString(help_cmd);
     std.debug.print("[kernel_vm_test] Pushed {} bytes of input: \"{s}\"\n", .{ pushed, help_cmd });
     
-    // Note: JIT has x86_64 register allocation bugs - using interpreter only.
-    // TODO: Fix JIT x86_64 backend for production use.
+    // Note: JIT has x86_64 register allocation bugs - using interpreter.
+    // TODO: After refactoring, fix JIT and use step_fast() for speed.
     
-    // Execute instructions - interpreter is slow but correct.
+    // Execute instructions.
     vm2.start();
     var instructions_executed: u32 = 0;
-    const MAX_INSTRUCTIONS: u32 = 500000; // 500K instructions (interpreter)
+    const MAX_INSTRUCTIONS: u32 = 500000; // 500K instructions
     
     var prev_sp: u64 = vm2.regs.get(2);
     var sp_change_count: u32 = 0;

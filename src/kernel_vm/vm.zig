@@ -1240,7 +1240,29 @@ pub const VM = struct {
         return if (is_compressed_instruction(inst)) 2 else 4;
     }
 
-    /// Execute single instruction (decode and execute).
+    /// Execute single instruction (decode and execute) - fast path.
+    /// Why: Minimal overhead for production execution.
+    /// Grain Style: Skip instrumentation for speed.
+    pub fn step_fast(self: *Self) VMError!void {
+        if (self.state != .running) return;
+
+        const pc_before = self.regs.pc;
+        const inst = try self.fetch_instruction();
+
+        if (is_compressed_instruction(inst)) {
+            try self.execute_compressed(@as(u16, @truncate(inst)));
+        } else {
+            const opcode = @as(u7, @truncate(inst));
+            try self.execute_opcode(opcode, inst);
+        }
+
+        // Advance PC if not modified by branch/jump.
+        if (self.regs.pc == pc_before) {
+            self.regs.pc +%= if (is_compressed_instruction(inst)) 2 else 4;
+        }
+    }
+
+    /// Execute single instruction (decode and execute) - with full instrumentation.
     /// Grain Style: Comprehensive instruction decoding, assertions.
     pub fn step(self: *Self) VMError!void {
         // Assert: VM must be in running state.
@@ -1288,8 +1310,6 @@ pub const VM = struct {
         self.instruction_trace.record_instruction(self, pc_before, inst);
 
         // Execute based on instruction type (compressed or full).
-        const inst_size = instruction_size(inst);
-        
         if (is_compressed_instruction(inst)) {
             // Execute compressed (16-bit) instruction
             try self.execute_compressed(@as(u16, @truncate(inst)));
@@ -1302,7 +1322,7 @@ pub const VM = struct {
         // Note: Branch/jump instructions modify PC directly, check if PC was modified.
         if (self.regs.pc == pc_before) {
             // Normal case: PC unchanged by instruction, advance.
-            self.regs.pc += inst_size;
+            self.regs.pc += instruction_size(inst);
         }
         // Else: PC was modified by branch instruction, don't increment again.
 
