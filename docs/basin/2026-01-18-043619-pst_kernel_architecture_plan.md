@@ -4,16 +4,35 @@
 **Status**: Planning Phase  
 **Goal**: Reorganize Basin kernel to follow Linux 6.x architectural patterns in Grain Style
 
-## Current State
+## Current State (Updated 2026-01-18)
 
-The Basin kernel currently executes **200+ RISC-V instructions** in the Vantage VM before hitting unmapped BSS memory. Key accomplishments:
+**MILESTONE ACHIEVED**: The Basin kernel now executes **10,000+ RISC-V instructions** in the Vantage VM and reaches the REPL input loop!
+
+Key accomplishments:
 
 - RISC-V64 kernel loads at 0x80000000
 - RVC (compressed instructions) fully supported
 - Function calls work (JALR, C.JR, C.JALR)
+- Branch instructions work (BEQ, BNE, BLTU, etc.)
 - Stack management works (C.ADDI16SP, C.SDSP, C.LDSP)
 - UART mapped at 0x10000000 for serial output
+- BSS reduced from 44.5MB to 6.3MB to fit in 8MB VM
+- Kernel reaches REPL loop (waiting for input)
 - 249/249 tests pass
+
+### BSS Reduction Summary
+
+| Component | Before | After | Savings |
+|-----------|--------|-------|---------|
+| TCP sockets | 64 × 128KB | 8 × 8KB | ~8MB |
+| UDP sockets | 64 × 128KB | 8 × 8KB | ~8MB |
+| Channels | 64 × 128KB | 8 × 4KB | ~8MB |
+| Audio | 16 × 128KB | 4 × 8KB | ~2MB |
+| Storage | 64 × 64KB | 16 × 4KB | ~4MB |
+| Mappings | 256 | 32 | variable |
+| Handles | 64 | 16 | variable |
+| Users | 256 | 8 | variable |
+| **Total BSS** | **44.5MB** | **6.3MB** | **38MB** |
 
 ### Current Structure (Flat)
 
