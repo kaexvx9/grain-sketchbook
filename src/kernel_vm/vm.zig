@@ -4032,120 +4032,47 @@ pub const VM = struct {
     /// Why: Handle SBI calls (platform services) and Grain Basin kernel syscalls.
     /// RISC-V calling convention: a7 (x17) = syscall/EID number, a0-a5 (x10-x15) = arguments.
     /// SBI vs Kernel: Function ID < 10 → SBI (platform), >= 10 → kernel syscall.
-    /// Grain Style: Comprehensive assertions for ECALL dispatch, arguments, and state transitions.
+    /// Execute ECALL instruction (syscall/SBI call).
+    /// Dispatches to SBI (< 10) or kernel syscall handler (>= 10).
     /// Note: Public for testing (fuzz tests need direct access).
     pub fn execute_ecall(self: *Self) !void {
-        // Assert: VM must be in valid state (running or halted, not errored).
-        std.debug.assert(self.state != .errored);
-
-        // Assert: VM must be running (ECALL only valid when running).
         std.debug.assert(self.state == .running);
-
-        // RISC-V syscall convention: a7 (x17) contains syscall/EID number.
+        
         const syscall_num = self.regs.get(17); // a7 register
-
-        // Debug: Print ECALL execution for troubleshooting.
-        // Note: Commented out to avoid potential crash in test environment
-        // const a0 = self.regs.get(10);
-        // const a1 = self.regs.get(11);
-        // const a2 = self.regs.get(12);
-        // const a3 = self.regs.get(13);
-        // std.debug.print(
-        //     "DEBUG vm.zig: ECALL instruction: syscall_num={} (0x{x}), a0=0x{x}, a1=0x{x}, a2=0x{x}, a3=0x{x}, PC=0x{x}\n",
-        //     .{ syscall_num, syscall_num, a0, a1, a2, a3, self.regs.pc },
-        // );
-
-        // Assert: syscall number must fit in u32.
-        std.debug.assert(syscall_num <= 0xFFFFFFFF);
-
-        // Assert: syscall number must be within reasonable range (0-200 for all kernel syscalls).
-        // Note: Highest syscall is getsid=59, but allow room for future expansion.
         std.debug.assert(syscall_num <= 200);
-
-        // Extract syscall arguments from a0-a5 registers (x10-x15).
-        const arg1 = self.regs.get(10); // a0
-        const arg2 = self.regs.get(11); // a1
-        const arg3 = self.regs.get(12); // a2
-        const arg4 = self.regs.get(13); // a3
-
-        // Dispatch: SBI calls (function ID < 10) vs kernel syscalls (>= 10).
-        // Why: SBI handles platform services (timer, console, reset), kernel handles kernel services.
+        
+        // Extract arguments from a0-a3 registers.
+        const arg1 = self.regs.get(10);
+        const arg2 = self.regs.get(11);
+        const arg3 = self.regs.get(12);
+        const arg4 = self.regs.get(13);
+        
         if (syscall_num < 10) {
-            // Assert: SBI call must have function ID < 10.
-            std.debug.assert(syscall_num < 10);
-
-            // SBI call: Handle platform services.
-            self.handle_sbi_call(@as(u32, @truncate(syscall_num)), arg1, arg2, arg3, arg4);
-
-            // Assert: VM state must remain valid after SBI call (unless shutdown).
-            if (syscall_num != @intFromEnum(sbi.EID.LEGACY_SHUTDOWN)) {
-                std.debug.assert(self.state != .errored);
+            // SBI call: platform services (timer, console, reset).
+            self.handle_sbi_call(@truncate(syscall_num), arg1, arg2, arg3, arg4);
+        } else {
+            // Kernel syscall: dispatch to handler.
+            self.handle_kernel_syscall(@truncate(syscall_num), arg1, arg2, arg3, arg4);
+        }
+    }
+    
+    /// Handle kernel syscall via registered handler.
+    fn handle_kernel_syscall(self: *Self, num: u32, a0: u64, a1: u64, a2: u64, a3: u64) void {
+        if (num < 256) {
+            self.syscall_stats.record_syscall(num);
+        }
+        
+        if (self.syscall_handler) |handler| {
+            const result = handler(num, a0, a1, a2, a3);
+            self.regs.set(10, result);
+            
+            // Exit syscall (num=2) halts VM.
+            if (num == 2) {
+                self.state = .halted;
             }
         } else {
-            // Assert: Kernel syscall must have function ID >= 10.
-            std.debug.assert(syscall_num >= 10);
-
-            // Track kernel syscall execution.
-            // Note: Temporarily wrapped in defensive check for debugging
-            const syscall_num_u32: u32 = @intCast(syscall_num);
-            if (syscall_num_u32 < 256) {
-                self.syscall_stats.record_syscall(syscall_num_u32);
-            }
-
-            // Kernel syscall: Handle via callback if available.
-            if (self.syscall_handler) |handler| {
-                // Assert: handler pointer must be valid.
-                const handler_ptr = @intFromPtr(handler);
-                std.debug.assert(handler_ptr != 0);
-
-                // Call syscall handler and get result.
-                const result = handler(
-                    @as(u32, @truncate(syscall_num)),
-                    arg1,
-                    arg2,
-                    arg3,
-                    arg4,
-                );
-
-                // Assert: result must be valid
-                // (can be error code if negative when interpreted as i64).
-                // Note: Error codes are negative, success values are non-negative.
-
-                // Store result in a0 (x10) register (RISC-V convention).
-                self.regs.set(10, result);
-
-                // Assert: a0 register must be set correctly.
-                std.debug.assert(self.regs.get(10) == result);
-
-                // Special case: exit syscall (syscall number 2) halts VM.
-                // Note: This is kernel syscall 2, not SBI function ID 2.
-                // Note: Kernel syscall 2 is exit, which should halt VM.
-                if (syscall_num == 2) {
-                    // Assert: exit syscall must halt VM.
-                    std.debug.assert(syscall_num == 2);
-                    self.state = .halted;
-
-                    // Assert: VM state must be halted after exit syscall.
-                    std.debug.assert(self.state == .halted);
-                } else {
-                    // Assert: Non-exit syscalls should not halt VM.
-                    std.debug.assert(self.state == .running);
-                }
-            } else {
-                // Assert: No handler should only happen if handler not set.
-                std.debug.assert(self.syscall_handler == null);
-
-                // No handler: halt VM (simple behavior).
-                self.state = .halted;
-
-                // Assert: VM state must be halted when no handler.
-                std.debug.assert(self.state == .halted);
-            }
-        }
-
-        // Assert: VM state must remain valid after ECALL (unless shutdown/exit).
-        if (syscall_num != @intFromEnum(sbi.EID.LEGACY_SHUTDOWN) and syscall_num != 2) {
-            std.debug.assert(self.state != .errored);
+            // No handler: halt VM.
+            self.state = .halted;
         }
     }
 
