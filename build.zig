@@ -182,6 +182,24 @@ pub fn build(b: *std.Build) void {
     const kernel_step = b.step("kernel-rv64", "Build Grain RISC-V kernel image");
     kernel_step.dependOn(&kernel_install.step);
 
+    // Kernel Shell executable (RISC-V64, freestanding, for Basin Kernel VM)
+    const kernel_shell_exe = b.addExecutable(.{
+        .name = "kernel-shell-rv64",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/kernel/kernel_shell.zig"),
+            .target = kernel_resolved,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "grainscript", .module = grainscript_kernel_module },
+            },
+        }),
+    });
+    // Add entry point assembly for shell
+    kernel_shell_exe.addAssemblyFile(b.path("src/kernel/kernel_shell_entry.S"));
+    const kernel_shell_install = b.addInstallArtifact(kernel_shell_exe, .{});
+    const kernel_shell_step = b.step("kernel-shell-rv64", "Build Kernel Shell RISC-V64 executable");
+    kernel_shell_step.dependOn(&kernel_shell_install.step);
+
     // Kernel platform module (for testing platform abstraction) - kept for kernel tests
     const kernel_platform_module = b.addModule("kernel_platform", .{
         .root_source_file = b.path("src/kernel/kernel_platform.zig"),
