@@ -3080,13 +3080,10 @@ pub const VM = struct {
         }
 
         // Read 64-bit doubleword from memory using translated physical offset
-        // GrainStyle: Cast u64 to usize only for array indexing
         const mem_slice = self.memory[@intCast(phys_offset)..][0..8];
         const doubleword = std.mem.readInt(u64, mem_slice, .little);
 
         self.regs.set(rd, doubleword);
-
-        // Assert: register must be set correctly.
         std.debug.assert(self.regs.get(rd) == doubleword);
     }
 
@@ -3551,7 +3548,6 @@ pub const VM = struct {
         const rs2_value = self.regs.get(rs2);
 
         // Write 64-bit doubleword to memory using translated physical offset
-        // GrainStyle: Cast u64 to usize only for array indexing
         @memcpy(self.memory[@intCast(phys_offset)..][0..8], &std.mem.toBytes(rs2_value));
 
         // Assert: doubleword must be written correctly.
