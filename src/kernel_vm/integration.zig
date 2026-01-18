@@ -43,14 +43,14 @@ fn vm_memory_reader_wrapper(addr: u64, len: u32, buffer: []u8) ?u32 {
     std.debug.assert(vm_addr % @alignOf(VM) == 0);
     
     // Contract: Address and length must be valid.
-    const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default
-    if (addr >= VM_MEMORY_SIZE) {
+    // Use VM's actual memory size instead of hardcoded value.
+    if (addr >= vm.memory_size) {
         return null; // Invalid address
     }
     if (len == 0) {
         return null; // Invalid length
     }
-    if (addr + @as(u64, len) > VM_MEMORY_SIZE) {
+    if (addr + @as(u64, len) > vm.memory_size) {
         return null; // Address + length exceeds VM memory
     }
     
@@ -101,14 +101,14 @@ fn vm_memory_writer_wrapper(addr: u64, len: u32, data: []const u8) ?u32 {
     std.debug.assert(vm_addr % @alignOf(VM) == 0);
     
     // Contract: Address and length must be valid.
-    const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default
-    if (addr >= VM_MEMORY_SIZE) {
+    // Use VM's actual memory size instead of hardcoded value.
+    if (addr >= vm.memory_size) {
         return null; // Invalid address
     }
     if (len == 0) {
         return null; // Invalid length
     }
-    if (addr + @as(u64, len) > VM_MEMORY_SIZE) {
+    if (addr + @as(u64, len) > vm.memory_size) {
         return null; // Address + length exceeds VM memory
     }
     
@@ -159,14 +159,14 @@ fn read_vm_memory(addr: u64, len: u32, buffer: []u8) !u32 {
     std.debug.assert(vm_addr % @alignOf(VM) == 0);
     
     // Contract: Address and length must be valid.
-    const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default
-    if (addr >= VM_MEMORY_SIZE) {
+    // Use VM's actual memory size instead of hardcoded value.
+    if (addr >= vm.memory_size) {
         return error.InvalidAddress;
     }
     if (len == 0) {
         return error.InvalidLength;
     }
-    if (addr + @as(u64, len) > VM_MEMORY_SIZE) {
+    if (addr + @as(u64, len) > vm.memory_size) {
         return error.InvalidAddress;
     }
     
@@ -798,9 +798,8 @@ fn syscall_handler_wrapper(
             return @as(u64, @bitCast(@as(i64, -2))); // invalid_argument
         }
         
-        const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024;
         const EVENT_SIZE: u64 = 32;
-        if (arg1 + EVENT_SIZE > VM_MEMORY_SIZE) {
+        if (arg1 + EVENT_SIZE > vm.memory_size) {
             return @as(u64, @bitCast(@as(i64, -9))); // invalid_address
         }
         
@@ -861,9 +860,8 @@ fn syscall_handler_wrapper(
             return @as(u64, @bitCast(@as(i64, -2))); // invalid_argument
         }
         
-        const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024;
         const TIMESPEC_SIZE: u64 = 16; // 8 bytes seconds + 8 bytes nanoseconds
-        if (timespec_ptr + TIMESPEC_SIZE > VM_MEMORY_SIZE) {
+        if (timespec_ptr + TIMESPEC_SIZE > vm.memory_size) {
             return @as(u64, @bitCast(@as(i64, -9))); // invalid_address
         }
         
@@ -1264,9 +1262,9 @@ pub fn loadUserspaceELF(
     // Set up userspace stack pointer (SP register = x2).
     std.debug.print("DEBUG integration.zig: Setting up stack...\n", .{});
     // Contract: Stack address must be page-aligned and within VM memory.
-    const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB
+    // Use target's actual memory size instead of hardcoded value.
     const PAGE_SIZE: u64 = 4096;
-    const STACK_ADDRESS: u64 = VM_MEMORY_SIZE - PAGE_SIZE; // Top of memory, page-aligned
+    const STACK_ADDRESS: u64 = target.memory_size - PAGE_SIZE; // Top of memory, page-aligned
     std.debug.print(
         "DEBUG integration.zig: STACK_ADDRESS=0x{x}, target.memory_size=0x{x}\n",
         .{ STACK_ADDRESS, target.memory_size },
