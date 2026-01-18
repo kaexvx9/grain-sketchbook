@@ -1,0 +1,176 @@
+# Basin Kernel Architecture Plan
+
+**Date**: 2026-01-18  
+**Status**: Planning Phase  
+**Goal**: Reorganize Basin kernel to follow Linux 6.x architectural patterns in Grain Style
+
+## Current State
+
+The Basin kernel currently executes **200+ RISC-V instructions** in the Vantage VM before hitting unmapped BSS memory. Key accomplishments:
+
+- RISC-V64 kernel loads at 0x80000000
+- RVC (compressed instructions) fully supported
+- Function calls work (JALR, C.JR, C.JALR)
+- Stack management works (C.ADDI16SP, C.SDSP, C.LDSP)
+- UART mapped at 0x10000000 for serial output
+- 249/249 tests pass
+
+### Current Structure (Flat)
+
+```
+src/kernel/
+├── basin_kernel.zig          # Main kernel (~73KB)
+├── basin_kernel_core.zig     # Core functions (~68KB)
+├── basin_kernel_types.zig    # Type definitions
+├── basin_kernel_syscalls_*.zig  # Syscall handlers
+├── scheduler.zig             # Process scheduler
+├── memory.zig                # Memory management
+├── network.zig               # Networking
+├── tcp_socket.zig            # TCP implementation
+├── audio.zig                 # Audio driver
+├── framebuffer.zig           # Display driver
+├── boot.zig                  # Boot sequence
+├── trap.zig                  # Trap handling
+├── platform_riscv.zig        # RISC-V platform
+└── ... (60+ files mixed together)
+```
+
+## Target Structure (Linux-style)
+
+Following Linux 6.x patterns, reimplemented in Zig with Grain Style:
+
+```
+src/kernel/
+├── arch/
+│   └── riscv64/
+│       ├── boot.zig           # Architecture-specific boot
+│       ├── entry.S            # Entry point assembly
+│       ├── trap.zig           # Trap/interrupt handling
+│       ├── platform.zig       # Platform abstraction
+│       ├── interrupt.zig      # Interrupt controller
+│       └── linker.ld          # Linker script
+├── core/
+│   ├── sched.zig              # Scheduler (like kernel/sched/)
+│   ├── process.zig            # Process management
+│   ├── signal.zig             # Signal handling
+│   ├── syscall.zig            # Syscall dispatch
+│   ├── timer.zig              # Timer subsystem
+│   └── panic.zig              # Kernel panic
+├── mm/
+│   ├── page_alloc.zig         # Page allocator
+│   ├── page_table.zig         # Page table management
+│   ├── memory.zig             # Memory regions
+│   └── cow.zig                # Copy-on-write
+├── fs/
+│   ├── vfs.zig                # Virtual filesystem
+│   └── elf.zig                # ELF loader
+├── net/
+│   ├── socket.zig             # Socket abstraction
+│   ├── tcp.zig                # TCP protocol
+│   ├── udp.zig                # UDP protocol
+│   └── channel.zig            # IPC channels
+├── drivers/
+│   ├── console.zig            # Console/UART
+│   ├── framebuffer.zig        # Display
+│   ├── keyboard.zig           # Input
+│   ├── audio.zig              # Audio
+│   └── storage.zig            # Block devices
+├── init/
+│   ├── main.zig               # Kernel main entry
+│   └── version.zig            # Version info
+└── include/
+    └── types.zig              # Shared type definitions
+```
+
+## Implementation Strategy
+
+### Phase 1: Architecture Isolation (Priority)
+
+Move RISC-V specific code to `arch/riscv64/`:
+- `boot.zig`, `entry.S`, `linker.ld`
+- `trap.zig`, `interrupt.zig`
+- `platform.zig`, `platform_riscv.zig`
+
+**Benefit**: Enables future ARM64/x86 ports
+
+### Phase 2: Core Subsystem
+
+Move scheduler and process management to `core/`:
+- `scheduler.zig`, `process.zig`, `signal.zig`
+- `timer.zig`, `syscall_*.zig`
+
+### Phase 3: Memory Management
+
+Move to `mm/`:
+- `memory.zig`, `page_table.zig`, `cow.zig`
+
+### Phase 4: Drivers
+
+Move device drivers to `drivers/`:
+- `framebuffer.zig`, `keyboard.zig`, `audio.zig`
+
+### Phase 5: Networking
+
+Move to `net/`:
+- `network.zig`, `tcp_socket.zig`, `udp_socket.zig`
+
+## Technical Challenges
+
+### Import Path Updates
+
+Each file move requires updating imports in:
+1. The moved file itself
+2. All files that import it
+
+Example: Moving `scheduler.zig` to `core/scheduler.zig` requires:
+```zig
+// Before: @import("scheduler.zig")
+// After:  @import("core/scheduler.zig")
+```
+
+### Build System Updates
+
+`build.zig` must be updated for:
+- New source paths
+- Module definitions
+- Assembly file locations
+
+### Grain Style Compliance
+
+All reorganized code must maintain:
+- 64-line function limit
+- 128-character line limit
+- Explicit u32/u64 types
+- 2+ assertions per function
+- "Why" comments
+
+## Immediate Next Steps
+
+1. **Continue VM development** - Get kernel past BSS limitation
+2. **Document current architecture** - Map all imports/dependencies
+3. **Incremental migration** - One subsystem at a time
+4. **Test after each move** - Ensure 249/249 tests pass
+
+## Linux 6.x Reference
+
+Key directories in Linux kernel for reference:
+- `arch/riscv/` - RISC-V architecture code
+- `kernel/` - Core kernel (sched, fork, signal)
+- `mm/` - Memory management
+- `fs/` - Filesystems
+- `drivers/` - Device drivers
+- `net/` - Networking stack
+- `include/` - Headers
+
+## Notes
+
+- Current kernel BSS needs ~44MB, VM has 8MB
+- Kernel executes correctly until hitting unmapped data
+- JALR alignment fix was critical for RVC support
+- Re-export shims don't work in Zig 0.15
+
+## Related Documents
+
+- `docs/grain_style.md` - Coding standards
+- `docs/core-coordination/` - Development history
+- `archaeology/` - Historical context
