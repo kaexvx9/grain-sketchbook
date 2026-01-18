@@ -8,6 +8,7 @@ pub const VMError = @import("vm.zig").VM.VMError;
 pub const FramebufferDirtyRegion = @import("vm.zig").FramebufferDirtyRegion;
 pub const loadKernel = @import("loader.zig").loadKernel;
 pub const SerialOutput = @import("serial.zig").SerialOutput;
+pub const SerialInput = @import("serial.zig").SerialInput;
 pub const handleSyscall = @import("syscall.zig").handleSyscall;
 pub const Integration = @import("integration.zig").Integration;
 pub const loadUserspaceELF = @import("integration.zig").loadUserspaceELF;

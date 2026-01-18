@@ -2,6 +2,11 @@ const std = @import("std");
 const builtin = @import("builtin");
 const sbi = @import("sbi");
 const SerialOutput = @import("serial.zig").SerialOutput;
+const SerialInput = @import("serial.zig").SerialInput;
+
+// Debug flags (set to true for verbose output).
+const DEBUG_SBI_GETCHAR = false;
+const DEBUG_SBI_CALLS = false;
 const jit_mod = @import("jit.zig");
 const error_log_mod = @import("error_log.zig");
 const performance_mod = @import("performance.zig");
@@ -300,6 +305,8 @@ pub const VM = struct {
     /// Serial output handler (for SBI console output).
     /// Why: Capture SBI console output (LEGACY_CONSOLE_PUTCHAR) for display.
     serial_output: ?*SerialOutput = null,
+    /// Serial input buffer for console input (SBI_CONSOLE_GETCHAR).
+    serial_input: ?*SerialInput = null,
 
     /// JIT compiler context (optional, enabled via init_with_jit)
     /// Why: Enable near-native performance for kernel execution
@@ -3136,10 +3143,40 @@ pub const VM = struct {
             return VMError.invalid_memory_access;
         }
 
-        // Read byte from memory using translated physical offset (zero-extend to 64 bits)
-        const byte = self.memory[phys_offset];
-        const byte64: u64 = byte;
+        // Check for UART MMIO read (virtual address 0x10000000+).
+        // Why: Kernel reads from UART for input status and data.
+        const UART_VIRT_BASE: u64 = 0x10000000;
+        var byte: u8 = undefined;
+        if (eff_addr >= UART_VIRT_BASE and eff_addr < UART_VIRT_BASE + 0x1000) {
+            const uart_offset = eff_addr - UART_VIRT_BASE;
+            if (uart_offset == 0) {
+                // RBR (Receiver Buffer Register) - return input byte.
+                if (self.serial_input) |input| {
+                    byte = input.pop() orelse 0;
+                } else {
+                    byte = 0;
+                }
+            } else if (uart_offset == 5) {
+                // LSR (Line Status Register):
+                // Bit 0 = Data Ready (1 if input available)
+                // Bit 5 = THR Empty (1 if transmitter ready)
+                var lsr: u8 = 0x20; // THR always empty (ready to send)
+                if (self.serial_input) |input| {
+                    if (input.hasInput()) {
+                        lsr |= 0x01; // Data ready
+                    }
+                }
+                byte = lsr;
+            } else {
+                // Other UART registers - read from memory.
+                byte = self.memory[phys_offset];
+            }
+        } else {
+            // Normal memory read.
+            byte = self.memory[phys_offset];
+        }
 
+        const byte64: u64 = byte;
         self.regs.set(rd, byte64);
 
         // Assert: register must be set correctly.
@@ -3381,6 +3418,17 @@ pub const VM = struct {
 
         // Record memory write in trace.
         self.instruction_trace.record_memory_write(eff_addr, @as(u64, byte));
+
+        // Check for UART MMIO write (virtual address 0x10000000).
+        // Why: Kernel writes to UART should be captured as serial output.
+        const UART_VIRT_BASE: u64 = 0x10000000;
+        if (eff_addr >= UART_VIRT_BASE and eff_addr < UART_VIRT_BASE + 0x1000) {
+            // This is a UART write - capture as serial output.
+            if (self.serial_output) |serial| {
+                serial.writeByte(byte);
+            }
+            // Still write to memory (in case kernel reads it back).
+        }
 
         // Write byte to memory using translated physical offset
         // GrainStyle: Cast u64 to usize only for array indexing
@@ -4090,6 +4138,11 @@ pub const VM = struct {
         // Assert: EID must match known SBI legacy function IDs.
         std.debug.assert(eid <= @intFromEnum(sbi.EID.LEGACY_SHUTDOWN));
 
+        // Debug: log all SBI calls.
+        if (DEBUG_SBI_CALLS) {
+            std.debug.print("SBI call: eid={}, a0=0x{x}\n", .{ eid, arg1 });
+        }
+
         // Dispatch based on SBI Extension ID (EID).
         // Why: Different SBI functions have different calling conventions.
         switch (eid) {
@@ -4118,6 +4171,28 @@ pub const VM = struct {
 
                 // Assert: a0 register must be set to 0 (success).
                 std.debug.assert(self.regs.get(10) == 0);
+            },
+            // LEGACY_CONSOLE_GETCHAR (0x2): Read character from console.
+            // Calling convention: returns character in a0 (x10), or -1 if no char.
+            @intFromEnum(sbi.EID.LEGACY_CONSOLE_GETCHAR) => {
+                if (self.serial_input) |input| {
+                    if (input.pop()) |byte| {
+                        // Character available - return it in a0.
+                        self.regs.set(10, @as(u64, byte));
+                        // Debug: log character received
+                        if (DEBUG_SBI_GETCHAR) {
+                            std.debug.print("SBI_GETCHAR: got '{}' (0x{x:0>2})\n", .{ byte, byte });
+                        }
+                    } else {
+                        // No character available - return -1.
+                        const no_char: i64 = -1;
+                        self.regs.set(10, @as(u64, @bitCast(no_char)));
+                    }
+                } else {
+                    // No input buffer configured - return -1.
+                    const no_char: i64 = -1;
+                    self.regs.set(10, @as(u64, @bitCast(no_char)));
+                }
             },
             // LEGACY_SHUTDOWN (0x8): System shutdown.
             // Calling convention: no arguments, no return value.
@@ -4181,6 +4256,12 @@ pub const VM = struct {
 
         // Assert: serial_output must be set correctly.
         std.debug.assert(self.serial_output == serial);
+    }
+
+    /// Set serial input handler for SBI console.
+    /// Why: Allow external keyboard input handling.
+    pub fn set_serial_input(self: *Self, input: ?*SerialInput) void {
+        self.serial_input = input;
     }
 
     /// Set syscall handler callback.

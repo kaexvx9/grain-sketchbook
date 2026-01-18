@@ -3,6 +3,7 @@ const kernel_vm = @import("kernel_vm");
 const VM = kernel_vm.VM;
 const loadKernel = kernel_vm.loadKernel;
 const SerialOutput = kernel_vm.SerialOutput;
+const SerialInput = kernel_vm.SerialInput;
 
 /// Test RISC-V VM functionality.
 /// Grain Style: Comprehensive test coverage, deterministic behavior.
@@ -365,22 +366,41 @@ fn test_kernel_elf_loading(allocator: std.mem.Allocator) !void {
     _ = vm2.memory_protection.map_page(UART_BASE, UART_PHYS, RW);
     std.debug.print("[kernel_vm_test] Mapped UART at 0x{x} -> phys 0x{x}\n", .{ UART_BASE, UART_PHYS });
     
-    // Execute a few instructions to verify kernel starts.
+    // Set up serial I/O for console.
+    var serial_output = SerialOutput{};
+    var serial_input = SerialInput{};
+    vm2.set_serial_output(&serial_output);
+    vm2.set_serial_input(&serial_input);
+    
+    // Feed a simple command to the kernel ("help\n").
+    const help_cmd = "help\n";
+    const pushed = serial_input.pushString(help_cmd);
+    std.debug.print("[kernel_vm_test] Pushed {} bytes of input: \"{s}\"\n", .{ pushed, help_cmd });
+    
+    // Execute instructions - increased limit to see more execution.
     vm2.start();
     var instructions_executed: u32 = 0;
-    const MAX_INSTRUCTIONS: u32 = 10000;
+    const MAX_INSTRUCTIONS: u32 = 500000; // 500K instructions
     
     var prev_sp: u64 = vm2.regs.get(2);
+    var sp_change_count: u32 = 0;
+    const MAX_SP_LOGS: u32 = 20; // Only log first 20 SP changes
+    
     while (instructions_executed < MAX_INSTRUCTIONS) : (instructions_executed += 1) {
         const pc_before = vm2.regs.pc;
         const sp_before = vm2.regs.get(2);
         
-        // Track SP changes
+        // Track SP changes (limited logging)
         if (sp_before != prev_sp) {
-            std.debug.print(
-                "[kernel_vm_test] SP changed: 0x{x} -> 0x{x} (at PC 0x{x})\n",
-                .{ prev_sp, sp_before, pc_before },
-            );
+            sp_change_count += 1;
+            if (sp_change_count <= MAX_SP_LOGS) {
+                std.debug.print(
+                    "[kernel_vm_test] SP changed: 0x{x} -> 0x{x} (at PC 0x{x})\n",
+                    .{ prev_sp, sp_before, pc_before },
+                );
+            } else if (sp_change_count == MAX_SP_LOGS + 1) {
+                std.debug.print("[kernel_vm_test] (suppressing further SP change logs)\n", .{});
+            }
             prev_sp = sp_before;
         }
         
@@ -404,6 +424,11 @@ fn test_kernel_elf_loading(allocator: std.mem.Allocator) !void {
             std.debug.print("[kernel_vm_test] VM halted (ECALL) after {} instructions\n", .{instructions_executed});
             break;
         }
+        
+        // Progress indicator every 100K instructions
+        if (instructions_executed > 0 and instructions_executed % 100000 == 0) {
+            std.debug.print("[kernel_vm_test] {}K instructions, output={} bytes\n", .{ instructions_executed / 1000, serial_output.total_written });
+        }
     }
     
     if (instructions_executed >= MAX_INSTRUCTIONS) {
@@ -411,6 +436,17 @@ fn test_kernel_elf_loading(allocator: std.mem.Allocator) !void {
     }
     
     std.debug.print("[kernel_vm_test] Final PC: 0x{x}\n", .{vm2.regs.pc});
+    
+    // Show serial output (if any).
+    if (serial_output.total_written > 0) {
+        const out_len = @min(serial_output.total_written, 512);
+        std.debug.print("[kernel_vm_test] Serial output ({} bytes):\n", .{serial_output.total_written});
+        std.debug.print("---\n{s}\n---\n", .{serial_output.buffer[0..out_len]});
+    }
+    
+    // Show remaining input (if any).
+    std.debug.print("[kernel_vm_test] Input remaining: {} bytes\n", .{serial_input.available});
+    
     std.debug.print("[kernel_vm_test] ✓ Kernel execution test complete\n", .{});
 }
 
