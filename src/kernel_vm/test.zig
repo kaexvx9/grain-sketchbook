@@ -377,10 +377,13 @@ fn test_kernel_elf_loading(allocator: std.mem.Allocator) !void {
     const pushed = serial_input.pushString(help_cmd);
     std.debug.print("[kernel_vm_test] Pushed {} bytes of input: \"{s}\"\n", .{ pushed, help_cmd });
     
-    // Execute instructions - increased limit to see more execution.
+    // Note: JIT has x86_64 register allocation bugs - using interpreter only.
+    // TODO: Fix JIT x86_64 backend for production use.
+    
+    // Execute instructions - interpreter is slow but correct.
     vm2.start();
     var instructions_executed: u32 = 0;
-    const MAX_INSTRUCTIONS: u32 = 500000; // 500K instructions
+    const MAX_INSTRUCTIONS: u32 = 500000; // 500K instructions (interpreter)
     
     var prev_sp: u64 = vm2.regs.get(2);
     var sp_change_count: u32 = 0;
@@ -425,8 +428,8 @@ fn test_kernel_elf_loading(allocator: std.mem.Allocator) !void {
             break;
         }
         
-        // Progress indicator every 100K instructions
-        if (instructions_executed > 0 and instructions_executed % 100000 == 0) {
+        // Progress indicator every 500K instructions
+        if (instructions_executed > 0 and instructions_executed % 500000 == 0) {
             std.debug.print("[kernel_vm_test] {}K instructions, output={} bytes\n", .{ instructions_executed / 1000, serial_output.total_written });
         }
     }
