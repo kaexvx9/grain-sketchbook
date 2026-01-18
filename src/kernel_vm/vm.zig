@@ -687,7 +687,7 @@ pub const VM = struct {
             return self.step();
         };
         const compile_end = std.time.nanoTimestamp();
-        const compile_time: i64 = compile_end - compile_start;
+        const compile_time: i64 = @intCast(@as(i128, compile_end) - @as(i128, compile_start));
         if (compile_time > 0) {
             jit_ctx.perf_counters.jit_compile_time_ns += @intCast(compile_time);
         }
@@ -702,15 +702,15 @@ pub const VM = struct {
         const exec_start = std.time.nanoTimestamp();
         // Use architecture-specific enter function.
         if (builtin.cpu.arch == .x86_64) {
-            jit_mod.JitContext.enter_jit_x86_64(func, &guest_state, self.memory.ptr);
+            jit_mod.JitContext.enter_jit_x86_64(func, &guest_state, &self.memory);
         } else if (builtin.cpu.arch == .aarch64) {
-            jit_mod.JitContext.enter_jit(func, &guest_state, self.memory.ptr);
+            jit_mod.JitContext.enter_jit(func, &guest_state, &self.memory);
         } else {
             // Unsupported architecture: fall back to interpreter.
             return self.step();
         }
         const exec_end = std.time.nanoTimestamp();
-        const exec_time: i64 = exec_end - exec_start;
+        const exec_time: i64 = @intCast(@as(i128, exec_end) - @as(i128, exec_start));
         if (exec_time > 0) {
             jit_ctx.perf_counters.total_execution_time_ns += @intCast(exec_time);
         }

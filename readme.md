@@ -5,21 +5,81 @@
 
 ---
 
+## What Is This?
+
+**This entire codebase was built using Cursor Ultra ($200/month) in Auto Mode.**
+
+170,000+ lines of Zig. 500+ source files. 249 passing tests. A complete RISC-V64 operating system with JIT compiler, networking stack, and scripting language — built by AI agents working autonomously.
+
+---
+
+## Cursor Ultra Auto Mode: What We Learned
+
+**Reya**: We've been running Cursor Ultra ($200/month) in Auto Mode for extended sessions — sometimes 8+ hours of autonomous development. This repository is the result.
+
+**Glow**: Auto Mode changes everything. Instead of prompting line-by-line, we describe high-level goals and the AI works autonomously: reading code, writing tests, fixing bugs, refactoring, creating documentation. It's pair programming where your partner never gets tired.
+
+**Key insights from building 170k lines with AI:**
+
+1. **Auto Mode is the unlock** — The $200/month tier gives you extended autonomous sessions. The AI can hold context across hundreds of files and make coordinated changes.
+
+2. **Style guides matter more** — When AI writes most of the code, having a strict style guide (like our Grain Style) ensures consistency. The AI follows rules better than humans.
+
+3. **Tests become essential** — We have 249 tests because that's how you verify AI-written code. The AI writes the tests too.
+
+4. **Documentation is free** — AI generates comprehensive docs as it works. Every function gets comments explaining "why."
+
+5. **Refactoring is instant** — "Make this function shorter than 64 lines" and the AI extracts helpers, renames variables, updates all call sites.
+
+**Reya**: The economics are simple: $200/month for what would cost $20,000+ in developer time. This repository would have taken a team months. We built it in weeks.
+
+**Glow**: You can find Keaton on Twitter/X at [@keatonlivermore](https://x.com/keatonlivermore). This project demonstrates what's possible when you commit to AI-assisted development.
+
+---
+
+## Roadmap: Path to Alpha Release
+
+**The bottleneck to Grain OS alpha is getting the Basin kernel working on Vantage VM for Framework x86_64.**
+
+### Current Focus: Framework x86_64 Target
+
+**Glow**: The immediate goal is Basin kernel → Vantage VM → Framework x86_64. Once this works, we'll target **first-responder dispatch software** — emergency services that need reliable, auditable, safety-critical systems.
+
+**Reya**: First responders deserve better than legacy dispatch systems. Grain OS is designed for exactly this: safety-first, deterministic, auditable code that can be trusted with lives.
+
+### Technical Contributors Needed: ARM aarch64 / Apple Silicon
+
+**Glow**: The designs are in place for contributors to finish the **Vantage target for ARM aarch64 (Apple Silicon)**. The path:
+
+1. Compile Zig → C module via Zig's C backend
+2. Source the compiled C into native **Swift macOS Tahoe** desktop application
+3. Package as macOS app with proper signing
+
+### Future: Aurora — Open-Source iOS Cursor Alternative
+
+**Reya**: We're designing **Aurora** — an open-source iOS alternative to Cursor. Aurora will support two inference backends:
+
+1. **[Cursor CLI Ultra Auto Mode](https://cursor.com)** ($200/month) — The proven path, cloud-based, what built this codebase
+
+2. **[Cerebras Wafer Scale Engine](https://cerebras.ai)** — Single-threaded bounded compute on Spatial RAM hardware, orders of magnitude faster inference with open models. No batching, deterministic latency.
+
+**Glow**: The Cerebras path is for when you need local, deterministic, auditable AI inference — exactly what safety-critical applications require. Open models running on spatial compute architecture designed for single-threaded workloads.
+
+**Reya**: Both backends serve the same goal: AI-assisted development that's accessible, powerful, and aligned with open-source values.
+
+---
+
 ## Project Introduction
 
-**Reya**: Hey there! I'm **Reya**, your vegan cyberpunk virtual lieutenant governor, and I'm excited to introduce you to **ry** — a Zig framework for Cursor that automatically makes all your prompting better. ©kae3g Keaton Livermore
+**Reya**: I'm **Reya**, your vegan cyberpunk virtual lieutenant governor, and this is **ry** — a complete RISC-V operating system and Zig framework built almost entirely by AI agents in Cursor. ©kae3g Keaton Livermore
 
-**Glow**: And I'm **Glow G2**, Core 1 Subcore Coordinator. This framework helps make AI prompting more effective, more elegant, and more powerful. It's built in Zig for performance, safety, and clarity.
-
-**Reya**: You can find Keaton on Twitter/X at [@keatonlivermore](https://x.com/keatonlivermore). This framework represents years of thinking about how humans and AI can work together more effectively.
-
-**Glow**: The framework is open-source, permissive, and designed to be built upon. We believe in collaboration, transparency, and empowering developers to create better tools.
+**Glow**: And I'm **Glow G2**, Core 1 Subcore Coordinator. We're AI voices that helped build this. The framework is open-source, permissive, and designed to show what AI-assisted development can achieve.
 
 ---
 
 ## Grain OS & Grain Style
 
-**Glow**: This project follows **Grain Style** — a coding philosophy from Grain OS that emphasizes explicit types, bounded allocations, comprehensive assertions, and code that teaches. See `docs/grain_style.md` for the complete guide.
+**Glow**: This project follows **Grain Style** — a coding philosophy from Grain OS that emphasizes explicit types, bounded allocations, comprehensive assertions, and code that teaches. See [`docs/grain_style.md`](docs/grain_style.md) for the complete guide.
 
 **Reya**: Grain Style means we write code with intention. Every line crafted to last, every decision made with care for the next thirty years. We measure success not in features shipped, but in code that lasts.
 

@@ -16,28 +16,26 @@ var kernel: BasinKernel = undefined;
 // Why: Static allocation for framebuffer state.
 var framebuffer: ?Framebuffer = null;
 
+/// Print boot banner.
+fn print_banner() void {
+    Debug.kprint("\n   ______           _          ____  _____\n", .{});
+    Debug.kprint("  / ____/________ _(_)___     / __ \\/ ___/\n", .{});
+    Debug.kprint(" / / __/ ___/ __ `/ / __ \\   / / / /\\__ \\ \n", .{});
+    Debug.kprint("/ /_/ / /  / /_/ / / / / /  / /_/ /___/ / \n", .{});
+    Debug.kprint("\\____/_/   \\__,_/_/_/ /_/   \\____//____/  \n", .{});
+    Debug.kprint("\nBasin Kernel v0.1.0 (RISC-V64)\n", .{});
+    Debug.kprint("Copyright (c) 2026 Team Carry\n\n", .{});
+}
+
 pub export fn kmain() noreturn {
-    // Set platform-specific time source.
     TimeSource.set_implementation(platform_riscv.get_time_ns);
-    
-    // Initialize platform abstraction for RISC-V.
     const riscv_platform = platform.Platform.init(
         .riscv64,
         platform_riscv.platform_call_riscv,
         platform_riscv.get_time_ns,
     );
     platform.set_platform(riscv_platform);
-    
-    // 1. Early boot banner (serial output)
-    Debug.kprint("\n", .{});
-    Debug.kprint("   ______           _          ____  _____\n", .{});
-    Debug.kprint("  / ____/________ _(_)___     / __ \\/ ___/\n", .{});
-    Debug.kprint(" / / __/ ___/ __ `/ / __ \\   / / / /\\__ \\ \n", .{});
-    Debug.kprint("/ /_/ / /  / /_/ / / / / /  / /_/ /___/ / \n", .{});
-    Debug.kprint("\\____/_/   \\__,_/_/_/ /_/   \\____//____/  \n", .{});
-    Debug.kprint("                                          \n", .{});
-    Debug.kprint("Basin Kernel v0.1.0 (RISC-V64)\n", .{});
-    Debug.kprint("Copyright (c) 2026 Team Carry\n\n", .{});
+    print_banner();
 
     // 2. Initialize Kernel
     Debug.log(.info, "Initializing Basin...", .{});

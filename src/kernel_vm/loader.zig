@@ -351,9 +351,8 @@ pub fn load_elf_file_into_vm(
     
     // Read ELF file from host filesystem.
     // Why: Load ELF data from file into memory for parsing.
-    const file = std.fs.cwd().openFile(file_path, .{}) catch |err| {
+    const file = std.fs.cwd().openFile(file_path, .{}) catch {
         // Convert file system error to loader error.
-        _ = err;
         return error.InvalidElfFormat; // File not found or cannot be opened
     };
     defer file.close();

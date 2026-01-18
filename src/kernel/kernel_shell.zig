@@ -23,74 +23,56 @@ const MAX_ARGS: u32 = 16;
 // Bounded: Max Grainscript source code length (explicit limit, in bytes)
 const MAX_GRAINSCRIPT_LEN: u32 = 4096;
 
+/// Read a line from UART (blocking, with echo and backspace handling).
+/// Why: Encapsulate line input logic for cleaner main function.
+/// Returns: Length of line read.
+fn read_line(line_buf: *[MAX_LINE_LEN]u8) u32 {
+    var line_len: u32 = 0;
+    while (line_len < MAX_LINE_LEN) {
+        const c = RawIO.read_byte_blocking();
+        if (c == '\n' or c == '\r') break;
+        if (c == '\x08' or c == '\x7f') {
+            if (line_len > 0) {
+                line_len -= 1;
+                RawIO.write_byte('\x08');
+                RawIO.write_byte(' ');
+                RawIO.write_byte('\x08');
+            }
+            continue;
+        }
+        if (c >= 0x20 and c < 0x7f) {
+            line_buf[line_len] = c;
+            line_len += 1;
+            RawIO.write_byte(c);
+        }
+    }
+    return line_len;
+}
+
 /// Kernel Shell main entry point.
 /// Why: Entry point for shell process spawned in Basin Kernel.
 /// Contract: Kernel must be initialized, shell runs as process in VM.
 /// Export as C symbol for assembly entry point.
 export fn main() void {
-    // Assert: Kernel must be available (precondition).
-    // Note: In freestanding kernel, we access kernel via syscalls.
-    // For now, shell uses RawIO for input/output.
-    
     Debug.kprint("Grainscript Shell v0.1.0 (Basin Kernel)\n", .{});
-    Debug.kprint("Type 'help' for commands, 'exit' to exit.\n", .{});
-    Debug.kprint("\n", .{});
+    Debug.kprint("Type 'help' for commands, 'exit' to exit.\n\n", .{});
     
     // Fixed buffer allocator for shell operations.
-    // Why: Provide memory allocation in freestanding kernel environment.
-    // Grain Style: Bounded allocation (64KB buffer), explicit lifetime.
     var allocator_buffer: [64 * 1024]u8 = undefined;
     var fixed_allocator = std.heap.FixedBufferAllocator.init(&allocator_buffer);
     const allocator = fixed_allocator.allocator();
     
-    // Main shell loop.
     var should_exit = false;
     var line_buf: [MAX_LINE_LEN]u8 = undefined;
     
     while (!should_exit) {
-        // Print prompt.
         Debug.kprint("grainscript> ", .{});
-        
-        // Read line from UART (blocking wait for input).
-        var line_len: u32 = 0;
-        while (line_len < MAX_LINE_LEN) {
-            // Wait for character (blocking).
-            const c = RawIO.read_byte_blocking();
-            
-            // Handle newline (enter key).
-            if (c == '\n' or c == '\r') {
-                break;
-            }
-            
-            // Handle backspace.
-            if (c == '\x08' or c == '\x7f') {
-                if (line_len > 0) {
-                    line_len -= 1;
-                    // Echo backspace (move cursor back).
-                    RawIO.write_byte('\x08');
-                    RawIO.write_byte(' ');
-                    RawIO.write_byte('\x08');
-                }
-                continue;
-            }
-            
-            // Add character to line.
-            if (c >= 0x20 and c < 0x7f) { // Printable ASCII
-                line_buf[line_len] = c;
-                line_len += 1;
-                RawIO.write_byte(c); // Echo character
-            }
-        }
-        
-        // Echo newline.
+        const line_len = read_line(&line_buf);
         Debug.kprint("\n", .{});
-        
-        // Process command.
         if (line_len > 0) {
             should_exit = process_command(allocator, line_buf[0..line_len]);
         }
     }
-    
     Debug.kprint("Goodbye!\n", .{});
 }
 

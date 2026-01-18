@@ -318,40 +318,8 @@ pub const Repl = struct {
         self.fixed_allocator.reset();
         const allocator = self.fixed_allocator.allocator();
 
-        // Execute Grainscript
         cmd_eval_internal(self, allocator, source) catch |err| {
-            Debug.kprint("Grainscript error: ", .{});
-            // Handle various error types from Grainscript components
-            const err_msg = switch (err) {
-                error.OutOfMemory => "Out of memory",
-                // Parser errors
-                error.ExpectedIdentifier => "Expected identifier",
-                error.ExpectedLeftParen => "Expected '('",
-                error.ExpectedRightParen => "Expected ')'",
-                error.ExpectedComma => "Expected ','",
-                error.ExpectedSemicolon => "Expected ';'",
-                error.ExpectedAssign => "Expected '='",
-                error.ExpectedType => "Expected type",
-                error.UnexpectedToken => "Unexpected token",
-                error.UnexpectedEof => "Unexpected end of file",
-                error.InvalidOperator => "Invalid operator",
-                error.InvalidLiteral => "Invalid literal",
-                error.InvalidNode => "Invalid AST node",
-                // Interpreter errors
-                error.variable_not_found => "Variable not found",
-                error.variable_already_exists => "Variable already exists",
-                error.function_not_found => "Function not found",
-                error.type_mismatch => "Type mismatch",
-                error.division_by_zero => "Division by zero",
-                error.invalid_argument => "Invalid argument",
-                error.string_too_long => "String too long",
-                error.call_stack_overflow => "Call stack overflow",
-                error.too_many_variables => "Too many variables",
-                error.too_many_functions => "Too many functions",
-                error.too_many_call_args => "Too many call arguments",
-                error.runtime_error => "Runtime error",
-            };
-            Debug.kprint("{s}\n", .{err_msg});
+            Debug.kprint("Grainscript error: {s}\n", .{@errorName(err)});
         };
     }
 

@@ -1108,19 +1108,19 @@ pub const JitContext = struct {
         if (funct2 < 3) {
             const shamt = ((raw16 >> 7) & 0x20) | ((raw16 >> 2) & 0x1F);
             return switch (funct2) {
-                 0 => {
+                 0 => blk0: {
                     const rd_u32_7 = @as(u32, rd) << 7;
                     const rd_u32_15 = @as(u32, rd) << 15;
                     const shamt_u32 = @as(u32, shamt) << 20;
-                    0x00005013 | rd_u32_7 | rd_u32_15 | shamt_u32;
+                    break :blk0 0x00005013 | rd_u32_7 | rd_u32_15 | shamt_u32;
                 },
-                 1 => {
+                 1 => blk1: {
                     const rd_u32_7 = @as(u32, rd) << 7;
                     const rd_u32_15 = @as(u32, rd) << 15;
                     const shamt_u32 = @as(u32, shamt) << 20;
-                    0x40005013 | rd_u32_7 | rd_u32_15 | shamt_u32;
+                    break :blk1 0x40005013 | rd_u32_7 | rd_u32_15 | shamt_u32;
                 },
-                2 => blk: {
+                2 => blk2: {
                     const imm_raw = ((raw16 >> 7) & 0x20) | ((raw16 >> 2) & 0x1F);
                     const imm = if ((imm_raw & 0x20) != 0)
             @as(u32, imm_raw) | 0xFFFFFFC0
@@ -1129,7 +1129,7 @@ pub const JitContext = struct {
                     const rd_u32_7 = @as(u32, rd) << 7;
                     const rd_u32_15 = @as(u32, rd) << 15;
                     const imm_u32 = @as(u32, imm) << 20;
-                    break :blk 0x00007013 | rd_u32_7 | rd_u32_15 | imm_u32;
+                    break :blk2 0x00007013 | rd_u32_7 | rd_u32_15 | imm_u32;
                 },
                 else => null,
             };
@@ -1140,29 +1140,29 @@ pub const JitContext = struct {
             const bit5 = (raw16 >> 12) & 0x1;
             const op = (funct6 << 1) | bit5;
             return switch (op) {
-                0x3 => {
+                0x3 => blk3: {
                     const rd_u32_7 = @as(u32, rd) << 7;
                     const rd_u32_15 = @as(u32, rd) << 15;
                     const rs2_u32 = @as(u32, rs2) << 20;
-                    0x40000033 | rd_u32_7 | rd_u32_15 | rs2_u32;
+                    break :blk3 0x40000033 | rd_u32_7 | rd_u32_15 | rs2_u32;
                 },
-                0x4 => {
+                0x4 => blk4: {
                     const rd_u32_7 = @as(u32, rd) << 7;
                     const rd_u32_15 = @as(u32, rd) << 15;
                     const rs2_u32 = @as(u32, rs2) << 20;
-                    0x00004033 | rd_u32_7 | rd_u32_15 | rs2_u32;
+                    break :blk4 0x00004033 | rd_u32_7 | rd_u32_15 | rs2_u32;
                 },
-                0x5 => {
+                0x5 => blk5: {
                     const rd_u32_7 = @as(u32, rd) << 7;
                     const rd_u32_15 = @as(u32, rd) << 15;
                     const rs2_u32 = @as(u32, rs2) << 20;
-                    0x00006033 | rd_u32_7 | rd_u32_15 | rs2_u32;
+                    break :blk5 0x00006033 | rd_u32_7 | rd_u32_15 | rs2_u32;
                 },
-                0x6 => {
+                0x6 => blk6: {
                     const rd_u32_7 = @as(u32, rd) << 7;
                     const rd_u32_15 = @as(u32, rd) << 15;
                     const rs2_u32 = @as(u32, rs2) << 20;
-                    0x00007033 | rd_u32_7 | rd_u32_15 | rs2_u32;
+                    break :blk6 0x00007033 | rd_u32_7 | rd_u32_15 | rs2_u32;
                 },
                 else => null,
             };
@@ -1999,7 +1999,7 @@ pub const JitContext = struct {
         self.emit_modrm_x86_64(mod, reg, rm_field);
         
         // 8-bit shift amount.
-        self.emit_u8_x86_64(@truncate(shift));
+        self.emit_u8_x86_64(@as(u8, shift));
         
         std.debug.assert(self.cursor == start_cursor + 4);
     }
@@ -2026,7 +2026,7 @@ pub const JitContext = struct {
         self.emit_modrm_x86_64(mod, reg, rm_field);
         
         // 8-bit shift amount.
-        self.emit_u8_x86_64(@truncate(shift));
+        self.emit_u8_x86_64(@as(u8, shift));
         
         std.debug.assert(self.cursor == start_cursor + 4);
     }
@@ -2053,7 +2053,7 @@ pub const JitContext = struct {
         self.emit_modrm_x86_64(mod, reg, rm_field);
         
         // 8-bit shift amount.
-        self.emit_u8_x86_64(@truncate(shift));
+        self.emit_u8_x86_64(@as(u8, shift));
         
         std.debug.assert(self.cursor == start_cursor + 4);
     }
@@ -2323,16 +2323,16 @@ pub const JitContext = struct {
             0x1 => { // SLL (Shift Left Logical)
                 // x86_64 shift by register: use CL register (register 1 = RCX).
                 // For now, use immediate shift (will optimize later).
-                const shift: u6 = @truncate(@as(u32, @bitCast(inst.rs2)));
+                const shift: u6 = @truncate(@as(u6, inst.rs2));
                 self.emit_shl_x86_64(0, shift);
             },
             0x4 => self.emit_xor_x86_64(0, 0, 1), // XOR
             0x5 => { // SRL/SRA
                 if (inst.funct7 == 0x00) { // SRL
-                    const shift: u6 = @truncate(@as(u32, @bitCast(inst.rs2)));
+                    const shift: u6 = @truncate(@as(u6, inst.rs2));
                     self.emit_shr_x86_64(0, shift);
                 } else if (inst.funct7 == 0x20) { // SRA
-                    const shift: u6 = @truncate(@as(u32, @bitCast(inst.rs2)));
+                    const shift: u6 = @truncate(@as(u6, inst.rs2));
                     self.emit_sar_x86_64(0, shift);
                 }
             },
@@ -2352,7 +2352,6 @@ pub const JitContext = struct {
             },
             0x6 => self.emit_or_x86_64(0, 0, 1), // OR
             0x7 => self.emit_and_x86_64(0, 0, 1), // AND
-            else => {},
         }
         
         // Store result back to guest state.
@@ -2410,7 +2409,6 @@ pub const JitContext = struct {
                 self.emit_setcc_x86_64(0x2, 0); // SETB (condition 0x2 = below, unsigned)
                 self.emit_movzx_x86_64(0, 0); // Zero-extend byte to 64 bits
             },
-            else => {},
         }
         
         // Store result back to guest state.
@@ -2664,7 +2662,6 @@ pub const JitContext = struct {
             },
             0x6 => self.emit_orr(0, 0, 1), // OR
             0x7 => self.emit_and(0, 0, 1), // AND
-            else => {},
         }
         self.emit_str_to_state(0, inst.rd);
     }
@@ -2713,7 +2710,6 @@ pub const JitContext = struct {
                 self.emit_cmp(0, 1);
                 self.emit_cset(0, 0x3); // Set reg 0 to 1 if LO, else 0
             },
-            else => {},
         }
         self.emit_str_to_state(0, inst.rd);
     }
@@ -2915,7 +2911,7 @@ pub const JitContext = struct {
         
         if (existing_opcode == 0x0F and (existing_cond & 0xF0) == 0x80) {
             // Conditional jump (Jcc): 0x0F 0x8X
-            const cond: u4 = @truncate(existing_cond & 0x0F);
+            const cond: u8 = @truncate(existing_cond & 0x0F);
             const offset_u32: u32 = @bitCast(relative_offset);
             
             // Write patched instruction.
