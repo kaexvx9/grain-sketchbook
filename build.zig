@@ -8247,6 +8247,20 @@ pub fn build(b: *std.Build) void {
     const end_to_end_integration_tests_run = b.addRunArtifact(end_to_end_integration_tests);
     test_step.dependOn(&end_to_end_integration_tests_run.step);
 
+    // VM ELF Loading Test (Phase 2: ELF loading into VM memory)
+    const vm_elf_loading_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("tests/167_vm_elf_loading_test.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "kernel_vm", .module = kernel_vm_module },
+            },
+        }),
+    });
+    const vm_elf_loading_tests_run = b.addRunArtifact(vm_elf_loading_tests);
+    test_step.dependOn(&vm_elf_loading_tests_run.step);
+
     // Grain Bubble component tests
     // TEMPORARILY DISABLED: const grain_bubble_component_tests = b.addTest(.{
     // TEMPORARILY DISABLED: .root_module = b.createModule(.{

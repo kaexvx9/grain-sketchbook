@@ -3,6 +3,7 @@
 /// ~<~ Glow Earthbend: VM state is explicit, no hidden allocations.
 
 pub const VM = @import("vm.zig").VM;
+pub const load_elf_file_into_vm = @import("loader.zig").load_elf_file_into_vm;
 pub const VMError = @import("vm.zig").VM.VMError;
 pub const FramebufferDirtyRegion = @import("vm.zig").FramebufferDirtyRegion;
 pub const loadKernel = @import("loader.zig").loadKernel;

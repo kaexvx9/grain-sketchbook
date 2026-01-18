@@ -322,3 +322,142 @@ pub fn loadKernel(target: *VM, _: std.mem.Allocator, elf_data: []const u8) Loade
     std.debug.assert(target.state == .halted);
 }
 
+/// Load ELF file from host filesystem into VM memory.
+/// Why: Load executables (like Grainscript shell) into VM for kernel to spawn.
+/// Contract: file_path must be valid, vm must be initialized, vm_addr must be valid.
+/// Returns: VM address where ELF was loaded, or error if loading fails.
+/// Grain Style: Explicit types, bounded operations, static allocation.
+/// Note: ELF is loaded at specified VM address, caller must ensure address is available.
+pub fn load_elf_file_into_vm(
+    vm: *VM,
+    file_path: []const u8,
+    vm_addr: u64,
+) LoaderError!u64 {
+    // Contract: File path must be valid (precondition).
+    if (file_path.len == 0) {
+        return error.InvalidElfFormat; // Empty file path
+    }
+    
+    // Contract: VM must be initialized (precondition).
+    const vm_ptr = @intFromPtr(vm);
+    std.debug.assert(vm_ptr != 0);
+    std.debug.assert(vm_ptr % @alignOf(VM) == 0);
+    std.debug.assert(vm.memory_size > 0);
+    
+    // Contract: VM address must be valid (precondition).
+    if (vm_addr >= vm.memory_size) {
+        return error.SegmentOutOfBounds; // Invalid VM address
+    }
+    
+    // Read ELF file from host filesystem.
+    // Why: Load ELF data from file into memory for parsing.
+    const file = std.fs.cwd().openFile(file_path, .{}) catch |err| {
+        // Convert file system error to loader error.
+        _ = err;
+        return error.InvalidElfFormat; // File not found or cannot be opened
+    };
+    defer file.close();
+    
+    // Get file size (bounded check).
+    // Why: Ensure file size is reasonable before reading.
+    const MAX_ELF_SIZE: u64 = 10 * 1024 * 1024; // 10MB max
+    const file_size = file.getEndPos() catch {
+        return error.InvalidElfFormat; // Cannot get file size
+    };
+    
+    if (file_size == 0) {
+        return error.InvalidElfFormat; // Empty file
+    }
+    if (file_size > MAX_ELF_SIZE) {
+        return error.SegmentOutOfBounds; // File too large
+    }
+    
+    // Check: ELF must fit in VM memory at specified address.
+    if (vm_addr + file_size > vm.memory_size) {
+        return error.SegmentOutOfBounds; // ELF doesn't fit in VM memory
+    }
+    
+    // Read ELF file into buffer (bounded allocation).
+    // Why: Read entire ELF file for parsing and loading.
+    // Grain Style: Use stack allocation for small files, heap for large files.
+    const ELF_BUFFER_SIZE: u32 = 1024 * 1024; // 1MB stack buffer
+    var stack_buffer: [ELF_BUFFER_SIZE]u8 = undefined;
+    var heap_buffer: []u8 = undefined;
+    var allocator = std.heap.page_allocator;
+    var needs_free = false;
+    
+    const elf_data = if (file_size <= ELF_BUFFER_SIZE) blk: {
+        // Use stack buffer for small files.
+        const bytes_read = file.readAll(stack_buffer[0..@intCast(file_size)]) catch {
+            return error.InvalidElfFormat; // Read failed
+        };
+        if (bytes_read != file_size) {
+            return error.InvalidElfFormat; // Incomplete read
+        }
+        break :blk stack_buffer[0..@intCast(file_size)];
+    } else blk: {
+        // Use heap allocation for large files.
+        heap_buffer = allocator.alloc(u8, @intCast(file_size)) catch {
+            return error.SegmentOutOfBounds; // Out of memory
+        };
+        needs_free = true;
+        const bytes_read = file.readAll(heap_buffer) catch {
+            allocator.free(heap_buffer);
+            return error.InvalidElfFormat; // Read failed
+        };
+        if (bytes_read != file_size) {
+            allocator.free(heap_buffer);
+            return error.InvalidElfFormat; // Incomplete read
+        }
+        break :blk heap_buffer;
+    };
+    defer if (needs_free) allocator.free(heap_buffer);
+    
+    // Parse ELF header to validate format.
+    // Why: Ensure file is valid ELF before loading.
+    if (elf_data.len < @sizeOf(Elf64_Ehdr)) {
+        return error.InvalidElfFormat; // File too small for ELF header
+    }
+    
+    // Check ELF magic number.
+    const ehdr = @as(*const Elf64_Ehdr, @ptrCast(@alignCast(elf_data.ptr)));
+    if (!std.mem.eql(u8, ehdr.e_ident[0..4], &ELF_MAGIC)) {
+        return error.InvalidElfFormat; // Invalid ELF magic
+    }
+    
+    // Check: ELF must be RISC-V64.
+    const EM_RISCV: u16 = 243;
+    if (ehdr.e_machine != EM_RISCV) {
+        return error.InvalidElfFormat; // Not RISC-V
+    }
+    
+    // Write ELF data to VM memory at specified address.
+    // Why: Load ELF into VM memory so kernel can access it for spawning.
+    // Contract: vm_addr and file_size must be valid (checked above).
+    // Note: translate_address handles kernel base (0x80000000), framebuffer (0x90000000),
+    // and low memory (direct mapping). For ELF loading, we use low memory addresses.
+    const vm_phys_offset = vm.translate_address(vm_addr) orelse {
+        // Address not mapped: for low memory (< 0x80000000), translate_address
+        // should return the address directly if it's within memory_size.
+        // If it returns null, the address is out of bounds.
+        return error.SegmentOutOfBounds; // Address not mapped or out of bounds
+    };
+    
+    // Check: Physical offset must be within VM memory bounds.
+    if (vm_phys_offset + file_size > vm.memory_size) {
+        return error.SegmentOutOfBounds; // ELF doesn't fit
+    }
+    
+    // Write ELF data to VM memory.
+    const dest_start = @as(usize, @intCast(vm_phys_offset));
+    const dest_end = dest_start + @as(usize, @intCast(file_size));
+    if (dest_end > vm.memory.len) {
+        return error.SegmentOutOfBounds; // Would overflow memory array
+    }
+    
+    @memcpy(vm.memory[dest_start..dest_end], elf_data);
+    
+    // Return VM address where ELF was loaded.
+    return vm_addr;
+}
+

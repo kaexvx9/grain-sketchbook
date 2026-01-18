@@ -11,6 +11,7 @@ const SyscallResult = basin_kernel.SyscallResult;
 const ProcessContext = basin_kernel.ProcessContext;
 const process_execution = @import("process_execution.zig");
 const loadKernel = @import("loader.zig").loadKernel;
+const load_elf_file_into_vm = @import("loader.zig").load_elf_file_into_vm;
 const handle_syscall = @import("basin_kernel").handle_syscall;
 
 /// Module-level kernel pointer for syscall handler access.
@@ -356,6 +357,39 @@ pub const Integration = struct {
         // Contract: Integration must be initialized after finish_init.
         self.initialized = true;
         std.debug.assert(self.initialized);
+    }
+
+    /// Load ELF file from host filesystem into VM memory.
+    /// Why: Load executables (like Grainscript shell) into VM for kernel to spawn.
+    /// Contract: Integration must be initialized, file_path must be valid, vm_addr must be valid.
+    /// Returns: VM address where ELF was loaded, or error if loading fails.
+    /// Grain Style: Explicit types, bounded operations, static allocation.
+    /// Note: ELF is loaded at specified VM address. Use low memory addresses (< 0x80000000)
+    /// for executables to be spawned by kernel.
+    pub fn load_elf_file(self: *Self, file_path: []const u8, vm_addr: u64) !u64 {
+        // Contract: Integration must be initialized (precondition).
+        std.debug.assert(self.initialized);
+        
+        // Contract: File path must be valid (precondition).
+        if (file_path.len == 0) {
+            return error.InvalidElfFormat;
+        }
+        
+        // Contract: VM address must be valid (precondition).
+        // Use low memory addresses for executables (< 0x80000000).
+        const KERNEL_BASE: u64 = 0x80000000;
+        if (vm_addr >= KERNEL_BASE) {
+            return error.AddressOutOfBounds; // Use low memory for executables
+        }
+        
+        // Load ELF file into VM memory.
+        return load_elf_file_into_vm(self.vm, file_path, vm_addr) catch |err| {
+            // Convert loader error to integration error.
+            return switch (err) {
+                error.InvalidElfFormat => error.InvalidElfFormat,
+                error.SegmentOutOfBounds => error.AddressOutOfBounds,
+            };
+        };
     }
 
     /// Cleanup integration (reset module-level state).
