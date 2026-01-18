@@ -668,12 +668,26 @@ pub const AudioSyscalls = struct {
         var temp_device_ids: [16]u32 = undefined;
         const count = self.audio_devices.enumerate_devices(&temp_device_ids);
         
-        // Write device IDs to VM memory (stub: would use vm_memory_writer).
-        // For now, just return the count.
-        // Note: device_ids_ptr is validated above (lines 646-653) but not written in stub.
-        // Note: temp_device_ids is populated by enumerate_devices but not written to VM memory (stub).
-        // TODO: Implement VM memory writer to write temp_device_ids to device_ids_ptr.
-        // device_ids_ptr and temp_device_ids are intentionally not used after validation/population (stub).
+        // Write device IDs to VM memory.
+        // Why: Copy audio device IDs from kernel to VM memory for userspace access.
+        if (self.vm_memory_writer == null) {
+            return BasinError.invalid_syscall; // VM memory writer not available
+        }
+        
+        const device_ids_to_write = @min(count, max_cnt);
+        const device_ids_bytes = device_ids_to_write * @sizeOf(u64);
+        const device_ids_slice = std.mem.sliceAsBytes(temp_device_ids[0..device_ids_to_write]);
+        
+        const bytes_written = self.vm_memory_writer.?(device_ids_ptr, @as(u32, device_ids_bytes), device_ids_slice) orelse {
+            return BasinError.invalid_argument; // Failed to write device IDs to VM memory
+        };
+        
+        if (bytes_written != device_ids_bytes) {
+            return BasinError.invalid_argument; // Incomplete write
+        }
+        
+        // Assert: Bytes written must match expected size (postcondition).
+        Debug.kassert(bytes_written == device_ids_bytes, "Device IDs write size mismatch", .{});
         
         const result = SyscallResult.ok(count);
         

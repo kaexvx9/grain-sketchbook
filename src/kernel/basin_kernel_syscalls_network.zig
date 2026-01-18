@@ -357,13 +357,26 @@ pub const NetworkSyscalls = struct {
         var temp_indices: [8]u32 = undefined;
         const count = self.network_interfaces.enumerate_interfaces(&temp_indices);
         
-        // Write indices to VM memory (stub: would use vm_memory_writer).
-        // For now, just return the count.
-        // Note: indices_ptr and temp_indices are validated but not written in stub.
-        // TODO: Implement VM memory writer to write temp_indices to indices_ptr.
-        // Note: indices_ptr is validated above but not written in stub.
-        // Note: temp_indices is populated but not written to VM memory (stub).
-        // TODO: Implement VM memory writer to write temp_indices to indices_ptr.
+        // Write indices to VM memory.
+        // Why: Copy interface indices from kernel to VM memory for userspace access.
+        if (self.vm_memory_writer == null) {
+            return BasinError.invalid_syscall; // VM memory writer not available
+        }
+        
+        const indices_to_write = @min(count, max_cnt);
+        const indices_bytes = indices_to_write * @sizeOf(u32);
+        const indices_slice = std.mem.sliceAsBytes(temp_indices[0..indices_to_write]);
+        
+        const bytes_written = self.vm_memory_writer.?(indices_ptr, @as(u32, indices_bytes), indices_slice) orelse {
+            return BasinError.invalid_argument; // Failed to write indices to VM memory
+        };
+        
+        if (bytes_written != indices_bytes) {
+            return BasinError.invalid_argument; // Incomplete write
+        }
+        
+        // Assert: Bytes written must match expected size (postcondition).
+        Debug.kassert(bytes_written == indices_bytes, "Indices write size mismatch", .{});
         
         const result = SyscallResult.ok(count);
         
@@ -1444,11 +1457,26 @@ pub const NetworkSyscalls = struct {
         var temp_socket_ids: [64]u64 = undefined;
         const count = self.udp_sockets.enumerate_sockets(&temp_socket_ids);
         
-        // Write socket IDs to VM memory (stub: would use vm_memory_writer).
-        // For now, just return the count.
-        // Note: socket_ids_ptr is validated above but not written in stub.
-        // Note: temp_socket_ids is populated but not written to VM memory (stub).
-        // TODO: Implement VM memory writer to write temp_socket_ids to socket_ids_ptr.
+        // Write socket IDs to VM memory.
+        // Why: Copy UDP socket IDs from kernel to VM memory for userspace access.
+        if (self.vm_memory_writer == null) {
+            return BasinError.invalid_syscall; // VM memory writer not available
+        }
+        
+        const socket_ids_to_write = @min(count, max_cnt);
+        const socket_ids_bytes = socket_ids_to_write * @sizeOf(u64);
+        const socket_ids_slice = std.mem.sliceAsBytes(temp_socket_ids[0..socket_ids_to_write]);
+        
+        const bytes_written = self.vm_memory_writer.?(socket_ids_ptr, @as(u32, socket_ids_bytes), socket_ids_slice) orelse {
+            return BasinError.invalid_argument; // Failed to write socket IDs to VM memory
+        };
+        
+        if (bytes_written != socket_ids_bytes) {
+            return BasinError.invalid_argument; // Incomplete write
+        }
+        
+        // Assert: Bytes written must match expected size (postcondition).
+        Debug.kassert(bytes_written == socket_ids_bytes, "Socket IDs write size mismatch", .{});
         
         const result = SyscallResult.ok(count);
         
@@ -1598,11 +1626,26 @@ pub const NetworkSyscalls = struct {
         var temp_socket_ids: [64]u64 = undefined;
         const count = self.tcp_sockets.enumerate_sockets(&temp_socket_ids);
         
-        // Write socket IDs to VM memory (stub: would use vm_memory_writer).
-        // For now, just return the count.
-        // Note: socket_ids_ptr is validated above but not written in stub.
-        // Note: temp_socket_ids is populated but not written to VM memory (stub).
-        // TODO: Implement VM memory writer to write temp_socket_ids to socket_ids_ptr.
+        // Write socket IDs to VM memory.
+        // Why: Copy TCP socket IDs from kernel to VM memory for userspace access.
+        if (self.vm_memory_writer == null) {
+            return BasinError.invalid_syscall; // VM memory writer not available
+        }
+        
+        const socket_ids_to_write = @min(count, max_cnt);
+        const socket_ids_bytes = socket_ids_to_write * @sizeOf(u64);
+        const socket_ids_slice = std.mem.sliceAsBytes(temp_socket_ids[0..socket_ids_to_write]);
+        
+        const bytes_written = self.vm_memory_writer.?(socket_ids_ptr, @as(u32, socket_ids_bytes), socket_ids_slice) orelse {
+            return BasinError.invalid_argument; // Failed to write socket IDs to VM memory
+        };
+        
+        if (bytes_written != socket_ids_bytes) {
+            return BasinError.invalid_argument; // Incomplete write
+        }
+        
+        // Assert: Bytes written must match expected size (postcondition).
+        Debug.kassert(bytes_written == socket_ids_bytes, "Socket IDs write size mismatch", .{});
         
         const result = SyscallResult.ok(count);
         
