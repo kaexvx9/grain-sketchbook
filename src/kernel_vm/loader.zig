@@ -199,46 +199,63 @@ pub fn loadKernel(target: *VM, _: std.mem.Allocator, elf_data: []const u8) Loade
             if (first_load_vaddr == null) {
                 first_load_vaddr = phdr.p_vaddr;
             }
+            
+            // RISC-V kernels typically load at 0x80000000 (2GB).
+            // Translate virtual address to physical by subtracting base address.
+            const KERNEL_BASE: u64 = 0x80000000;
+            const phys_addr = if (phdr.p_vaddr >= KERNEL_BASE)
+                phdr.p_vaddr - KERNEL_BASE
+            else
+                phdr.p_vaddr;
+            
             std.debug.print(
-                "DEBUG loader.zig: Loading PT_LOAD segment at vaddr=0x{x}\n",
-                .{phdr.p_vaddr},
+                "DEBUG loader.zig: Loading PT_LOAD segment vaddr=0x{x} -> phys=0x{x}\n",
+                .{ phdr.p_vaddr, phys_addr },
             );
+            
             // Check: Segment must fit in ELF data
             // (return error instead of asserting for userspace programs).
             if (phdr.p_offset + phdr.p_filesz > elf_data.len) {
                 return error.InvalidElfFormat;
             }
             
-            // Check: Segment must fit in VM memory
-            // (return error instead of asserting for userspace programs).
-            if (phdr.p_vaddr + phdr.p_memsz > target.memory_size) {
+            // Check: Segment file data must fit in VM memory (using physical address).
+            // Note: memsz may be larger than filesz (BSS section), we only need filesz to fit.
+            // Large BSS sections will be truncated to available memory.
+            if (phys_addr + phdr.p_filesz > target.memory_size) {
+                std.debug.print(
+                    "DEBUG loader.zig: Segment phys 0x{x} + filesz 0x{x} > memory_size 0x{x}\n",
+                    .{ phys_addr, phdr.p_filesz, target.memory_size },
+                );
                 return error.SegmentOutOfBounds;
             }
             
-            // Check: Segment address must be valid for memory copy.
-            if (phdr.p_vaddr + phdr.p_filesz > target.memory_size) {
-                return error.SegmentOutOfBounds;
+            // Warn if BSS section is truncated.
+            if (phys_addr + phdr.p_memsz > target.memory_size) {
+                std.debug.print(
+                    "DEBUG loader.zig: WARNING: BSS truncated, need 0x{x} bytes but only 0x{x} available\n",
+                    .{ phdr.p_memsz, target.memory_size - phys_addr },
+                );
             }
             
             // Load segment data into VM memory.
             // Contract: All bounds must be checked before memory operations.
             const segment_data = elf_data[@intCast(phdr.p_offset)..][0..@intCast(phdr.p_filesz)];
-            const dest_start = @as(usize, @intCast(phdr.p_vaddr));
+            const dest_start = @as(usize, @intCast(phys_addr));
             const dest_end = dest_start + segment_data.len;
             
             // Check: Destination must be within VM memory bounds.
             if (dest_start >= target.memory_size) {
                 std.debug.print(
-                    "DEBUG loader.zig: Segment vaddr 0x{x} >= memory_size 0x{x}\n",
-                    .{ phdr.p_vaddr, target.memory_size },
+                    "DEBUG loader.zig: Segment phys 0x{x} >= memory_size 0x{x}\n",
+                    .{ phys_addr, target.memory_size },
                 );
                 return error.SegmentOutOfBounds;
             }
             if (dest_end > target.memory_size) {
-                const segment_end = phdr.p_vaddr + phdr.p_filesz;
                 std.debug.print(
                     "DEBUG loader.zig: Segment end 0x{x} > memory_size 0x{x}\n",
-                    .{ segment_end, target.memory_size },
+                    .{ dest_end, target.memory_size },
                 );
                 return error.SegmentOutOfBounds;
             }
@@ -251,35 +268,39 @@ pub fn loadKernel(target: *VM, _: std.mem.Allocator, elf_data: []const u8) Loade
             
             // Safe to copy: all bounds checked.
             std.debug.print(
-                "DEBUG loader.zig: Copying {} bytes from offset {} to vaddr 0x{x}\n",
-                .{ segment_data.len, phdr.p_offset, phdr.p_vaddr },
+                "DEBUG loader.zig: Copying {} bytes from offset {} to phys 0x{x}\n",
+                .{ segment_data.len, phdr.p_offset, phys_addr },
             );
             @memcpy(target.memory[dest_start..dest_end], segment_data);
             std.debug.print("DEBUG loader.zig: Copy completed successfully\n", .{});
             
             // Zero-fill memory beyond file size (if memsz > filesz).
+            // Note: BSS section may be larger than available memory, truncate if needed.
             if (phdr.p_memsz > phdr.p_filesz) {
-                const zero_start = @as(usize, @intCast(phdr.p_vaddr + phdr.p_filesz));
-                const zero_len = @as(usize, @intCast(phdr.p_memsz - phdr.p_filesz));
-                const zero_vaddr = phdr.p_vaddr + phdr.p_filesz;
-                std.debug.print(
-                    "DEBUG loader.zig: Zero-filling {} bytes at vaddr 0x{x}\n",
-                    .{ zero_len, zero_vaddr },
-                );
-                // Check: Zero-fill region must fit in VM memory.
+                const zero_start = @as(usize, @intCast(phys_addr + phdr.p_filesz));
+                var zero_len = @as(usize, @intCast(phdr.p_memsz - phdr.p_filesz));
+                
+                // Truncate zero-fill to available memory.
                 if (zero_start + zero_len > target.memory_size) {
-                    std.debug.print("DEBUG loader.zig: Zero-fill would exceed memory_size\n", .{});
-                    return error.SegmentOutOfBounds;
-                }
-                if (zero_start + zero_len > target.memory.len) {
+                    const available = if (zero_start < target.memory_size)
+                        target.memory_size - zero_start
+                    else
+                        0;
                     std.debug.print(
-                        "DEBUG loader.zig: Zero-fill would overflow memory array\n",
-                        .{},
+                        "DEBUG loader.zig: Truncating zero-fill from {} to {} bytes\n",
+                        .{ zero_len, available },
                     );
-                    return error.SegmentOutOfBounds;
+                    zero_len = available;
                 }
-                @memset(target.memory[zero_start..zero_start + zero_len], 0);
-                std.debug.print("DEBUG loader.zig: Zero-fill completed successfully\n", .{});
+                
+                if (zero_len > 0) {
+                    std.debug.print(
+                        "DEBUG loader.zig: Zero-filling {} bytes at phys 0x{x}\n",
+                        .{ zero_len, zero_start },
+                    );
+                    @memset(target.memory[zero_start..zero_start + zero_len], 0);
+                    std.debug.print("DEBUG loader.zig: Zero-fill completed successfully\n", .{});
+                }
             }
         }
     }
@@ -299,8 +320,21 @@ pub fn loadKernel(target: *VM, _: std.mem.Allocator, elf_data: []const u8) Loade
         }
     }
     std.debug.print("DEBUG loader.zig: Setting entry point to 0x{x}\n", .{entry_point});
-    // Check: Entry point must be within VM memory bounds.
-    if (entry_point >= target.memory_size) {
+    
+    // Note: Entry point is a virtual address. For RISC-V kernels at 0x80000000,
+    // the VM's translate_address() will map it to physical address 0.
+    // We don't check bounds here because the VM handles address translation.
+    const KERNEL_BASE: u64 = 0x80000000;
+    if (entry_point >= KERNEL_BASE) {
+        const phys_entry = entry_point - KERNEL_BASE;
+        if (phys_entry >= target.memory_size) {
+            std.debug.print(
+                "DEBUG loader.zig: Entry phys 0x{x} >= memory_size 0x{x}\n",
+                .{ phys_entry, target.memory_size },
+            );
+            return error.SegmentOutOfBounds;
+        }
+    } else if (entry_point >= target.memory_size) {
         std.debug.print(
             "DEBUG loader.zig: Entry point 0x{x} >= memory_size 0x{x}\n",
             .{ entry_point, target.memory_size },

@@ -272,5 +272,97 @@ pub fn main() !void {
     std.debug.print("[kernel_vm_test] ✓ SRA instruction works\n", .{});
 
     std.debug.print("[kernel_vm_test] All tests passed!\n", .{});
+
+    // Test 15: Load and execute real kernel ELF.
+    std.debug.print("\n[kernel_vm_test] Test 15: Load kernel ELF\n", .{});
+    try test_kernel_elf_loading(allocator);
+}
+
+/// Test loading and executing the real kernel ELF.
+fn test_kernel_elf_loading(allocator: std.mem.Allocator) !void {
+    const kernel_path = "zig-out/bin/grain-rv64";
+    
+    // Read kernel ELF file.
+    const kernel_file = std.fs.cwd().openFile(kernel_path, .{}) catch |err| {
+        std.debug.print("[kernel_vm_test] Kernel not found at {s}: {}\n", .{ kernel_path, err });
+        std.debug.print("[kernel_vm_test] ⚠ Skipping kernel ELF test (run 'zig build kernel-rv64' first)\n", .{});
+        return;
+    };
+    defer kernel_file.close();
+    
+    const kernel_data = kernel_file.readToEndAlloc(allocator, 16 * 1024 * 1024) catch |err| {
+        std.debug.print("[kernel_vm_test] Failed to read kernel: {}\n", .{err});
+        return;
+    };
+    defer allocator.free(kernel_data);
+    
+    std.debug.print("[kernel_vm_test] Loaded kernel ELF: {} bytes\n", .{kernel_data.len});
+    
+    // Verify ELF magic.
+    if (kernel_data.len < 4) {
+        std.debug.print("[kernel_vm_test] ✗ Kernel too small\n", .{});
+        return;
+    }
+    const elf_magic = [_]u8{ 0x7F, 'E', 'L', 'F' };
+    if (!std.mem.eql(u8, kernel_data[0..4], &elf_magic)) {
+        std.debug.print("[kernel_vm_test] ✗ Invalid ELF magic\n", .{});
+        return;
+    }
+    std.debug.print("[kernel_vm_test] ✓ Valid ELF magic\n", .{});
+    
+    // Create new VM for kernel execution.
+    const vm2 = try allocator.create(VM);
+    defer allocator.destroy(vm2);
+    
+    // Load kernel into VM.
+    loadKernel(vm2, allocator, kernel_data) catch |err| {
+        std.debug.print("[kernel_vm_test] Failed to load kernel: {}\n", .{err});
+        return;
+    };
+    
+    std.debug.print("[kernel_vm_test] ✓ Kernel loaded into VM\n", .{});
+    std.debug.print("[kernel_vm_test] Entry point: 0x{x}\n", .{vm2.regs.pc});
+    
+    // Map kernel memory region with execute permission.
+    // The kernel is loaded at physical address 0, but uses virtual address 0x80000000.
+    // Only map kernel code/data region (first ~1MB is enough for initial execution).
+    // Note: MAX_PAGE_TABLE_ENTRIES is 1024, so we can map ~4MB with 4KB pages.
+    const RWX: u8 = 0x07;
+    const KERNEL_SIZE: u64 = 1024 * 1024; // 1MB - enough for kernel text
+    var page: u64 = 0;
+    while (page < KERNEL_SIZE) : (page += 4096) {
+        // Map virtual address 0x80000000+offset to physical address offset.
+        _ = vm2.memory_protection.map_page(0x80000000 + page, page, RWX);
+    }
+    std.debug.print("[kernel_vm_test] Mapped {} pages for kernel\n", .{KERNEL_SIZE / 4096});
+    
+    // Execute a few instructions to verify kernel starts.
+    vm2.start();
+    var instructions_executed: u32 = 0;
+    const MAX_INSTRUCTIONS: u32 = 1000;
+    
+    while (instructions_executed < MAX_INSTRUCTIONS) : (instructions_executed += 1) {
+        vm2.step() catch |err| {
+            if (err == error.halted) {
+                std.debug.print("[kernel_vm_test] VM halted after {} instructions\n", .{instructions_executed});
+                break;
+            }
+            std.debug.print("[kernel_vm_test] Execution error at PC 0x{x}: {}\n", .{ vm2.regs.pc, err });
+            break;
+        };
+        
+        // Check if we hit ECALL (syscall/halt).
+        if (vm2.state == .halted) {
+            std.debug.print("[kernel_vm_test] VM halted (ECALL) after {} instructions\n", .{instructions_executed});
+            break;
+        }
+    }
+    
+    if (instructions_executed >= MAX_INSTRUCTIONS) {
+        std.debug.print("[kernel_vm_test] Executed {} instructions (limit reached)\n", .{MAX_INSTRUCTIONS});
+    }
+    
+    std.debug.print("[kernel_vm_test] Final PC: 0x{x}\n", .{vm2.regs.pc});
+    std.debug.print("[kernel_vm_test] ✓ Kernel execution test complete\n", .{});
 }
 

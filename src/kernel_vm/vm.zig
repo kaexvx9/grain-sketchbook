@@ -1152,18 +1152,26 @@ pub const VM = struct {
         const pc = self.regs.pc;
 
         // Assert: PC must be within memory bounds (need 4 bytes for instruction).
-        // Note: PC can be at memory_size - 4, but not beyond.
-        if (pc + 4 > self.memory_size) {
-            // Record exception (instruction access fault, code 1).
-            self.exception_stats.record_exception(1);
-            return VMError.invalid_memory_access;
-        }
-
         // Assert: PC must be 4-byte aligned (RISC-V instruction alignment).
         if (pc % 4 != 0) {
             // Record exception (instruction address misaligned, code 0).
             self.exception_stats.record_exception(0);
             return VMError.unaligned_instruction;
+        }
+
+        // Translate virtual address to physical.
+        // Note: PC may be virtual (e.g., 0x80000000 for kernel).
+        const phys_pc = self.translate_address(pc) orelse {
+            // Record exception (instruction page fault, code 12).
+            self.exception_stats.record_exception(12);
+            return VMError.invalid_memory_access;
+        };
+        
+        // Check: Physical PC must be within memory bounds.
+        if (phys_pc + 4 > self.memory_size) {
+            // Record exception (instruction access fault, code 1).
+            self.exception_stats.record_exception(1);
+            return VMError.invalid_memory_access;
         }
 
         // Check memory permissions (if permission checker is set).
@@ -1201,8 +1209,8 @@ pub const VM = struct {
             }
         }
 
-        // Read 32-bit instruction (little-endian).
-        const bytes = self.memory[@intCast(pc)..][0..4];
+        // Read 32-bit instruction (little-endian) using physical address.
+        const bytes = self.memory[@intCast(phys_pc)..][0..4];
         const inst = std.mem.readInt(u32, bytes, .little);
 
         return inst;
@@ -1225,9 +1233,12 @@ pub const VM = struct {
             return;
         }
 
-        // Assert: PC must be 4-byte aligned and within memory bounds.
+        // Assert: PC must be 4-byte aligned.
         std.debug.assert(pc_before % 4 == 0);
-        std.debug.assert(pc_before < self.memory_size);
+        
+        // Note: PC may be a virtual address (e.g., 0x80000000 for kernel).
+        // The translate_address() function will map it to physical address.
+        // We verify the physical address is valid in fetch_instruction().
 
         // Fetch instruction at PC.
         const inst = try self.fetch_instruction();
@@ -1267,9 +1278,8 @@ pub const VM = struct {
         // Assert: PC must be 4-byte aligned after instruction execution.
         std.debug.assert(self.regs.pc % 4 == 0);
 
-        // Assert: PC must be within memory bounds after execution.
-        // Note: PC can be equal to memory_size (one past end) if instruction was at end.
-        std.debug.assert(self.regs.pc <= self.memory_size);
+        // Note: PC may be a virtual address (e.g., 0x80000000+ for kernel).
+        // We don't check bounds here since translate_address() handles that.
     }
 
     /// Execute instruction based on opcode.
@@ -1509,16 +1519,39 @@ pub const VM = struct {
         }
     }
 
-    /// Execute system instruction (ECALL).
+    /// Execute system instruction (ECALL, EBREAK, CSR instructions).
     /// Why: Extract system handling to reduce execute_opcode() length.
     fn execute_system(self: *Self, inst: u32) VMError!void {
         const funct3 = @as(u3, @truncate(inst >> 12));
-        if (funct3 == 0b000) {
-            try self.execute_ecall();
-        } else {
-            self.state = .errored;
-            self.last_error = VMError.invalid_instruction;
-            return VMError.invalid_instruction;
+        const rd = @as(u5, @truncate(inst >> 7));
+        
+        switch (funct3) {
+            0b000 => {
+                // ECALL (inst == 0x00000073) or EBREAK (inst == 0x00100073)
+                if (inst == 0x00000073) {
+                    try self.execute_ecall();
+                } else if (inst == 0x00100073) {
+                    // EBREAK: halt for debugging
+                    self.state = .halted;
+                } else {
+                    // Other system instructions: NOP
+                    self.regs.pc += 4;
+                }
+            },
+            0b001, 0b010, 0b011, 0b101, 0b110, 0b111 => {
+                // CSR instructions: CSRRW, CSRRS, CSRRC, CSRRWI, CSRRSI, CSRRCI
+                // These read/write Control and Status Registers.
+                // In the VM, we NOP them and write 0 to rd (pretend CSR reads return 0).
+                if (rd != 0) {
+                    self.regs.set(rd, 0);
+                }
+                self.regs.pc += 4;
+            },
+            else => {
+                self.state = .errored;
+                self.last_error = VMError.invalid_instruction;
+                return VMError.invalid_instruction;
+            },
         }
     }
 
@@ -3449,11 +3482,22 @@ pub const VM = struct {
         // Assert: jump target must be 4-byte aligned (enforced by & ~3).
         std.debug.assert(jump_target % 4 == 0);
 
-        // Assert: jump target must be within memory bounds.
-        if (jump_target >= self.memory_size) {
+        // Check: jump target must translate to valid physical address.
+        // Note: jump_target may be virtual (e.g., 0x80000000+ for kernel).
+        const phys_target = self.translate_address(jump_target) orelse {
             std.debug.print(
-                "DEBUG vm.zig: JALR out of bounds: jump_target=0x{x}, memory_size=0x{x}\n",
-                .{ jump_target, self.memory_size },
+                "DEBUG vm.zig: JALR target unmapped: jump_target=0x{x}\n",
+                .{jump_target},
+            );
+            self.state = .errored;
+            self.last_error = VMError.invalid_memory_access;
+            return VMError.invalid_memory_access;
+        };
+        
+        if (phys_target >= self.memory_size) {
+            std.debug.print(
+                "DEBUG vm.zig: JALR out of bounds: jump_target=0x{x}, phys=0x{x}, memory_size=0x{x}\n",
+                .{ jump_target, phys_target, self.memory_size },
             );
             self.state = .errored;
             self.last_error = VMError.invalid_memory_access;
