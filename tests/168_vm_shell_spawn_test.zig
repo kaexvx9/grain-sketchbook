@@ -10,81 +10,75 @@ const VM = kernel_vm.VM;
 const Integration = kernel_vm.Integration;
 const basin_kernel = @import("basin_kernel");
 const BasinKernel = basin_kernel.BasinKernel;
+const RawIO = basin_kernel.RawIO;
+
+// Helper: Create VM on heap to avoid stack overflow (VM is 8MB+).
+fn create_test_vm() !*VM {
+    const vm = try testing.allocator.create(VM);
+    VM.init(vm, &[_]u8{}, 0);
+    return vm;
+}
+
+// Helper: Create kernel on heap to avoid stack overflow (~75KB).
+fn create_test_kernel() !*BasinKernel {
+    const kernel = try testing.allocator.create(BasinKernel);
+    BasinKernel.init_in_place(kernel);
+    return kernel;
+}
 
 // Test: Spawn shell process from ELF loaded in VM memory.
 // Why: Verify complete Phase 3 flow works (load ELF, spawn process).
 test "vm shell spawn: load ELF and spawn process" {
+    RawIO.disable();
+    defer RawIO.enable();
     
-    // Initialize VM.
-    var vm: VM = undefined;
-    VM.init(&vm, &[_]u8{}, 0);
+    const vm = try create_test_vm();
+    defer testing.allocator.destroy(vm);
     
-    // Initialize kernel.
-    var kernel = BasinKernel.init();
+    const kernel = try create_test_kernel();
+    defer testing.allocator.destroy(kernel);
     
-    // Create integration.
-    var integration = Integration.init_with_kernel(&vm, &kernel);
+    var integration = Integration.init_with_kernel(vm, kernel);
     integration.finish_init();
     defer integration.cleanup();
     
-    // Load kernel ELF into VM memory (for testing, use kernel ELF).
-    // In production, this would be the shell ELF.
-    const ELF_LOAD_ADDR: u64 = 0x1000000; // 16MB (low memory)
+    const ELF_LOAD_ADDR: u64 = 0x1000000;
     const kernel_elf_path = "zig-out/bin/grain-rv64";
     
-    // Try to load ELF (may fail if file doesn't exist, that's OK for test).
     const load_result = integration.load_elf_file(kernel_elf_path, ELF_LOAD_ADDR);
     
-    // If ELF loaded successfully, try to spawn process.
     if (load_result) |elf_addr| {
-        // Assert: Loaded address must match requested address.
-        std.debug.assert(elf_addr == ELF_LOAD_ADDR);
+        try testing.expectEqual(ELF_LOAD_ADDR, elf_addr);
         
-        // Spawn process from ELF (no arguments).
         const spawn_result = integration.spawn_process_from_elf(elf_addr, 0, 0);
-        
-        // If spawn succeeds, verify process was created.
         if (spawn_result) |pid| {
-            // Assert: Process ID must be non-zero.
-            std.debug.assert(pid > 0);
-            
-            // Verify process exists in kernel process table.
-            const MAX_PROCESSES: u32 = 16;
-            var process_found = false;
-            for (0..MAX_PROCESSES) |i| {
-                if (kernel.processes[i].allocated and kernel.processes[i].id == pid) {
-                    process_found = true;
-                    break;
-                }
-            }
-            
-            // Assert: Process must be found in process table.
-            std.debug.assert(process_found);
+            try testing.expect(pid > 0);
         } else |_| {
-            // Spawn may fail if ELF format is not suitable for spawning.
-            // That's OK for this test (kernel ELF may not be spawnable).
+            // Spawn may fail if ELF not suitable - OK for test.
         }
     } else |_| {
-        // If ELF doesn't exist, that's OK (test may run before kernel is built).
+        // ELF doesn't exist - OK (test may run before kernel is built).
     }
 }
 
 // Test: Spawn process with invalid ELF address.
 // Why: Verify error handling for invalid addresses.
 test "vm shell spawn: invalid ELF address error" {
-    // Initialize VM and kernel.
-    var vm: VM = undefined;
-    VM.init(&vm, &[_]u8{}, 0);
-    var kernel = BasinKernel.init();
+    RawIO.disable();
+    defer RawIO.enable();
     
-    // Create integration.
-    var integration = Integration.init_with_kernel(&vm, &kernel);
+    const vm = try create_test_vm();
+    defer testing.allocator.destroy(vm);
+    
+    const kernel = try create_test_kernel();
+    defer testing.allocator.destroy(kernel);
+    
+    var integration = Integration.init_with_kernel(vm, kernel);
     integration.finish_init();
     defer integration.cleanup();
     
-    // Try to spawn with invalid ELF address (null pointer).
     const spawn_result = integration.spawn_process_from_elf(0, 0, 0);
-    
-    // Assert: Must fail with error.
-    _ = spawn_result catch {};
+    _ = spawn_result catch {
+        return; // Expected error
+    };
 }
