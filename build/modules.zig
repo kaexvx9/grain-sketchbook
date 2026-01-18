@@ -46,12 +46,12 @@ pub fn create_shared_modules(ctx: helpers.BuildContext) SharedModules {
     const grainwrap_mod = helpers.add_simple_module(
         ctx,
         "grainwrap",
-        "vendor/grainwrap/src/grainwrap.zig",
+        "packages/grainwrap/src/grainwrap.zig",
     );
     const grainvalidate_mod = helpers.add_simple_module(
         ctx,
         "grainvalidate",
-        "vendor/grainvalidate/src/grainvalidate.zig",
+        "packages/grainvalidate/src/grainvalidate.zig",
     );
     const zigimg_mod = helpers.add_simple_module(
         ctx,
