@@ -13,9 +13,7 @@ const grainvalidate = @import("grainvalidate");
 // - `grainvalidate check --function-length <file>` - check functions
 
 pub fn main() !void {
-    const stdout = std.io.stdOut().writer();
-
-    try stdout.print(
+    std.debug.print(
         \\grainvalidate - complete style validation for grain network
         \\
         \\Usage:
@@ -27,8 +25,8 @@ pub fn main() !void {
         \\  check    Validate code against grain style rules
         \\
         \\Options:
-        \\  --function-length    Check only function length (70 lines)
-        \\  --line-width         Check only line width (73 chars)
+        \\  --function-length    Check only function length (64 lines)
+        \\  --line-width         Check only line width (128 chars)
         \\  --help               Show this help
         \\
         \\Examples:
@@ -41,4 +39,3 @@ pub fn main() !void {
 
     // TODO: Parse arguments and implement commands
 }
-

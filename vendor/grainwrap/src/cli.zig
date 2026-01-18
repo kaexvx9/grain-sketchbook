@@ -13,9 +13,7 @@ const grainwrap = @import("grainwrap");
 // - `grainwrap check <dir>` - validate all files in directory
 
 pub fn main() !void {
-    const stdout = std.io.stdOut().writer();
-
-    try stdout.print(
+    std.debug.print(
         \\grainwrap - precise code wrapping for grain network
         \\
         \\Usage:
@@ -25,7 +23,7 @@ pub fn main() !void {
         \\
         \\Commands:
         \\  validate    Check code for line length violations
-        \\  wrap        Wrap code to fit 73-char limit
+        \\  wrap        Wrap code to fit 128-char limit
         \\  check       Validate all files in directory
         \\
         \\Options:
@@ -42,4 +40,3 @@ pub fn main() !void {
 
     // TODO: Parse arguments and implement commands
 }
-
