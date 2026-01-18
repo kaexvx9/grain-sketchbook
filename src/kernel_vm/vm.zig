@@ -1570,87 +1570,81 @@ pub const VM = struct {
     }
     
     /// Execute C2 quadrant compressed instruction.
+    /// Dispatches to specific handlers for each funct3 value.
     fn execute_c2(self: *Self, inst: u16, funct3: u3) VMError!void {
         switch (funct3) {
-            0b000 => {
-                // C.SLLI
-                const rd = @as(u5, @truncate(inst >> 7));
-                const shamt_5 = @as(u1, @truncate(inst >> 12));
-                const shamt_4_0 = @as(u5, @truncate(inst >> 2));
-                const shamt: u6 = (@as(u6, shamt_5) << 5) | shamt_4_0;
-                if (rd != 0) {
-                    const val = self.regs.get(rd);
-                    self.regs.set(rd, val << @truncate(shamt));
-                }
-            },
-            0b010 => {
-                // C.LWSP
-                const rd = @as(u5, @truncate(inst >> 7));
-                const uimm_5 = @as(u1, @truncate(inst >> 12));
-                const uimm_4_2 = @as(u3, @truncate(inst >> 4));
-                const uimm_7_6 = @as(u2, @truncate(inst >> 2));
-                const offset: u64 = (@as(u64, uimm_5) << 5) |
-                    (@as(u64, uimm_4_2) << 2) |
-                    (@as(u64, uimm_7_6) << 6);
-                const sp = self.regs.get(2);
-                const eff_addr = sp +% offset;
-                const phys = self.translate_address(eff_addr) orelse return VMError.invalid_memory_access;
-                if (phys + 4 > self.memory_size) return VMError.invalid_memory_access;
-                const val = std.mem.readInt(i32, self.memory[@intCast(phys)..][0..4], .little);
-                if (rd != 0) {
-                    self.regs.set(rd, @bitCast(@as(i64, val)));
-                }
-            },
-            0b011 => {
-                // C.LDSP
-                const rd = @as(u5, @truncate(inst >> 7));
-                const uimm_5 = @as(u1, @truncate(inst >> 12));
-                const uimm_4_3 = @as(u2, @truncate(inst >> 5));
-                const uimm_8_6 = @as(u3, @truncate(inst >> 2));
-                const offset: u64 = (@as(u64, uimm_5) << 5) |
-                    (@as(u64, uimm_4_3) << 3) |
-                    (@as(u64, uimm_8_6) << 6);
-                const sp = self.regs.get(2);
-                const eff_addr = sp +% offset;
-                const phys = self.translate_address(eff_addr) orelse return VMError.invalid_memory_access;
-                if (phys + 8 > self.memory_size) return VMError.invalid_memory_access;
-                const val = std.mem.readInt(u64, self.memory[@intCast(phys)..][0..8], .little);
-                if (rd != 0) {
-                    self.regs.set(rd, val);
-                }
-            },
+            0b000 => self.execute_c2_slli(inst),
+            0b010 => try self.execute_c2_lwsp(inst),
+            0b011 => try self.execute_c2_ldsp(inst),
             0b100 => try self.execute_c2_jr_mv_add(inst),
-            0b110 => {
-                // C.SWSP
-                const rs2 = @as(u5, @truncate(inst >> 2));
-                const uimm_5_2 = @as(u4, @truncate(inst >> 9));
-                const uimm_7_6 = @as(u2, @truncate(inst >> 7));
-                const offset: u64 = (@as(u64, uimm_5_2) << 2) | (@as(u64, uimm_7_6) << 6);
-                const sp = self.regs.get(2);
-                const eff_addr = sp +% offset;
-                const phys = self.translate_address(eff_addr) orelse return VMError.invalid_memory_access;
-                if (phys + 4 > self.memory_size) return VMError.invalid_memory_access;
-                const val = @as(u32, @truncate(self.regs.get(rs2)));
-                @memcpy(self.memory[@intCast(phys)..][0..4], &std.mem.toBytes(val));
-            },
-            0b111 => {
-                // C.SDSP
-                const rs2 = @as(u5, @truncate(inst >> 2));
-                const uimm_5_3 = @as(u3, @truncate(inst >> 10));
-                const uimm_8_6 = @as(u3, @truncate(inst >> 7));
-                const offset: u64 = (@as(u64, uimm_5_3) << 3) | (@as(u64, uimm_8_6) << 6);
-                const sp = self.regs.get(2);
-                const eff_addr = sp +% offset;
-                const phys = self.translate_address(eff_addr) orelse return VMError.invalid_memory_access;
-                if (phys + 8 > self.memory_size) return VMError.invalid_memory_access;
-                const val = self.regs.get(rs2);
-                @memcpy(self.memory[@intCast(phys)..][0..8], &std.mem.toBytes(val));
-            },
+            0b110 => try self.execute_c2_swsp(inst),
+            0b111 => try self.execute_c2_sdsp(inst),
             else => {
                 std.debug.print("DEBUG vm.zig: Unknown C2 funct3=0b{b:0>3}\n", .{funct3});
                 return VMError.invalid_instruction;
             },
         }
+    }
+    
+    /// C.SLLI: shift left logical immediate.
+    fn execute_c2_slli(self: *Self, inst: u16) void {
+        const rd = @as(u5, @truncate(inst >> 7));
+        const shamt: u6 = (@as(u6, @as(u1, @truncate(inst >> 12))) << 5) |
+            @as(u5, @truncate(inst >> 2));
+        if (rd != 0) {
+            self.regs.set(rd, self.regs.get(rd) << @truncate(shamt));
+        }
+    }
+    
+    /// C.LWSP: load word from stack pointer offset.
+    fn execute_c2_lwsp(self: *Self, inst: u16) VMError!void {
+        const rd = @as(u5, @truncate(inst >> 7));
+        const offset: u64 = (@as(u64, @as(u1, @truncate(inst >> 12))) << 5) |
+            (@as(u64, @as(u3, @truncate(inst >> 4))) << 2) |
+            (@as(u64, @as(u2, @truncate(inst >> 2))) << 6);
+        const eff_addr = self.regs.get(2) +% offset;
+        const phys = self.translate_address(eff_addr) orelse return VMError.invalid_memory_access;
+        if (phys + 4 > self.memory_size) return VMError.invalid_memory_access;
+        if (rd != 0) {
+            const val = std.mem.readInt(i32, self.memory[@intCast(phys)..][0..4], .little);
+            self.regs.set(rd, @bitCast(@as(i64, val)));
+        }
+    }
+    
+    /// C.LDSP: load doubleword from stack pointer offset.
+    fn execute_c2_ldsp(self: *Self, inst: u16) VMError!void {
+        const rd = @as(u5, @truncate(inst >> 7));
+        const offset: u64 = (@as(u64, @as(u1, @truncate(inst >> 12))) << 5) |
+            (@as(u64, @as(u2, @truncate(inst >> 5))) << 3) |
+            (@as(u64, @as(u3, @truncate(inst >> 2))) << 6);
+        const eff_addr = self.regs.get(2) +% offset;
+        const phys = self.translate_address(eff_addr) orelse return VMError.invalid_memory_access;
+        if (phys + 8 > self.memory_size) return VMError.invalid_memory_access;
+        if (rd != 0) {
+            self.regs.set(rd, std.mem.readInt(u64, self.memory[@intCast(phys)..][0..8], .little));
+        }
+    }
+    
+    /// C.SWSP: store word to stack pointer offset.
+    fn execute_c2_swsp(self: *Self, inst: u16) VMError!void {
+        const rs2 = @as(u5, @truncate(inst >> 2));
+        const offset: u64 = (@as(u64, @as(u4, @truncate(inst >> 9))) << 2) |
+            (@as(u64, @as(u2, @truncate(inst >> 7))) << 6);
+        const eff_addr = self.regs.get(2) +% offset;
+        const phys = self.translate_address(eff_addr) orelse return VMError.invalid_memory_access;
+        if (phys + 4 > self.memory_size) return VMError.invalid_memory_access;
+        @memcpy(self.memory[@intCast(phys)..][0..4], &std.mem.toBytes(@as(u32, @truncate(self.regs.get(rs2)))));
+    }
+    
+    /// C.SDSP: store doubleword to stack pointer offset.
+    fn execute_c2_sdsp(self: *Self, inst: u16) VMError!void {
+        const rs2 = @as(u5, @truncate(inst >> 2));
+        const offset: u64 = (@as(u64, @as(u3, @truncate(inst >> 10))) << 3) |
+            (@as(u64, @as(u3, @truncate(inst >> 7))) << 6);
+        const eff_addr = self.regs.get(2) +% offset;
+        const phys = self.translate_address(eff_addr) orelse return VMError.invalid_memory_access;
+        if (phys + 8 > self.memory_size) return VMError.invalid_memory_access;
+        @memcpy(self.memory[@intCast(phys)..][0..8], &std.mem.toBytes(self.regs.get(rs2)));
     }
     
     /// Execute C2 JR/MV/ADD instructions (funct3 = 0b100).
