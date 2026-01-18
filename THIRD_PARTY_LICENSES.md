@@ -53,3 +53,58 @@ limitations under the License.
 **Note**: Grain OS's Grain Style guide (`docs/grain_style.md`) is heavily inspired by and adapted from TigerBeetle's TIGER_STYLE.md. The core philosophy, safety rules, and many specific guidelines are adapted from TIGER_STYLE with modifications for Grain OS's specific context (graincards, grain_case naming, etc.). We are deeply grateful to the TigerBeetle team for sharing their wisdom.
 
 ---
+
+## Clojure
+
+**Repository**: https://github.com/clojure/clojure  
+**Usage**: Philosophy inspiration ("Simple Made Easy", data-oriented design principles)  
+**License**: Eclipse Public License 1.0  
+**Copyright**: Copyright (c) Rich Hickey. All rights reserved.
+
+THE ACCOMPANYING PROGRAM IS PROVIDED UNDER THE TERMS OF THIS ECLIPSE PUBLIC
+LICENSE ("AGREEMENT"). ANY USE, REPRODUCTION OR DISTRIBUTION OF THE PROGRAM
+CONSTITUTES RECIPIENT'S ACCEPTANCE OF THIS AGREEMENT.
+
+1. DEFINITIONS
+
+"Contribution" means:
+a) in the case of the initial Contributor, the initial code and documentation
+   distributed under this Agreement, and
+b) in the case of each subsequent Contributor:
+   i) changes to the Program, and
+   ii) additions to the Program;
+
+where such changes and/or additions to the Program originate from and are
+distributed by that particular Contributor. A Contribution 'originates' from a
+Contributor if it was added to the Program by such Contributor itself or anyone
+acting on such Contributor's behalf. Contributions do not include additions to
+the Program which: (i) are separate modules of software distributed in
+conjunction with the Program under their own license agreement, and (ii) are not
+derivative works of the Program.
+
+**Note**: Rich Hickey's talks on simplicity, particularly "Simple Made Easy" (2011), have deeply
+influenced Grain OS's approach to system design. The emphasis on simplicity over complexity,
+on decoupling, on data-oriented design, and on distinguishing between "simple" (not intertwined)
+and "easy" (familiar/near at hand) informs our architectural decisions. We choose Zig as our
+implementation language because it embodies these principles: explicit over implicit, no hidden
+control flow, no hidden memory allocations, composition over inheritance.
+
+---
+
+## Clojure
+
+**Repository**: https://github.com/clojure/clojure  
+**Usage**: Philosophy inspiration for simplicity-focused design  
+**License**: Eclipse Public License 1.0  
+**Copyright**: Copyright (c) Rich Hickey. All rights reserved.
+
+THE ACCOMPANYING PROGRAM IS PROVIDED UNDER THE TERMS OF THIS ECLIPSE PUBLIC
+LICENSE ("AGREEMENT"). ANY USE, REPRODUCTION OR DISTRIBUTION OF THE PROGRAM
+CONSTITUTES RECIPIENT'S ACCEPTANCE OF THIS AGREEMENT.
+
+The full Eclipse Public License 1.0 is available at:
+https://opensource.org/licenses/EPL-1.0
+
+**Note**: While Grain OS is written in Zig rather than Clojure, we draw inspiration from Rich Hickey's philosophy of simplicity, immutability, and data-oriented design. The Clojure community's emphasis on "simple made easy" and thoughtful API design has influenced our approach to systems programming. We appreciate Clojure's permissive licensing model that enables open collaboration.
+
+---

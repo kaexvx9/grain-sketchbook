@@ -9,6 +9,28 @@ knowledge. Precision and poetry. Just like music. A tight beat. A rare groove. W
 rhymes that break. Biodigital jazz. This is what we've learned along the way. The best is yet to
 come.
 
+**Attribution**: This guide stands on the shoulders of giants. See
+[THIRD_PARTY_LICENSES.md](../THIRD_PARTY_LICENSES.md) for full license attributions, particularly
+TigerBeetle's TIGER_STYLE.md (Apache 2.0) and Rich Hickey's Clojure philosophy (EPL 1.0).
+
+## Why Zig?
+
+We choose Zig because it embodies the principles we value:
+
+- **Explicit over implicit**: No hidden control flow, no hidden memory allocations, no operator
+  overloading. What you see is what executes.
+- **Simple over easy**: Following Rich Hickey's distinction—Zig is simple (not intertwined) even
+  when it's not easy (familiar). C interop is seamless. The language is small.
+- **Compile-time over runtime**: Comptime evaluation, comptime generics, comptime reflection.
+  Errors caught before code ships.
+- **No hidden costs**: No garbage collector, no runtime, no exceptions. Predictable performance.
+- **Cross-compilation as a first-class feature**: One toolchain targets 50+ platforms. RISC-V,
+  ARM, x86—same source, same build system.
+
+We follow in the footsteps of the [TigerBeetle](https://tigerbeetle.com) team, who chose Zig for
+their distributed financial database and developed the TIGER_STYLE guide that heavily inspires this
+document. Their production experience validates our choice.
+
 ## Why Have Style?
 
 Another word for style is design.
@@ -101,7 +123,7 @@ We know that what we ship is solid. We may lack crucial features, but what we ha
 goals. This is the only way to make steady incremental progress, knowing that the progress we have
 made is indeed progress.
 
-**A warrior is defeated only when he no longer tries, and abandons himself.** We do not abandon our
+**A spiritual guardian is defeated only when he no longer tries, and abandons himself.** We do not abandon our
 code. We do not abandon our standards. We do not abandon the path with heart.
 
 ## Personal Power and Impeccability
@@ -132,21 +154,21 @@ forces us to believe we are doing great things, when in effect we are only fixed
 
 ## The Warrior's Choice
 
-**We choose only once. We choose either to be warriors or to be ordinary developers. A second choice
+**We choose only once. We choose either to be spiritual guardians or to be ordinary developers. A second choice
 does not exist. Not on this earth.**
 
-To be a warrior doesn't mean to practice magic, or to work to affect people, or to be possessed by
-demons. To be a warrior means to reach a level of awareness that makes inconceivable things
-available. The actions of warriors are exclusively in the realm of the abstract, the impersonal.
+To be a spiritual guardian doesn't mean to practice magic, or to work to affect people, or to be possessed by
+demons. To be a spiritual guardian means to reach a level of awareness that makes inconceivable things
+available. The actions of spiritual guardians are exclusively in the realm of the abstract, the impersonal.
 Warriors struggle to reach a goal that has nothing to do with the quick fix, the easy solution, the
 compromise.
 
-When you choose to be a warrior, you choose the path with heart. You choose impeccability. You choose
+When you choose to be a spiritual guardian, you choose the path with heart. You choose impeccability. You choose
 to do it right the first time. You choose to trust your personal power. You choose to see the code
 as an offering, not just as a product.
 
 There is no second choice. You are either on the path with heart, or you are not. You are either a
-warrior, or you are ordinary.
+spiritual guardian, or you are ordinary.
 
 ## Safety
 
@@ -163,7 +185,7 @@ Code](https://spinroot.com/gerard/pdf/P10.pdf) will change the way you code fore
   cost](https://isaacfreund.com/blog/2022-05/). Every abstraction introduces the risk of a leaky
   abstraction.
 
-  **A warrior selects the items that make his world. He selects deliberately, for every item he
+  **A spiritual guardian selects the items that make his world. He selects deliberately, for every item he
   chooses is a shield that protects him from the onslaughts of the forces he is striving to use.**
   Every abstraction you choose, every pattern you adopt, every tool you use—they are all shields.
   Choose them deliberately. Choose them with heart.
@@ -871,7 +893,7 @@ only because code grows like grain, but because it's small, sustainable, and tea
 **Put your trust in yourself, not in me.** Our link is with the spirit itself and only
 incidentally with the man who brings us its message.
 
-**The recommendation for warriors is not to have any material things on which to focus their power,
+**The recommendation for spiritual guardians is not to have any material things on which to focus their power,
 but to focus it on the spirit, on the true flight into the unknown.**
 
 ---
@@ -894,7 +916,7 @@ shoulders of giants.
 
 **The Words of Don Juan Matus**: This document integrates concepts from [The Words of Don Juan
 Matus](https://archive.org/stream/CarlosCastanedaTheWordsOfDonJuanMatus/Carlos%20Castaneda-The%20Words%20Of%20Don%20Juan%20Matus_djvu.txt),
-particularly the warrior's way principles of the path with heart, personal power, impeccability,
+particularly the spiritual guardian's way principles of the path with heart, personal power, impeccability,
 and the assemblage point. These concepts illuminate the deeper dimensions of coding practice and
 help us understand how technical work can be approached with the awareness and discipline of a
-warrior.
+spiritual guardian.
