@@ -419,21 +419,21 @@ pub const Integration = struct {
             args_ptr, // Arguments pointer (can be 0 for no args)
             args_len, // Arguments length (can be 0 for no args)
             0, // Unused arg4
-        );
+        ) catch |err| {
+            // Convert kernel error to integration error.
+            return switch (err) {
+                BasinError.invalid_argument => error.InvalidElfFormat,
+                BasinError.out_of_memory => error.AddressOutOfBounds,
+                BasinError.process_not_found => error.InvalidElfFormat,
+                BasinError.too_many_processes => error.AddressOutOfBounds,
+                else => error.InvalidElfFormat,
+            };
+        };
         
         // Extract process ID from result.
         return switch (result) {
             .success => |pid| pid,
-            .err => |err| {
-                // Convert kernel error to integration error.
-                return switch (err) {
-                    BasinError.invalid_argument => error.InvalidElfFormat,
-                    BasinError.out_of_memory => error.AddressOutOfBounds,
-                    BasinError.process_not_found => error.InvalidElfFormat,
-                    BasinError.too_many_processes => error.AddressOutOfBounds,
-                    else => error.InvalidElfFormat,
-                };
-            },
+            .err => error.InvalidElfFormat,
         };
     }
 

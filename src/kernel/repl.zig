@@ -376,6 +376,12 @@ pub const Repl = struct {
         // Execute Grainscript
         try interpreter.execute();
 
+        // Print output from interpreter (freestanding-compatible).
+        const output = interpreter.get_output();
+        if (output.len > 0) {
+            Debug.kprint("{s}", .{output});
+        }
+
         // Print result (if any)
         const exit_code = interpreter.get_exit_code();
         if (exit_code == 0) {

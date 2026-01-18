@@ -14,10 +14,6 @@ const BasinKernel = basin_kernel.BasinKernel;
 // Test: Spawn shell process from ELF loaded in VM memory.
 // Why: Verify complete Phase 3 flow works (load ELF, spawn process).
 test "vm shell spawn: load ELF and spawn process" {
-    // Grain Style: Arena allocator (bounded, explicit, startup-time).
-    var arena = std.heap.ArenaAllocator.init(testing.allocator);
-    defer arena.deinit();
-    const allocator = arena.allocator();
     
     // Initialize VM.
     var vm: VM = undefined;

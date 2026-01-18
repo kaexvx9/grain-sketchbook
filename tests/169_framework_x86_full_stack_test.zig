@@ -14,10 +14,6 @@ const BasinKernel = basin_kernel.BasinKernel;
 // Test: Full stack integration (VM → Kernel → ELF Loading → Process Spawn).
 // Why: Verify complete Framework x86_64 stack works end-to-end.
 test "framework x86: basin + vantage + grainscript shell full stack" {
-    // Grain Style: Arena allocator (bounded, explicit, startup-time).
-    var arena = std.heap.ArenaAllocator.init(testing.allocator);
-    defer arena.deinit();
-    const allocator = arena.allocator();
     
     // Step 1: Initialize Vantage VM with x86_64 JIT.
     // Why: Create VM instance for running Basin Kernel.

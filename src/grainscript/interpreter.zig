@@ -179,6 +179,35 @@ pub const Interpreter = struct {
     scope_depth: u32, // Current scope depth (0 = global, 1+ = local)
     control_flow_signal: ControlFlowSignal, // Current control flow signal (break/continue)
 
+    /// Output buffer for builtin commands (freestanding-compatible).
+    /// Why: Avoid std.debug.print which uses OS-dependent mutexes.
+    /// Grain Style: Bounded output buffer, explicit types.
+    output_buffer: [4096]u8 = undefined,
+    output_len: u32 = 0,
+
+    /// Write string to output buffer (freestanding-compatible).
+    /// Why: Use output buffer instead of std.debug.print for freestanding builds.
+    pub fn write_output(self: *Interpreter, bytes: []const u8) void {
+        const remaining = self.output_buffer.len - self.output_len;
+        const to_copy = @min(bytes.len, remaining);
+        if (to_copy > 0) {
+            @memcpy(self.output_buffer[self.output_len..][0..to_copy], bytes[0..to_copy]);
+            self.output_len += @intCast(to_copy);
+        }
+    }
+
+    /// Get output buffer contents.
+    /// Why: Allow caller to read and display output.
+    pub fn get_output(self: *const Interpreter) []const u8 {
+        return self.output_buffer[0..self.output_len];
+    }
+
+    /// Clear output buffer.
+    /// Why: Reset output for next execution.
+    pub fn clear_output(self: *Interpreter) void {
+        self.output_len = 0;
+    }
+
     /// Initialize interpreter with parser.
     pub fn init(allocator: std.mem.Allocator, parser: *const Parser) !Interpreter {
         // Assert: Parser must be valid
@@ -621,25 +650,27 @@ pub const Interpreter = struct {
 
     /// Built-in echo command: Print arguments to stdout.
     fn builtin_echo(interpreter: *Interpreter, args: []const Value) Error!Value {
-        _ = interpreter; // Unused for now (may need for stdout access)
-
-        // Print all arguments separated by spaces
+        // Print all arguments separated by spaces to output buffer.
+        // Why: Use output buffer instead of std.debug.print for freestanding builds.
         var first: bool = true;
         for (args) |arg| {
             if (!first) {
-                std.debug.print(" ", .{});
+                interpreter.write_output(" ");
             }
             first = false;
 
-            switch (arg) {
-                .integer => |v| std.debug.print("{}", .{v}),
-                .float => |v| std.debug.print("{d}", .{v}),
-                .string => |v| std.debug.print("{s}", .{v}),
-                .boolean => |v| std.debug.print("{}", .{v}),
-                .null => std.debug.print("null", .{}),
-            }
+            // Format value to static buffer, then write to output buffer.
+            var fmt_buf: [128]u8 = undefined;
+            const formatted = switch (arg) {
+                .integer => |v| std.fmt.bufPrint(&fmt_buf, "{}", .{v}) catch "",
+                .float => |v| std.fmt.bufPrint(&fmt_buf, "{d}", .{v}) catch "",
+                .string => |v| v,
+                .boolean => |v| if (v) "true" else "false",
+                .null => "null",
+            };
+            interpreter.write_output(formatted);
         }
-        std.debug.print("\n", .{});
+        interpreter.write_output("\n");
 
         return Value.from_integer(0); // Success exit code
     }
@@ -676,7 +707,9 @@ pub const Interpreter = struct {
     fn builtin_pwd(interpreter: *Interpreter, args: []const Value) Error!Value {
         _ = args; // Unused
 
-        std.debug.print("{s}\n", .{interpreter.current_directory});
+        // Write to output buffer (freestanding-compatible).
+        interpreter.write_output(interpreter.current_directory);
+        interpreter.write_output("\n");
 
         return Value.from_string(interpreter.allocator, interpreter.current_directory) catch |err| {
             return err;

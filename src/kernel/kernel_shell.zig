@@ -298,6 +298,9 @@ fn execute_grainscript(allocator: std.mem.Allocator, source: []const u8) void {
         return;
     };
     
-    // Note: Interpreter.execute() handles output internally.
-    // Result is printed by interpreter if needed.
+    // Print output from interpreter (freestanding-compatible).
+    const output = interpreter.get_output();
+    if (output.len > 0) {
+        Debug.kprint("{s}", .{output});
+    }
 }
