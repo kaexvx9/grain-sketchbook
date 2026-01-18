@@ -848,40 +848,37 @@ pub const VM = struct {
     ///   - 0x90000000+: Framebuffer -> offset (memory_size - framebuffer_size)+
     /// GrainStyle: Use explicit u64 instead of usize for cross-platform consistency
     /// Translate virtual address to physical offset.
-    /// Why: Public access needed for framebuffer sync in TahoeSandbox.
+    /// First checks page table, then falls back to hardcoded mappings.
     /// GrainStyle: Explicit u64 types, bounds checking, deterministic mapping.
     pub fn translate_address(self: *const Self, virt_addr: u64) ?u64 {
         const KERNEL_BASE: u64 = 0x80000000;
         const FRAMEBUFFER_BASE: u64 = 0x90000000;
         const FRAMEBUFFER_SIZE: u32 = 1024 * 768 * 4; // 3MB
         
+        // First, check page table for explicit mappings (UART, etc.).
+        if (self.memory_protection.translate_address(virt_addr)) |phys| {
+            if (phys < self.memory_size) {
+                return phys;
+            }
+        }
+        
+        // Fall back to hardcoded region mappings.
         if (virt_addr >= FRAMEBUFFER_BASE) {
-            // Framebuffer region: map to end of VM memory
+            // Framebuffer region: map to end of VM memory.
             const framebuffer_offset: u64 = self.memory_size - @as(u64, FRAMEBUFFER_SIZE);
             const offset_in_fb: u64 = virt_addr - FRAMEBUFFER_BASE;
-            
-            if (offset_in_fb >= FRAMEBUFFER_SIZE) {
-                return null; // Out of framebuffer bounds
-            }
-            
+            if (offset_in_fb >= FRAMEBUFFER_SIZE) return null;
             const phys_offset = framebuffer_offset + offset_in_fb;
-            if (phys_offset >= self.memory_size) {
-                return null; // Out of memory bounds
-            }
-            
+            if (phys_offset >= self.memory_size) return null;
             return phys_offset;
         } else if (virt_addr >= KERNEL_BASE) {
-            // Kernel region: map directly (0x80000000 -> 0)
+            // Kernel region: map directly (0x80000000 -> 0).
             const offset: u64 = virt_addr - KERNEL_BASE;
-            if (offset >= self.memory_size) {
-                return null; // Out of memory bounds
-            }
+            if (offset >= self.memory_size) return null;
             return offset;
         } else {
-            // Low memory: map directly
-            if (virt_addr >= self.memory_size) {
-                return null;
-            }
+            // Low memory: map directly.
+            if (virt_addr >= self.memory_size) return null;
             return virt_addr;
         }
     }
@@ -1743,22 +1740,19 @@ pub const VM = struct {
         }
     }
 
-    /// Execute I-type instruction (ADDI and variants).
+    /// Execute I-type instruction (ADDI, SLTI, SLTIU, XORI, ORI, ANDI, SLLI, SRLI, SRAI).
     /// Why: Extract I-type handling to reduce execute_opcode() length.
     fn execute_i_type(self: *Self, inst: u32) VMError!void {
         const funct3 = @as(u3, @truncate(inst >> 12));
-        if (funct3 == 0b000) {
-            try self.execute_addi(inst);
-        } else {
-            // Unsupported I-type instruction variant.
-            std.debug.print(
-                "DEBUG vm.zig: Unsupported I-type variant: funct3=0b{b:0>3}\n",
-                .{funct3},
-            );
-            self.state = .errored;
-            self.last_error = VMError.invalid_instruction;
-            self.exception_stats.record_exception(2);
-            return VMError.invalid_instruction;
+        switch (funct3) {
+            0b000 => try self.execute_addi(inst),
+            0b001 => try self.execute_slli(inst),
+            0b010 => try self.execute_slti(inst),
+            0b011 => try self.execute_sltiu(inst),
+            0b100 => try self.execute_xori(inst),
+            0b101 => try self.execute_srli_srai(inst),
+            0b110 => try self.execute_ori(inst),
+            0b111 => try self.execute_andi(inst),
         }
     }
 
@@ -2183,18 +2177,15 @@ pub const VM = struct {
 
     /// Execute LUI (Load Upper Immediate) instruction.
     /// Format: LUI rd, imm[31:12]
-    /// Why: Separate function for clarity and Grain Style function length.
+    /// LUI places imm[31:12] in bits [31:12] of rd, with bits [11:0] = 0.
+    /// The result is sign-extended to 64 bits.
     fn execute_lui(self: *Self, inst: u32) !void {
-        // Decode: rd = bits [11:7], imm[31:12] = bits [31:12].
         const rd = @as(u5, @truncate(inst >> 7));
-        const imm = @as(u32, inst) & 0xFFFFF000; // Extract bits [31:12].
-
-        // Sign-extend imm[31:12] to 64 bits.
-        const imm64 = @as(i32, @bitCast(imm)) << 12;
-        const imm64_unsigned = @as(u64, @intCast(imm64));
-
-        // Write result to rd.
-        self.regs.set(rd, imm64_unsigned);
+        // imm[31:12] is already in bits [31:12] of instruction.
+        // Mask and sign-extend to 64 bits.
+        const imm32 = inst & 0xFFFFF000;
+        const imm64 = @as(u64, @bitCast(@as(i64, @as(i32, @bitCast(imm32)))));
+        self.regs.set(rd, imm64);
     }
 
     /// Execute AUIPC (Add Upper Immediate to PC) instruction.
@@ -2277,22 +2268,48 @@ pub const VM = struct {
     /// Why: Bitwise AND with immediate value for Zig compiler compatibility.
     /// Grain Style: Comprehensive assertions for register indices and result validation.
     fn execute_andi(self: *Self, inst: u32) !void {
-        // Decode: rd = bits [11:7], rs1 = bits [19:15], imm[11:0] = bits [31:20].
         const rd = @as(u5, @truncate(inst >> 7));
         const rs1 = @as(u5, @truncate(inst >> 15));
         const imm12 = @as(i32, @truncate(@as(i64, inst >> 20)));
-
-        // Sign-extend imm[11:0] to 64 bits.
-        const imm64 = @as(u64, @intCast(@as(i64, imm12)));
-
-        // Read rs1 value.
-        const rs1_value = self.regs.get(rs1);
-
-        // AND: rd = rs1 & imm (bitwise AND).
-        const result = rs1_value & imm64;
-
-        // Write result to rd.
-        self.regs.set(rd, result);
+        const imm64 = @as(u64, @bitCast(@as(i64, imm12)));
+        self.regs.set(rd, self.regs.get(rs1) & imm64);
+    }
+    
+    /// Execute SLTI (Set Less Than Immediate) instruction.
+    fn execute_slti(self: *Self, inst: u32) !void {
+        const rd = @as(u5, @truncate(inst >> 7));
+        const rs1 = @as(u5, @truncate(inst >> 15));
+        const imm12 = @as(i32, @truncate(@as(i64, inst >> 20)));
+        const imm64 = @as(i64, imm12);
+        const rs1_signed = @as(i64, @bitCast(self.regs.get(rs1)));
+        self.regs.set(rd, if (rs1_signed < imm64) 1 else 0);
+    }
+    
+    /// Execute SLTIU (Set Less Than Immediate Unsigned) instruction.
+    fn execute_sltiu(self: *Self, inst: u32) !void {
+        const rd = @as(u5, @truncate(inst >> 7));
+        const rs1 = @as(u5, @truncate(inst >> 15));
+        const imm12 = @as(i32, @truncate(@as(i64, inst >> 20)));
+        const imm64 = @as(u64, @bitCast(@as(i64, imm12)));
+        self.regs.set(rd, if (self.regs.get(rs1) < imm64) 1 else 0);
+    }
+    
+    /// Execute SRLI/SRAI (Shift Right Logical/Arithmetic Immediate) instruction.
+    fn execute_srli_srai(self: *Self, inst: u32) !void {
+        const rd = @as(u5, @truncate(inst >> 7));
+        const rs1 = @as(u5, @truncate(inst >> 15));
+        const shamt = @as(u6, @truncate(inst >> 20));
+        const funct7 = @as(u7, @truncate(inst >> 25));
+        const rs1_val = self.regs.get(rs1);
+        
+        if (funct7 == 0b0000000) {
+            // SRLI: logical right shift
+            self.regs.set(rd, rs1_val >> shamt);
+        } else {
+            // SRAI: arithmetic right shift
+            const rs1_signed = @as(i64, @bitCast(rs1_val));
+            self.regs.set(rd, @bitCast(rs1_signed >> shamt));
+        }
     }
 
     /// Execute XORI (XOR Immediate) instruction.

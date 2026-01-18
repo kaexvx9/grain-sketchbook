@@ -358,6 +358,13 @@ fn test_kernel_elf_loading(allocator: std.mem.Allocator) !void {
     }
     std.debug.print("[kernel_vm_test] Mapped stack region (7MB-8MB)\n", .{});
     
+    // Map UART/serial region at 0x10000000 for kernel console output.
+    // Map to a safe physical location (e.g., 6MB mark).
+    const UART_BASE: u64 = 0x10000000;
+    const UART_PHYS: u64 = 6 * 1024 * 1024; // 6MB physical
+    _ = vm2.memory_protection.map_page(UART_BASE, UART_PHYS, RW);
+    std.debug.print("[kernel_vm_test] Mapped UART at 0x{x} -> phys 0x{x}\n", .{ UART_BASE, UART_PHYS });
+    
     // Execute a few instructions to verify kernel starts.
     vm2.start();
     var instructions_executed: u32 = 0;
