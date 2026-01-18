@@ -1324,96 +1324,14 @@ pub const VM = struct {
     }
     
     /// Execute C0 quadrant compressed instruction.
+    /// Dispatches to specific handlers for each funct3 value.
     fn execute_c0(self: *Self, inst: u16, funct3: u3) VMError!void {
         switch (funct3) {
-            0b000 => {
-                // C.ADDI4SPN: addi rd', sp, imm
-                const rd_prime = @as(u3, @truncate(inst >> 2));
-                const rd: u5 = @as(u5, rd_prime) + 8; // rd' maps to x8-x15
-                // imm = [5:4|9:6|2|3] scaled by 4
-                const nzuimm_5_4 = @as(u2, @truncate(inst >> 11));
-                const nzuimm_9_6 = @as(u4, @truncate(inst >> 7));
-                const nzuimm_2 = @as(u1, @truncate(inst >> 6));
-                const nzuimm_3 = @as(u1, @truncate(inst >> 5));
-                const imm: u64 = (@as(u64, nzuimm_5_4) << 4) |
-                    (@as(u64, nzuimm_9_6) << 6) |
-                    (@as(u64, nzuimm_2) << 2) |
-                    (@as(u64, nzuimm_3) << 3);
-                const sp = self.regs.get(2);
-                self.regs.set(rd, sp +% imm);
-            },
-            0b010 => {
-                // C.LW: lw rd', offset(rs1')
-                const rd_prime = @as(u3, @truncate(inst >> 2));
-                const rs1_prime = @as(u3, @truncate(inst >> 7));
-                const rd: u5 = @as(u5, rd_prime) + 8;
-                const rs1: u5 = @as(u5, rs1_prime) + 8;
-                // offset = [5:3|2|6]
-                const uimm_5_3 = @as(u3, @truncate(inst >> 10));
-                const uimm_2 = @as(u1, @truncate(inst >> 6));
-                const uimm_6 = @as(u1, @truncate(inst >> 5));
-                const offset: u64 = (@as(u64, uimm_5_3) << 3) |
-                    (@as(u64, uimm_2) << 2) |
-                    (@as(u64, uimm_6) << 6);
-                const base = self.regs.get(rs1);
-                const eff_addr = base +% offset;
-                const phys = self.translate_address(eff_addr) orelse return VMError.invalid_memory_access;
-                if (phys + 4 > self.memory_size) return VMError.invalid_memory_access;
-                const val = std.mem.readInt(i32, self.memory[@intCast(phys)..][0..4], .little);
-                self.regs.set(rd, @bitCast(@as(i64, val)));
-            },
-            0b011 => {
-                // C.LD: ld rd', offset(rs1')
-                const rd_prime = @as(u3, @truncate(inst >> 2));
-                const rs1_prime = @as(u3, @truncate(inst >> 7));
-                const rd: u5 = @as(u5, rd_prime) + 8;
-                const rs1: u5 = @as(u5, rs1_prime) + 8;
-                // offset = [5:3|7:6]
-                const uimm_5_3 = @as(u3, @truncate(inst >> 10));
-                const uimm_7_6 = @as(u2, @truncate(inst >> 5));
-                const offset: u64 = (@as(u64, uimm_5_3) << 3) | (@as(u64, uimm_7_6) << 6);
-                const base = self.regs.get(rs1);
-                const eff_addr = base +% offset;
-                const phys = self.translate_address(eff_addr) orelse return VMError.invalid_memory_access;
-                if (phys + 8 > self.memory_size) return VMError.invalid_memory_access;
-                const val = std.mem.readInt(u64, self.memory[@intCast(phys)..][0..8], .little);
-                self.regs.set(rd, val);
-            },
-            0b110 => {
-                // C.SW: sw rs2', offset(rs1')
-                const rs2_prime = @as(u3, @truncate(inst >> 2));
-                const rs1_prime = @as(u3, @truncate(inst >> 7));
-                const rs2: u5 = @as(u5, rs2_prime) + 8;
-                const rs1: u5 = @as(u5, rs1_prime) + 8;
-                const uimm_5_3 = @as(u3, @truncate(inst >> 10));
-                const uimm_2 = @as(u1, @truncate(inst >> 6));
-                const uimm_6 = @as(u1, @truncate(inst >> 5));
-                const offset: u64 = (@as(u64, uimm_5_3) << 3) |
-                    (@as(u64, uimm_2) << 2) |
-                    (@as(u64, uimm_6) << 6);
-                const base = self.regs.get(rs1);
-                const eff_addr = base +% offset;
-                const phys = self.translate_address(eff_addr) orelse return VMError.invalid_memory_access;
-                if (phys + 4 > self.memory_size) return VMError.invalid_memory_access;
-                const val = @as(u32, @truncate(self.regs.get(rs2)));
-                @memcpy(self.memory[@intCast(phys)..][0..4], &std.mem.toBytes(val));
-            },
-            0b111 => {
-                // C.SD: sd rs2', offset(rs1')
-                const rs2_prime = @as(u3, @truncate(inst >> 2));
-                const rs1_prime = @as(u3, @truncate(inst >> 7));
-                const rs2: u5 = @as(u5, rs2_prime) + 8;
-                const rs1: u5 = @as(u5, rs1_prime) + 8;
-                const uimm_5_3 = @as(u3, @truncate(inst >> 10));
-                const uimm_7_6 = @as(u2, @truncate(inst >> 5));
-                const offset: u64 = (@as(u64, uimm_5_3) << 3) | (@as(u64, uimm_7_6) << 6);
-                const base = self.regs.get(rs1);
-                const eff_addr = base +% offset;
-                const phys = self.translate_address(eff_addr) orelse return VMError.invalid_memory_access;
-                if (phys + 8 > self.memory_size) return VMError.invalid_memory_access;
-                const val = self.regs.get(rs2);
-                @memcpy(self.memory[@intCast(phys)..][0..8], &std.mem.toBytes(val));
-            },
+            0b000 => self.execute_c0_addi4spn(inst),
+            0b010 => try self.execute_c0_lw(inst),
+            0b011 => try self.execute_c0_ld(inst),
+            0b110 => try self.execute_c0_sw(inst),
+            0b111 => try self.execute_c0_sd(inst),
             else => {
                 std.debug.print("DEBUG vm.zig: Unknown C0 funct3=0b{b:0>3}\n", .{funct3});
                 return VMError.invalid_instruction;
@@ -1421,115 +1339,161 @@ pub const VM = struct {
         }
     }
     
+    /// C.ADDI4SPN: add scaled immediate to SP, store in rd'.
+    fn execute_c0_addi4spn(self: *Self, inst: u16) void {
+        const rd: u5 = @as(u5, @as(u3, @truncate(inst >> 2))) + 8;
+        const imm: u64 = (@as(u64, @as(u2, @truncate(inst >> 11))) << 4) |
+            (@as(u64, @as(u4, @truncate(inst >> 7))) << 6) |
+            (@as(u64, @as(u1, @truncate(inst >> 6))) << 2) |
+            (@as(u64, @as(u1, @truncate(inst >> 5))) << 3);
+        self.regs.set(rd, self.regs.get(2) +% imm);
+    }
+    
+    /// C.LW: load word from memory.
+    fn execute_c0_lw(self: *Self, inst: u16) VMError!void {
+        const rd: u5 = @as(u5, @as(u3, @truncate(inst >> 2))) + 8;
+        const rs1: u5 = @as(u5, @as(u3, @truncate(inst >> 7))) + 8;
+        const offset: u64 = (@as(u64, @as(u3, @truncate(inst >> 10))) << 3) |
+            (@as(u64, @as(u1, @truncate(inst >> 6))) << 2) |
+            (@as(u64, @as(u1, @truncate(inst >> 5))) << 6);
+        const eff_addr = self.regs.get(rs1) +% offset;
+        const phys = self.translate_address(eff_addr) orelse return VMError.invalid_memory_access;
+        if (phys + 4 > self.memory_size) return VMError.invalid_memory_access;
+        const val = std.mem.readInt(i32, self.memory[@intCast(phys)..][0..4], .little);
+        self.regs.set(rd, @bitCast(@as(i64, val)));
+    }
+    
+    /// C.LD: load doubleword from memory.
+    fn execute_c0_ld(self: *Self, inst: u16) VMError!void {
+        const rd: u5 = @as(u5, @as(u3, @truncate(inst >> 2))) + 8;
+        const rs1: u5 = @as(u5, @as(u3, @truncate(inst >> 7))) + 8;
+        const offset: u64 = (@as(u64, @as(u3, @truncate(inst >> 10))) << 3) |
+            (@as(u64, @as(u2, @truncate(inst >> 5))) << 6);
+        const eff_addr = self.regs.get(rs1) +% offset;
+        const phys = self.translate_address(eff_addr) orelse return VMError.invalid_memory_access;
+        if (phys + 8 > self.memory_size) return VMError.invalid_memory_access;
+        self.regs.set(rd, std.mem.readInt(u64, self.memory[@intCast(phys)..][0..8], .little));
+    }
+    
+    /// C.SW: store word to memory.
+    fn execute_c0_sw(self: *Self, inst: u16) VMError!void {
+        const rs2: u5 = @as(u5, @as(u3, @truncate(inst >> 2))) + 8;
+        const rs1: u5 = @as(u5, @as(u3, @truncate(inst >> 7))) + 8;
+        const offset: u64 = (@as(u64, @as(u3, @truncate(inst >> 10))) << 3) |
+            (@as(u64, @as(u1, @truncate(inst >> 6))) << 2) |
+            (@as(u64, @as(u1, @truncate(inst >> 5))) << 6);
+        const eff_addr = self.regs.get(rs1) +% offset;
+        const phys = self.translate_address(eff_addr) orelse return VMError.invalid_memory_access;
+        if (phys + 4 > self.memory_size) return VMError.invalid_memory_access;
+        @memcpy(self.memory[@intCast(phys)..][0..4], &std.mem.toBytes(@as(u32, @truncate(self.regs.get(rs2)))));
+    }
+    
+    /// C.SD: store doubleword to memory.
+    fn execute_c0_sd(self: *Self, inst: u16) VMError!void {
+        const rs2: u5 = @as(u5, @as(u3, @truncate(inst >> 2))) + 8;
+        const rs1: u5 = @as(u5, @as(u3, @truncate(inst >> 7))) + 8;
+        const offset: u64 = (@as(u64, @as(u3, @truncate(inst >> 10))) << 3) |
+            (@as(u64, @as(u2, @truncate(inst >> 5))) << 6);
+        const eff_addr = self.regs.get(rs1) +% offset;
+        const phys = self.translate_address(eff_addr) orelse return VMError.invalid_memory_access;
+        if (phys + 8 > self.memory_size) return VMError.invalid_memory_access;
+        @memcpy(self.memory[@intCast(phys)..][0..8], &std.mem.toBytes(self.regs.get(rs2)));
+    }
+    
     /// Execute C1 quadrant compressed instruction.
+    /// Dispatches to specific handlers for each funct3 value.
     fn execute_c1(self: *Self, inst: u16, funct3: u3) VMError!void {
         switch (funct3) {
-            0b000 => {
-                // C.ADDI / C.NOP
-                const rd = @as(u5, @truncate(inst >> 7));
-                const imm_5 = @as(u1, @truncate(inst >> 12));
-                const imm_4_0 = @as(u5, @truncate(inst >> 2));
-                const imm6 = (@as(u6, imm_5) << 5) | imm_4_0;
-                const imm_signed = @as(i64, @as(i6, @bitCast(imm6)));
-                if (rd != 0) {
-                    const val = self.regs.get(rd);
-                    self.regs.set(rd, val +% @as(u64, @bitCast(imm_signed)));
-                }
-            },
-            0b001 => {
-                // C.ADDIW (RV64)
-                const rd = @as(u5, @truncate(inst >> 7));
-                const imm_5 = @as(u1, @truncate(inst >> 12));
-                const imm_4_0 = @as(u5, @truncate(inst >> 2));
-                const imm6 = (@as(u6, imm_5) << 5) | imm_4_0;
-                const imm_signed = @as(i32, @as(i6, @bitCast(imm6)));
-                if (rd != 0) {
-                    const val32 = @as(i32, @truncate(@as(i64, @bitCast(self.regs.get(rd)))));
-                    const result32 = val32 +% imm_signed;
-                    self.regs.set(rd, @bitCast(@as(i64, result32)));
-                }
-            },
-            0b010 => {
-                // C.LI
-                const rd = @as(u5, @truncate(inst >> 7));
-                const imm_5 = @as(u1, @truncate(inst >> 12));
-                const imm_4_0 = @as(u5, @truncate(inst >> 2));
-                const imm6 = (@as(u6, imm_5) << 5) | imm_4_0;
-                const imm_signed = @as(i64, @as(i6, @bitCast(imm6)));
-                if (rd != 0) {
-                    self.regs.set(rd, @bitCast(imm_signed));
-                }
-            },
-            0b011 => {
-                // C.LUI / C.ADDI16SP
-                const rd = @as(u5, @truncate(inst >> 7));
-                if (rd == 2) {
-                    // C.ADDI16SP: add sp, sp, imm*16
-                    const imm_9 = @as(u1, @truncate(inst >> 12));
-                    const imm_4 = @as(u1, @truncate(inst >> 6));
-                    const imm_6 = @as(u1, @truncate(inst >> 5));
-                    const imm_8_7 = @as(u2, @truncate(inst >> 3));
-                    const imm_5 = @as(u1, @truncate(inst >> 2));
-                    const imm10: u10 = (@as(u10, imm_9) << 9) |
-                        (@as(u10, imm_8_7) << 7) |
-                        (@as(u10, imm_6) << 6) |
-                        (@as(u10, imm_5) << 5) |
-                        (@as(u10, imm_4) << 4);
-                    const imm_signed = @as(i64, @as(i10, @bitCast(imm10)));
-                    const sp = self.regs.get(2);
-                    self.regs.set(2, sp +% @as(u64, @bitCast(imm_signed)));
-                } else if (rd != 0) {
-                    // C.LUI
-                    const imm_17 = @as(u1, @truncate(inst >> 12));
-                    const imm_16_12 = @as(u5, @truncate(inst >> 2));
-                    const imm18: u18 = (@as(u18, imm_17) << 17) | (@as(u18, imm_16_12) << 12);
-                    const imm_signed = @as(i64, @as(i18, @bitCast(imm18)));
-                    self.regs.set(rd, @bitCast(imm_signed));
-                }
-            },
+            0b000 => self.execute_c1_addi(inst),
+            0b001 => self.execute_c1_addiw(inst),
+            0b010 => self.execute_c1_li(inst),
+            0b011 => self.execute_c1_lui_addi16sp(inst),
             0b100 => try self.execute_c1_misc(inst),
-            0b101 => {
-                // C.J: unconditional jump
-                const imm_11 = @as(u1, @truncate(inst >> 12));
-                const imm_4 = @as(u1, @truncate(inst >> 11));
-                const imm_9_8 = @as(u2, @truncate(inst >> 9));
-                const imm_10 = @as(u1, @truncate(inst >> 8));
-                const imm_6 = @as(u1, @truncate(inst >> 7));
-                const imm_7 = @as(u1, @truncate(inst >> 6));
-                const imm_3_1 = @as(u3, @truncate(inst >> 3));
-                const imm_5 = @as(u1, @truncate(inst >> 2));
-                const offset12: u12 = (@as(u12, imm_11) << 11) |
-                    (@as(u12, imm_10) << 10) |
-                    (@as(u12, imm_9_8) << 8) |
-                    (@as(u12, imm_7) << 7) |
-                    (@as(u12, imm_6) << 6) |
-                    (@as(u12, imm_5) << 5) |
-                    (@as(u12, imm_4) << 4) |
-                    (@as(u12, imm_3_1) << 1);
-                const offset_signed = @as(i64, @as(i12, @bitCast(offset12)));
-                self.regs.pc = self.regs.pc +% @as(u64, @bitCast(offset_signed));
-            },
-            0b110, 0b111 => {
-                // C.BEQZ / C.BNEZ
-                const rs1_prime = @as(u3, @truncate(inst >> 7));
-                const rs1: u5 = @as(u5, rs1_prime) + 8;
-                const imm_8 = @as(u1, @truncate(inst >> 12));
-                const imm_4_3 = @as(u2, @truncate(inst >> 10));
-                const imm_7_6 = @as(u2, @truncate(inst >> 5));
-                const imm_2_1 = @as(u2, @truncate(inst >> 3));
-                const imm_5 = @as(u1, @truncate(inst >> 2));
-                const offset9: u9 = (@as(u9, imm_8) << 8) |
-                    (@as(u9, imm_7_6) << 6) |
-                    (@as(u9, imm_5) << 5) |
-                    (@as(u9, imm_4_3) << 3) |
-                    (@as(u9, imm_2_1) << 1);
-                const offset_signed = @as(i64, @as(i9, @bitCast(offset9)));
-                const rs1_val = self.regs.get(rs1);
-                const take_branch = if (funct3 == 0b110) (rs1_val == 0) else (rs1_val != 0);
-                if (take_branch) {
-                    self.regs.pc = self.regs.pc +% @as(u64, @bitCast(offset_signed));
-                }
-            },
+            0b101 => self.execute_c1_j(inst),
+            0b110, 0b111 => self.execute_c1_branch(inst, funct3),
+        }
+    }
+    
+    /// C.ADDI / C.NOP: add immediate to register.
+    fn execute_c1_addi(self: *Self, inst: u16) void {
+        const rd = @as(u5, @truncate(inst >> 7));
+        const imm6 = (@as(u6, @as(u1, @truncate(inst >> 12))) << 5) |
+            @as(u5, @truncate(inst >> 2));
+        const imm_signed = @as(i64, @as(i6, @bitCast(imm6)));
+        if (rd != 0) {
+            self.regs.set(rd, self.regs.get(rd) +% @as(u64, @bitCast(imm_signed)));
+        }
+    }
+    
+    /// C.ADDIW: add immediate word (32-bit, sign-extended).
+    fn execute_c1_addiw(self: *Self, inst: u16) void {
+        const rd = @as(u5, @truncate(inst >> 7));
+        const imm6 = (@as(u6, @as(u1, @truncate(inst >> 12))) << 5) |
+            @as(u5, @truncate(inst >> 2));
+        const imm_signed = @as(i32, @as(i6, @bitCast(imm6)));
+        if (rd != 0) {
+            const val32 = @as(i32, @truncate(@as(i64, @bitCast(self.regs.get(rd)))));
+            self.regs.set(rd, @bitCast(@as(i64, val32 +% imm_signed)));
+        }
+    }
+    
+    /// C.LI: load immediate.
+    fn execute_c1_li(self: *Self, inst: u16) void {
+        const rd = @as(u5, @truncate(inst >> 7));
+        const imm6 = (@as(u6, @as(u1, @truncate(inst >> 12))) << 5) |
+            @as(u5, @truncate(inst >> 2));
+        if (rd != 0) {
+            self.regs.set(rd, @bitCast(@as(i64, @as(i6, @bitCast(imm6)))));
+        }
+    }
+    
+    /// C.LUI / C.ADDI16SP: load upper immediate or add to SP.
+    fn execute_c1_lui_addi16sp(self: *Self, inst: u16) void {
+        const rd = @as(u5, @truncate(inst >> 7));
+        if (rd == 2) {
+            // C.ADDI16SP: add sp, sp, imm*16
+            const imm10: u10 = (@as(u10, @as(u1, @truncate(inst >> 12))) << 9) |
+                (@as(u10, @as(u2, @truncate(inst >> 3))) << 7) |
+                (@as(u10, @as(u1, @truncate(inst >> 5))) << 6) |
+                (@as(u10, @as(u1, @truncate(inst >> 2))) << 5) |
+                (@as(u10, @as(u1, @truncate(inst >> 6))) << 4);
+            const imm_signed = @as(i64, @as(i10, @bitCast(imm10)));
+            self.regs.set(2, self.regs.get(2) +% @as(u64, @bitCast(imm_signed)));
+        } else if (rd != 0) {
+            // C.LUI
+            const imm18: u18 = (@as(u18, @as(u1, @truncate(inst >> 12))) << 17) |
+                (@as(u18, @as(u5, @truncate(inst >> 2))) << 12);
+            self.regs.set(rd, @bitCast(@as(i64, @as(i18, @bitCast(imm18)))));
+        }
+    }
+    
+    /// C.J: unconditional jump.
+    fn execute_c1_j(self: *Self, inst: u16) void {
+        const offset12: u12 = (@as(u12, @as(u1, @truncate(inst >> 12))) << 11) |
+            (@as(u12, @as(u1, @truncate(inst >> 8))) << 10) |
+            (@as(u12, @as(u2, @truncate(inst >> 9))) << 8) |
+            (@as(u12, @as(u1, @truncate(inst >> 6))) << 7) |
+            (@as(u12, @as(u1, @truncate(inst >> 7))) << 6) |
+            (@as(u12, @as(u1, @truncate(inst >> 2))) << 5) |
+            (@as(u12, @as(u1, @truncate(inst >> 11))) << 4) |
+            (@as(u12, @as(u3, @truncate(inst >> 3))) << 1);
+        const offset_signed = @as(i64, @as(i12, @bitCast(offset12)));
+        self.regs.pc = self.regs.pc +% @as(u64, @bitCast(offset_signed));
+    }
+    
+    /// C.BEQZ / C.BNEZ: conditional branch.
+    fn execute_c1_branch(self: *Self, inst: u16, funct3: u3) void {
+        const rs1: u5 = @as(u5, @as(u3, @truncate(inst >> 7))) + 8;
+        const offset9: u9 = (@as(u9, @as(u1, @truncate(inst >> 12))) << 8) |
+            (@as(u9, @as(u2, @truncate(inst >> 5))) << 6) |
+            (@as(u9, @as(u1, @truncate(inst >> 2))) << 5) |
+            (@as(u9, @as(u2, @truncate(inst >> 10))) << 3) |
+            (@as(u9, @as(u2, @truncate(inst >> 3))) << 1);
+        const offset_signed = @as(i64, @as(i9, @bitCast(offset9)));
+        const rs1_val = self.regs.get(rs1);
+        const take_branch = if (funct3 == 0b110) (rs1_val == 0) else (rs1_val != 0);
+        if (take_branch) {
+            self.regs.pc = self.regs.pc +% @as(u64, @bitCast(offset_signed));
         }
     }
     
