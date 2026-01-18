@@ -9,7 +9,7 @@
 
 **This entire codebase was built using Cursor Ultra ($200/month) in Auto Mode.**
 
-170,000+ lines of Zig. 500+ source files. 249 passing tests. A complete RISC-V64 operating system with JIT compiler, networking stack, and scripting language — built by AI agents working autonomously.
+170,000+ lines of Zig and counting. 500+ source files and counting. 249+ passing tests and counting. A complete RISC-V64 operating system with JIT compiler, networking stack, and scripting language — built by AI agents working autonomously.
 
 ---
 
@@ -25,7 +25,7 @@
 
 2. **Style guides matter more** — When AI writes most of the code, having a strict style guide (like our Grain Style) ensures consistency. The AI follows rules better than humans.
 
-3. **Tests become essential** — We have 249 tests because that's how you verify AI-written code. The AI writes the tests too.
+3. **Tests become essential** — We have 249+ tests and counting because that's how you verify AI-written code. The AI writes the tests too.
 
 4. **Documentation is free** — AI generates comprehensive docs as it works. Every function gets comments explaining "why."
 

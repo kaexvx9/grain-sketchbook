@@ -31,7 +31,7 @@ Show HN: What happens when you let Cursor Auto Mode run for weeks – 170k lines
 ```
 This entire codebase was built using Cursor Ultra ($200/month) in Auto Mode.
 
-170k lines of Zig. 500+ source files. 249 tests. A RISC-V64 OS with JIT compiler, networking, and scripting language — built by AI agents working autonomously.
+170k+ lines of Zig and counting. 500+ source files and counting. 249+ tests and counting. A RISC-V64 OS with JIT compiler, networking, and scripting language — built by AI agents working autonomously.
 
 What we learned:
 
@@ -39,7 +39,7 @@ What we learned:
 
 2. Style guides matter more — We created "Grain Style" (64-line function limit, explicit types, 2+ assertions). AI follows rules more consistently than humans.
 
-3. Tests are essential — 249 tests to verify AI code. AI writes the tests too.
+3. Tests are essential — 249+ tests and counting to verify AI code. AI writes the tests too.
 
 4. Economics — $200/month for what would cost $20k+ in dev time. Built in weeks, not months.
 
