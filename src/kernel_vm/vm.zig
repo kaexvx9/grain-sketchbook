@@ -594,6 +594,31 @@ pub const VM = struct {
         target.memory_stats = memory_stats_mod.VMMemoryStats.init(VM_MEMORY_SIZE);
         target.syscall_stats = syscall_stats_mod.VMSyscallStats.init();
         
+        // Initialize optional callback fields to null (critical when struct was allocated with undefined).
+        target.syscall_handler = null;
+        target.syscall_user_data = null;
+        target.permission_checker = null;
+        target.permission_checker_user_data = null;
+        target.serial_output = null;
+        target.jit = null;
+        target.jit_enabled = false;
+        target.input_event_queue = .{};
+        target.memory_protection = memory_protection_mod.VMMemoryProtection.init();
+        target.debug_interface = debug_interface_mod.VMDebugInterface.init();
+        target.execution_flow = execution_flow_mod.VMExecutionFlow.init();
+        target.instruction_stats = instruction_stats_mod.VMInstructionStats.init();
+        target.branch_stats = branch_stats_mod.VMBranchStats.init();
+        target.register_stats = register_stats_mod.VMRegisterStats.init();
+        target.instruction_perf = instruction_perf_mod.VMInstructionPerf.init();
+        target.instruction_trace = instruction_trace_mod.VMInstructionTrace.init();
+        // Note: VMCheckpoint is 128MB+ (16 checkpoints * 8MB each), skip full init.
+        // The default value (.checkpoints = undefined, .checkpoint_count = 0) is fine.
+        target.checkpoint.checkpoint_count = 0;
+        target.optimization_hints = optimization_hints_mod.VMOptimizationHints.init();
+        target.framebuffer_dirty = .{};
+        target.error_log = .{};
+        target.performance = .{};
+        
         // Add default memory regions (kernel, framebuffer).
         target.memory_stats.add_region(0x80000000, 0x80000000 + VM_MEMORY_SIZE);
         const framebuffer_start: u64 = 0x90000000;

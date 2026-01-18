@@ -11,9 +11,11 @@ pub fn main() !void {
 
     // Test 1: VM initialization.
     std.debug.print("[kernel_vm_test] Test 1: VM initialization\n", .{});
-    // GrainStyle: Use in-place initialization to avoid stack overflow.
-    var vm: VM = undefined;
-    VM.init(&vm, &[_]u8{0x13, 0x00, 0x00, 0x00}, 0x1000); // NOP instruction.
+    // GrainStyle: Heap allocation required - VM is 8MB+ (contains memory array).
+    const allocator = std.heap.page_allocator;
+    const vm = try allocator.create(VM);
+    defer allocator.destroy(vm);
+    VM.init(vm, &[_]u8{0x13, 0x00, 0x00, 0x00}, 0x1000); // NOP instruction.
     std.debug.assert(vm.regs.pc == 0x1000);
     std.debug.assert(vm.state == .halted);
     std.debug.print("[kernel_vm_test] ✓ VM initialized correctly\n", .{});
@@ -34,6 +36,9 @@ pub fn main() !void {
 
     // Test 4: Instruction fetch.
     std.debug.print("[kernel_vm_test] Test 4: Instruction fetch\n", .{});
+    // Map the code page with execute permission.
+    const RWX: u8 = 0x07; // Read | Write | Execute
+    _ = vm.memory_protection.map_page(0x1000, 0x1000, RWX);
     vm.regs.pc = 0x1000;
     const inst = try vm.fetch_instruction();
     std.debug.assert(inst == 0x00000013); // NOP (ADDI x0, x0, 0).
