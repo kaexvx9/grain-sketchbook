@@ -40,9 +40,10 @@ pub const ValidationResult = struct {
 //
 // This struct holds all the parameters needed to validate code.
 // Making it explicit means callers understand what options they have.
+// Defaults: 64 lines (2^6), 128 chars (2^7) for binary-aligned limits.
 pub const ValidateConfig = struct {
-    max_function_length: usize = 70,
-    max_line_width: usize = 73,
+    max_function_length: usize = 64,
+    max_line_width: usize = 128,
     check_naming: bool = true,
     check_errors: bool = true,
 };

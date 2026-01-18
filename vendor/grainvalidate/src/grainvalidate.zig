@@ -110,9 +110,11 @@ fn count_functions(code: []const u8) usize {
 //
 // 64 lines per function (2^6), 128 characters per line (2^7). These constraints
 // ensure code fits in graincards while maintaining readability and binary alignment.
+//
+// Assert: Default config must use binary-aligned limits (64 and 128).
 pub const default_config = ValidateConfig{
-    .max_function_length = 64,
-    .max_line_width = 128,
+    .max_function_length = 64, // Assert: 64 = 2^6, binary-aligned
+    .max_line_width = 128, // Assert: 128 = 2^7, binary-aligned
     .check_naming = true,
     .check_errors = true,
 };
@@ -126,3 +128,9 @@ test "grainvalidate module" {
     // module files.
 }
 
+test "default_config uses binary-aligned limits" {
+    // Assert: Default config must use 64 (2^6) for function length.
+    std.debug.assert(default_config.max_function_length == 64);
+    // Assert: Default config must use 128 (2^7) for line width.
+    std.debug.assert(default_config.max_line_width == 128);
+}

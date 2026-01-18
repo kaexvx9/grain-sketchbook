@@ -424,6 +424,21 @@ pub fn build(b: *std.Build) void {
     const run_validate = b.addRunArtifact(validate_src_exe);
     validate_step.dependOn(&run_validate.step);
 
+    const validate_kernel_exe = b.addExecutable(.{
+        .name = "validate_kernel",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("tools/validate_kernel.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "grainvalidate", .module = grainvalidate_module },
+            },
+        }),
+    });
+    const validate_kernel_step = b.step("validate-kernel", "Validate kernel files against Grain style (64 lines, 128 chars)");
+    const run_validate_kernel = b.addRunArtifact(validate_kernel_exe);
+    validate_kernel_step.dependOn(&run_validate_kernel.step);
+
     const conductor_exe = b.addExecutable(.{
         .name = "grain_conductor",
         .root_module = b.createModule(.{
