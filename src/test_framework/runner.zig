@@ -93,8 +93,8 @@ pub const TestRunner = struct {
     /// Current architecture.
     arch: TestArchitecture,
 
-    /// Test results.
-    results: std.ArrayList(TestResult),
+    /// Test results (unmanaged for explicit allocator control).
+    results: std.ArrayListUnmanaged(TestResult),
 
     /// Allocator.
     allocator: std.mem.Allocator,
@@ -118,7 +118,7 @@ pub const TestRunner = struct {
 
         return TestRunner{
             .arch = arch,
-            .results = std.ArrayList(TestResult).init(allocator),
+            .results = .{},
             .allocator = allocator,
         };
     }
@@ -138,7 +138,7 @@ pub const TestRunner = struct {
             }
         }
 
-        self.results.deinit();
+        self.results.deinit(self.allocator);
     }
 
     /// Execute single test.
@@ -154,7 +154,7 @@ pub const TestRunner = struct {
         std.debug.assert(test_metadata.name.len <= MAX_TEST_NAME_LEN);
 
         // Assert: Results list must not exceed maximum (precondition).
-        std.debug.assert(self.results.items.len < MAX_TEST_RESULTS);
+        std.debug.assert(self.results.items.len < TestRunner.MAX_TEST_RESULTS);
 
         // Check if test is compatible with current architecture.
         if (!helpers.is_test_compatible(
@@ -272,17 +272,17 @@ pub const TestRunner = struct {
             \\
         ;
 
-        var report = std.ArrayList(u8).init(self.allocator);
-        try report.writer().print(report_fmt, .{ arch_name, total, passed, failed });
+        var report: std.ArrayListUnmanaged(u8) = .{};
+        try report.writer(self.allocator).print(report_fmt, .{ arch_name, total, passed, failed });
 
         // Add individual test results.
         for (self.results.items) |result| {
             const status = if (result.passed) "PASS" else "FAIL";
             const result_fmt = "  {s}: {s} ({}ms)\n";
-            try report.writer().print(result_fmt, .{ result.test_name, status, result.duration_ms });
+            try report.writer(self.allocator).print(result_fmt, .{ result.test_name, status, result.duration_ms });
         }
 
-        return report.toOwnedSlice();
+        return report.toOwnedSlice(self.allocator);
     }
 
     /// Export test results to JSON.
@@ -294,28 +294,29 @@ pub const TestRunner = struct {
         std.debug.assert(@intFromPtr(self) != 0);
 
         // Generate JSON report.
-        var json = std.ArrayList(u8).init(self.allocator);
-        try json.writer().print("{{\n", .{});
+        var json: std.ArrayListUnmanaged(u8) = .{};
+        const w = json.writer(self.allocator);
+        try w.print("{{\n", .{});
 
         // Architecture.
         const arch_name = arch_detection.get_architecture_name(self.arch);
-        try json.writer().print("  \"architecture\": \"{s}\",\n", .{arch_name});
+        try w.print("  \"architecture\": \"{s}\",\n", .{arch_name});
 
         // Test results.
-        try json.writer().print("  \"results\": [\n", .{});
+        try w.print("  \"results\": [\n", .{});
         for (self.results.items, 0..) |result, i| {
             if (i > 0) {
-                try json.writer().print(",\n", .{});
+                try w.print(",\n", .{});
             }
-            try json.writer().print(
+            try w.print(
                 "    {{\"name\": \"{s}\", \"passed\": {}, \"duration_ms\": {}}}",
                 .{ result.test_name, result.passed, result.duration_ms },
             );
         }
-        try json.writer().print("\n  ]\n", .{});
-        try json.writer().print("}}\n", .{});
+        try w.print("\n  ]\n", .{});
+        try w.print("}}\n", .{});
 
-        return json.toOwnedSlice();
+        return json.toOwnedSlice(self.allocator);
     }
 };
 

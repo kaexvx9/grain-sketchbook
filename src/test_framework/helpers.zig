@@ -176,7 +176,7 @@ pub fn aggregate_test_results(
     var total: u32 = 0;
     var passed: u32 = 0;
     var failed: u32 = 0;
-    var skipped: u32 = 0;
+    const skipped: u32 = 0; // Note: Skipped tests not yet implemented.
 
     for (results) |result| {
         total += 1;
@@ -186,9 +186,6 @@ pub fn aggregate_test_results(
         } else {
             failed += 1;
         }
-
-        // Note: Skipped tests not yet implemented.
-        _ = skipped;
     }
 
     // Assert: Total must equal passed + failed (postcondition).

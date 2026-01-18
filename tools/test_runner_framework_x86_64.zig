@@ -35,7 +35,7 @@ const Config = struct {
         allocator: std.mem.Allocator,
         args: []const []const u8,
     ) !Config {
-        std.debug.assert(allocator.ptr != null);
+        std.debug.assert(@intFromPtr(allocator.ptr) != 0);
         std.debug.assert(args.len > 0);
 
         var config = Config{
