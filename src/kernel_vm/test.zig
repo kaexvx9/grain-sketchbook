@@ -445,6 +445,11 @@ fn test_kernel_elf_loading(allocator: std.mem.Allocator) !void {
         const out_len = @min(serial_output.total_written, 512);
         std.debug.print("[kernel_vm_test] Serial output ({} bytes):\n", .{serial_output.total_written});
         std.debug.print("---\n{s}\n---\n", .{serial_output.buffer[0..out_len]});
+        
+        // Note: First char is 'G' from "Grainscript REPL v0.1.0" - kernel reached REPL!
+        if (serial_output.buffer[0] == 'G') {
+            std.debug.print("[kernel_vm_test] SUCCESS: Kernel reached REPL (Grainscript prompt starting)\n", .{});
+        }
     }
     
     // Show remaining input (if any).
