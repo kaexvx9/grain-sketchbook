@@ -392,6 +392,51 @@ pub const Integration = struct {
         };
     }
 
+    /// Spawn process from ELF file loaded in VM memory.
+    /// Why: Create process from ELF executable loaded in VM memory using kernel spawn syscall.
+    /// Contract: Integration must be initialized, elf_addr must be valid ELF in VM memory.
+    /// Returns: Process ID on success, or error if spawn fails.
+    /// Grain Style: Explicit types, bounded operations, static allocation.
+    /// Note: ELF must be loaded in VM memory before calling this function.
+    pub fn spawn_process_from_elf(self: *Self, elf_addr: u64, args_ptr: u64, args_len: u64) !u64 {
+        // Contract: Integration must be initialized (precondition).
+        std.debug.assert(self.initialized);
+        
+        // Contract: ELF address must be valid (precondition).
+        if (elf_addr == 0) {
+            return error.InvalidElfFormat; // Null pointer
+        }
+        
+        // Use kernel spawn syscall to create process from ELF.
+        // Why: Kernel spawn syscall handles ELF parsing and process creation.
+        const Syscall = @import("basin_kernel").Syscall;
+        const spawn_num = @intFromEnum(Syscall.spawn);
+        
+        const result = handle_syscall(
+            self.kernel,
+            spawn_num,
+            elf_addr, // Executable pointer (ELF in VM memory)
+            args_ptr, // Arguments pointer (can be 0 for no args)
+            args_len, // Arguments length (can be 0 for no args)
+            0, // Unused arg4
+        );
+        
+        // Extract process ID from result.
+        return switch (result) {
+            .success => |pid| pid,
+            .err => |err| {
+                // Convert kernel error to integration error.
+                return switch (err) {
+                    BasinError.invalid_argument => error.InvalidElfFormat,
+                    BasinError.out_of_memory => error.AddressOutOfBounds,
+                    BasinError.process_not_found => error.InvalidElfFormat,
+                    BasinError.too_many_processes => error.AddressOutOfBounds,
+                    else => error.InvalidElfFormat,
+                };
+            },
+        };
+    }
+
     /// Cleanup integration (reset module-level state).
     /// Contract:
     ///   Input: Integration must be initialized
