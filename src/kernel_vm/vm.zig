@@ -2205,16 +2205,6 @@ pub const VM = struct {
 
         // AUIPC: rd = PC + imm[31:12] << 12
         const result = pc +% imm64_unsigned;
-
-        // Debug: Print AUIPC execution for troubleshooting.
-        if (rd == 1 or rd == 18) {
-            std.debug.print(
-                "DEBUG vm.zig: AUIPC x{}: PC=0x{x}, imm_31_12_raw=0x{x}, imm64_unsigned=0x{x}, result=0x{x}\n",
-                .{ rd, pc, imm_31_12_raw, imm64_unsigned, result },
-            );
-        }
-
-        // Write result to rd.
         self.regs.set(rd, result);
     }
 
