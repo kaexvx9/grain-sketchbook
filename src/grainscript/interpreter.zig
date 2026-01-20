@@ -298,328 +298,53 @@ pub const Interpreter = struct {
         self.* = undefined;
     }
 
-    /// Register built-in commands (echo, cd, pwd, etc.).
     fn register_builtin_commands(self: *Interpreter) !void {
-        // Assert: Interpreter must be initialized
         std.debug.assert(self.functions.len == MAX_FUNCTIONS);
-
-        // Register echo command
-        const echo_name = try self.allocator.dupe(u8, "echo");
-        errdefer self.allocator.free(echo_name);
-        self.functions[self.functions_len] = Function{
-            .name = echo_name,
-            .name_len = @as(u32, @intCast(echo_name.len)),
-            .is_builtin = true,
-            .param_count = 0, // Variable arguments
-            .body_node = null,
-            .builtin_handler = builtin_echo,
-        };
-        self.functions_len += 1;
-
-        // Register cd command
-        const cd_name = try self.allocator.dupe(u8, "cd");
-        errdefer self.allocator.free(cd_name);
-        self.functions[self.functions_len] = Function{
-            .name = cd_name,
-            .name_len = @as(u32, @intCast(cd_name.len)),
-            .is_builtin = true,
-            .param_count = 1,
-            .body_node = null,
-            .builtin_handler = builtin_cd,
-        };
-        self.functions_len += 1;
-
-        // Register pwd command
-        const pwd_name = try self.allocator.dupe(u8, "pwd");
-        errdefer self.allocator.free(pwd_name);
-        self.functions[self.functions_len] = Function{
-            .name = pwd_name,
-            .name_len = @as(u32, @intCast(pwd_name.len)),
-            .is_builtin = true,
-            .param_count = 0,
-            .body_node = null,
-            .builtin_handler = builtin_pwd,
-        };
-        self.functions_len += 1;
-
-        // Register exit command
-        const exit_name = try self.allocator.dupe(u8, "exit");
-        errdefer self.allocator.free(exit_name);
-        self.functions[self.functions_len] = Function{
-            .name = exit_name,
-            .name_len = @as(u32, @intCast(exit_name.len)),
-            .is_builtin = true,
-            .param_count = 1,
-            .body_node = null,
-            .builtin_handler = builtin_exit,
-        };
-        self.functions_len += 1;
-
-        // Register string functions
+        try self.add_builtin("echo", 0, builtin_echo);
+        try self.add_builtin("cd", 1, builtin_cd);
+        try self.add_builtin("pwd", 0, builtin_pwd);
+        try self.add_builtin("exit", 1, builtin_exit);
         try self.register_string_functions();
-        // Register math functions
         try self.register_math_functions();
-        // Register type conversion functions (TODO: implement if needed)
-        // try self.register_type_conversion_functions();
-        // Register type checking functions (TODO: implement if needed)
-        // try self.register_type_checking_functions();
-        // Register string utility functions
         try self.register_string_utility_functions();
     }
 
-    /// Register string manipulation built-in functions.
-    // 2025-11-24-184000-pst: Active function
-    fn register_string_functions(self: *Interpreter) !void {
-        // len(str) - Get string length
-        const len_name = try self.allocator.dupe(u8, "len");
-        errdefer self.allocator.free(len_name);
+    fn add_builtin(self: *Interpreter, name: []const u8, params: u32, handler: BuiltinHandler) !void {
+        const name_copy = try self.allocator.dupe(u8, name);
         self.functions[self.functions_len] = Function{
-            .name = len_name,
-            .name_len = @as(u32, @intCast(len_name.len)),
+            .name = name_copy,
+            .name_len = @as(u32, @intCast(name_copy.len)),
             .is_builtin = true,
-            .param_count = 1,
+            .param_count = params,
             .body_node = null,
-            .builtin_handler = builtin_len,
-        };
-        self.functions_len += 1;
-
-        // substr(str, start, end) - Get substring
-        const substr_name = try self.allocator.dupe(u8, "substr");
-        errdefer self.allocator.free(substr_name);
-        self.functions[self.functions_len] = Function{
-            .name = substr_name,
-            .name_len = @as(u32, @intCast(substr_name.len)),
-            .is_builtin = true,
-            .param_count = 3,
-            .body_node = null,
-            .builtin_handler = builtin_substr,
-        };
-        self.functions_len += 1;
-
-        // trim(str) - Trim whitespace
-        const trim_name = try self.allocator.dupe(u8, "trim");
-        errdefer self.allocator.free(trim_name);
-        self.functions[self.functions_len] = Function{
-            .name = trim_name,
-            .name_len = @as(u32, @intCast(trim_name.len)),
-            .is_builtin = true,
-            .param_count = 1,
-            .body_node = null,
-            .builtin_handler = builtin_trim,
-        };
-        self.functions_len += 1;
-
-        // indexOf(str, substr) - Find substring position
-        const indexof_name = try self.allocator.dupe(u8, "indexOf");
-        errdefer self.allocator.free(indexof_name);
-        self.functions[self.functions_len] = Function{
-            .name = indexof_name,
-            .name_len = @as(u32, @intCast(indexof_name.len)),
-            .is_builtin = true,
-            .param_count = 2,
-            .body_node = null,
-            .builtin_handler = builtin_indexof,
-        };
-        self.functions_len += 1;
-
-        // replace(str, old, new) - Replace substring
-        const replace_name = try self.allocator.dupe(u8, "replace");
-        errdefer self.allocator.free(replace_name);
-        self.functions[self.functions_len] = Function{
-            .name = replace_name,
-            .name_len = @as(u32, @intCast(replace_name.len)),
-            .is_builtin = true,
-            .param_count = 3,
-            .body_node = null,
-            .builtin_handler = builtin_replace,
-        };
-        self.functions_len += 1;
-
-        // toUpper(str) - Convert to uppercase
-        const toupper_name = try self.allocator.dupe(u8, "toUpper");
-        errdefer self.allocator.free(toupper_name);
-        self.functions[self.functions_len] = Function{
-            .name = toupper_name,
-            .name_len = @as(u32, @intCast(toupper_name.len)),
-            .is_builtin = true,
-            .param_count = 1,
-            .body_node = null,
-            .builtin_handler = builtin_toupper,
-        };
-        self.functions_len += 1;
-
-        // toLower(str) - Convert to lowercase
-        const tolower_name = try self.allocator.dupe(u8, "toLower");
-        errdefer self.allocator.free(tolower_name);
-        self.functions[self.functions_len] = Function{
-            .name = tolower_name,
-            .name_len = @as(u32, @intCast(tolower_name.len)),
-            .is_builtin = true,
-            .param_count = 1,
-            .body_node = null,
-            .builtin_handler = builtin_tolower,
-        };
-        self.functions_len += 1;
-
-        // startsWith(str, prefix) - Check if string starts with prefix
-        const startswith_name = try self.allocator.dupe(u8, "startsWith");
-        errdefer self.allocator.free(startswith_name);
-        self.functions[self.functions_len] = Function{
-            .name = startswith_name,
-            .name_len = @as(u32, @intCast(startswith_name.len)),
-            .is_builtin = true,
-            .param_count = 2,
-            .body_node = null,
-            .builtin_handler = builtin_startswith,
-        };
-        self.functions_len += 1;
-
-        // endsWith(str, suffix) - Check if string ends with suffix
-        const endswith_name = try self.allocator.dupe(u8, "endsWith");
-        errdefer self.allocator.free(endswith_name);
-        self.functions[self.functions_len] = Function{
-            .name = endswith_name,
-            .name_len = @as(u32, @intCast(endswith_name.len)),
-            .is_builtin = true,
-            .param_count = 2,
-            .body_node = null,
-            .builtin_handler = builtin_endswith,
-        };
-        self.functions_len += 1;
-
-        // charAt(str, index) - Get character at index
-        const charat_name = try self.allocator.dupe(u8, "charAt");
-        errdefer self.allocator.free(charat_name);
-        self.functions[self.functions_len] = Function{
-            .name = charat_name,
-            .name_len = @as(u32, @intCast(charat_name.len)),
-            .is_builtin = true,
-            .param_count = 2,
-            .body_node = null,
-            .builtin_handler = builtin_charat,
-        };
-        self.functions_len += 1;
-
-        // repeat(str, count) - Repeat string N times
-        const repeat_name = try self.allocator.dupe(u8, "repeat");
-        errdefer self.allocator.free(repeat_name);
-        self.functions[self.functions_len] = Function{
-            .name = repeat_name,
-            .name_len = @as(u32, @intCast(repeat_name.len)),
-            .is_builtin = true,
-            .param_count = 2,
-            .body_node = null,
-            .builtin_handler = builtin_repeat,
+            .builtin_handler = handler,
         };
         self.functions_len += 1;
     }
 
-    /// Register math built-in functions.
-    // 2025-11-24-184000-pst: Active function
+    fn register_string_functions(self: *Interpreter) !void {
+        try self.add_builtin("len", 1, builtin_len);
+        try self.add_builtin("substr", 3, builtin_substr);
+        try self.add_builtin("trim", 1, builtin_trim);
+        try self.add_builtin("indexOf", 2, builtin_indexof);
+        try self.add_builtin("replace", 3, builtin_replace);
+        try self.add_builtin("toUpper", 1, builtin_toupper);
+        try self.add_builtin("toLower", 1, builtin_tolower);
+        try self.add_builtin("startsWith", 2, builtin_startswith);
+        try self.add_builtin("endsWith", 2, builtin_endswith);
+        try self.add_builtin("charAt", 2, builtin_charat);
+        try self.add_builtin("repeat", 2, builtin_repeat);
+    }
+
     fn register_math_functions(self: *Interpreter) !void {
-        // abs(x) - Absolute value
-        const abs_name = try self.allocator.dupe(u8, "abs");
-        errdefer self.allocator.free(abs_name);
-        self.functions[self.functions_len] = Function{
-            .name = abs_name,
-            .name_len = @as(u32, @intCast(abs_name.len)),
-            .is_builtin = true,
-            .param_count = 1,
-            .body_node = null,
-            .builtin_handler = builtin_abs,
-        };
-        self.functions_len += 1;
-
-        // min(a, b) - Minimum value
-        const min_name = try self.allocator.dupe(u8, "min");
-        errdefer self.allocator.free(min_name);
-        self.functions[self.functions_len] = Function{
-            .name = min_name,
-            .name_len = @as(u32, @intCast(min_name.len)),
-            .is_builtin = true,
-            .param_count = 2,
-            .body_node = null,
-            .builtin_handler = builtin_min,
-        };
-        self.functions_len += 1;
-
-        // max(a, b) - Maximum value
-        const max_name = try self.allocator.dupe(u8, "max");
-        errdefer self.allocator.free(max_name);
-        self.functions[self.functions_len] = Function{
-            .name = max_name,
-            .name_len = @as(u32, @intCast(max_name.len)),
-            .is_builtin = true,
-            .param_count = 2,
-            .body_node = null,
-            .builtin_handler = builtin_max,
-        };
-        self.functions_len += 1;
-
-        // floor(x) - Floor function
-        const floor_name = try self.allocator.dupe(u8, "floor");
-        errdefer self.allocator.free(floor_name);
-        self.functions[self.functions_len] = Function{
-            .name = floor_name,
-            .name_len = @as(u32, @intCast(floor_name.len)),
-            .is_builtin = true,
-            .param_count = 1,
-            .body_node = null,
-            .builtin_handler = builtin_floor,
-        };
-        self.functions_len += 1;
-
-        // ceil(x) - Ceiling function
-        const ceil_name = try self.allocator.dupe(u8, "ceil");
-        errdefer self.allocator.free(ceil_name);
-        self.functions[self.functions_len] = Function{
-            .name = ceil_name,
-            .name_len = @as(u32, @intCast(ceil_name.len)),
-            .is_builtin = true,
-            .param_count = 1,
-            .body_node = null,
-            .builtin_handler = builtin_ceil,
-        };
-        self.functions_len += 1;
-
-        // round(x) - Round function
-        const round_name = try self.allocator.dupe(u8, "round");
-        errdefer self.allocator.free(round_name);
-        self.functions[self.functions_len] = Function{
-            .name = round_name,
-            .name_len = @as(u32, @intCast(round_name.len)),
-            .is_builtin = true,
-            .param_count = 1,
-            .body_node = null,
-            .builtin_handler = builtin_round,
-        };
-        self.functions_len += 1;
-
-        // sqrt(x) - Square root
-        const sqrt_name = try self.allocator.dupe(u8, "sqrt");
-        errdefer self.allocator.free(sqrt_name);
-        self.functions[self.functions_len] = Function{
-            .name = sqrt_name,
-            .name_len = @as(u32, @intCast(sqrt_name.len)),
-            .is_builtin = true,
-            .param_count = 1,
-            .body_node = null,
-            .builtin_handler = builtin_sqrt,
-        };
-        self.functions_len += 1;
-
-        // pow(base, exponent) - Power function
-        const pow_name = try self.allocator.dupe(u8, "pow");
-        errdefer self.allocator.free(pow_name);
-        self.functions[self.functions_len] = Function{
-            .name = pow_name,
-            .name_len = @as(u32, @intCast(pow_name.len)),
-            .is_builtin = true,
-            .param_count = 2,
-            .body_node = null,
-            .builtin_handler = builtin_pow,
-        };
-        self.functions_len += 1;
+        try self.add_builtin("abs", 1, builtin_abs);
+        try self.add_builtin("min", 2, builtin_min);
+        try self.add_builtin("max", 2, builtin_max);
+        try self.add_builtin("floor", 1, builtin_floor);
+        try self.add_builtin("ceil", 1, builtin_ceil);
+        try self.add_builtin("round", 1, builtin_round);
+        try self.add_builtin("sqrt", 1, builtin_sqrt);
+        try self.add_builtin("pow", 2, builtin_pow);
     }
 
     /// Register string utility built-in functions.
