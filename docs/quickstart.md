@@ -35,14 +35,17 @@ Type `help` at the prompt for available commands.
 
 ## Rye Compiler
 
-The kernel includes modules written in Rye, our systems language:
+The kernel includes 55 modules written in Rye (9,500+ lines), our systems language:
 
 ```bash
 # Build Rye compiler
 cd rye && zig build
 
-# Check a .ry file
-./zig-out/bin/rye check ../src/kernel/uart.ry
+# Check all Rye modules
+./zig-out/bin/rye check ../src/kernel/*.ry
+
+# Get project statistics
+./zig-out/bin/rye stats ../src/kernel/*.ry
 
 # Compile .ry to .zig
 ./zig-out/bin/rye build ../src/kernel/uart.ry
@@ -52,13 +55,15 @@ cd rye && zig build
 
 ```
 ry/
-├── src/kernel/     # Basin kernel (Zig + Rye)
-│   ├── main.zig    # Kernel entry point
-│   ├── uart.ry     # UART driver (first Rye module)
-│   └── ...
+├── src/kernel/     # Basin kernel (55 Rye modules + 2 Zig files)
+│   ├── main.zig    # Kernel entry point (inline asm REPL)
+│   ├── entry.zig   # Entry point re-export
+│   ├── *.ry        # 55 Rye modules (uart, scheduler, syscalls, etc.)
+│   └── *.zig       # Transpiled Zig output
 ├── rye/            # Rye compiler
 │   └── src/main.zig
 ├── docs/           # Documentation
+│   └── rye/        # Rye language docs
 └── build.zig       # Build system
 ```
 
