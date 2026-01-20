@@ -274,6 +274,16 @@ pub fn build(b: *std.Build) void {
         },
     });
 
+    // Basin kernel UI DAG syscalls.
+    const basin_kernel_syscalls_ui_module = b.addModule("basin_kernel_syscalls_ui", .{
+        .root_source_file = b.path("src/kernel/basin_kernel_syscalls_ui.zig"),
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{
+            .{ .name = "dag_toroidal_adapter.zig", .module = dag_toroidal_adapter_module },
+        },
+    });
+
     // Multi-architecture testing framework module.
     const test_framework_module = b.addModule("test_framework", .{
         .root_source_file = b.path("src/test_framework/root.zig"),
@@ -8367,6 +8377,20 @@ pub fn build(b: *std.Build) void {
     });
     const unified_dag_integration_tests_run = b.addRunArtifact(unified_dag_integration_tests);
     test_step.dependOn(&unified_dag_integration_tests_run.step);
+
+    // UI DAG Syscalls Test
+    const ui_dag_syscalls_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("tests/172_ui_dag_syscalls_test.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "basin_kernel_syscalls_ui", .module = basin_kernel_syscalls_ui_module },
+            },
+        }),
+    });
+    const ui_dag_syscalls_tests_run = b.addRunArtifact(ui_dag_syscalls_tests);
+    test_step.dependOn(&ui_dag_syscalls_tests_run.step);
 
     // Grain Bubble component tests
     // TEMPORARILY DISABLED: const grain_bubble_component_tests = b.addTest(.{
