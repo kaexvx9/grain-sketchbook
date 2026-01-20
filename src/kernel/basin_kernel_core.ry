@@ -375,10 +375,14 @@ pub const BasinKernel = struct {
         target.timer.initialized = true;
         target.interrupt_controller.initialized = true;
         target.scheduler.initialized = true;
+        target.scheduler.current_pid = 0;
+        target.scheduler.next_index = 0;
         target.log_buffer.write_index = 0;
         target.log_buffer.entry_count = 0;
         target.log_buffer.timer = &target.timer;
         target.user_count = 0;
+        target.memory_pool.allocated_pages = 0;
+        target.memory_pool.next_free_page = 0;
     }
 
     fn init_users(self: *BasinKernel) void {
