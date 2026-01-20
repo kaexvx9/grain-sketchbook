@@ -83,7 +83,8 @@ pub const TabManager = struct {
     current_editor_tab: u32,
     current_browser_tab: u32,
     
-    /// Initialize tab manager.
+    /// Why: Initialize tab manager.
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator) !TabManager {
         // Pre-allocate editor tabs
         const editor_tabs = try allocator.alloc(ManagedEditorTab, MAX_EDITOR_TABS);
@@ -110,7 +111,8 @@ pub const TabManager = struct {
         };
     }
     
-    /// Deinitialize tab manager.
+    /// Why: Deinitialize tab manager.
+    /// Why: Release resources.
     pub fn deinit(self: *TabManager) void {
         // Free editor tabs
         for (self.storage.editor_tabs[0..self.storage.editor_tabs_len]) |*tab| {

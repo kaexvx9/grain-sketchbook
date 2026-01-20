@@ -72,9 +72,10 @@ pub const Vfs = struct {
     file_handles: std.ArrayList(FileHandle),
     next_handle_id: u32 = 1, // Start at 1 (0 is invalid)
 
-    /// Initialize VFS.
+    /// Why: Initialize VFS.
     /// Why: Create VFS with bounded allocations.
     /// Contract: allocator must be valid.
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator) Vfs {
         return Vfs{
             .allocator = allocator,
@@ -83,9 +84,10 @@ pub const Vfs = struct {
         };
     }
 
-    /// Deinitialize VFS.
+    /// Why: Deinitialize VFS.
     /// Why: Free all allocated resources.
     /// Contract: VFS must be initialized.
+    /// Why: Release resources.
     pub fn deinit(self: *Vfs) void {
         // Free all virtual file buffers and paths
         for (self.virtual_files.items) |*vf| {

@@ -65,7 +65,8 @@ pub const RealidreamBrowserProtocolOptimizer = struct {
     latency_history_len: u32,
     latency_history_index: u32,
     
-    /// Initialize protocol optimizer.
+    /// Why: Initialize protocol optimizer.
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator) !RealidreamBrowserProtocolOptimizer {
         // Pre-allocate message buffer (optimization: reduce allocations)
         const buffer_data = try allocator.alloc(u8, MAX_MESSAGE_BUFFER_SIZE);
@@ -95,7 +96,8 @@ pub const RealidreamBrowserProtocolOptimizer = struct {
         };
     }
     
-    /// Deinitialize protocol optimizer.
+    /// Why: Deinitialize protocol optimizer.
+    /// Why: Release resources.
     pub fn deinit(self: *RealidreamBrowserProtocolOptimizer) void {
         // Free pending messages (data is owned by caller)
         self.allocator.free(self.pending_queue.messages);

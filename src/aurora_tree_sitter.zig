@@ -53,12 +53,14 @@ pub const TreeSitter = struct {
         tokens: []const Token,
     };
     
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator) TreeSitter {
         return TreeSitter{
             .allocator = allocator,
         };
     }
     
+    /// Why: Release resources.
     pub fn deinit(self: *TreeSitter) void {
         self.* = undefined;
     }

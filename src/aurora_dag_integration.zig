@@ -21,7 +21,8 @@ pub const EditorDagIntegration = struct {
     // Bounded: Max 100 code edits per second
     pub const MAX_EDITS_PER_SECOND: u32 = 100;
     
-    /// Initialize editor-DAG integration.
+    /// Why: Initialize editor-DAG integration.
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator) !EditorDagIntegration {
         // Assert: Allocator must be valid
         std.debug.assert(allocator.ptr != null);
@@ -39,7 +40,8 @@ pub const EditorDagIntegration = struct {
         };
     }
     
-    /// Deinitialize editor-DAG integration.
+    /// Why: Deinitialize editor-DAG integration.
+    /// Why: Release resources.
     pub fn deinit(self: *EditorDagIntegration) void {
         self.dag.deinit();
         self.tree_sitter.deinit();

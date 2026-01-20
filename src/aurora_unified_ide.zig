@@ -50,6 +50,7 @@ pub const UnifiedIde = struct {
         payment_enabled: bool = false, // Whether automatic micropayments are enabled
     };
     
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator, width: u32, height: u32) !UnifiedIde {
         // Assert: Dimensions must be valid
         std.debug.assert(width > 0);
@@ -87,6 +88,7 @@ pub const UnifiedIde = struct {
         };
     }
     
+    /// Why: Release resources.
     pub fn deinit(self: *UnifiedIde) void {
         // Free editor tabs
         for (self.editor_tabs.items) |*tab| {

@@ -67,7 +67,8 @@ pub const CrossIntegration = struct {
     allocator: std.mem.Allocator,
     clipboard: ?Clipboard = null,
     
-    /// Initialize cross integration.
+    /// Why: Initialize cross integration.
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator) CrossIntegration {
         // Assert: Allocator must be valid
         std.debug.assert(@intFromPtr(allocator.ptr) != 0);
@@ -78,7 +79,8 @@ pub const CrossIntegration = struct {
         };
     }
     
-    /// Deinitialize cross integration.
+    /// Why: Deinitialize cross integration.
+    /// Why: Release resources.
     pub fn deinit(self: *CrossIntegration) void {
         // Free clipboard if exists
         if (self.clipboard) |*clipboard| {

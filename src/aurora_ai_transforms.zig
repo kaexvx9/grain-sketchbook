@@ -72,7 +72,8 @@ pub const AiTransforms = struct {
         error_message: ?[]const u8 = null, // Error message if failed
     };
     
-    /// Initialize transformations.
+    /// Why: Initialize transformations.
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator, provider: *AiProvider) AiTransforms {
         // Assert: Provider must be valid
         std.debug.assert(@intFromPtr(provider) != 0);

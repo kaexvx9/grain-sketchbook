@@ -61,7 +61,8 @@ pub const RealidreamBrowserProfiler = struct {
     profile_map: ProfileMap,
     sample_buffer: SampleBuffer,
     
-    /// Initialize profiler.
+    /// Why: Initialize profiler.
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator) !RealidreamBrowserProfiler {
         // Pre-allocate profile map
         const profiles = try allocator.alloc(FunctionProfile, MAX_PROFILED_FUNCTIONS);
@@ -86,7 +87,8 @@ pub const RealidreamBrowserProfiler = struct {
         };
     }
     
-    /// Deinitialize profiler.
+    /// Why: Deinitialize profiler.
+    /// Why: Release resources.
     pub fn deinit(self: *RealidreamBrowserProfiler) void {
         // Free function name strings
         for (self.profile_map.function_names[0..self.profile_map.function_names_len]) |name| {

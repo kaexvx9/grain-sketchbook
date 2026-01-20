@@ -53,6 +53,7 @@ pub const Editor = struct {
         }
     };
 
+    /// Why: Initialize module state.
     pub fn init(
         allocator: std.mem.Allocator,
         file_uri: []const u8,
@@ -88,6 +89,7 @@ pub const Editor = struct {
         };
     }
 
+    /// Why: Release resources.
     pub fn deinit(self: *Editor) void {
         // Reject any pending completion (cleanup)
         self.reject_completion();

@@ -51,7 +51,8 @@ pub const RealidreamBrowserImageDecoder = struct {
     allocator: std.mem.Allocator,
     cache: ImageCache,
     
-    /// Initialize image decoder.
+    /// Why: Initialize image decoder.
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator) !RealidreamBrowserImageDecoder {
         // Pre-allocate image cache
         const entries = try allocator.alloc(ImageCacheEntry, MAX_CACHED_IMAGES);
@@ -66,7 +67,8 @@ pub const RealidreamBrowserImageDecoder = struct {
         };
     }
     
-    /// Deinitialize image decoder.
+    /// Why: Deinitialize image decoder.
+    /// Why: Release resources.
     pub fn deinit(self: *RealidreamBrowserImageDecoder) void {
         // Free cached images
         for (self.cache.entries[0..self.cache.entries_len]) |*entry| {

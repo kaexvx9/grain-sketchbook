@@ -58,6 +58,7 @@ pub const Glm46Client = struct {
         content: ?[]const u8 = null,
     };
     
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator, api_key: []const u8) Glm46Client {
         std.debug.assert(api_key.len > 0);
         
@@ -68,6 +69,7 @@ pub const Glm46Client = struct {
         };
     }
     
+    /// Why: Release resources.
     pub fn deinit(self: *Glm46Client) void {
         self.http_client.deinit();
         self.* = undefined;

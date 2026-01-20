@@ -41,12 +41,14 @@ pub const HttpClient = struct {
         body: []const u8,
     };
     
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator) HttpClient {
         return HttpClient{
             .allocator = allocator,
         };
     }
     
+    /// Why: Release resources.
     pub fn deinit(self: *HttpClient) void {
         _ = self;
         // No dynamic allocation to clean up

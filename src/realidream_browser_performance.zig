@@ -54,7 +54,8 @@ pub const RealidreamBrowserPerformance = struct {
     last_frame_time: u64, // Last frame end time
     metrics: PerformanceMetrics,
     
-    /// Initialize performance monitor.
+    /// Why: Initialize performance monitor.
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator) RealidreamBrowserPerformance {
         // Allocator is always valid in Zig 0.15 (no null check needed)
         
@@ -105,7 +106,8 @@ pub const RealidreamBrowserPerformance = struct {
         };
     }
     
-    /// Deinitialize performance monitor.
+    /// Why: Deinitialize performance monitor.
+    /// Why: Release resources.
     pub fn deinit(self: *RealidreamBrowserPerformance) void {
         // Free frame history buffer
         if (self.frame_history.timings.len > 0) {

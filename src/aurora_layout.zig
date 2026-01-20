@@ -51,6 +51,7 @@ pub const Layout = struct {
         root: ?*Pane = null,
     };
     
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator) Layout {
         return Layout{
             .allocator = allocator,
@@ -58,6 +59,7 @@ pub const Layout = struct {
         };
     }
     
+    /// Why: Release resources.
     pub fn deinit(self: *Layout) void {
         // Free all panes (iterative, no recursion)
         if (self.root) |root| {

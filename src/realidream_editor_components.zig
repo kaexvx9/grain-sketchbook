@@ -27,6 +27,7 @@ pub const EditorPaneComponents = struct {
     split_pane_vertical: Component,
     split_pane_horizontal: Component,
 
+    /// Why: Initialize module state.
     pub fn init() EditorPaneComponents {
         const components = EditorPaneComponents{
             .left_pane = Component.init(70, "left_pane"),
@@ -81,6 +82,7 @@ pub const EditorTabComponents = struct {
     new_tab_button: Component,
     close_tab_button: Component,
 
+    /// Why: Initialize module state.
     pub fn init() EditorTabComponents {
         const components = EditorTabComponents{
             .tab_bar = Component.init(80, "tab_bar"),
@@ -132,6 +134,7 @@ pub const EditorStatusBarComponents = struct {
     file_path: Component,
     diagnostics_count: Component,
 
+    /// Why: Initialize module state.
     pub fn init() EditorStatusBarComponents {
         const components = EditorStatusBarComponents{
             .status_bar = Component.init(90, "status_bar"),
@@ -190,6 +193,7 @@ pub const EditorToolbarComponents = struct {
     save_button: Component,
     open_button: Component,
 
+    /// Why: Initialize module state.
     pub fn init() EditorToolbarComponents {
         const components = EditorToolbarComponents{
             .toolbar = Component.init(96, "toolbar"),
@@ -234,6 +238,7 @@ pub const RealidreamEditorComponentAPI = struct {
     status_bar: EditorStatusBarComponents,
     toolbar: EditorToolbarComponents,
 
+    /// Why: Initialize module state.
     pub fn init() RealidreamEditorComponentAPI {
         const api = RealidreamEditorComponentAPI{
             .panes = EditorPaneComponents.init(),

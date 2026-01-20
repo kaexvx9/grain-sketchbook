@@ -92,7 +92,8 @@ pub const RealidreamBrowserFontRenderer = struct {
     font_cache: FontCache,
     glyph_cache: GlyphCache,
     
-    /// Initialize font renderer.
+    /// Why: Initialize font renderer.
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator) !RealidreamBrowserFontRenderer {
         // Pre-allocate font cache
         const font_entries = try allocator.alloc(FontCacheEntry, MAX_LOADED_FONTS);
@@ -115,7 +116,8 @@ pub const RealidreamBrowserFontRenderer = struct {
         };
     }
     
-    /// Deinitialize font renderer.
+    /// Why: Deinitialize font renderer.
+    /// Why: Release resources.
     pub fn deinit(self: *RealidreamBrowserFontRenderer) void {
         // Free font cache
         for (self.font_cache.entries[0..self.font_cache.entries_len]) |*entry| {

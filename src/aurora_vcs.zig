@@ -40,6 +40,7 @@ pub const VcsClient = struct {
         callback: ?*const fn (output: []const u8) void = null,
     };
     
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator, repo_path: []const u8) VcsClient {
         // Assert: Repo path must be non-empty
         std.debug.assert(repo_path.len > 0);
@@ -53,6 +54,7 @@ pub const VcsClient = struct {
         };
     }
     
+    /// Why: Release resources.
     pub fn deinit(self: *VcsClient) void {
         // Free virtual file paths and buffers
         for (self.virtual_files.items) |*vf| {

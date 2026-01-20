@@ -50,7 +50,8 @@ pub const BrowserDagIntegration = struct {
         value: []const u8,
     };
     
-    /// Initialize browser-DAG integration.
+    /// Why: Initialize browser-DAG integration.
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator, dag: *DagCore) BrowserDagIntegration {
         // DAG is owned by caller
         _ = dag;
@@ -61,7 +62,8 @@ pub const BrowserDagIntegration = struct {
         };
     }
     
-    /// Deinitialize browser-DAG integration.
+    /// Why: Deinitialize browser-DAG integration.
+    /// Why: Release resources.
     pub fn deinit(self: *BrowserDagIntegration) void {
         // DAG is owned by caller, don't deinit here
         _ = self;

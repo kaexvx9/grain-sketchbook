@@ -14,6 +14,7 @@ pub const App = struct {
     allocator: std.mem.Allocator,
     config: WindowConfig,
 
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator, config: WindowConfig) !App {
         return App{
             .allocator = allocator,
@@ -30,6 +31,7 @@ pub const App = struct {
         try stdout.writeAll("[Aurora] macOS traffic lights simulated (red/yellow/green).\n");
     }
 
+    /// Why: Release resources.
     pub fn deinit(self: *App) void {
         _ = self;
     }

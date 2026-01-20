@@ -162,7 +162,8 @@ pub const AiProvider = struct {
     vtable: *const VTable,
     impl: *anyopaque, // Type-erased provider implementation
     
-    /// Initialize AI provider with specific implementation.
+    /// Why: Initialize AI provider with specific implementation.
+    /// Why: Initialize module state.
     pub fn init(provider_type: ProviderType, allocator: std.mem.Allocator, config: ProviderConfig) !AiProvider {
         switch (provider_type) {
             .glm46 => {
@@ -176,7 +177,8 @@ pub const AiProvider = struct {
         }
     }
     
-    /// Deinitialize AI provider.
+    /// Why: Deinitialize AI provider.
+    /// Why: Release resources.
     pub fn deinit(self: *AiProvider) void {
         self.vtable.deinit(self.impl);
     }

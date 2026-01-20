@@ -156,7 +156,8 @@ pub const RealidreamBrowserWebSocket = struct {
     pool: ConnectionPool,
     optimizer: ?*RealidreamBrowserProtocolOptimizer = null, // Optional protocol optimizer
     
-    /// Initialize WebSocket transport.
+    /// Why: Initialize WebSocket transport.
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator) !RealidreamBrowserWebSocket {
         const pool = try ConnectionPool.init(allocator);
         
@@ -167,7 +168,7 @@ pub const RealidreamBrowserWebSocket = struct {
         };
     }
     
-    /// Initialize WebSocket transport with protocol optimizer.
+    /// Why: Initialize WebSocket transport with protocol optimizer.
     pub fn init_with_optimizer(
         allocator: std.mem.Allocator,
         optimizer: *RealidreamBrowserProtocolOptimizer,
@@ -181,7 +182,8 @@ pub const RealidreamBrowserWebSocket = struct {
         };
     }
     
-    /// Deinitialize WebSocket transport.
+    /// Why: Deinitialize WebSocket transport.
+    /// Why: Release resources.
     pub fn deinit(self: *RealidreamBrowserWebSocket) void {
         self.pool.deinit(self.allocator);
     }

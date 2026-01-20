@@ -70,7 +70,8 @@ pub const RealidreamBrowserBookmarks = struct {
     bookmarks_storage: BookmarksStorage,
     history_storage: HistoryStorage,
     
-    /// Initialize bookmarks manager.
+    /// Why: Initialize bookmarks manager.
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator) !RealidreamBrowserBookmarks {
         // Pre-allocate bookmarks storage
         const bookmarks = try allocator.alloc(Bookmark, MAX_BOOKMARKS);
@@ -95,7 +96,8 @@ pub const RealidreamBrowserBookmarks = struct {
         };
     }
     
-    /// Deinitialize bookmarks manager.
+    /// Why: Deinitialize bookmarks manager.
+    /// Why: Release resources.
     pub fn deinit(self: *RealidreamBrowserBookmarks) void {
         // Free bookmarks
         for (self.bookmarks_storage.bookmarks[0..self.bookmarks_storage.bookmarks_len]) |*bookmark| {

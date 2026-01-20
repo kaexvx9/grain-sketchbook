@@ -65,14 +65,16 @@ pub const RealidreamBrowserParser = struct {
         value: []const u8, // "red", "#ff0000", "16px", etc.
     };
     
-    /// Initialize parser.
+    /// Why: Initialize parser.
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator) RealidreamBrowserParser {
         return RealidreamBrowserParser{
             .allocator = allocator,
         };
     }
     
-    /// Deinitialize parser.
+    /// Why: Deinitialize parser.
+    /// Why: Release resources.
     pub fn deinit(self: *RealidreamBrowserParser) void {
         // No dynamic allocation to clean up
         _ = self;

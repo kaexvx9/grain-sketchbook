@@ -9,9 +9,10 @@ pub const TextRenderer = struct {
     height: u32,
     font_renderer: shared.FontRenderer,
 
-    /// Initialize text renderer with dimensions.
+    /// Why: Initialize text renderer with dimensions.
     /// Why: Create renderer with shared font renderer (8x8 font).
     /// Contract: width and height must be > 0.
+    /// Why: Initialize module state.
     pub fn init(width: u32, height: u32) TextRenderer {
         std.debug.assert(width > 0);
         std.debug.assert(height > 0);

@@ -80,6 +80,7 @@ pub const AuroraGrainBank = struct {
         to_npub: [32]u8,
     };
     
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator, dag: *DagCore) !AuroraGrainBank {
         // Assert: Allocator and DAG must be valid
         std.debug.assert(allocator.ptr != null);
@@ -96,6 +97,7 @@ pub const AuroraGrainBank = struct {
         };
     }
     
+    /// Why: Release resources.
     pub fn deinit(self: *AuroraGrainBank) void {
         // Free contract titles
         for (self.active_contracts.items) |*contract| {

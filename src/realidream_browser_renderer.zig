@@ -59,7 +59,8 @@ pub const RealidreamBrowserRenderer = struct {
         children_list: *std.ArrayList(GrainAurora.Node), // Accumulated children
     };
     
-    /// Initialize renderer.
+    /// Why: Initialize renderer.
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator) RealidreamBrowserRenderer {
         return RealidreamBrowserRenderer{
             .allocator = allocator,
@@ -67,7 +68,7 @@ pub const RealidreamBrowserRenderer = struct {
         };
     }
     
-    /// Initialize renderer with performance monitoring.
+    /// Why: Initialize renderer with performance monitoring.
     pub fn init_with_performance(
         allocator: std.mem.Allocator,
         performance: *RealidreamBrowserPerformance,
@@ -79,7 +80,7 @@ pub const RealidreamBrowserRenderer = struct {
         };
     }
     
-    /// Initialize renderer with profiler (for hot path identification).
+    /// Why: Initialize renderer with profiler (for hot path identification).
     pub fn init_with_profiler(
         allocator: std.mem.Allocator,
         profiler: *RealidreamBrowserProfiler,
@@ -91,7 +92,7 @@ pub const RealidreamBrowserRenderer = struct {
         };
     }
     
-    /// Initialize renderer with both performance monitor and profiler.
+    /// Why: Initialize renderer with both performance monitor and profiler.
     pub fn init_with_performance_and_profiler(
         allocator: std.mem.Allocator,
         performance: *RealidreamBrowserPerformance,
@@ -104,7 +105,8 @@ pub const RealidreamBrowserRenderer = struct {
         };
     }
     
-    /// Deinitialize renderer.
+    /// Why: Deinitialize renderer.
+    /// Why: Release resources.
     pub fn deinit(self: *RealidreamBrowserRenderer) void {
         // No dynamic allocation to clean up
         _ = self;

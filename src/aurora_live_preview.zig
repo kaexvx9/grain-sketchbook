@@ -52,6 +52,7 @@ pub const LivePreview = struct {
     sync_subscriptions: std.ArrayList(SyncSubscription) = undefined,
     pending_updates: std.ArrayList(Update) = undefined,
     
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator) !LivePreview {
         const dag = try DagCore.init(allocator);
         errdefer dag.deinit();
@@ -71,6 +72,7 @@ pub const LivePreview = struct {
         };
     }
     
+    /// Why: Release resources.
     pub fn deinit(self: *LivePreview) void {
         // Free pending updates
         for (self.pending_updates.items) |*update| {

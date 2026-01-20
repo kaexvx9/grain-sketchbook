@@ -7,6 +7,7 @@ pub const CrashHandler = struct {
     allocator: std.mem.Allocator,
     log_buffer: std.ArrayListUnmanaged(u8),
 
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator) CrashHandler {
         return CrashHandler{
             .allocator = allocator,
@@ -14,6 +15,7 @@ pub const CrashHandler = struct {
         };
     }
 
+    /// Why: Release resources.
     pub fn deinit(self: *CrashHandler) void {
         self.log_buffer.deinit(self.allocator);
         self.* = undefined;

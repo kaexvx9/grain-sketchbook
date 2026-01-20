@@ -92,6 +92,7 @@ pub const LspClient = struct {
         text: []const u8,
     };
 
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator) LspClient {
         return LspClient{
             .allocator = allocator,
@@ -101,6 +102,7 @@ pub const LspClient = struct {
         };
     }
 
+    /// Why: Release resources.
     pub fn deinit(self: *LspClient) void {
         // Free snapshot URIs and text
         for (self.snapshots.items) |*snapshot| {

@@ -27,6 +27,7 @@ pub const NavigationComponents = struct {
     reload_button: Component,
     home_button: Component,
 
+    /// Why: Initialize module state.
     pub fn init() NavigationComponents {
         const components = NavigationComponents{
             .navigation_bar = Component.init(30, "navigation_bar"),
@@ -80,6 +81,7 @@ pub const AddressBarComponents = struct {
     search_bar: Component,
     bookmark_button: Component,
 
+    /// Why: Initialize module state.
     pub fn init() AddressBarComponents {
         const components = AddressBarComponents{
             .address_bar = Component.init(40, "address_bar"),
@@ -124,6 +126,7 @@ pub const TabComponents = struct {
     new_tab_button: Component,
     close_tab_button: Component,
 
+    /// Why: Initialize module state.
     pub fn init() TabComponents {
         const components = TabComponents{
             .tab_bar = Component.init(50, "tab_bar"),
@@ -172,6 +175,7 @@ pub const BrowserViewComponents = struct {
     content_area: Component,
     status_bar: Component,
 
+    /// Why: Initialize module state.
     pub fn init() BrowserViewComponents {
         const components = BrowserViewComponents{
             .browser_view = Component.init(60, "browser_view"),
@@ -216,6 +220,7 @@ pub const RealidreamBrowserComponentAPI = struct {
     tabs: TabComponents,
     browser_view: BrowserViewComponents,
 
+    /// Why: Initialize module state.
     pub fn init() RealidreamBrowserComponentAPI {
         const api = RealidreamBrowserComponentAPI{
             .navigation = NavigationComponents.init(),

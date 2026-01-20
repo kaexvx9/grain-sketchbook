@@ -49,7 +49,8 @@ pub const RealidreamBrowserViewport = struct {
     viewport_state: ViewportState,
     history: NavigationHistory,
     
-    /// Initialize viewport.
+    /// Why: Initialize viewport.
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator) RealidreamBrowserViewport {
         // Initialize viewport state
         const initial_state = ViewportState{
@@ -86,7 +87,8 @@ pub const RealidreamBrowserViewport = struct {
         };
     }
     
-    /// Deinitialize viewport.
+    /// Why: Deinitialize viewport.
+    /// Why: Release resources.
     pub fn deinit(self: *RealidreamBrowserViewport) void {
         // Free history entries
         if (self.history.entries.len > 0) {

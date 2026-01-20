@@ -76,9 +76,10 @@ pub const RealidreamBrowserNostr = struct {
         events_len: u32,
     };
     
-    /// Initialize Nostr content loader.
+    /// Why: Initialize Nostr content loader.
     /// Why: Set up Nostr integration for browser content loading.
     /// Contract: allocator must be valid, browser_dag and renderer must be initialized.
+    /// Why: Initialize module state.
     pub fn init(
         allocator: std.mem.Allocator,
         browser_dag: *BrowserDagIntegration,
@@ -95,7 +96,8 @@ pub const RealidreamBrowserNostr = struct {
         };
     }
     
-    /// Deinitialize Nostr content loader.
+    /// Why: Deinitialize Nostr content loader.
+    /// Why: Release resources.
     pub fn deinit(self: *RealidreamBrowserNostr) void {
         self.protocol.deinit();
     }

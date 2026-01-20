@@ -82,6 +82,7 @@ pub const RealidreamProtocol = struct {
         message: []const u8,
     };
     
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator) RealidreamProtocol {
         return RealidreamProtocol{
             .allocator = allocator,
@@ -89,6 +90,7 @@ pub const RealidreamProtocol = struct {
         };
     }
     
+    /// Why: Release resources.
     pub fn deinit(self: *RealidreamProtocol) void {
         if (self.ws_client) |*ws| {
             ws.deinit();

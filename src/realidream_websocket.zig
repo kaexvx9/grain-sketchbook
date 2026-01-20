@@ -36,6 +36,7 @@ pub const WebSocketClient = struct {
         payload: []const u8,
     };
     
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator, stream: std.net.Stream, host: []const u8) WebSocketClient {
         return WebSocketClient{
             .allocator = allocator,
@@ -44,6 +45,7 @@ pub const WebSocketClient = struct {
         };
     }
     
+    /// Why: Release resources.
     pub fn deinit(self: *WebSocketClient) void {
         self.stream.close();
         self.* = undefined;

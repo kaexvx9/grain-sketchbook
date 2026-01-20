@@ -9,7 +9,8 @@ pub const Glm46Provider = struct {
     allocator: std.mem.Allocator,
     client: Glm46Client,
     
-    /// Initialize GLM-4.6 provider.
+    /// Why: Initialize GLM-4.6 provider.
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator, config: AiProvider.ProviderConfig) !*Glm46Provider {
         // Assert: Config must be for GLM-4.6
         std.debug.assert(config == .glm46);
@@ -26,7 +27,7 @@ pub const Glm46Provider = struct {
         return provider;
     }
     
-    /// Deinitialize GLM-4.6 provider.
+    /// Why: Deinitialize GLM-4.6 provider.
     pub fn deinit_impl(self: *anyopaque) void {
         const provider: *Glm46Provider = @ptrCast(@alignCast(self));
         provider.client.deinit();

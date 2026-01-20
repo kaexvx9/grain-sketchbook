@@ -18,6 +18,7 @@ pub const Folding = struct {
         folded: bool, // Whether this fold is currently collapsed
     };
     
+    /// Why: Initialize module state.
     pub fn init(allocator: std.mem.Allocator) Folding {
         return Folding{
             .allocator = allocator,
@@ -25,6 +26,7 @@ pub const Folding = struct {
         };
     }
     
+    /// Why: Release resources.
     pub fn deinit(self: *Folding) void {
         self.folds.deinit(self.allocator);
         self.* = undefined;
