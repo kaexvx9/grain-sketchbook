@@ -77,7 +77,7 @@ fn read_line(buf: *[MAX_LINE]u8) usize {
     return len;
 }
 
-/// Execute Grainscript code.
+/// Execute Grainscript code and print result.
 fn eval_grainscript(allocator: std.mem.Allocator, source: []const u8) void {
     var lexer = Lexer.init(allocator, source) catch {
         uart_print("Error: lexer init failed\n");
@@ -112,9 +112,12 @@ fn eval_grainscript(allocator: std.mem.Allocator, source: []const u8) void {
         return;
     };
 
+    // Print interpreter output buffer
     const output = interp.get_output();
     for (output) |c| uart_putc(c);
+    if (output.len > 0 and output[output.len - 1] != '\n') uart_putc('\n');
 }
+
 
 /// REPL loop.
 fn repl(allocator: std.mem.Allocator) void {
@@ -133,8 +136,12 @@ fn repl(allocator: std.mem.Allocator) void {
             break;
         }
         if (std.mem.eql(u8, line, "help")) {
-            uart_print("Commands: help, exit, or Grainscript code\n");
-            uart_print("Example: 42 + 8;\n");
+            uart_print("Commands:\n");
+            uart_print("  help          - Show this help\n");
+            uart_print("  exit          - Halt kernel\n");
+            uart_print("  echo <expr>   - Print expression result\n");
+            uart_print("  var x = 42;   - Declare variable\n");
+            uart_print("Example: echo 6 * 7;\n");
             continue;
         }
 
