@@ -79,7 +79,7 @@ Features implemented (v0.4.0):
 - Emitter (identity transform for Phase 1)
 - `--json` output for CI integration
 - `--summary` for aggregated reports
-- **Production modules** (49, 7080 lines):
+- **Production modules** (50, 7408 lines):
   - `uart.ry` - UART driver
   - `debug.ry` - Kernel debug utilities
   - `panic.ry` - Panic handler
@@ -129,6 +129,7 @@ Features implemented (v0.4.0):
   - `audio.ry` - Audio device management
   - `basin_kernel_syscalls_file.ry` - File syscall handlers
   - `basin_kernel_types.ry` - Kernel type definitions
+  - `basin_kernel_syscalls_process.ry` - Process syscall handlers
 
 ## Why Not Just Use Zig?
 
