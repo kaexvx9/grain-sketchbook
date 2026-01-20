@@ -79,7 +79,7 @@ Features implemented (v0.4.0):
 - Emitter (identity transform for Phase 1)
 - `--json` output for CI integration
 - `--summary` for aggregated reports
-- **Production modules** (40, 4762 lines):
+- **Production modules** (44, 5649 lines):
   - `uart.ry` - UART driver
   - `debug.ry` - Kernel debug utilities
   - `panic.ry` - Panic handler
@@ -120,6 +120,10 @@ Features implemented (v0.4.0):
   - `framebuffer.ry` - GUI framebuffer
   - `udp_socket.ry` - UDP socket management
   - `audio_device_stats.ry` - Audio device stats
+  - `tcp_socket_stats.ry` - TCP socket stats
+  - `network.ry` - Network interface management
+  - `syscall_performance_profiler.ry` - Syscall profiling
+  - `tcp_socket.ry` - TCP socket management
 
 ## Why Not Just Use Zig?
 
