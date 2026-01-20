@@ -1,5 +1,25 @@
 # Changelog
 
+## 12025-01-20--0945--pst-
+
+### Basin Kernel v0.2.0: Grainscript REPL
+
+- **Grainscript Kernel Now Default**:
+  - `zig build kernel-rv64` builds full Grainscript kernel
+  - `zig build kernel-minimal-rv64` for inline ASM fallback
+  - 3.9MB kernel with complete interpreter
+
+- **QEMU Verified**:
+  - Boots in real QEMU RISC-V64
+  - Reaches interactive `grainscript>` prompt
+  - `help`, `exit` commands working
+  - Ready for Grainscript expression evaluation
+
+- **60 Rye Modules** (14,074 lines):
+  - `main_grainscript.ry`: Kernel entry (152 lines)
+  - 837 functions (541 public, 296 private)
+  - Longest function: 63 lines
+
 ## 12025-01-20--0900--pst-
 
 ### Rye v0.6.0: Full Grainscript Conversion + Toroidal Garden Architecture
