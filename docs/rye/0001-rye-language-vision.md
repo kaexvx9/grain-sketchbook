@@ -79,7 +79,7 @@ Features implemented (v0.4.0):
 - Emitter (identity transform for Phase 1)
 - `--json` output for CI integration
 - `--summary` for aggregated reports
-- **Production modules** (18, 1549 lines):
+- **Production modules** (21, 1886 lines):
   - `uart.ry` - UART driver
   - `debug.ry` - Kernel debug utilities
   - `panic.ry` - Panic handler
@@ -98,6 +98,9 @@ Features implemented (v0.4.0):
   - `segment_loader.ry` - ELF segment loader
   - `mouse.ry` - Mouse driver
   - `signal.ry` - Signal handling
+  - `resource_cleanup.ry` - Process resource cleanup
+  - `trap.ry` - Trap handler loop
+  - `platform.ry` - Platform interface
 
 ## Why Not Just Use Zig?
 
