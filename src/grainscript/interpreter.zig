@@ -1066,19 +1066,22 @@ pub const Interpreter = struct {
 
     /// Why: Run program by evaluating AST nodes.
     pub fn execute(self: *Interpreter) Error!void {
-        // Assert: Interpreter must be initialized
-        std.debug.assert(self.parser.get_node_count() > 0);
+        _ = try self.execute_repl();
+    }
 
-        // Get all AST nodes from parser
+    /// Why: REPL mode - returns last expression value for display.
+    pub fn execute_repl(self: *Interpreter) Error!Value {
+        std.debug.assert(self.parser.get_node_count() > 0);
         const node_count = self.parser.get_node_count();
+        var last_value: Value = Value.from_null();
         var i: u32 = 0;
         while (i < node_count) : (i += 1) {
             const node = self.parser.get_node(i);
             if (node) |n| {
-                // Execute statement or declaration
-                _ = try self.execute_statement_or_declaration(n);
+                last_value = try self.execute_statement_or_declaration(n);
             }
         }
+        return last_value;
     }
 
     /// Execute statement or declaration.

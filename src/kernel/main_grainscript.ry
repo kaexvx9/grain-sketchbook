@@ -107,15 +107,38 @@ fn eval_grainscript(allocator: std.mem.Allocator, source: []const u8) void {
     };
     defer interp.deinit();
 
-    interp.execute() catch {
+    const result = interp.execute_repl() catch {
         uart_print("Error: execute failed\n");
         return;
     };
 
-    // Print interpreter output buffer
+    // Print interpreter output buffer first (echo, print, etc.)
     const output = interp.get_output();
     for (output) |c| uart_putc(c);
-    if (output.len > 0 and output[output.len - 1] != '\n') uart_putc('\n');
+
+    // Print last expression result (REPL mode)
+    print_value(result);
+}
+
+fn print_value(val: Interpreter.Value) void {
+    switch (val) {
+        .integer => |v| { print_int(v); uart_putc('\n'); },
+        .float => |v| { print_float(v); uart_putc('\n'); },
+        .string => |s| { for (s) |c| uart_putc(c); uart_putc('\n'); },
+        .boolean => |b| { if (b) uart_print("true\n") else uart_print("false\n"); },
+        .null => {},
+    }
+}
+
+fn print_int(v: i64) void {
+    if (v < 0) { uart_putc('-'); print_int(-v); return; }
+    if (v >= 10) print_int(@divTrunc(v, 10));
+    uart_putc(@intCast(@as(u64, @intCast(@mod(v, 10))) + '0'));
+}
+
+fn print_float(v: f64) void {
+    const int_part: i64 = @intFromFloat(v);
+    print_int(int_part);
 }
 
 
@@ -137,11 +160,11 @@ fn repl(allocator: std.mem.Allocator) void {
         }
         if (std.mem.eql(u8, line, "help")) {
             uart_print("Commands:\n");
-            uart_print("  help          - Show this help\n");
-            uart_print("  exit          - Halt kernel\n");
-            uart_print("  echo <expr>   - Print expression result\n");
-            uart_print("  var x = 42;   - Declare variable\n");
-            uart_print("Example: echo 6 * 7;\n");
+            uart_print("  help        - Show this help\n");
+            uart_print("  exit        - Halt kernel\n");
+            uart_print("  <expr>;     - Evaluate and print result\n");
+            uart_print("  var x = 1;  - Declare variable\n");
+            uart_print("Examples: 6 * 7;  or  var x = 42;\n");
             continue;
         }
 
