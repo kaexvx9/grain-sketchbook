@@ -14,18 +14,18 @@ This document outlines the strategy for managing multiple component repositories
 
 ## Repository Map
 
-| Repo | URL | Purpose |
-|------|-----|---------|
-| **ry** | codeberg.org/teamlibra/ry | Monorepo (current home) |
-| **grain** | codeberg.org/grain/grain | Grain OS core |
-| **basin** | codeberg.org/basin/basin | Basin kernel |
-| **tend** | codeberg.org/tend/tend | Tend philosophy/allocator |
-| **skate** | codeberg.org/skate/skate | Visual programming |
-| **realidream** | codeberg.org/realidream/realidream | Browser engine |
-| **reya** | codeberg.org/reya/reya | Virtual assistant |
-| **court** | codeberg.org/court/court | Governance/consensus |
-| **rye** | (TBD) | Rye language compiler |
-| **aurora** | (TBD) | IDE/editor |
+| Repo | URL | Purpose | Status |
+|------|-----|---------|--------|
+| **ry** | codeberg.org/teamlibra/ry | Monorepo (current home) | Active |
+| **grain** | codeberg.org/grain | Grain OS core | Acquired |
+| **basin** | codeberg.org/basin | Basin kernel | Acquired |
+| **tend** | codeberg.org/tend | Tend philosophy/allocator | Acquired |
+| **skate** | codeberg.org/skate | Visual programming | Acquired |
+| **realidream** | codeberg.org/realidream | Browser engine | Acquired |
+| **reya** | codeberg.org/reya | Virtual assistant | Acquired |
+| **court** | codeberg.org/court | Governance/consensus | Acquired |
+| **rye** | codeberg.org/ryelang (?) | Rye language compiler | Unavailable |
+| **aurora** | codeberg.org/grain-aurora (?) | IDE/editor | Unavailable |
 
 ---
 
@@ -220,12 +220,12 @@ Decision criteria:
 
 ## Acquired Repos
 
-- [x] codeberg.org/skate/skate
-- [x] codeberg.org/realidream (implied from doc update)
-- [ ] codeberg.org/grain/grain
-- [ ] codeberg.org/basin/basin
-- [ ] codeberg.org/tend/tend
-- [ ] codeberg.org/reya/reya
-- [ ] codeberg.org/court/court
-- [ ] codeberg.org/rye/rye
-- [ ] codeberg.org/aurora/aurora
+- [x] codeberg.org/grain - Grain OS core
+- [x] codeberg.org/skate - Visual programming
+- [x] codeberg.org/basin - Basin kernel
+- [x] codeberg.org/court - Governance/consensus
+- [x] codeberg.org/reya - Virtual assistant
+- [x] codeberg.org/tend - Tend philosophy/allocator
+- [x] codeberg.org/realidream - Browser engine
+- [ ] codeberg.org/rye - **Unavailable** (alternative: `ryelang`?)
+- [ ] codeberg.org/aurora - **Unavailable** (alternative: `grain-aurora`?)

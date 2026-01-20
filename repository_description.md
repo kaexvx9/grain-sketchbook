@@ -39,7 +39,13 @@
 - `mechanical-precision`
 
 ### Codeberg Namespaces
-- `codeberg.org/skate` - Visual programming / Skate integration
+- `codeberg.org/grain` - Grain OS core
+- `codeberg.org/basin` - Basin kernel
+- `codeberg.org/skate` - Visual programming
+- `codeberg.org/realidream` - Browser engine
+- `codeberg.org/reya` - Virtual assistant
+- `codeberg.org/court` - Governance/consensus
+- `codeberg.org/tend` - Tend allocator
 
 ### Philosophical Tags
 - `vedic-astrology`
