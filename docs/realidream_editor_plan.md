@@ -1,4 +1,4 @@
-# Dream Editor Implementation Plan
+# Realidream Editor Implementation Plan
 
 **Goal**: Build the Zig-native IDE described in learning course 0001, inspired by Matklad's vision, with GLM-4.6 integration.
 
@@ -173,7 +173,7 @@
 
 ```
 ┌─────────────────────────────────────┐
-│   Dream Editor (Zig Native)        │
+│   Realidream Editor (Zig Native)        │
 ├─────────────────────────────────────┤
 │   - Readonly Spans (Matklad)        │
 │   - Method Folding                  │

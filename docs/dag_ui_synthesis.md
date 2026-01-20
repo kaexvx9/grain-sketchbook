@@ -72,11 +72,11 @@ This is fundamentally different from React's tree model. In a DAG:
 
 ## The Unification Opportunity
 
-We could unify **Aurora IDE + Dream Browser** using a DAG-based architecture:
+We could unify **Aurora IDE + Realidream Browser** using a DAG-based architecture:
 
 ### Current State
 * **Aurora Editor**: Uses Tree-sitter (syntax tree) for code understanding
-* **Dream Browser**: Would use DOM-like structure for HTML rendering
+* **Realidream Browser**: Would use DOM-like structure for HTML rendering
 * **Separate systems**: Editor and browser are different worlds
 
 ### Unified DAG Vision
@@ -122,7 +122,7 @@ Djinn's HashDAG proposal is fascinating. It's a **consensus protocol** using DAG
 * **Sub-Millisecond Latency**: 0.1-0.5ms queries (16-80× faster than NVMe SSD)
 * **100,000+ QPS**: Single wafer capacity (10-100× higher than SSD-based systems)
 
-**Synthesis: Hybrid Architecture for Aurora IDE + Dream Browser**
+**Synthesis: Hybrid Architecture for Aurora IDE + Realidream Browser**
 
 We build a **general-purpose database** combining all three:
 
@@ -157,7 +157,7 @@ We build a **general-purpose database** combining all three:
 * **Materials**: Zero conflict materials (SRAM uses U.S. supply chains, no rare earth elements)
 * **Recycling**: >95% circular yield (vs. <20% for SSD-based systems)
 
-**Use Cases for Aurora IDE + Dream Browser**:
+**Use Cases for Aurora IDE + Realidream Browser**:
 * **Code State** (AST nodes, edits, history):
   - Vector search for semantic code understanding (SPFresh ANN on-wafer)
   - Full-text search for code navigation (BM25 inverted index on-wafer)
@@ -180,7 +180,7 @@ We build a **general-purpose database** combining all three:
 3. **Phase 3**: Optimize for spatial computing (parallel search, vector ops on 900k cores)
 4. **Phase 4**: Open hardware deployment (Framework 13 RISC-V, WSE-style chips)
 
-**Key Insight**: The hybrid approach (WSE + Turbopuffer object storage) provides optimal performance, environmental sustainability, and cost efficiency for the Aurora IDE + Dream Browser vision. It combines WSE's ultra-low latency and massive throughput with Turbopuffer's horizontal scalability and open protocols, while achieving TigerBeetle's deterministic guarantees.
+**Key Insight**: The hybrid approach (WSE + Turbopuffer object storage) provides optimal performance, environmental sustainability, and cost efficiency for the Aurora IDE + Realidream Browser vision. It combines WSE's ultra-low latency and massive throughput with Turbopuffer's horizontal scalability and open protocols, while achieving TigerBeetle's deterministic guarantees.
 
 ## The Unified Architecture
 

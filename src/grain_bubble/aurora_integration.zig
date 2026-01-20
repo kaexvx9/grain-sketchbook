@@ -1,6 +1,6 @@
 //! Grain Bubble Aurora Integration: Dream Browser Component API integration.
 //!
-//! Why: Integrate Bubble SLC UI components with Aurora Agent DreamBrowserComponentAPI.
+//! Why: Integrate Bubble SLC UI components with Aurora Agent RealidreamBrowserComponentAPI.
 //! Architecture: Integration layer between Bubble components and Dream Browser components.
 //! SLC components render within content_area of BrowserViewComponents.
 //! GrainStyle: grain_case, u32/u64, bounded allocations, assertions.
@@ -10,12 +10,12 @@
 const std = @import("std");
 const slc_ui_components = @import("slc_ui_components.zig");
 const component = @import("component.zig");
-const dream_browser_components = @import("dream_browser_components");
+const realidream_browser_components = @import("realirealidream_browser_components");
 
 // Aurora integration: manages integration between Bubble and Dream Browser components.
 pub const AuroraIntegration = struct {
     component_library: *slc_ui_components.SlcComponentLibrary,
-    browser_api: ?*dream_browser_components.DreamBrowserComponentAPI,
+    browser_api: ?*realidream_browser_components.RealidreamBrowserComponentAPI,
 
     pub fn init(
         library: *slc_ui_components.SlcComponentLibrary,
@@ -29,10 +29,10 @@ pub const AuroraIntegration = struct {
         return integration;
     }
 
-    // Set Aurora Agent DreamBrowserComponentAPI instance.
+    // Set Aurora Agent RealidreamBrowserComponentAPI instance.
     pub fn set_browser_api(
         self: *AuroraIntegration,
-        api: *dream_browser_components.DreamBrowserComponentAPI,
+        api: *realidream_browser_components.RealidreamBrowserComponentAPI,
     ) void {
         std.debug.assert(@intFromPtr(self) != 0);
         std.debug.assert(@intFromPtr(api) != 0);
@@ -42,14 +42,14 @@ pub const AuroraIntegration = struct {
 
     // Apply theme to Dream Browser component based on design pattern.
     fn apply_theme_from_pattern(
-        browser_comp: *dream_browser_components.Component,
+        browser_comp: *realidream_browser_components.Component,
         pattern: *const slc_ui_components.DesignPattern,
     ) void {
         std.debug.assert(@intFromPtr(browser_comp) != 0);
         std.debug.assert(@intFromPtr(pattern) != 0);
         // Determine theme from pattern colors (simplified - use primary color brightness).
         // For now, default to light theme (can be enhanced later).
-        const theme = dream_browser_components.ComponentTheme.light;
+        const theme = realidream_browser_components.ComponentTheme.light;
         browser_comp.set_theme(theme);
         std.debug.assert(browser_comp.theme == theme);
     }
@@ -57,7 +57,7 @@ pub const AuroraIntegration = struct {
     // Apply Bubble design pattern to Dream Browser component.
     pub fn apply_pattern_to_browser_component(
         self: *AuroraIntegration,
-        browser_comp: *dream_browser_components.Component,
+        browser_comp: *realidream_browser_components.Component,
         pattern: *const slc_ui_components.DesignPattern,
     ) void {
         std.debug.assert(@intFromPtr(self) != 0);
@@ -100,7 +100,7 @@ pub const AuroraIntegration = struct {
         const theme = switch (pattern.primary_color) {
             // Simplified: determine theme from primary color brightness.
             // Full implementation would analyze color brightness.
-            else => dream_browser_components.ComponentTheme.light,
+            else => realidream_browser_components.ComponentTheme.light,
         };
         api.set_theme_all(theme);
         // Also apply to content_area specifically for SLC component rendering.
@@ -113,7 +113,7 @@ pub const AuroraIntegration = struct {
     pub fn sync_theme_to_bubble(
         self: *AuroraIntegration,
         bubble_comp_id: u32,
-        browser_comp: *const dream_browser_components.Component,
+        browser_comp: *const realidream_browser_components.Component,
     ) bool {
         std.debug.assert(@intFromPtr(self) != 0);
         std.debug.assert(bubble_comp_id > 0);

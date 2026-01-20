@@ -1,14 +1,14 @@
-# Dream Editor + Dream Browser: Unified Vision Synthesis
+# Realidream Editor + Realidream Browser: Unified Vision Synthesis
 
-**Synthesis**: Combining dream editor, dream browser, and all learnings from WSE hardware to modern monetary theory into a unified, radical reinvention of computing.
+**Synthesis**: Combining realidream editor, realidream browser, and all learnings from WSE hardware to modern monetary theory into a unified, radical reinvention of computing.
 
 ## The Unified Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │   Dream IDE (Unified Editor + Browser)                     │
-│   - Dream Editor: Matklad + AI Provider (GLM-4.6, 1,000 tps)            │
-│   - Dream Browser: Nostr + WebSocket (real-time)           │
+│   - Realidream Editor: Matklad + AI Provider (GLM-4.6, 1,000 tps)            │
+│   - Realidream Browser: Nostr + WebSocket (real-time)           │
 │   - Dream Protocol: TigerBeetle-style (sub-ms latency)    │
 ├─────────────────────────────────────────────────────────────┤
 │   Grain Aurora UI (Component-First, Readonly Spans)        │
@@ -49,7 +49,7 @@
 
 **Example Workflow**:
 ```
-1. User opens nostr:note1abc... in Dream Browser
+1. User opens nostr:note1abc... in Realidream Browser
 2. Browser renders note with readonly spans (event ID, timestamp, author)
 3. User edits content, presses Cmd+S
 4. Browser sends updated event via Nostr (WebSocket, <1ms)
@@ -101,7 +101,7 @@
 - **125 petaflops**: Massive compute capacity
 - **Spatial computing**: Dataflow, not von Neumann
 
-**Dream Browser on WSE**:
+**Realidream Browser on WSE**:
 - **Page load**: Instant (already in SRAM)
 - **Rendering**: Parallel (900k cores)
 - **Updates**: Real-time (dataflow)
@@ -146,7 +146,7 @@ Payment confirmed instantly
 
 ## The Complete Stack
 
-### Dream Editor Components
+### Realidream Editor Components
 
 1. **Readonly Spans** (Matklad): Text-as-UI paradigm
 2. **Method Folding**: Fold bodies by default, show signatures
@@ -210,7 +210,7 @@ The Matklad vision aligns perfectly with our DAG-based UI architecture:
 * **Text-as-UI**: Readonly spans (Matklad) = DAG node attributes (Hyperfiddle)
 * **Deterministic**: Same code = same DAG = same AI suggestions (Matklad + TigerBeetle)
 
-### Dream Browser Components
+### Realidream Browser Components
 
 1. **Nostr Protocol**: Decentralized, no servers
 2. **WebSocket Transport**: Low-latency, bidirectional
@@ -230,7 +230,7 @@ The Matklad vision aligns perfectly with our DAG-based UI architecture:
 
 ## Performance Targets
 
-| Metric | Current Web | Dream Browser | Improvement |
+| Metric | Current Web | Realidream Browser | Improvement |
 |--------|-------------|---------------|-------------|
 | **Page Load** | 500-2000ms | 1-5ms | **100-2000×** |
 | **Rendering** | 16-33ms | 0.1-0.5ms | **32-330×** |
@@ -257,7 +257,7 @@ The Matklad vision aligns perfectly with our DAG-based UI architecture:
 
 ### Phase 3: Editor-Browser Integration
 
-- [ ] Unified UI (Dream Editor + Dream Browser)
+- [ ] Unified UI (Realidream Editor + Realidream Browser)
 - [ ] GLM-4.6 integration (agentic coding)
 - [ ] Live preview (real-time updates)
 - [ ] VCS integration (Magit-style)
@@ -349,7 +349,7 @@ The Matklad vision aligns perfectly with our DAG-based UI architecture:
 - Complex (JavaScript, DOM, rendering)
 - Expensive (high fees, slow transactions)
 
-**Dream Browser**:
+**Realidream Browser**:
 - Fast (1-5ms page loads)
 - Decentralized (Nostr, peer-to-peer)
 - Simple (Zig-native, direct rendering)
@@ -361,7 +361,7 @@ The Matklad vision aligns perfectly with our DAG-based UI architecture:
 
 ## Conclusion
 
-The Dream Editor + Dream Browser represents a complete reinvention of computing from first principles:
+The Realidream Editor + Realidream Browser represents a complete reinvention of computing from first principles:
 
 - **Editor**: Matklad-inspired, GLM-4.6-powered, 1,000 tps
 - **Browser**: Nostr-native, WebSocket-fast, TigerBeetle-style

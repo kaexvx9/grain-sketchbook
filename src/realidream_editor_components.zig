@@ -228,14 +228,14 @@ pub const EditorToolbarComponents = struct {
 };
 
 // Dream Editor Component API: unified API for all editor components.
-pub const DreamEditorComponentAPI = struct {
+pub const RealidreamEditorComponentAPI = struct {
     panes: EditorPaneComponents,
     tabs: EditorTabComponents,
     status_bar: EditorStatusBarComponents,
     toolbar: EditorToolbarComponents,
 
-    pub fn init() DreamEditorComponentAPI {
-        const api = DreamEditorComponentAPI{
+    pub fn init() RealidreamEditorComponentAPI {
+        const api = RealidreamEditorComponentAPI{
             .panes = EditorPaneComponents.init(),
             .tabs = EditorTabComponents.init(),
             .status_bar = EditorStatusBarComponents.init(),
@@ -248,7 +248,7 @@ pub const DreamEditorComponentAPI = struct {
         return api;
     }
 
-    pub fn set_theme_all(self: *DreamEditorComponentAPI, theme: ComponentTheme) void {
+    pub fn set_theme_all(self: *RealidreamEditorComponentAPI, theme: ComponentTheme) void {
         std.debug.assert(@intFromPtr(self) != 0);
         self.panes.set_theme_all(theme);
         self.tabs.set_theme_all(theme);
@@ -257,7 +257,7 @@ pub const DreamEditorComponentAPI = struct {
         std.debug.assert(self.panes.left_pane.theme == theme);
     }
 
-    pub fn set_size_all(self: *DreamEditorComponentAPI, size: ComponentSize) void {
+    pub fn set_size_all(self: *RealidreamEditorComponentAPI, size: ComponentSize) void {
         std.debug.assert(@intFromPtr(self) != 0);
         self.panes.set_size_all(size);
         self.tabs.set_size_all(size);

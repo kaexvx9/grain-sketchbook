@@ -1,6 +1,6 @@
 const std = @import("std");
 const DagCore = @import("dag_core.zig").DagCore;
-const BrowserDagIntegration = @import("dream_browser_dag_integration.zig").BrowserDagIntegration;
+const BrowserDagIntegration = @import("realidream_browser_dag_integration.zig").BrowserDagIntegration;
 
 /// GrainBank Integration: Micropayments and deterministic contracts in browser.
 /// ~<~ Glow Airbend: explicit contract state, bounded payments.

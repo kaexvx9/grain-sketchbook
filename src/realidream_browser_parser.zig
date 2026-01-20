@@ -1,5 +1,5 @@
 const std = @import("std");
-const BrowserDagIntegration = @import("dream_browser_dag_integration.zig").BrowserDagIntegration;
+const BrowserDagIntegration = @import("realidream_browser_dag_integration.zig").BrowserDagIntegration;
 
 /// Dream Browser Parser: HTML/CSS parser for Zig-native browser.
 /// ~<~ Glow Airbend: explicit parsing, bounded tree depth.
@@ -10,7 +10,7 @@ const BrowserDagIntegration = @import("dream_browser_dag_integration.zig").Brows
 /// - CSS parser (subset: color, background, font-size, etc.)
 /// - DOM tree construction (bounded depth, explicit nodes)
 /// - Style computation (cascade, specificity)
-pub const DreamBrowserParser = struct {
+pub const RealidreamBrowserParser = struct {
     allocator: std.mem.Allocator,
     
     // Bounded: Max 100 tree depth
@@ -66,21 +66,21 @@ pub const DreamBrowserParser = struct {
     };
     
     /// Initialize parser.
-    pub fn init(allocator: std.mem.Allocator) DreamBrowserParser {
-        return DreamBrowserParser{
+    pub fn init(allocator: std.mem.Allocator) RealidreamBrowserParser {
+        return RealidreamBrowserParser{
             .allocator = allocator,
         };
     }
     
     /// Deinitialize parser.
-    pub fn deinit(self: *DreamBrowserParser) void {
+    pub fn deinit(self: *RealidreamBrowserParser) void {
         // No dynamic allocation to clean up
         _ = self;
     }
     
     /// Parse HTML string into DOM tree (iterative, supports nested tags).
     pub fn parseHtml(
-        self: *DreamBrowserParser,
+        self: *RealidreamBrowserParser,
         html: []const u8,
     ) !HtmlNode {
         // Assert: HTML must be non-empty
@@ -97,7 +97,7 @@ pub const DreamBrowserParser = struct {
     
     /// Parse single HTML node (helper for nested parsing).
     fn parseHtmlNode(
-        self: *DreamBrowserParser,
+        self: *RealidreamBrowserParser,
         html: []const u8,
         start_pos: u32,
         parent_node: ?*HtmlNode,
@@ -184,7 +184,7 @@ pub const DreamBrowserParser = struct {
     };
     
     fn parseTagNameAndAttributes(
-        self: *DreamBrowserParser,
+        self: *RealidreamBrowserParser,
         tag_str: []const u8,
     ) !ParseTagResult {
         // Assert: Tag string must be non-empty
@@ -294,7 +294,7 @@ pub const DreamBrowserParser = struct {
     }
     
     /// Check if tag is self-closing.
-    fn isSelfClosingTag(self: *DreamBrowserParser, tag_name: []const u8) bool {
+    fn isSelfClosingTag(self: *RealidreamBrowserParser, tag_name: []const u8) bool {
         _ = self; // Not used, but required for method signature
         const self_closing_tags = [_][]const u8{ "br", "img", "hr", "input", "meta", "link", "area", "base", "col", "embed", "source", "track", "wbr" };
         for (self_closing_tags) |tag| {
@@ -307,7 +307,7 @@ pub const DreamBrowserParser = struct {
     
     /// Parse children (nested tags and text nodes) - iterative approach.
     fn parseChildren(
-        self: *DreamBrowserParser,
+        self: *RealidreamBrowserParser,
         content: []const u8,
         parent_depth: u32,
     ) ![]const HtmlNode {
@@ -432,7 +432,7 @@ pub const DreamBrowserParser = struct {
     
     /// Extract text content (text not in child nodes).
     fn extractTextContent(
-        self: *DreamBrowserParser,
+        self: *RealidreamBrowserParser,
         content: []const u8,
         children: []const HtmlNode,
     ) ![]const u8 {
@@ -444,7 +444,7 @@ pub const DreamBrowserParser = struct {
     
     /// Parse CSS string into rules.
     pub fn parseCss(
-        self: *DreamBrowserParser,
+        self: *RealidreamBrowserParser,
         css: []const u8,
     ) ![]const CssRule {
         // Assert: CSS must be non-empty
@@ -554,7 +554,7 @@ pub const DreamBrowserParser = struct {
     };
     
     /// Parse CSS selector into components.
-    fn parseSelector(self: *DreamBrowserParser, selector: []const u8) !ParsedSelector {
+    fn parseSelector(self: *RealidreamBrowserParser, selector: []const u8) !ParsedSelector {
         _ = self; // Not used but required for method signature
         
         // Trim whitespace from selector
@@ -662,7 +662,7 @@ pub const DreamBrowserParser = struct {
     }
     
     /// Check if selector matches HTML node.
-    fn selectorMatches(self: *DreamBrowserParser, parsed: ParsedSelector, node: *const HtmlNode) bool {
+    fn selectorMatches(self: *RealidreamBrowserParser, parsed: ParsedSelector, node: *const HtmlNode) bool {
         _ = self; // Not used but required for method signature
         
         // Match tag name (if specified)
@@ -717,7 +717,7 @@ pub const DreamBrowserParser = struct {
     
     /// Compute styles for HTML node (cascade, specificity).
     pub fn computeStyles(
-        self: *DreamBrowserParser,
+        self: *RealidreamBrowserParser,
         node: *const HtmlNode,
         css_rules: []const CssRule,
     ) ![]const Declaration {
@@ -819,7 +819,7 @@ pub const DreamBrowserParser = struct {
     
     /// Convert HTML node to BrowserDagIntegration.DomNode (for DAG integration) - iterative.
     pub fn toDomNode(
-        self: *DreamBrowserParser,
+        self: *RealidreamBrowserParser,
         html_node: *const HtmlNode,
     ) !BrowserDagIntegration.DomNode {
         // Assert: HTML node must be valid
@@ -936,7 +936,7 @@ test "browser parser initialization" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var parser = DreamBrowserParser.init(arena.allocator());
+    var parser = RealidreamBrowserParser.init(arena.allocator());
     defer parser.deinit();
     
     // Assert: Parser initialized (check via usage)
@@ -947,7 +947,7 @@ test "browser parser parse html" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var parser = DreamBrowserParser.init(arena.allocator());
+    var parser = RealidreamBrowserParser.init(arena.allocator());
     defer parser.deinit();
     
     const html = "<div>Hello, World!</div>";
@@ -971,7 +971,7 @@ test "browser parser parse css" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var parser = DreamBrowserParser.init(arena.allocator());
+    var parser = RealidreamBrowserParser.init(arena.allocator());
     defer parser.deinit();
     
     const css = "div { color: red; background: blue; }";

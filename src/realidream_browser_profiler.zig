@@ -9,7 +9,7 @@ const std = @import("std");
 /// - Hot path identification (functions that exceed time thresholds)
 /// - Call stack sampling (identify slow call chains)
 /// - Optimization recommendations (suggest optimizations for hot paths)
-pub const DreamBrowserProfiler = struct {
+pub const RealidreamBrowserProfiler = struct {
     // Bounded: Max 1000 functions to profile
     pub const MAX_PROFILED_FUNCTIONS: u32 = 1000;
     
@@ -62,7 +62,7 @@ pub const DreamBrowserProfiler = struct {
     sample_buffer: SampleBuffer,
     
     /// Initialize profiler.
-    pub fn init(allocator: std.mem.Allocator) !DreamBrowserProfiler {
+    pub fn init(allocator: std.mem.Allocator) !RealidreamBrowserProfiler {
         // Pre-allocate profile map
         const profiles = try allocator.alloc(FunctionProfile, MAX_PROFILED_FUNCTIONS);
         const function_names = try allocator.alloc([]const u8, MAX_PROFILED_FUNCTIONS);
@@ -70,7 +70,7 @@ pub const DreamBrowserProfiler = struct {
         // Pre-allocate sample buffer
         const samples = try allocator.alloc(CallSample, MAX_CALL_SAMPLES);
         
-        return DreamBrowserProfiler{
+        return RealidreamBrowserProfiler{
             .allocator = allocator,
             .profile_map = ProfileMap{
                 .profiles = profiles,
@@ -87,7 +87,7 @@ pub const DreamBrowserProfiler = struct {
     }
     
     /// Deinitialize profiler.
-    pub fn deinit(self: *DreamBrowserProfiler) void {
+    pub fn deinit(self: *RealidreamBrowserProfiler) void {
         // Free function name strings
         for (self.profile_map.function_names[0..self.profile_map.function_names_len]) |name| {
             self.allocator.free(name);
@@ -115,7 +115,7 @@ pub const DreamBrowserProfiler = struct {
     }
     
     /// Start profiling a function call.
-    pub fn start_function(self: *DreamBrowserProfiler, function_name: []const u8) u64 {
+    pub fn start_function(self: *RealidreamBrowserProfiler, function_name: []const u8) u64 {
         // Self and function_name not used in start (only in end_function)
         _ = self;
         _ = function_name;
@@ -125,7 +125,7 @@ pub const DreamBrowserProfiler = struct {
     
     /// End profiling a function call.
     pub fn end_function(
-        self: *DreamBrowserProfiler,
+        self: *RealidreamBrowserProfiler,
         function_name: []const u8,
         start_time_us: u64,
         parent_function: ?[]const u8,
@@ -244,7 +244,7 @@ pub const DreamBrowserProfiler = struct {
     
     /// Get function profile by name.
     pub fn get_function_profile(
-        self: *const DreamBrowserProfiler,
+        self: *const RealidreamBrowserProfiler,
         function_name: []const u8,
     ) ?*const FunctionProfile {
         var i: u32 = 0;
@@ -257,7 +257,7 @@ pub const DreamBrowserProfiler = struct {
     }
     
     /// Get all hot paths (functions exceeding threshold).
-    pub fn get_hot_paths(self: *const DreamBrowserProfiler) []const FunctionProfile {
+    pub fn get_hot_paths(self: *const RealidreamBrowserProfiler) []const FunctionProfile {
         // Count hot paths
         var hot_count: u32 = 0;
         var i: u32 = 0;
@@ -291,7 +291,7 @@ pub const DreamBrowserProfiler = struct {
     
     /// Get all critical paths (functions exceeding critical threshold).
     /// Note: Returns slice pointing to allocated array (caller must free).
-    pub fn get_critical_paths(self: *DreamBrowserProfiler) []const FunctionProfile {
+    pub fn get_critical_paths(self: *RealidreamBrowserProfiler) []const FunctionProfile {
         // Count critical paths
         var critical_count: u32 = 0;
         var i: u32 = 0;
@@ -324,12 +324,12 @@ pub const DreamBrowserProfiler = struct {
     }
     
     /// Get call samples (for stack trace analysis).
-    pub fn get_call_samples(self: *const DreamBrowserProfiler) []const CallSample {
+    pub fn get_call_samples(self: *const RealidreamBrowserProfiler) []const CallSample {
         return self.sample_buffer.samples[0..self.sample_buffer.samples_len];
     }
     
     /// Reset profiler (start new measurement period).
-    pub fn reset(self: *DreamBrowserProfiler) void {
+    pub fn reset(self: *RealidreamBrowserProfiler) void {
         // Free function name strings
         for (self.profile_map.function_names[0..self.profile_map.function_names_len]) |name| {
             self.allocator.free(name);
@@ -351,7 +351,7 @@ pub const DreamBrowserProfiler = struct {
     }
     
     /// Get total number of function calls profiled.
-    pub fn get_total_calls(self: *const DreamBrowserProfiler) u32 {
+    pub fn get_total_calls(self: *const RealidreamBrowserProfiler) u32 {
         var total: u32 = 0;
         var i: u32 = 0;
         while (i < self.profile_map.profiles_len) : (i += 1) {
@@ -361,7 +361,7 @@ pub const DreamBrowserProfiler = struct {
     }
     
     /// Get total time spent in all profiled functions.
-    pub fn get_total_time_us(self: *const DreamBrowserProfiler) u64 {
+    pub fn get_total_time_us(self: *const RealidreamBrowserProfiler) u64 {
         var total: u64 = 0;
         var i: u32 = 0;
         while (i < self.profile_map.profiles_len) : (i += 1) {
@@ -375,7 +375,7 @@ test "profiler initialization" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var profiler = try DreamBrowserProfiler.init(arena.allocator());
+    var profiler = try RealidreamBrowserProfiler.init(arena.allocator());
     defer profiler.deinit();
     
     // Assert: Profiler initialized
@@ -387,7 +387,7 @@ test "profiler function profiling" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var profiler = try DreamBrowserProfiler.init(arena.allocator());
+    var profiler = try RealidreamBrowserProfiler.init(arena.allocator());
     defer profiler.deinit();
     
     const start_time = profiler.start_function("test_function");
@@ -404,7 +404,7 @@ test "profiler hot path detection" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var profiler = try DreamBrowserProfiler.init(arena.allocator());
+    var profiler = try RealidreamBrowserProfiler.init(arena.allocator());
     defer profiler.deinit();
     
     // Profile a slow function (simulated)
@@ -424,7 +424,7 @@ test "profiler reset" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var profiler = try DreamBrowserProfiler.init(arena.allocator());
+    var profiler = try RealidreamBrowserProfiler.init(arena.allocator());
     defer profiler.deinit();
     
     // Profile some functions

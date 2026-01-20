@@ -10,7 +10,7 @@ const std = @import("std");
 /// - Pre-allocated message buffers (reduce allocation overhead)
 /// - Fast path for common operations (optimized hot paths)
 /// - Latency monitoring (track message send/receive times)
-pub const DreamBrowserProtocolOptimizer = struct {
+pub const RealidreamBrowserProtocolOptimizer = struct {
     // Bounded: Max 100 messages per batch
     pub const MAX_BATCH_SIZE: u32 = 100;
     
@@ -66,7 +66,7 @@ pub const DreamBrowserProtocolOptimizer = struct {
     latency_history_index: u32,
     
     /// Initialize protocol optimizer.
-    pub fn init(allocator: std.mem.Allocator) !DreamBrowserProtocolOptimizer {
+    pub fn init(allocator: std.mem.Allocator) !RealidreamBrowserProtocolOptimizer {
         // Pre-allocate message buffer (optimization: reduce allocations)
         const buffer_data = try allocator.alloc(u8, MAX_MESSAGE_BUFFER_SIZE);
         
@@ -76,7 +76,7 @@ pub const DreamBrowserProtocolOptimizer = struct {
         // Pre-allocate latency history
         const latency_history = try allocator.alloc(LatencyMeasurement, 1000);
         
-        return DreamBrowserProtocolOptimizer{
+        return RealidreamBrowserProtocolOptimizer{
             .allocator = allocator,
             .message_buffer = MessageBuffer{
                 .data = buffer_data,
@@ -96,7 +96,7 @@ pub const DreamBrowserProtocolOptimizer = struct {
     }
     
     /// Deinitialize protocol optimizer.
-    pub fn deinit(self: *DreamBrowserProtocolOptimizer) void {
+    pub fn deinit(self: *RealidreamBrowserProtocolOptimizer) void {
         // Free pending messages (data is owned by caller)
         self.allocator.free(self.pending_queue.messages);
         
@@ -116,7 +116,7 @@ pub const DreamBrowserProtocolOptimizer = struct {
     
     /// Queue message for batching (zero-copy, just store reference).
     pub fn queue_message(
-        self: *DreamBrowserProtocolOptimizer,
+        self: *RealidreamBrowserProtocolOptimizer,
         message: []const u8,
     ) !void {
         // Assert: Message must be non-empty
@@ -144,7 +144,7 @@ pub const DreamBrowserProtocolOptimizer = struct {
     
     /// Batch pending messages into single buffer (optimized for latency).
     pub fn batch_messages(
-        self: *DreamBrowserProtocolOptimizer,
+        self: *RealidreamBrowserProtocolOptimizer,
         max_batch_size: u32,
     ) !MessageBatch {
         // Assert: Max batch size must be within bounds
@@ -203,7 +203,7 @@ pub const DreamBrowserProtocolOptimizer = struct {
     
     /// Free message batch (free allocated array, not message data).
     pub fn free_batch(
-        self: *DreamBrowserProtocolOptimizer,
+        self: *RealidreamBrowserProtocolOptimizer,
         batch: MessageBatch,
     ) void {
         // Free messages array (messages themselves are owned by caller)
@@ -211,7 +211,7 @@ pub const DreamBrowserProtocolOptimizer = struct {
     }
     
     /// Record send latency (start measurement).
-    pub fn record_send_start(self: *DreamBrowserProtocolOptimizer) u64 {
+    pub fn record_send_start(self: *RealidreamBrowserProtocolOptimizer) u64 {
         // Self not used in this function (could be static, but kept as method for consistency)
         _ = self;
         return get_current_time_us();
@@ -219,7 +219,7 @@ pub const DreamBrowserProtocolOptimizer = struct {
     
     /// Record receive latency (end measurement).
     pub fn record_receive_end(
-        self: *DreamBrowserProtocolOptimizer,
+        self: *RealidreamBrowserProtocolOptimizer,
         send_time_us: u64,
     ) void {
         // Assert: Send time must be valid
@@ -250,7 +250,7 @@ pub const DreamBrowserProtocolOptimizer = struct {
     }
     
     /// Get average latency (for monitoring).
-    pub fn get_average_latency_us(self: *const DreamBrowserProtocolOptimizer) ?u32 {
+    pub fn get_average_latency_us(self: *const RealidreamBrowserProtocolOptimizer) ?u32 {
         if (self.latency_history_len == 0) {
             return null;
         }
@@ -266,36 +266,36 @@ pub const DreamBrowserProtocolOptimizer = struct {
     }
     
     /// Check if latency is within target (sub-millisecond).
-    pub fn is_latency_within_target(self: *const DreamBrowserProtocolOptimizer) bool {
+    pub fn is_latency_within_target(self: *const RealidreamBrowserProtocolOptimizer) bool {
         const avg_latency = self.get_average_latency_us() orelse return false;
         return avg_latency <= TARGET_LATENCY_US;
     }
     
     /// Get pending message count.
-    pub fn get_pending_count(self: *const DreamBrowserProtocolOptimizer) u32 {
+    pub fn get_pending_count(self: *const RealidreamBrowserProtocolOptimizer) u32 {
         return self.pending_queue.messages_len;
     }
     
     /// Clear pending messages (for error recovery).
-    pub fn clear_pending(self: *DreamBrowserProtocolOptimizer) void {
+    pub fn clear_pending(self: *RealidreamBrowserProtocolOptimizer) void {
         self.pending_queue.messages_len = 0;
         self.pending_queue.head = 0;
         self.pending_queue.tail = 0;
     }
     
     /// Get message buffer (for zero-copy message construction).
-    pub fn get_message_buffer(self: *DreamBrowserProtocolOptimizer) []u8 {
+    pub fn get_message_buffer(self: *RealidreamBrowserProtocolOptimizer) []u8 {
         return self.message_buffer.data;
     }
     
     /// Reset message buffer (for reuse).
-    pub fn reset_message_buffer(self: *DreamBrowserProtocolOptimizer) void {
+    pub fn reset_message_buffer(self: *RealidreamBrowserProtocolOptimizer) void {
         self.message_buffer.data_len = 0;
     }
     
     /// Set message buffer length (after writing data).
     pub fn set_message_buffer_len(
-        self: *DreamBrowserProtocolOptimizer,
+        self: *RealidreamBrowserProtocolOptimizer,
         len: u32,
     ) void {
         // Assert: Length must be within bounds
@@ -308,7 +308,7 @@ test "protocol optimizer initialization" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var optimizer = try DreamBrowserProtocolOptimizer.init(arena.allocator());
+    var optimizer = try RealidreamBrowserProtocolOptimizer.init(arena.allocator());
     defer optimizer.deinit();
     
     // Assert: Optimizer initialized
@@ -320,7 +320,7 @@ test "protocol optimizer queue message" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var optimizer = try DreamBrowserProtocolOptimizer.init(arena.allocator());
+    var optimizer = try RealidreamBrowserProtocolOptimizer.init(arena.allocator());
     defer optimizer.deinit();
     
     const message = "test message";
@@ -334,7 +334,7 @@ test "protocol optimizer batch messages" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var optimizer = try DreamBrowserProtocolOptimizer.init(arena.allocator());
+    var optimizer = try RealidreamBrowserProtocolOptimizer.init(arena.allocator());
     defer optimizer.deinit();
     
     // Queue multiple messages
@@ -356,7 +356,7 @@ test "protocol optimizer latency measurement" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var optimizer = try DreamBrowserProtocolOptimizer.init(arena.allocator());
+    var optimizer = try RealidreamBrowserProtocolOptimizer.init(arena.allocator());
     defer optimizer.deinit();
     
     const send_time = optimizer.record_send_start();

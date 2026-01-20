@@ -1,6 +1,6 @@
 const std = @import("std");
 const DagCore = @import("dag_core.zig").DagCore;
-const DreamProtocol = @import("dream_protocol.zig").DreamProtocol;
+const RealidreamProtocol = @import("realidream_protocol.zig").RealidreamProtocol;
 
 /// Browser-DAG Integration: Maps DOM nodes to DAG nodes, web requests to DAG events.
 /// ~<~ Glow Airbend: explicit DOM-to-DAG mapping, bounded conversions.
@@ -204,7 +204,7 @@ pub const BrowserDagIntegration = struct {
     /// Map Nostr event to DAG event (for real-time content updates).
     pub fn mapNostrEventToDag(
         self: *BrowserDagIntegration,
-        nostr_event: DreamProtocol.Event,
+        nostr_event: RealidreamProtocol.Event,
         parent_events: []const u64,
     ) !u64 {
         // Assert: Nostr event must be valid

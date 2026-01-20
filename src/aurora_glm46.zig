@@ -1,5 +1,5 @@
 const std = @import("std");
-const HttpClient = @import("dream_http_client.zig").HttpClient;
+const HttpClient = @import("realidream_http_client.zig").HttpClient;
 const http_errors = @import("grain_core/http_errors.zig");
 const aurora_errors = @import("aurora_errors.zig");
 

@@ -1,6 +1,6 @@
-# Dream Editor + Browser: Unified Implementation Roadmap
+# Realidream Editor + Browser: Unified Implementation Roadmap
 
-**Goal**: Implement both Dream Editor and Dream Browser together, leveraging shared components and parallel development streams.
+**Goal**: Implement both Realidream Editor and Realidream Browser together, leveraging shared components and parallel development streams.
 
 **Status**: Planning phase, ready to begin implementation.
 
@@ -94,7 +94,7 @@ These components are shared between editor and browser:
 
 ---
 
-### Phase 1: Dream Editor Core (Week 3-4)
+### Phase 1: Realidream Editor Core (Week 3-4)
 
 **Goal**: Build core editor features using shared foundation.
 
@@ -148,7 +148,7 @@ These components are shared between editor and browser:
 
 ---
 
-### Phase 2: Dream Browser Core (Week 3-5, Parallel)
+### Phase 2: Realidream Browser Core (Week 3-5, Parallel)
 
 **Goal**: Build core browser features using shared foundation.
 
@@ -500,7 +500,7 @@ src/
 
 ---
 
-**This roadmap provides a clear path to implement both Dream Editor and Dream Browser together, leveraging shared components and parallel development.**
+**This roadmap provides a clear path to implement both Realidream Editor and Realidream Browser together, leveraging shared components and parallel development.**
 
 *now == next + 1*
 

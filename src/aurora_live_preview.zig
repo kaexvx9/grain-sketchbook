@@ -1,10 +1,10 @@
 const std = @import("std");
 const Editor = @import("aurora_editor.zig").Editor;
 const EditorDagIntegration = @import("aurora_dag_integration.zig").EditorDagIntegration;
-const BrowserDagIntegration = @import("dream_browser_dag_integration.zig").BrowserDagIntegration;
+const BrowserDagIntegration = @import("realidream_browser_dag_integration.zig").BrowserDagIntegration;
 const DagCore = @import("dag_core.zig").DagCore;
-const DreamBrowserParser = @import("dream_browser_parser.zig").DreamBrowserParser;
-const DreamBrowserRenderer = @import("dream_browser_renderer.zig").DreamBrowserRenderer;
+const RealidreamBrowserParser = @import("realidream_browser_parser.zig").RealidreamBrowserParser;
+const RealidreamBrowserRenderer = @import("realidream_browser_renderer.zig").RealidreamBrowserRenderer;
 const GrainBuffer = @import("grain_buffer.zig").GrainBuffer;
 const GrainAurora = @import("grain_aurora.zig").GrainAurora;
 
@@ -222,7 +222,7 @@ pub const LivePreview = struct {
                         for (renderers) |renderer_instance| {
                             if (renderer_instance.tab_id == update.target_id) {
                                 // Parse new content as HTML
-                                var parser = DreamBrowserParser.init(self.allocator);
+                                var parser = RealidreamBrowserParser.init(self.allocator);
                                 defer parser.deinit();
                                 
                                 const html_node = parser.parseHtml(update.data) catch {
@@ -306,7 +306,7 @@ pub const LivePreview = struct {
     /// Browser renderer instance (for update processing).
     pub const BrowserRendererInstance = struct {
         tab_id: u32,
-        renderer: *DreamBrowserRenderer,
+        renderer: *RealidreamBrowserRenderer,
         buffer: *GrainBuffer,
     };
     

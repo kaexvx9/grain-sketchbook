@@ -20,18 +20,18 @@
 //! GrainStyle: Comprehensive Nostr integration, deterministic behavior, explicit limits
 
 const std = @import("std");
-const DreamProtocol = @import("dream_protocol.zig").DreamProtocol;
-const BrowserDagIntegration = @import("dream_browser_dag_integration.zig").BrowserDagIntegration;
-const DreamBrowserRenderer = @import("dream_browser_renderer.zig").DreamBrowserRenderer;
+const RealidreamProtocol = @import("realidream_protocol.zig").RealidreamProtocol;
+const BrowserDagIntegration = @import("realidream_browser_dag_integration.zig").BrowserDagIntegration;
+const RealidreamBrowserRenderer = @import("realidream_browser_renderer.zig").RealidreamBrowserRenderer;
 
 /// Dream Browser Nostr Content Loader: Parse URLs, subscribe, receive, render.
 /// Why: Enable Nostr content loading in browser with DAG integration.
 /// GrainStyle: Explicit types, bounded subscriptions, deterministic behavior.
-pub const DreamBrowserNostr = struct {
+pub const RealidreamBrowserNostr = struct {
     allocator: std.mem.Allocator,
-    protocol: DreamProtocol,
+    protocol: RealidreamProtocol,
     browser_dag: *BrowserDagIntegration,
-    renderer: *DreamBrowserRenderer,
+    renderer: *RealidreamBrowserRenderer,
     
     /// Bounded: Max 100 active subscriptions.
     /// Why: Prevent unbounded growth, ensure deterministic behavior.
@@ -72,7 +72,7 @@ pub const DreamBrowserNostr = struct {
     pub const Subscription = struct {
         subscription_id: []const u8,
         url: NostrUrl,
-        events: []DreamProtocol.Event,
+        events: []RealidreamProtocol.Event,
         events_len: u32,
     };
     
@@ -82,28 +82,28 @@ pub const DreamBrowserNostr = struct {
     pub fn init(
         allocator: std.mem.Allocator,
         browser_dag: *BrowserDagIntegration,
-        renderer: *DreamBrowserRenderer,
-    ) DreamBrowserNostr {
+        renderer: *RealidreamBrowserRenderer,
+    ) RealidreamBrowserNostr {
         // Assert: Browser DAG must be initialized (precondition).
         std.debug.assert(browser_dag.dag.nodes_len <= BrowserDagIntegration.MAX_DOM_NODES_PER_PAGE);
         
-        return DreamBrowserNostr{
+        return RealidreamBrowserNostr{
             .allocator = allocator,
-            .protocol = DreamProtocol.init(allocator),
+            .protocol = RealidreamProtocol.init(allocator),
             .browser_dag = browser_dag,
             .renderer = renderer,
         };
     }
     
     /// Deinitialize Nostr content loader.
-    pub fn deinit(self: *DreamBrowserNostr) void {
+    pub fn deinit(self: *RealidreamBrowserNostr) void {
         self.protocol.deinit();
     }
     
     /// Parse Nostr URL (`nostr:note1...`, `nostr:npub1...`, etc.).
     /// Why: Extract identifier and type from Nostr URL.
     /// Contract: url must be valid Nostr URL, returns parsed URL.
-    pub fn parseNostrUrl(self: *DreamBrowserNostr, url: []const u8) !NostrUrl {
+    pub fn parseNostrUrl(self: *RealidreamBrowserNostr, url: []const u8) !NostrUrl {
         // Assert: URL must be non-empty (precondition).
         if (url.len == 0) {
             return error.InvalidNostrUrl;
@@ -192,7 +192,7 @@ pub const DreamBrowserNostr = struct {
     /// Why: Create subscription for Nostr content loading.
     /// Contract: url must be valid parsed URL, returns subscription ID.
     pub fn subscribeToNostr(
-        self: *DreamBrowserNostr,
+        self: *RealidreamBrowserNostr,
         url: NostrUrl,
         relay_url: []const u8,
     ) ![]const u8 {
@@ -227,10 +227,10 @@ pub const DreamBrowserNostr = struct {
         );
         
         // Build filter based on URL type.
-        var filters = std.ArrayList(DreamProtocol.Filter).init(self.allocator);
+        var filters = std.ArrayList(RealidreamProtocol.Filter).init(self.allocator);
         defer filters.deinit();
         
-        var filter = DreamProtocol.Filter{};
+        var filter = RealidreamProtocol.Filter{};
         
         switch (url.url_type) {
             .note => {
@@ -274,9 +274,9 @@ pub const DreamBrowserNostr = struct {
     /// Why: Process incoming Nostr events from relay.
     /// Contract: subscription_id must be valid, returns array of events.
     pub fn receiveEvents(
-        self: *DreamBrowserNostr,
+        self: *RealidreamBrowserNostr,
         subscription_id: []const u8,
-    ) ![]DreamProtocol.Event {
+    ) ![]RealidreamProtocol.Event {
         // Assert: Subscription ID must be valid (precondition).
         if (subscription_id.len == 0) {
             return error.InvalidNostrUrl;
@@ -297,7 +297,7 @@ pub const DreamBrowserNostr = struct {
         _ = subscription_id;
         
         // Create events array (bounded).
-        var events = std.ArrayList(DreamProtocol.Event).init(self.allocator);
+        var events = std.ArrayList(RealidreamProtocol.Event).init(self.allocator);
         defer events.deinit();
         
         // Assert: Events must be within bounds (postcondition).
@@ -310,8 +310,8 @@ pub const DreamBrowserNostr = struct {
     /// Why: Display Nostr events in browser with readonly spans for metadata.
     /// Contract: events must be valid, returns DOM node.
     pub fn renderEventsToBrowser(
-        self: *DreamBrowserNostr,
-        events: []const DreamProtocol.Event,
+        self: *RealidreamBrowserNostr,
+        events: []const RealidreamProtocol.Event,
     ) !BrowserDagIntegration.DomNode {
         // Assert: Events must be valid (precondition).
         std.debug.assert(events.len <= MAX_EVENTS_PER_SUBSCRIPTION);
@@ -342,8 +342,8 @@ pub const DreamBrowserNostr = struct {
     /// Why: Convert Nostr event to DOM structure with readonly spans.
     /// Contract: event must be valid, returns DOM node.
     fn renderEventToDom(
-        self: *DreamBrowserNostr,
-        event: DreamProtocol.Event,
+        self: *RealidreamBrowserNostr,
+        event: RealidreamProtocol.Event,
     ) !BrowserDagIntegration.DomNode {
         // Assert: Event must be valid (precondition).
         std.debug.assert(event.id.len > 0);
@@ -395,8 +395,8 @@ pub const DreamBrowserNostr = struct {
     /// Why: Track Nostr events in unified DAG state.
     /// Contract: events must be valid.
     pub fn integrateEventsToDag(
-        self: *DreamBrowserNostr,
-        events: []const DreamProtocol.Event,
+        self: *RealidreamBrowserNostr,
+        events: []const RealidreamProtocol.Event,
     ) !void {
         // Assert: Events must be valid (precondition).
         std.debug.assert(events.len <= MAX_EVENTS_PER_SUBSCRIPTION);

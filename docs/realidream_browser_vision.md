@@ -1,8 +1,8 @@
-# Dream Browser: Radical Reinvention from First Principles
+# Realidream Browser: Radical Reinvention from First Principles
 
 **Vision**: A Zig-native browser that reinvents web communication using WSE spatial architectures, RISC-V simplicity, TigerBeetle-style fast protocols, and Nostr's decentralized model.
 
-**Synthesis**: Combining dream editor, browser engine, and all learnings from WSE hardware to modern monetary theory.
+**Synthesis**: Combining realidream editor, browser engine, and all learnings from WSE hardware to modern monetary theory.
 
 ## Core Thesis
 
@@ -22,13 +22,13 @@ The modern web is fundamentally broken:
 5. **Nostr Decentralization**: No servers, no certificates, peer-to-peer
 6. **Modern Monetary Theory**: GrainBank contracts, deterministic state machines
 
-## Architecture: The Dream Browser Stack
+## Architecture: The Realidream Browser Stack
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│   Dream Browser (Zig Native)                            │
-│   - Dream Editor (Matklad + GLM-4.6)                    │
-│   - Dream Browser Engine (Nostr + WebSockets)          │
+│   Realidream Browser (Zig Native)                            │
+│   - Realidream Editor (Matklad + GLM-4.6)                    │
+│   - Realidream Browser Engine (Nostr + WebSockets)          │
 │   - Dream Protocol (TigerBeetle-style fast comm)        │
 ├─────────────────────────────────────────────────────────┤
 │   Grain Aurora UI (Component-First)                     │
@@ -208,10 +208,10 @@ pub const DreamProtocol = struct {
 - **Parallel**: WSE-style massive parallelism
 - **Fast**: 1,000+ operations per second
 
-### The Dream Browser Engine
+### The Realidream Browser Engine
 
 ```zig
-// Dream Browser Engine: Zig-native, spatial computing
+// Realidream Browser Engine: Zig-native, spatial computing
 pub const DreamBrowserEngine = struct {
     // Grain Aurora UI
     aurora: GrainAurora,
@@ -296,7 +296,7 @@ pub const DreamBrowserEngine = struct {
 
 ## The Editor-Browser Integration
 
-### Dream Editor + Dream Browser = Dream IDE
+### Realidream Editor + Realidream Browser = Dream IDE
 
 **Unified Architecture**:
 - **Editor**: Code editing with GLM-4.6 (1,000 tps)
@@ -313,7 +313,7 @@ pub const DreamBrowserEngine = struct {
 ### Example: Editing a Nostr Note
 
 ```zig
-// User opens nostr:note1abc... in Dream Browser
+// User opens nostr:note1abc... in Realidream Browser
 // Browser renders note content with readonly spans:
 // - Event ID: readonly
 // - Timestamp: readonly
@@ -345,7 +345,7 @@ pub const DreamBrowserEngine = struct {
 - **Zero-copy**: Direct rendering, no copying
 - **Fast**: 1,000+ operations per second
 
-### The Dream Browser on WSE
+### The Realidream Browser on WSE
 
 ```
 WSE-3 Hardware:
@@ -353,7 +353,7 @@ WSE-3 Hardware:
   - 900,000 cores
   - 125 petaflops
 
-Dream Browser:
+Realidream Browser:
   - All web content in SRAM (no disk)
   - Parallel rendering (900k cores)
   - Real-time updates (dataflow)
@@ -422,7 +422,7 @@ pub const BrowserExtension = struct {
 - Slow transactions (seconds)
 - High fees
 
-**Dream Browser + GrainBank**:
+**Realidream Browser + GrainBank**:
 - **Decentralized**: Nostr + GrainBank contracts
 - **Fast**: Sub-millisecond transactions
 - **Low fees**: Direct peer-to-peer
@@ -455,7 +455,7 @@ pub const BrowserPayment = struct {
 
 ## The Complete Vision
 
-### Dream Browser Features
+### Realidream Browser Features
 
 1. **Nostr-Native**: All content via Nostr protocol (decentralized, fast)
 2. **WebSocket Transport**: Low-latency, bidirectional communication
@@ -469,7 +469,7 @@ pub const BrowserPayment = struct {
 
 ### Performance Targets
 
-| Metric | Current Web | Dream Browser | Improvement |
+| Metric | Current Web | Realidream Browser | Improvement |
 |--------|-------------|---------------|-------------|
 | **Page Load** | 500-2000ms | 1-5ms | **100-2000×** |
 | **Rendering** | 16-33ms | 0.1-0.5ms | **32-330×** |
@@ -480,8 +480,8 @@ pub const BrowserPayment = struct {
 ### Architecture Summary
 
 ```
-Dream Browser = 
-  Dream Editor (Matklad + GLM-4.6) +
+Realidream Browser = 
+  Realidream Editor (Matklad + GLM-4.6) +
   Dream Protocol (Nostr + WebSocket + State Machine) +
   Dream Engine (Zig-native + Spatial Computing) +
   Grain Aurora UI (Component-first + Readonly Spans) +
@@ -508,7 +508,7 @@ Dream Browser =
 
 ### Phase 3: Editor-Browser Integration
 
-- [ ] Unified UI (Dream Editor + Dream Browser)
+- [ ] Unified UI (Realidream Editor + Realidream Browser)
 - [ ] GLM-4.6 integration (agentic coding)
 - [ ] Live preview (real-time updates)
 - [ ] VCS integration (Magit-style)
@@ -542,11 +542,11 @@ Dream Browser =
 4. **WSE Hardware**: RAM-only, spatial computing, 900k cores
 5. **RISC-V Foundation**: Simple, extensible, verifiable
 6. **GrainBank Contracts**: Micropayments, deterministic state
-7. **Dream Editor Integration**: Unified IDE + Browser experience
+7. **Realidream Editor Integration**: Unified IDE + Browser experience
 
 ## Conclusion
 
-The Dream Browser represents a radical reinvention of the web from first principles:
+The Realidream Browser represents a radical reinvention of the web from first principles:
 
 - **Protocol**: Nostr + WebSocket (decentralized, fast)
 - **Engine**: Zig-native (no JavaScript, compiled)

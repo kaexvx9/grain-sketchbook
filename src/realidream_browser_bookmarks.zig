@@ -9,7 +9,7 @@ const std = @import("std");
 /// - Bookmark organization (folders, tags)
 /// - History tracking (visited URLs, timestamps)
 /// - Search and filtering (by title, URL, tag)
-pub const DreamBrowserBookmarks = struct {
+pub const RealidreamBrowserBookmarks = struct {
     // Bounded: Max 10,000 bookmarks
     pub const MAX_BOOKMARKS: u32 = 10_000;
     
@@ -71,7 +71,7 @@ pub const DreamBrowserBookmarks = struct {
     history_storage: HistoryStorage,
     
     /// Initialize bookmarks manager.
-    pub fn init(allocator: std.mem.Allocator) !DreamBrowserBookmarks {
+    pub fn init(allocator: std.mem.Allocator) !RealidreamBrowserBookmarks {
         // Pre-allocate bookmarks storage
         const bookmarks = try allocator.alloc(Bookmark, MAX_BOOKMARKS);
         const folders = try allocator.alloc(BookmarkFolder, 100); // Max 100 folders
@@ -79,7 +79,7 @@ pub const DreamBrowserBookmarks = struct {
         // Pre-allocate history storage
         const history_entries = try allocator.alloc(HistoryEntry, MAX_HISTORY_ENTRIES);
         
-        return DreamBrowserBookmarks{
+        return RealidreamBrowserBookmarks{
             .allocator = allocator,
             .bookmarks_storage = BookmarksStorage{
                 .bookmarks = bookmarks,
@@ -96,7 +96,7 @@ pub const DreamBrowserBookmarks = struct {
     }
     
     /// Deinitialize bookmarks manager.
-    pub fn deinit(self: *DreamBrowserBookmarks) void {
+    pub fn deinit(self: *RealidreamBrowserBookmarks) void {
         // Free bookmarks
         for (self.bookmarks_storage.bookmarks[0..self.bookmarks_storage.bookmarks_len]) |*bookmark| {
             self.allocator.free(bookmark.url);
@@ -135,7 +135,7 @@ pub const DreamBrowserBookmarks = struct {
     
     /// Add bookmark.
     pub fn add_bookmark(
-        self: *DreamBrowserBookmarks,
+        self: *RealidreamBrowserBookmarks,
         url: []const u8,
         title: []const u8,
         folder: ?[]const u8,
@@ -194,7 +194,7 @@ pub const DreamBrowserBookmarks = struct {
     }
     
     /// Remove bookmark.
-    pub fn remove_bookmark(self: *DreamBrowserBookmarks, bookmark_idx: u32) void {
+    pub fn remove_bookmark(self: *RealidreamBrowserBookmarks, bookmark_idx: u32) void {
         if (bookmark_idx >= self.bookmarks_storage.bookmarks_len) {
             return;
         }
@@ -229,7 +229,7 @@ pub const DreamBrowserBookmarks = struct {
     }
     
     /// Get bookmark by index.
-    pub fn get_bookmark(self: *const DreamBrowserBookmarks, bookmark_idx: u32) ?*const Bookmark {
+    pub fn get_bookmark(self: *const RealidreamBrowserBookmarks, bookmark_idx: u32) ?*const Bookmark {
         if (bookmark_idx >= self.bookmarks_storage.bookmarks_len) {
             return null;
         }
@@ -238,7 +238,7 @@ pub const DreamBrowserBookmarks = struct {
     
     /// Add history entry.
     pub fn add_history_entry(
-        self: *DreamBrowserBookmarks,
+        self: *RealidreamBrowserBookmarks,
         url: []const u8,
         title: []const u8,
         visit_duration: u32,
@@ -288,7 +288,7 @@ pub const DreamBrowserBookmarks = struct {
     }
     
     /// Get history entries (recent first).
-    pub fn get_history_entries(self: *const DreamBrowserBookmarks, max_count: u32) []const HistoryEntry {
+    pub fn get_history_entries(self: *const RealidreamBrowserBookmarks, max_count: u32) []const HistoryEntry {
         const count = @min(max_count, self.history_storage.entries_len);
         if (count == 0) {
             return &.{};
@@ -313,7 +313,7 @@ pub const DreamBrowserBookmarks = struct {
     /// Search bookmarks by title or URL.
     /// Note: Returns slice pointing to allocated array (caller must free).
     pub fn search_bookmarks(
-        self: *DreamBrowserBookmarks,
+        self: *RealidreamBrowserBookmarks,
         query: []const u8,
     ) []const u32 {
         // Assert: Query must be non-empty
@@ -364,7 +364,7 @@ pub const DreamBrowserBookmarks = struct {
     }
     
     /// Get statistics.
-    pub fn get_stats(self: *const DreamBrowserBookmarks) BookmarksStats {
+    pub fn get_stats(self: *const RealidreamBrowserBookmarks) BookmarksStats {
         return BookmarksStats{
             .bookmarks_count = self.bookmarks_storage.bookmarks_len,
             .history_count = self.history_storage.entries_len,
@@ -388,7 +388,7 @@ test "bookmarks initialization" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var bookmarks = try DreamBrowserBookmarks.init(arena.allocator());
+    var bookmarks = try RealidreamBrowserBookmarks.init(arena.allocator());
     defer bookmarks.deinit();
     
     // Assert: Bookmarks initialized
@@ -400,7 +400,7 @@ test "bookmarks add and get" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var bookmarks = try DreamBrowserBookmarks.init(arena.allocator());
+    var bookmarks = try RealidreamBrowserBookmarks.init(arena.allocator());
     defer bookmarks.deinit();
     
     const idx = try bookmarks.add_bookmark("https://example.com", "Example", null);
@@ -416,7 +416,7 @@ test "bookmarks history" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var bookmarks = try DreamBrowserBookmarks.init(arena.allocator());
+    var bookmarks = try RealidreamBrowserBookmarks.init(arena.allocator());
     defer bookmarks.deinit();
     
     try bookmarks.add_history_entry("https://example.com", "Example", 10);
@@ -430,7 +430,7 @@ test "bookmarks search" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var bookmarks = try DreamBrowserBookmarks.init(arena.allocator());
+    var bookmarks = try RealidreamBrowserBookmarks.init(arena.allocator());
     defer bookmarks.deinit();
     
     _ = try bookmarks.add_bookmark("https://example.com", "Example Site", null);
@@ -449,13 +449,13 @@ test "bookmarks stats" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var bookmarks = try DreamBrowserBookmarks.init(arena.allocator());
+    var bookmarks = try RealidreamBrowserBookmarks.init(arena.allocator());
     defer bookmarks.deinit();
     
     const stats = bookmarks.get_stats();
     try std.testing.expect(stats.bookmarks_count == 0);
     try std.testing.expect(stats.history_count == 0);
-    try std.testing.expect(stats.max_bookmarks == DreamBrowserBookmarks.MAX_BOOKMARKS);
-    try std.testing.expect(stats.max_history == DreamBrowserBookmarks.MAX_HISTORY_ENTRIES);
+    try std.testing.expect(stats.max_bookmarks == RealidreamBrowserBookmarks.MAX_BOOKMARKS);
+    try std.testing.expect(stats.max_history == RealidreamBrowserBookmarks.MAX_HISTORY_ENTRIES);
 }
 

@@ -1,6 +1,6 @@
 const std = @import("std");
-const WebSocketClient = @import("dream_websocket.zig").WebSocketClient;
-const DreamBrowserProtocolOptimizer = @import("dream_browser_protocol_optimizer.zig").DreamBrowserProtocolOptimizer;
+const WebSocketClient = @import("realidream_websocket.zig").WebSocketClient;
+const RealidreamBrowserProtocolOptimizer = @import("realidream_browser_protocol_optimizer.zig").RealidreamBrowserProtocolOptimizer;
 const websocket_errors = @import("grain_core/websocket_errors.zig");
 const aurora_errors = @import("aurora_errors.zig");
 
@@ -19,7 +19,7 @@ const aurora_errors = @import("aurora_errors.zig");
 /// - Connection pooling (multiple relay connections)
 /// - Health monitoring (ping/pong, connection status)
 /// - Timeout checking (connection and message operations)
-pub const DreamBrowserWebSocket = struct {
+pub const RealidreamBrowserWebSocket = struct {
     allocator: std.mem.Allocator,
     
     // Bounded: Max 10 concurrent connections
@@ -154,13 +154,13 @@ pub const DreamBrowserWebSocket = struct {
     };
     
     pool: ConnectionPool,
-    optimizer: ?*DreamBrowserProtocolOptimizer = null, // Optional protocol optimizer
+    optimizer: ?*RealidreamBrowserProtocolOptimizer = null, // Optional protocol optimizer
     
     /// Initialize WebSocket transport.
-    pub fn init(allocator: std.mem.Allocator) !DreamBrowserWebSocket {
+    pub fn init(allocator: std.mem.Allocator) !RealidreamBrowserWebSocket {
         const pool = try ConnectionPool.init(allocator);
         
-        return DreamBrowserWebSocket{
+        return RealidreamBrowserWebSocket{
             .allocator = allocator,
             .pool = pool,
             .optimizer = null,
@@ -170,11 +170,11 @@ pub const DreamBrowserWebSocket = struct {
     /// Initialize WebSocket transport with protocol optimizer.
     pub fn init_with_optimizer(
         allocator: std.mem.Allocator,
-        optimizer: *DreamBrowserProtocolOptimizer,
-    ) !DreamBrowserWebSocket {
+        optimizer: *RealidreamBrowserProtocolOptimizer,
+    ) !RealidreamBrowserWebSocket {
         const pool = try ConnectionPool.init(allocator);
         
-        return DreamBrowserWebSocket{
+        return RealidreamBrowserWebSocket{
             .allocator = allocator,
             .pool = pool,
             .optimizer = optimizer,
@@ -182,7 +182,7 @@ pub const DreamBrowserWebSocket = struct {
     }
     
     /// Deinitialize WebSocket transport.
-    pub fn deinit(self: *DreamBrowserWebSocket) void {
+    pub fn deinit(self: *RealidreamBrowserWebSocket) void {
         self.pool.deinit(self.allocator);
     }
     
@@ -191,7 +191,7 @@ pub const DreamBrowserWebSocket = struct {
     /// message_timeout_ms: Optional message timeout in milliseconds (default: DEFAULT_MESSAGE_TIMEOUT_MS).
     /// Returns Core Agent's WebSocketError on failure.
     pub fn connect(
-        self: *DreamBrowserWebSocket,
+        self: *RealidreamBrowserWebSocket,
         url: []const u8,
         connect_timeout_ms: ?u32,
         message_timeout_ms: ?u32,
@@ -253,7 +253,7 @@ pub const DreamBrowserWebSocket = struct {
     }
     
     /// Disconnect from WebSocket.
-    pub fn disconnect(self: *DreamBrowserWebSocket, conn_idx: u32) void {
+    pub fn disconnect(self: *RealidreamBrowserWebSocket, conn_idx: u32) void {
         const conn = self.pool.getConnection(conn_idx) orelse return;
         
         if (conn.ws_client) |*ws| {
@@ -269,7 +269,7 @@ pub const DreamBrowserWebSocket = struct {
     /// Reconnect to WebSocket (with exponential backoff and timeout support).
     /// Returns Core Agent's WebSocketError on failure.
     pub fn reconnect(
-        self: *DreamBrowserWebSocket,
+        self: *RealidreamBrowserWebSocket,
         conn_idx: u32,
     ) websocket_errors.WebSocketError!void {
         const conn = self.pool.getConnection(conn_idx) orelse return websocket_errors.WebSocketError.connection_failed;
@@ -337,7 +337,7 @@ pub const DreamBrowserWebSocket = struct {
     
     /// Handle connection error (network, protocol, etc.).
     pub fn handleError(
-        self: *DreamBrowserWebSocket,
+        self: *RealidreamBrowserWebSocket,
         conn_idx: u32,
         error_msg: []const u8,
     ) void {
@@ -362,7 +362,7 @@ pub const DreamBrowserWebSocket = struct {
     /// Send message via WebSocket with timeout support.
     /// Returns Core Agent's WebSocketError on failure.
     pub fn send(
-        self: *DreamBrowserWebSocket,
+        self: *RealidreamBrowserWebSocket,
         conn_idx: u32,
         message: []const u8,
     ) websocket_errors.WebSocketError!void {
@@ -398,7 +398,7 @@ pub const DreamBrowserWebSocket = struct {
     /// Receive message via WebSocket with timeout support.
     /// Returns Core Agent's WebSocketError on failure, or null if no message available.
     pub fn receive(
-        self: *DreamBrowserWebSocket,
+        self: *RealidreamBrowserWebSocket,
         conn_idx: u32,
     ) websocket_errors.WebSocketError!?[]const u8 {
         const conn = self.pool.getConnection(conn_idx) orelse return null;
@@ -455,13 +455,13 @@ pub const DreamBrowserWebSocket = struct {
     }
     
     /// Get connection state.
-    pub fn getState(self: *const DreamBrowserWebSocket, conn_idx: u32) ?ConnectionState {
+    pub fn getState(self: *const RealidreamBrowserWebSocket, conn_idx: u32) ?ConnectionState {
         const conn = self.pool.getConnection(conn_idx) orelse return null;
         return conn.state;
     }
     
     /// Get connection statistics.
-    pub fn getStats(self: *const DreamBrowserWebSocket) ConnectionStats {
+    pub fn getStats(self: *const RealidreamBrowserWebSocket) ConnectionStats {
         var stats = ConnectionStats{
             .total_connections = self.pool.connections_len,
             .connected = 0,
@@ -493,7 +493,7 @@ pub const DreamBrowserWebSocket = struct {
     };
     
     // Helper: Check if connection has timed out.
-    fn is_connect_timed_out(self: *const DreamBrowserWebSocket, conn: *const Connection) bool {
+    fn is_connect_timed_out(self: *const RealidreamBrowserWebSocket, conn: *const Connection) bool {
         _ = self;
         if (conn.created_at == 0) {
             return false;
@@ -507,7 +507,7 @@ pub const DreamBrowserWebSocket = struct {
     }
     
     // Helper: Check if message operation has timed out.
-    fn is_message_timed_out(self: *const DreamBrowserWebSocket, conn: *const Connection) bool {
+    fn is_message_timed_out(self: *const RealidreamBrowserWebSocket, conn: *const Connection) bool {
         _ = self;
         if (conn.last_activity == 0) {
             return false;
@@ -518,35 +518,35 @@ pub const DreamBrowserWebSocket = struct {
     }
     
     // Helper: Map network errors to WebSocketError.
-    fn mapNetworkError(self: *const DreamBrowserWebSocket, err: anytype) websocket_errors.WebSocketError {
+    fn mapNetworkError(self: *const RealidreamBrowserWebSocket, err: anytype) websocket_errors.WebSocketError {
         _ = self;
         _ = err;
         return websocket_errors.WebSocketError.connection_failed;
     }
     
     // Helper: Map connection errors to WebSocketError.
-    fn mapConnectionError(self: *const DreamBrowserWebSocket, err: anytype) websocket_errors.WebSocketError {
+    fn mapConnectionError(self: *const RealidreamBrowserWebSocket, err: anytype) websocket_errors.WebSocketError {
         _ = self;
         _ = err;
         return websocket_errors.WebSocketError.connection_failed;
     }
     
     // Helper: Map handshake errors to WebSocketError.
-    fn mapHandshakeError(self: *const DreamBrowserWebSocket, err: anytype) websocket_errors.WebSocketError {
+    fn mapHandshakeError(self: *const RealidreamBrowserWebSocket, err: anytype) websocket_errors.WebSocketError {
         _ = self;
         _ = err;
         return websocket_errors.WebSocketError.handshake_failed;
     }
     
     // Helper: Map send errors to WebSocketError.
-    fn mapSendError(self: *const DreamBrowserWebSocket, err: anytype) websocket_errors.WebSocketError {
+    fn mapSendError(self: *const RealidreamBrowserWebSocket, err: anytype) websocket_errors.WebSocketError {
         _ = self;
         _ = err;
         return websocket_errors.WebSocketError.message_send_failed;
     }
     
     // Helper: Map receive errors to WebSocketError.
-    fn mapReceiveError(self: *const DreamBrowserWebSocket, err: anytype) websocket_errors.WebSocketError {
+    fn mapReceiveError(self: *const RealidreamBrowserWebSocket, err: anytype) websocket_errors.WebSocketError {
         _ = self;
         _ = err;
         return websocket_errors.WebSocketError.message_receive_failed;
@@ -557,7 +557,7 @@ test "browser websocket initialization" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var transport = try DreamBrowserWebSocket.init(arena.allocator());
+    var transport = try RealidreamBrowserWebSocket.init(arena.allocator());
     defer transport.deinit();
     
     // Assert: Transport initialized
@@ -568,7 +568,7 @@ test "browser websocket add connection" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var transport = try DreamBrowserWebSocket.init(arena.allocator());
+    var transport = try RealidreamBrowserWebSocket.init(arena.allocator());
     defer transport.deinit();
     
     const conn_idx = transport.pool.addConnection(arena.allocator(), "ws://example.com:8080/") catch |err| {
@@ -591,7 +591,7 @@ test "browser websocket get stats" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var transport = try DreamBrowserWebSocket.init(arena.allocator());
+    var transport = try RealidreamBrowserWebSocket.init(arena.allocator());
     defer transport.deinit();
     
     _ = transport.pool.addConnection(arena.allocator(), "ws://example.com:8080/") catch |err| {

@@ -1,6 +1,6 @@
 const std = @import("std");
 const Editor = @import("aurora_editor.zig").Editor;
-const DreamBrowserViewport = @import("dream_browser_viewport.zig").DreamBrowserViewport;
+const RealidreamBrowserViewport = @import("realidream_browser_viewport.zig").RealidreamBrowserViewport;
 
 /// Cross Integration: Enhanced communication between editor and browser.
 /// ~<~ Glow Airbend: explicit cross-component state, bounded operations.

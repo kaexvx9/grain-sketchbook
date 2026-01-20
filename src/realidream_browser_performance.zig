@@ -9,7 +9,7 @@ const std = @import("std");
 /// - Performance monitoring (frame time, render time, layout time)
 /// - Rendering optimization (skip frames if behind, adaptive quality)
 /// - Performance metrics (FPS, frame time, render time statistics)
-pub const DreamBrowserPerformance = struct {
+pub const RealidreamBrowserPerformance = struct {
     // Target frame rate: 60fps (16.67ms per frame)
     pub const TARGET_FPS: u32 = 60;
     pub const TARGET_FRAME_TIME_MS: u32 = 1000 / TARGET_FPS; // ~16.67ms
@@ -55,13 +55,13 @@ pub const DreamBrowserPerformance = struct {
     metrics: PerformanceMetrics,
     
     /// Initialize performance monitor.
-    pub fn init(allocator: std.mem.Allocator) DreamBrowserPerformance {
+    pub fn init(allocator: std.mem.Allocator) RealidreamBrowserPerformance {
         // Allocator is always valid in Zig 0.15 (no null check needed)
         
         // Allocate frame history buffer
         const timings = allocator.alloc(FrameTiming, MAX_FRAME_HISTORY) catch {
             // Fallback: empty history if allocation fails
-            return DreamBrowserPerformance{
+            return RealidreamBrowserPerformance{
                 .allocator = allocator,
                 .frame_history = FrameHistory{
                     .timings = &.{},
@@ -83,7 +83,7 @@ pub const DreamBrowserPerformance = struct {
             };
         };
         
-        return DreamBrowserPerformance{
+        return RealidreamBrowserPerformance{
             .allocator = allocator,
             .frame_history = FrameHistory{
                 .timings = timings,
@@ -106,7 +106,7 @@ pub const DreamBrowserPerformance = struct {
     }
     
     /// Deinitialize performance monitor.
-    pub fn deinit(self: *DreamBrowserPerformance) void {
+    pub fn deinit(self: *RealidreamBrowserPerformance) void {
         // Free frame history buffer
         if (self.frame_history.timings.len > 0) {
             self.allocator.free(self.frame_history.timings);
@@ -121,13 +121,13 @@ pub const DreamBrowserPerformance = struct {
     }
     
     /// Start frame timing (call at start of frame).
-    pub fn start_frame(self: *DreamBrowserPerformance) void {
+    pub fn start_frame(self: *RealidreamBrowserPerformance) void {
         self.current_frame_start = get_current_time_ms();
     }
     
     /// End frame timing (call at end of frame).
     pub fn end_frame(
-        self: *DreamBrowserPerformance,
+        self: *RealidreamBrowserPerformance,
         render_time_ms: u32,
         layout_time_ms: u32,
     ) void {
@@ -214,7 +214,7 @@ pub const DreamBrowserPerformance = struct {
     }
     
     /// Check if we should skip this frame (if we're behind schedule).
-    pub fn should_skip_frame(self: *const DreamBrowserPerformance) bool {
+    pub fn should_skip_frame(self: *const RealidreamBrowserPerformance) bool {
         // If we haven't rendered any frames yet, don't skip
         if (self.metrics.frames_rendered == 0) {
             return false;
@@ -230,12 +230,12 @@ pub const DreamBrowserPerformance = struct {
     }
     
     /// Get current performance metrics.
-    pub fn get_metrics(self: *const DreamBrowserPerformance) PerformanceMetrics {
+    pub fn get_metrics(self: *const RealidreamBrowserPerformance) PerformanceMetrics {
         return self.metrics;
     }
     
     /// Get frame history (for detailed analysis).
-    pub fn get_frame_history(self: *const DreamBrowserPerformance) []const FrameTiming {
+    pub fn get_frame_history(self: *const RealidreamBrowserPerformance) []const FrameTiming {
         if (self.frame_history.timings_len == 0) {
             return &.{};
         }
@@ -243,7 +243,7 @@ pub const DreamBrowserPerformance = struct {
     }
     
     /// Check if we're maintaining target FPS.
-    pub fn is_maintaining_target_fps(self: *const DreamBrowserPerformance) bool {
+    pub fn is_maintaining_target_fps(self: *const RealidreamBrowserPerformance) bool {
         // Check if average FPS is within 5% of target
         const target_fps_f32 = @as(f32, @floatFromInt(TARGET_FPS));
         const fps_ratio = self.metrics.average_fps / target_fps_f32;
@@ -251,7 +251,7 @@ pub const DreamBrowserPerformance = struct {
     }
     
     /// Get frame time budget remaining (for adaptive quality).
-    pub fn get_remaining_frame_budget_ms(self: *const DreamBrowserPerformance) u32 {
+    pub fn get_remaining_frame_budget_ms(self: *const RealidreamBrowserPerformance) u32 {
         const elapsed = @as(u32, @intCast(get_current_time_ms() - self.current_frame_start));
         if (elapsed >= TARGET_FRAME_TIME_MS) {
             return 0; // No budget remaining
@@ -260,7 +260,7 @@ pub const DreamBrowserPerformance = struct {
     }
     
     /// Reset performance metrics (for new measurement period).
-    pub fn reset_metrics(self: *DreamBrowserPerformance) void {
+    pub fn reset_metrics(self: *RealidreamBrowserPerformance) void {
         self.metrics = PerformanceMetrics{
             .frames_rendered = 0,
             .average_fps = 0.0,
@@ -280,7 +280,7 @@ test "performance initialization" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var perf = DreamBrowserPerformance.init(arena.allocator());
+    var perf = RealidreamBrowserPerformance.init(arena.allocator());
     defer perf.deinit();
     
     // Assert: Performance monitor initialized
@@ -292,7 +292,7 @@ test "performance frame timing" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var perf = DreamBrowserPerformance.init(arena.allocator());
+    var perf = RealidreamBrowserPerformance.init(arena.allocator());
     defer perf.deinit();
     
     perf.start_frame();
@@ -308,7 +308,7 @@ test "performance skip frame" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var perf = DreamBrowserPerformance.init(arena.allocator());
+    var perf = RealidreamBrowserPerformance.init(arena.allocator());
     defer perf.deinit();
     
     // Should not skip first frame
@@ -328,7 +328,7 @@ test "performance metrics" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var perf = DreamBrowserPerformance.init(arena.allocator());
+    var perf = RealidreamBrowserPerformance.init(arena.allocator());
     defer perf.deinit();
     
     // Record multiple frames

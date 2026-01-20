@@ -210,14 +210,14 @@ pub const BrowserViewComponents = struct {
 };
 
 // Dream Browser Component API: unified API for all browser components.
-pub const DreamBrowserComponentAPI = struct {
+pub const RealidreamBrowserComponentAPI = struct {
     navigation: NavigationComponents,
     address_bar: AddressBarComponents,
     tabs: TabComponents,
     browser_view: BrowserViewComponents,
 
-    pub fn init() DreamBrowserComponentAPI {
-        const api = DreamBrowserComponentAPI{
+    pub fn init() RealidreamBrowserComponentAPI {
+        const api = RealidreamBrowserComponentAPI{
             .navigation = NavigationComponents.init(),
             .address_bar = AddressBarComponents.init(),
             .tabs = TabComponents.init(),
@@ -230,7 +230,7 @@ pub const DreamBrowserComponentAPI = struct {
         return api;
     }
 
-    pub fn set_theme_all(self: *DreamBrowserComponentAPI, theme: ComponentTheme) void {
+    pub fn set_theme_all(self: *RealidreamBrowserComponentAPI, theme: ComponentTheme) void {
         std.debug.assert(@intFromPtr(self) != 0);
         self.navigation.set_theme_all(theme);
         self.address_bar.set_theme_all(theme);
@@ -239,7 +239,7 @@ pub const DreamBrowserComponentAPI = struct {
         std.debug.assert(self.navigation.navigation_bar.theme == theme);
     }
 
-    pub fn set_size_all(self: *DreamBrowserComponentAPI, size: ComponentSize) void {
+    pub fn set_size_all(self: *RealidreamBrowserComponentAPI, size: ComponentSize) void {
         std.debug.assert(@intFromPtr(self) != 0);
         self.navigation.set_size_all(size);
         self.address_bar.set_size_all(size);

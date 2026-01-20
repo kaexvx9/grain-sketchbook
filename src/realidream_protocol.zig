@@ -1,10 +1,10 @@
 const std = @import("std");
-const WebSocketClient = @import("dream_websocket.zig").WebSocketClient;
+const WebSocketClient = @import("realidream_websocket.zig").WebSocketClient;
 
 /// Dream Protocol: Nostr + WebSocket + TigerBeetle-style state machine.
 /// ~<~ Glow Airbend: explicit event types, bounded buffers.
 /// ~~~~ Glow Waterbend: streaming events flow deterministically.
-pub const DreamProtocol = struct {
+pub const RealidreamProtocol = struct {
     allocator: std.mem.Allocator,
     state: State,
     ws_client: ?WebSocketClient = null,
@@ -82,14 +82,14 @@ pub const DreamProtocol = struct {
         message: []const u8,
     };
     
-    pub fn init(allocator: std.mem.Allocator) DreamProtocol {
-        return DreamProtocol{
+    pub fn init(allocator: std.mem.Allocator) RealidreamProtocol {
+        return RealidreamProtocol{
             .allocator = allocator,
             .state = .disconnected,
         };
     }
     
-    pub fn deinit(self: *DreamProtocol) void {
+    pub fn deinit(self: *RealidreamProtocol) void {
         if (self.ws_client) |*ws| {
             ws.deinit();
         }
@@ -149,7 +149,7 @@ pub const DreamProtocol = struct {
     }
     
     /// Connect to Nostr relay via WebSocket.
-    pub fn connect(self: *DreamProtocol, relay_url: []const u8) !void {
+    pub fn connect(self: *RealidreamProtocol, relay_url: []const u8) !void {
         // Assert: State must be disconnected
         std.debug.assert(self.state == .disconnected);
         std.debug.assert(relay_url.len > 0);
@@ -197,7 +197,7 @@ pub const DreamProtocol = struct {
     }
     
     /// Disconnect from relay.
-    pub fn disconnect(self: *DreamProtocol) void {
+    pub fn disconnect(self: *RealidreamProtocol) void {
         // Assert: State must be connected or connecting
         std.debug.assert(self.state == .connected or self.state == .connecting);
         
@@ -227,7 +227,7 @@ pub const DreamProtocol = struct {
     /// Serialize REQ message to JSON.
     /// Why: Convert REQ message to JSON array format for Nostr protocol.
     fn serialize_req_message(
-        self: *DreamProtocol,
+        self: *RealidreamProtocol,
         subscription_id: []const u8,
         filters: []const Filter,
         json_buf: []u8,
@@ -259,7 +259,7 @@ pub const DreamProtocol = struct {
     /// Serialize filter to JSON object.
     /// Why: Convert Filter struct to JSON object format.
     fn serialize_filter(
-        self: *DreamProtocol,
+        self: *RealidreamProtocol,
         filter: *const Filter,
         writer: anytype,
     ) !void {
@@ -330,7 +330,7 @@ pub const DreamProtocol = struct {
     }
     
     /// Subscribe to events matching filters.
-    pub fn subscribe(self: *DreamProtocol, subscription_id: []const u8, filters: []const Filter) !void {
+    pub fn subscribe(self: *RealidreamProtocol, subscription_id: []const u8, filters: []const Filter) !void {
         // Assert: State must be connected
         std.debug.assert(self.state == .connected);
         std.debug.assert(self.ws_client != null);
@@ -362,7 +362,7 @@ pub const DreamProtocol = struct {
     /// Serialize CLOSE message to JSON.
     /// Why: Convert CLOSE message to JSON array format for Nostr protocol.
     fn serialize_close_message(
-        self: *DreamProtocol,
+        self: *RealidreamProtocol,
         subscription_id: []const u8,
         json_buf: []u8,
     ) !u32 {
@@ -382,7 +382,7 @@ pub const DreamProtocol = struct {
     }
     
     /// Unsubscribe from events.
-    pub fn unsubscribe(self: *DreamProtocol, subscription_id: []const u8) !void {
+    pub fn unsubscribe(self: *RealidreamProtocol, subscription_id: []const u8) !void {
         // Assert: State must be connected
         std.debug.assert(self.state == .connected);
         std.debug.assert(self.ws_client != null);
@@ -408,7 +408,7 @@ pub const DreamProtocol = struct {
     }
     
     /// Publish event to relay.
-    pub fn publish(self: *DreamProtocol, event: Event) !void {
+    pub fn publish(self: *RealidreamProtocol, event: Event) !void {
         // Assert: State must be connected
         std.debug.assert(self.state == .connected);
         
@@ -426,7 +426,7 @@ pub const DreamProtocol = struct {
     /// Parse EVENT message from JSON array.
     /// Why: Extract Event struct from JSON array ["EVENT", subscription_id, {...event...}].
     fn parse_event_message(
-        self: *DreamProtocol,
+        self: *RealidreamProtocol,
         json_array: std.json.Array,
     ) !Message {
         std.debug.assert(json_array.items.len >= 3);
@@ -499,7 +499,7 @@ pub const DreamProtocol = struct {
     /// Parse EOSE message from JSON array.
     /// Why: Extract EOSE struct from JSON array ["EOSE", subscription_id].
     fn parse_eose_message(
-        self: *DreamProtocol,
+        self: *RealidreamProtocol,
         json_array: std.json.Array,
     ) !Message {
         if (json_array.items.len < 2) {
@@ -513,7 +513,7 @@ pub const DreamProtocol = struct {
     /// Parse NOTICE message from JSON array.
     /// Why: Extract Notice struct from JSON array ["NOTICE", message].
     fn parse_notice_message(
-        self: *DreamProtocol,
+        self: *RealidreamProtocol,
         json_array: std.json.Array,
     ) !Message {
         if (json_array.items.len < 2) {
@@ -525,7 +525,7 @@ pub const DreamProtocol = struct {
     }
     
     /// Receive message from relay (non-blocking).
-    pub fn receive(self: *DreamProtocol) !?Message {
+    pub fn receive(self: *RealidreamProtocol) !?Message {
         // Assert: State must be connected
         std.debug.assert(self.state == .connected);
         std.debug.assert(self.ws_client != null);
@@ -579,7 +579,7 @@ test "dream protocol init" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var protocol = DreamProtocol.init(arena.allocator());
+    var protocol = RealidreamProtocol.init(arena.allocator());
     defer protocol.deinit();
     
     // Assert: Protocol initialized correctly
@@ -590,7 +590,7 @@ test "dream protocol state transitions" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var protocol = DreamProtocol.init(arena.allocator());
+    var protocol = RealidreamProtocol.init(arena.allocator());
     defer protocol.deinit();
     
     // Test: Connect transitions to connecting (ws:// only, wss:// not yet supported)

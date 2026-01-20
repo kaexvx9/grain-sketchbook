@@ -1,7 +1,7 @@
 const std = @import("std");
-const DreamBrowserParser = @import("dream_browser_parser.zig").DreamBrowserParser;
-const DreamBrowserPerformance = @import("dream_browser_performance.zig").DreamBrowserPerformance;
-const DreamBrowserProfiler = @import("dream_browser_profiler.zig").DreamBrowserProfiler;
+const RealidreamBrowserParser = @import("realidream_browser_parser.zig").RealidreamBrowserParser;
+const RealidreamBrowserPerformance = @import("realidream_browser_performance.zig").RealidreamBrowserPerformance;
+const RealidreamBrowserProfiler = @import("realidream_browser_profiler.zig").RealidreamBrowserProfiler;
 const GrainAurora = @import("grain_aurora.zig").GrainAurora;
 const GrainBuffer = @import("grain_buffer.zig").GrainBuffer;
 
@@ -14,7 +14,7 @@ const GrainBuffer = @import("grain_buffer.zig").GrainBuffer;
 /// - Render to Grain Aurora components (iterative stack-based)
 /// - Readonly spans for metadata (event ID, timestamp)
 /// - Editable spans for content
-pub const DreamBrowserRenderer = struct {
+pub const RealidreamBrowserRenderer = struct {
     allocator: std.mem.Allocator,
     
     // Bounded: Max 1,000 layout boxes per page
@@ -33,7 +33,7 @@ pub const DreamBrowserRenderer = struct {
         width: u32,
         height: u32,
         display: DisplayType,
-        node: *const DreamBrowserParser.HtmlNode,
+        node: *const RealidreamBrowserParser.HtmlNode,
     };
     
     /// Display type (block or inline).
@@ -44,7 +44,7 @@ pub const DreamBrowserRenderer = struct {
     
     /// Stack frame for iterative layout (replaces recursion).
     const LayoutStackFrame = struct {
-        node: *const DreamBrowserParser.HtmlNode,
+        node: *const RealidreamBrowserParser.HtmlNode,
         x: u32,
         y: u32,
         available_width: u32,
@@ -54,14 +54,14 @@ pub const DreamBrowserRenderer = struct {
     
     /// Stack frame for iterative rendering (replaces recursion).
     const RenderStackFrame = struct {
-        node: *const DreamBrowserParser.HtmlNode,
+        node: *const RealidreamBrowserParser.HtmlNode,
         child_index: u32, // Current child being processed
         children_list: *std.ArrayList(GrainAurora.Node), // Accumulated children
     };
     
     /// Initialize renderer.
-    pub fn init(allocator: std.mem.Allocator) DreamBrowserRenderer {
-        return DreamBrowserRenderer{
+    pub fn init(allocator: std.mem.Allocator) RealidreamBrowserRenderer {
+        return RealidreamBrowserRenderer{
             .allocator = allocator,
             .performance = null,
         };
@@ -70,9 +70,9 @@ pub const DreamBrowserRenderer = struct {
     /// Initialize renderer with performance monitoring.
     pub fn init_with_performance(
         allocator: std.mem.Allocator,
-        performance: *DreamBrowserPerformance,
-    ) DreamBrowserRenderer {
-        return DreamBrowserRenderer{
+        performance: *RealidreamBrowserPerformance,
+    ) RealidreamBrowserRenderer {
+        return RealidreamBrowserRenderer{
             .allocator = allocator,
             .performance = performance,
             .profiler = null,
@@ -82,9 +82,9 @@ pub const DreamBrowserRenderer = struct {
     /// Initialize renderer with profiler (for hot path identification).
     pub fn init_with_profiler(
         allocator: std.mem.Allocator,
-        profiler: *DreamBrowserProfiler,
-    ) DreamBrowserRenderer {
-        return DreamBrowserRenderer{
+        profiler: *RealidreamBrowserProfiler,
+    ) RealidreamBrowserRenderer {
+        return RealidreamBrowserRenderer{
             .allocator = allocator,
             .performance = null,
             .profiler = profiler,
@@ -94,10 +94,10 @@ pub const DreamBrowserRenderer = struct {
     /// Initialize renderer with both performance monitor and profiler.
     pub fn init_with_performance_and_profiler(
         allocator: std.mem.Allocator,
-        performance: *DreamBrowserPerformance,
-        profiler: *DreamBrowserProfiler,
-    ) DreamBrowserRenderer {
-        return DreamBrowserRenderer{
+        performance: *RealidreamBrowserPerformance,
+        profiler: *RealidreamBrowserProfiler,
+    ) RealidreamBrowserRenderer {
+        return RealidreamBrowserRenderer{
             .allocator = allocator,
             .performance = performance,
             .profiler = profiler,
@@ -105,13 +105,13 @@ pub const DreamBrowserRenderer = struct {
     }
     
     /// Deinitialize renderer.
-    pub fn deinit(self: *DreamBrowserRenderer) void {
+    pub fn deinit(self: *RealidreamBrowserRenderer) void {
         // No dynamic allocation to clean up
         _ = self;
     }
     
     /// Determine display type for HTML node (block or inline).
-    pub fn getDisplayType(node: *const DreamBrowserParser.HtmlNode) DisplayType {
+    pub fn getDisplayType(node: *const RealidreamBrowserParser.HtmlNode) DisplayType {
         // Assert: Node must be valid (default to inline for empty tag names)
         if (node.tag_name.len == 0) {
             return .inline_element;
@@ -131,8 +131,8 @@ pub const DreamBrowserRenderer = struct {
     
     /// Layout HTML tree (block/inline flow, iterative stack-based).
     pub fn layout(
-        self: *DreamBrowserRenderer,
-        root: *const DreamBrowserParser.HtmlNode,
+        self: *RealidreamBrowserRenderer,
+        root: *const RealidreamBrowserParser.HtmlNode,
         viewport_width: u32,
         viewport_height: u32,
     ) ![]const LayoutBox {
@@ -237,15 +237,15 @@ pub const DreamBrowserRenderer = struct {
     
     /// Render HTML node to Grain Aurora component (iterative stack-based).
     pub fn renderToAurora(
-        self: *DreamBrowserRenderer,
-        node: *const DreamBrowserParser.HtmlNode,
-        css_rules: []const DreamBrowserParser.CssRule,
+        self: *RealidreamBrowserRenderer,
+        node: *const RealidreamBrowserParser.HtmlNode,
+        css_rules: []const RealidreamBrowserParser.CssRule,
     ) !GrainAurora.Node {
         // Assert: Node must be valid
         std.debug.assert(node.tag_name.len > 0);
         
         // Compute styles for node (for future use in rendering)
-        const parser = DreamBrowserParser.init(self.allocator);
+        const parser = RealidreamBrowserParser.init(self.allocator);
         defer parser.deinit();
         _ = try parser.computeStyles(node, css_rules); // Styles computed but not used in simplified rendering
         
@@ -356,8 +356,8 @@ pub const DreamBrowserRenderer = struct {
     
     /// Create readonly spans for metadata (event ID, timestamp, iterative).
     pub fn createReadonlySpans(
-        self: *DreamBrowserRenderer,
-        node: *const DreamBrowserParser.HtmlNode,
+        self: *RealidreamBrowserRenderer,
+        node: *const RealidreamBrowserParser.HtmlNode,
         buffer: *GrainBuffer,
     ) ![]const GrainBuffer.Segment {
         // Assert: Node and buffer must be valid
@@ -369,7 +369,7 @@ pub const DreamBrowserRenderer = struct {
         errdefer readonly_spans.deinit(self.allocator);
         
         // Iterative stack-based processing (replaces recursion)
-        var stack = std.ArrayList(*const DreamBrowserParser.HtmlNode){ .items = &.{}, .capacity = 0 };
+        var stack = std.ArrayList(*const RealidreamBrowserParser.HtmlNode){ .items = &.{}, .capacity = 0 };
         errdefer stack.deinit(self.allocator);
         
         // Push root node onto stack
@@ -424,8 +424,8 @@ pub const DreamBrowserRenderer = struct {
     
     /// Create editable spans for content (non-metadata text, iterative).
     pub fn createEditableSpans(
-        self: *DreamBrowserRenderer,
-        node: *const DreamBrowserParser.HtmlNode,
+        self: *RealidreamBrowserRenderer,
+        node: *const RealidreamBrowserParser.HtmlNode,
         buffer: *GrainBuffer,
     ) !void {
         // Assert: Node and buffer must be valid
@@ -434,7 +434,7 @@ pub const DreamBrowserRenderer = struct {
         }
         
         // Iterative stack-based processing (replaces recursion)
-        var stack = std.ArrayList(*const DreamBrowserParser.HtmlNode){ .items = &.{}, .capacity = 0 };
+        var stack = std.ArrayList(*const RealidreamBrowserParser.HtmlNode){ .items = &.{}, .capacity = 0 };
         errdefer stack.deinit(self.allocator);
         
         // Push root node onto stack
@@ -468,9 +468,9 @@ pub const DreamBrowserRenderer = struct {
     
     /// Render complete page (HTML + CSS → Grain Aurora + readonly spans).
     pub fn renderPage(
-        self: *DreamBrowserRenderer,
-        root: *const DreamBrowserParser.HtmlNode,
-        css_rules: []const DreamBrowserParser.CssRule,
+        self: *RealidreamBrowserRenderer,
+        root: *const RealidreamBrowserParser.HtmlNode,
+        css_rules: []const RealidreamBrowserParser.CssRule,
         buffer: *GrainBuffer,
     ) !RenderResult {
         // Assert: Root node must be valid
@@ -504,7 +504,7 @@ test "browser renderer initialization" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var renderer = DreamBrowserRenderer.init(arena.allocator());
+    var renderer = RealidreamBrowserRenderer.init(arena.allocator());
     defer renderer.deinit();
     
     // Assert: Renderer initialized
@@ -515,10 +515,10 @@ test "browser renderer get display type" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var renderer = DreamBrowserRenderer.init(arena.allocator());
+    var renderer = RealidreamBrowserRenderer.init(arena.allocator());
     defer renderer.deinit();
     
-    var parser = DreamBrowserParser.init(arena.allocator());
+    var parser = RealidreamBrowserParser.init(arena.allocator());
     defer parser.deinit();
     
     const html = "<div>Hello</div>";
@@ -539,10 +539,10 @@ test "browser renderer layout" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var renderer = DreamBrowserRenderer.init(arena.allocator());
+    var renderer = RealidreamBrowserRenderer.init(arena.allocator());
     defer renderer.deinit();
     
-    var parser = DreamBrowserParser.init(arena.allocator());
+    var parser = RealidreamBrowserParser.init(arena.allocator());
     defer parser.deinit();
     
     const html = "<div>Hello</div>";
@@ -565,10 +565,10 @@ test "browser renderer render to aurora" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var renderer = DreamBrowserRenderer.init(arena.allocator());
+    var renderer = RealidreamBrowserRenderer.init(arena.allocator());
     defer renderer.deinit();
     
-    var parser = DreamBrowserParser.init(arena.allocator());
+    var parser = RealidreamBrowserParser.init(arena.allocator());
     defer parser.deinit();
     
     const html = "<div>Hello</div>";

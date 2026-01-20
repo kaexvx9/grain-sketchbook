@@ -9,7 +9,7 @@ const std = @import("std");
 /// - Glyph rendering (character to bitmap conversion)
 /// - Font cache (cached loaded fonts)
 /// - Glyph cache (cached rendered glyphs)
-pub const DreamBrowserFontRenderer = struct {
+pub const RealidreamBrowserFontRenderer = struct {
     // Bounded: Max 100 loaded fonts
     pub const MAX_LOADED_FONTS: u32 = 100;
     
@@ -93,14 +93,14 @@ pub const DreamBrowserFontRenderer = struct {
     glyph_cache: GlyphCache,
     
     /// Initialize font renderer.
-    pub fn init(allocator: std.mem.Allocator) !DreamBrowserFontRenderer {
+    pub fn init(allocator: std.mem.Allocator) !RealidreamBrowserFontRenderer {
         // Pre-allocate font cache
         const font_entries = try allocator.alloc(FontCacheEntry, MAX_LOADED_FONTS);
         
         // Pre-allocate glyph cache
         const glyph_entries = try allocator.alloc(GlyphCacheEntry, MAX_CACHED_GLYPHS);
         
-        return DreamBrowserFontRenderer{
+        return RealidreamBrowserFontRenderer{
             .allocator = allocator,
             .font_cache = FontCache{
                 .entries = font_entries,
@@ -116,7 +116,7 @@ pub const DreamBrowserFontRenderer = struct {
     }
     
     /// Deinitialize font renderer.
-    pub fn deinit(self: *DreamBrowserFontRenderer) void {
+    pub fn deinit(self: *RealidreamBrowserFontRenderer) void {
         // Free font cache
         for (self.font_cache.entries[0..self.font_cache.entries_len]) |*entry| {
             self.allocator.free(entry.key);
@@ -169,7 +169,7 @@ pub const DreamBrowserFontRenderer = struct {
     /// - Character mapping (Unicode to glyph index)
     /// For now, this is a placeholder that stores font data.
     pub fn load_font(
-        self: *DreamBrowserFontRenderer,
+        self: *RealidreamBrowserFontRenderer,
         family_name: []const u8,
         style: FontStyle,
         data: []const u8,
@@ -251,7 +251,7 @@ pub const DreamBrowserFontRenderer = struct {
     
     /// Create font cache key (family:style).
     fn create_font_cache_key(
-        self: *DreamBrowserFontRenderer,
+        self: *RealidreamBrowserFontRenderer,
         family_name: []const u8,
         style: FontStyle,
     ) ![]const u8 {
@@ -280,7 +280,7 @@ pub const DreamBrowserFontRenderer = struct {
     /// - Kerning (character spacing adjustments)
     /// For now, this is a placeholder that returns an error.
     pub fn render_glyph(
-        self: *DreamBrowserFontRenderer,
+        self: *RealidreamBrowserFontRenderer,
         character: u32,
         font_family: []const u8,
         font_size: u32,
@@ -302,7 +302,7 @@ pub const DreamBrowserFontRenderer = struct {
     
     /// Get cached glyph.
     pub fn get_cached_glyph(
-        self: *DreamBrowserFontRenderer,
+        self: *RealidreamBrowserFontRenderer,
         character: u32,
         font_family: []const u8,
         font_size: u32,
@@ -324,7 +324,7 @@ pub const DreamBrowserFontRenderer = struct {
     
     /// Create glyph cache key (character:family:size).
     fn create_glyph_cache_key(
-        self: *DreamBrowserFontRenderer,
+        self: *RealidreamBrowserFontRenderer,
         character: u32,
         font_family: []const u8,
         font_size: u32,
@@ -343,7 +343,7 @@ pub const DreamBrowserFontRenderer = struct {
     }
     
     /// Clear font cache.
-    pub fn clear_font_cache(self: *DreamBrowserFontRenderer) void {
+    pub fn clear_font_cache(self: *RealidreamBrowserFontRenderer) void {
         // Free cached fonts
         for (self.font_cache.entries[0..self.font_cache.entries_len]) |*entry| {
             self.allocator.free(entry.key);
@@ -357,7 +357,7 @@ pub const DreamBrowserFontRenderer = struct {
     }
     
     /// Clear glyph cache.
-    pub fn clear_glyph_cache(self: *DreamBrowserFontRenderer) void {
+    pub fn clear_glyph_cache(self: *RealidreamBrowserFontRenderer) void {
         // Free cached glyphs
         for (self.glyph_cache.entries[0..self.glyph_cache.entries_len]) |*entry| {
             self.allocator.free(entry.key);
@@ -371,7 +371,7 @@ pub const DreamBrowserFontRenderer = struct {
     }
     
     /// Get cache statistics.
-    pub fn get_cache_stats(self: *const DreamBrowserFontRenderer) CacheStats {
+    pub fn get_cache_stats(self: *const RealidreamBrowserFontRenderer) CacheStats {
         return CacheStats{
             .loaded_fonts = self.font_cache.entries_len,
             .cached_glyphs = self.glyph_cache.entries_len,
@@ -393,7 +393,7 @@ test "font renderer initialization" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var renderer = try DreamBrowserFontRenderer.init(arena.allocator());
+    var renderer = try RealidreamBrowserFontRenderer.init(arena.allocator());
     defer renderer.deinit();
     
     // Assert: Renderer initialized
@@ -403,19 +403,19 @@ test "font renderer initialization" {
 
 test "font format detection ttf" {
     const ttf_signature = "true";
-    const format = DreamBrowserFontRenderer.detect_format(ttf_signature);
+    const format = RealidreamBrowserFontRenderer.detect_format(ttf_signature);
     try std.testing.expect(format == .ttf);
 }
 
 test "font format detection otf" {
     const otf_signature = "OTTO";
-    const format = DreamBrowserFontRenderer.detect_format(otf_signature);
+    const format = RealidreamBrowserFontRenderer.detect_format(otf_signature);
     try std.testing.expect(format == .otf);
 }
 
 test "font format detection unknown" {
     const unknown_data = "not a font";
-    const format = DreamBrowserFontRenderer.detect_format(unknown_data);
+    const format = RealidreamBrowserFontRenderer.detect_format(unknown_data);
     try std.testing.expect(format == .unknown);
 }
 
@@ -423,13 +423,13 @@ test "font renderer cache stats" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var renderer = try DreamBrowserFontRenderer.init(arena.allocator());
+    var renderer = try RealidreamBrowserFontRenderer.init(arena.allocator());
     defer renderer.deinit();
     
     const stats = renderer.get_cache_stats();
     try std.testing.expect(stats.loaded_fonts == 0);
     try std.testing.expect(stats.cached_glyphs == 0);
-    try std.testing.expect(stats.max_fonts == DreamBrowserFontRenderer.MAX_LOADED_FONTS);
-    try std.testing.expect(stats.max_glyphs == DreamBrowserFontRenderer.MAX_CACHED_GLYPHS);
+    try std.testing.expect(stats.max_fonts == RealidreamBrowserFontRenderer.MAX_LOADED_FONTS);
+    try std.testing.expect(stats.max_glyphs == RealidreamBrowserFontRenderer.MAX_CACHED_GLYPHS);
 }
 

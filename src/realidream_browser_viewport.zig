@@ -1,5 +1,5 @@
 const std = @import("std");
-const DreamBrowserRenderer = @import("dream_browser_renderer.zig").DreamBrowserRenderer;
+const RealidreamBrowserRenderer = @import("realidream_browser_renderer.zig").RealidreamBrowserRenderer;
 
 /// Dream Browser Viewport: Scrolling, navigation, and viewport management.
 /// ~<~ Glow Airbend: explicit viewport state, bounded scrolling.
@@ -10,7 +10,7 @@ const DreamBrowserRenderer = @import("dream_browser_renderer.zig").DreamBrowserR
 /// - Scrolling (vertical, horizontal, smooth)
 /// - Navigation (back, forward, history)
 /// - Bounds checking (prevent out-of-bounds scrolling)
-pub const DreamBrowserViewport = struct {
+pub const RealidreamBrowserViewport = struct {
     // Bounded: Max 1,000,000 pixels scroll position
     pub const MAX_SCROLL_POSITION: u32 = 1_000_000;
     
@@ -50,7 +50,7 @@ pub const DreamBrowserViewport = struct {
     history: NavigationHistory,
     
     /// Initialize viewport.
-    pub fn init(allocator: std.mem.Allocator) DreamBrowserViewport {
+    pub fn init(allocator: std.mem.Allocator) RealidreamBrowserViewport {
         // Initialize viewport state
         const initial_state = ViewportState{
             .scroll_x = 0,
@@ -64,7 +64,7 @@ pub const DreamBrowserViewport = struct {
         // Initialize history
         const history_entries = allocator.alloc(HistoryEntry, MAX_HISTORY_ENTRIES) catch {
             // Fallback: empty history if allocation fails
-            return DreamBrowserViewport{
+            return RealidreamBrowserViewport{
                 .allocator = allocator,
                 .viewport_state = initial_state,
                 .history = NavigationHistory{
@@ -75,7 +75,7 @@ pub const DreamBrowserViewport = struct {
             };
         };
         
-        return DreamBrowserViewport{
+        return RealidreamBrowserViewport{
             .allocator = allocator,
             .viewport_state = initial_state,
             .history = NavigationHistory{
@@ -87,7 +87,7 @@ pub const DreamBrowserViewport = struct {
     }
     
     /// Deinitialize viewport.
-    pub fn deinit(self: *DreamBrowserViewport) void {
+    pub fn deinit(self: *RealidreamBrowserViewport) void {
         // Free history entries
         if (self.history.entries.len > 0) {
             // Free URL strings in history entries
@@ -100,7 +100,7 @@ pub const DreamBrowserViewport = struct {
     
     /// Set viewport dimensions.
     pub fn set_viewport_size(
-        self: *DreamBrowserViewport,
+        self: *RealidreamBrowserViewport,
         width: u32,
         height: u32,
     ) void {
@@ -121,7 +121,7 @@ pub const DreamBrowserViewport = struct {
     
     /// Set content dimensions (total scrollable area).
     pub fn set_content_size(
-        self: *DreamBrowserViewport,
+        self: *RealidreamBrowserViewport,
         width: u32,
         height: u32,
     ) void {
@@ -137,7 +137,7 @@ pub const DreamBrowserViewport = struct {
     }
     
     /// Clamp scroll position to valid bounds.
-    fn clamp_scroll_position(self: *DreamBrowserViewport) void {
+    fn clamp_scroll_position(self: *RealidreamBrowserViewport) void {
         // Calculate maximum scroll positions
         const max_scroll_x = if (self.viewport_state.content_width > self.viewport_state.viewport_width)
             self.viewport_state.content_width - self.viewport_state.viewport_width
@@ -164,7 +164,7 @@ pub const DreamBrowserViewport = struct {
     
     /// Scroll viewport by delta (relative scrolling).
     pub fn scroll_by(
-        self: *DreamBrowserViewport,
+        self: *RealidreamBrowserViewport,
         delta_x: i32,
         delta_y: i32,
     ) void {
@@ -195,7 +195,7 @@ pub const DreamBrowserViewport = struct {
     
     /// Scroll viewport to absolute position.
     pub fn scroll_to(
-        self: *DreamBrowserViewport,
+        self: *RealidreamBrowserViewport,
         x: u32,
         y: u32,
     ) void {
@@ -211,16 +211,16 @@ pub const DreamBrowserViewport = struct {
     }
     
     /// Get current viewport state.
-    pub fn get_viewport_state(self: *const DreamBrowserViewport) ViewportState {
+    pub fn get_viewport_state(self: *const RealidreamBrowserViewport) ViewportState {
         return self.viewport_state;
     }
     
     /// Check if scrolling is possible in a direction.
-    pub fn can_scroll_up(self: *const DreamBrowserViewport) bool {
+    pub fn can_scroll_up(self: *const RealidreamBrowserViewport) bool {
         return self.viewport_state.scroll_y > 0;
     }
     
-    pub fn can_scroll_down(self: *const DreamBrowserViewport) bool {
+    pub fn can_scroll_down(self: *const RealidreamBrowserViewport) bool {
         const max_scroll_y = if (self.viewport_state.content_height > self.viewport_state.viewport_height)
             self.viewport_state.content_height - self.viewport_state.viewport_height
         else
@@ -228,11 +228,11 @@ pub const DreamBrowserViewport = struct {
         return self.viewport_state.scroll_y < max_scroll_y;
     }
     
-    pub fn can_scroll_left(self: *const DreamBrowserViewport) bool {
+    pub fn can_scroll_left(self: *const RealidreamBrowserViewport) bool {
         return self.viewport_state.scroll_x > 0;
     }
     
-    pub fn can_scroll_right(self: *const DreamBrowserViewport) bool {
+    pub fn can_scroll_right(self: *const RealidreamBrowserViewport) bool {
         const max_scroll_x = if (self.viewport_state.content_width > self.viewport_state.viewport_width)
             self.viewport_state.content_width - self.viewport_state.viewport_width
         else
@@ -242,7 +242,7 @@ pub const DreamBrowserViewport = struct {
     
     /// Add entry to navigation history.
     pub fn add_history_entry(
-        self: *DreamBrowserViewport,
+        self: *RealidreamBrowserViewport,
         url: []const u8,
     ) !void {
         // Assert: URL must be non-empty
@@ -291,7 +291,7 @@ pub const DreamBrowserViewport = struct {
     }
     
     /// Navigate back in history.
-    pub fn navigate_back(self: *DreamBrowserViewport) !?[]const u8 {
+    pub fn navigate_back(self: *RealidreamBrowserViewport) !?[]const u8 {
         // Assert: Must have history to navigate back
         if (self.history.current_index == 0) {
             return null; // No history to navigate back
@@ -314,7 +314,7 @@ pub const DreamBrowserViewport = struct {
     }
     
     /// Navigate forward in history.
-    pub fn navigate_forward(self: *DreamBrowserViewport) !?[]const u8 {
+    pub fn navigate_forward(self: *RealidreamBrowserViewport) !?[]const u8 {
         // Assert: Must have future history to navigate forward
         if (self.history.current_index >= self.history.entries_len - 1) {
             return null; // No future history to navigate forward
@@ -337,17 +337,17 @@ pub const DreamBrowserViewport = struct {
     }
     
     /// Check if back navigation is possible.
-    pub fn can_navigate_back(self: *const DreamBrowserViewport) bool {
+    pub fn can_navigate_back(self: *const RealidreamBrowserViewport) bool {
         return self.history.current_index > 0;
     }
     
     /// Check if forward navigation is possible.
-    pub fn can_navigate_forward(self: *const DreamBrowserViewport) bool {
+    pub fn can_navigate_forward(self: *const RealidreamBrowserViewport) bool {
         return self.history.current_index < self.history.entries_len - 1;
     }
     
     /// Get current URL from history.
-    pub fn get_current_url(self: *const DreamBrowserViewport) ?[]const u8 {
+    pub fn get_current_url(self: *const RealidreamBrowserViewport) ?[]const u8 {
         if (self.history.entries_len == 0) {
             return null;
         }
@@ -362,7 +362,7 @@ test "viewport initialization" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var viewport = DreamBrowserViewport.init(arena.allocator());
+    var viewport = RealidreamBrowserViewport.init(arena.allocator());
     defer viewport.deinit();
     
     // Assert: Viewport initialized
@@ -374,7 +374,7 @@ test "viewport set size" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var viewport = DreamBrowserViewport.init(arena.allocator());
+    var viewport = RealidreamBrowserViewport.init(arena.allocator());
     defer viewport.deinit();
     
     viewport.set_viewport_size(1024, 768);
@@ -388,7 +388,7 @@ test "viewport scroll by" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var viewport = DreamBrowserViewport.init(arena.allocator());
+    var viewport = RealidreamBrowserViewport.init(arena.allocator());
     defer viewport.deinit();
     
     viewport.set_viewport_size(800, 600);
@@ -405,7 +405,7 @@ test "viewport scroll bounds" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var viewport = DreamBrowserViewport.init(arena.allocator());
+    var viewport = RealidreamBrowserViewport.init(arena.allocator());
     defer viewport.deinit();
     
     viewport.set_viewport_size(800, 600);
@@ -423,7 +423,7 @@ test "viewport navigation history" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var viewport = DreamBrowserViewport.init(arena.allocator());
+    var viewport = RealidreamBrowserViewport.init(arena.allocator());
     defer viewport.deinit();
     
     // Add history entries
@@ -447,7 +447,7 @@ test "viewport can scroll" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var viewport = DreamBrowserViewport.init(arena.allocator());
+    var viewport = RealidreamBrowserViewport.init(arena.allocator());
     defer viewport.deinit();
     
     viewport.set_viewport_size(800, 600);

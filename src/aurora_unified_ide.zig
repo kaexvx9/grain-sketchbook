@@ -1,13 +1,13 @@
 const std = @import("std");
 const Editor = @import("aurora_editor.zig").Editor;
 const Layout = @import("aurora_layout.zig").Layout;
-const DreamBrowserParser = @import("dream_browser_parser.zig").DreamBrowserParser;
-const DreamBrowserRenderer = @import("dream_browser_renderer.zig").DreamBrowserRenderer;
-const DreamBrowserViewport = @import("dream_browser_viewport.zig").DreamBrowserViewport;
+const RealidreamBrowserParser = @import("realidream_browser_parser.zig").RealidreamBrowserParser;
+const RealidreamBrowserRenderer = @import("realidream_browser_renderer.zig").RealidreamBrowserRenderer;
+const RealidreamBrowserViewport = @import("realidream_browser_viewport.zig").RealidreamBrowserViewport;
 const GrainAurora = @import("grain_aurora.zig").GrainAurora;
 const AuroraGrainBank = @import("aurora_grainbank.zig").AuroraGrainBank;
 const DagCore = @import("dag_core.zig").DagCore;
-const BrowserDagIntegration = @import("dream_browser_dag_integration.zig").BrowserDagIntegration;
+const BrowserDagIntegration = @import("realidream_browser_dag_integration.zig").BrowserDagIntegration;
 const LivePreview = @import("aurora_live_preview.zig").LivePreview;
 const GrainBuffer = @import("grain_buffer.zig").GrainBuffer;
 
@@ -42,9 +42,9 @@ pub const UnifiedIde = struct {
     pub const BrowserTab = struct {
         id: u32,
         url: []const u8,
-        parser: DreamBrowserParser,
-        renderer: DreamBrowserRenderer,
-        viewport: DreamBrowserViewport, // Viewport for scrolling and navigation
+        parser: RealidreamBrowserParser,
+        renderer: RealidreamBrowserRenderer,
+        viewport: RealidreamBrowserViewport, // Viewport for scrolling and navigation
         title: []const u8,
         contract_id: ?u64 = null, // Associated GrainBank contract (if content requires payment)
         payment_enabled: bool = false, // Whether automatic micropayments are enabled
@@ -162,13 +162,13 @@ pub const UnifiedIde = struct {
         std.debug.assert(self.browser_tabs.items.len < MAX_BROWSER_TABS);
         
         // Create parser, renderer, and viewport
-        var parser = DreamBrowserParser.init(self.allocator);
+        var parser = RealidreamBrowserParser.init(self.allocator);
         errdefer parser.deinit();
         
-        var renderer = DreamBrowserRenderer.init(self.allocator);
+        var renderer = RealidreamBrowserRenderer.init(self.allocator);
         errdefer renderer.deinit();
         
-        var viewport = DreamBrowserViewport.init(self.allocator);
+        var viewport = RealidreamBrowserViewport.init(self.allocator);
         errdefer viewport.deinit();
         
         // Extract title from URL
@@ -426,8 +426,8 @@ pub const UnifiedIde = struct {
         
         // Update browser viewports to match new window dimensions
         // Clamp to viewport max dimensions to prevent overflow
-        const viewport_width = @min(width, DreamBrowserViewport.MAX_VIEWPORT_DIMENSION);
-        const viewport_height = @min(height, DreamBrowserViewport.MAX_VIEWPORT_DIMENSION);
+        const viewport_width = @min(width, RealidreamBrowserViewport.MAX_VIEWPORT_DIMENSION);
+        const viewport_height = @min(height, RealidreamBrowserViewport.MAX_VIEWPORT_DIMENSION);
         
         for (self.browser_tabs.items) |*tab| {
             // Update viewport dimensions (viewport will clamp to valid bounds)

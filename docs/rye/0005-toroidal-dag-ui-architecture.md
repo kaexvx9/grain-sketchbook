@@ -251,7 +251,7 @@ pub fn add_edge(dag: *ToroidalDag, from: ToroidalIndex, to: ToroidalIndex, edge_
 
 ### The Unification
 
-Both Aurora Editor and Dream Browser use the same ToroidalDag:
+Both Aurora Editor and Realidream Browser use the same ToroidalDag:
 
 ```rye
 /// Why: Unified UI backend for editor and browser.
@@ -428,7 +428,7 @@ button.on_click = fn() {
 
 ### Phase 3: UI Integration
 - [ ] Aurora editor DAG backend
-- [ ] Dream browser DAG backend
+- [ ] Realidream browser DAG backend
 - [ ] Unified view mapping
 
 ### Phase 4: Kernel Integration

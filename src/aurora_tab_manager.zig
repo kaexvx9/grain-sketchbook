@@ -1,8 +1,8 @@
 const std = @import("std");
 const Editor = @import("aurora_editor.zig").Editor;
-const DreamBrowserParser = @import("dream_browser_parser.zig").DreamBrowserParser;
-const DreamBrowserRenderer = @import("dream_browser_renderer.zig").DreamBrowserRenderer;
-const DreamBrowserViewport = @import("dream_browser_viewport.zig").DreamBrowserViewport;
+const RealidreamBrowserParser = @import("realidream_browser_parser.zig").RealidreamBrowserParser;
+const RealidreamBrowserRenderer = @import("realidream_browser_renderer.zig").RealidreamBrowserRenderer;
+const RealidreamBrowserViewport = @import("realidream_browser_viewport.zig").RealidreamBrowserViewport;
 
 /// Tab Manager: Enhanced tab management for unified IDE.
 /// ~<~ Glow Airbend: explicit tab ordering, bounded groups.
@@ -59,9 +59,9 @@ pub const TabManager = struct {
     pub const ManagedBrowserTab = struct {
         id: u32,
         url: []const u8,
-        parser: DreamBrowserParser,
-        renderer: DreamBrowserRenderer,
-        viewport: DreamBrowserViewport,
+        parser: RealidreamBrowserParser,
+        renderer: RealidreamBrowserRenderer,
+        viewport: RealidreamBrowserViewport,
         title: []const u8,
         contract_id: ?u64 = null,
         payment_enabled: bool = false,

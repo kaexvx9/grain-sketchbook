@@ -9,7 +9,7 @@ const std = @import("std");
 /// - JPEG decoding (basic RGB support)
 /// - Image format detection (magic bytes)
 /// - Decoded image storage (RGBA pixel buffer)
-pub const DreamBrowserImageDecoder = struct {
+pub const RealidreamBrowserImageDecoder = struct {
     // Bounded: Max 10MB image size
     pub const MAX_IMAGE_SIZE: u32 = 10 * 1024 * 1024;
     
@@ -52,11 +52,11 @@ pub const DreamBrowserImageDecoder = struct {
     cache: ImageCache,
     
     /// Initialize image decoder.
-    pub fn init(allocator: std.mem.Allocator) !DreamBrowserImageDecoder {
+    pub fn init(allocator: std.mem.Allocator) !RealidreamBrowserImageDecoder {
         // Pre-allocate image cache
         const entries = try allocator.alloc(ImageCacheEntry, MAX_CACHED_IMAGES);
         
-        return DreamBrowserImageDecoder{
+        return RealidreamBrowserImageDecoder{
             .allocator = allocator,
             .cache = ImageCache{
                 .entries = entries,
@@ -67,7 +67,7 @@ pub const DreamBrowserImageDecoder = struct {
     }
     
     /// Deinitialize image decoder.
-    pub fn deinit(self: *DreamBrowserImageDecoder) void {
+    pub fn deinit(self: *RealidreamBrowserImageDecoder) void {
         // Free cached images
         for (self.cache.entries[0..self.cache.entries_len]) |*entry| {
             self.allocator.free(entry.url);
@@ -108,7 +108,7 @@ pub const DreamBrowserImageDecoder = struct {
     /// - Interlacing (Adam7)
     /// For now, this is a placeholder that returns an error.
     pub fn decode_png(
-        self: *DreamBrowserImageDecoder,
+        self: *RealidreamBrowserImageDecoder,
         data: []const u8,
     ) !DecodedImage {
         // Assert: Data must be non-empty
@@ -132,7 +132,7 @@ pub const DreamBrowserImageDecoder = struct {
     /// - Color space conversion (YCbCr to RGB)
     /// For now, this is a placeholder that returns an error.
     pub fn decode_jpeg(
-        self: *DreamBrowserImageDecoder,
+        self: *RealidreamBrowserImageDecoder,
         data: []const u8,
     ) !DecodedImage {
         // Assert: Data must be non-empty
@@ -149,7 +149,7 @@ pub const DreamBrowserImageDecoder = struct {
     
     /// Decode image from data (auto-detect format).
     pub fn decode(
-        self: *DreamBrowserImageDecoder,
+        self: *RealidreamBrowserImageDecoder,
         data: []const u8,
     ) !DecodedImage {
         // Assert: Data must be non-empty
@@ -167,7 +167,7 @@ pub const DreamBrowserImageDecoder = struct {
     
     /// Get cached image by URL.
     pub fn get_cached_image(
-        self: *DreamBrowserImageDecoder,
+        self: *RealidreamBrowserImageDecoder,
         url: []const u8,
     ) ?*const DecodedImage {
         var i: u32 = 0;
@@ -183,7 +183,7 @@ pub const DreamBrowserImageDecoder = struct {
     
     /// Cache decoded image.
     pub fn cache_image(
-        self: *DreamBrowserImageDecoder,
+        self: *RealidreamBrowserImageDecoder,
         url: []const u8,
         image: DecodedImage,
     ) !void {
@@ -243,7 +243,7 @@ pub const DreamBrowserImageDecoder = struct {
     }
     
     /// Clear image cache.
-    pub fn clear_cache(self: *DreamBrowserImageDecoder) void {
+    pub fn clear_cache(self: *RealidreamBrowserImageDecoder) void {
         // Free cached images
         for (self.cache.entries[0..self.cache.entries_len]) |*entry| {
             self.allocator.free(entry.url);
@@ -256,7 +256,7 @@ pub const DreamBrowserImageDecoder = struct {
     }
     
     /// Get cache statistics.
-    pub fn get_cache_stats(self: *const DreamBrowserImageDecoder) CacheStats {
+    pub fn get_cache_stats(self: *const RealidreamBrowserImageDecoder) CacheStats {
         return CacheStats{
             .cached_images = self.cache.entries_len,
             .max_cache_size = MAX_CACHED_IMAGES,
@@ -274,7 +274,7 @@ test "image decoder initialization" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var decoder = try DreamBrowserImageDecoder.init(arena.allocator());
+    var decoder = try RealidreamBrowserImageDecoder.init(arena.allocator());
     defer decoder.deinit();
     
     // Assert: Decoder initialized
@@ -283,19 +283,19 @@ test "image decoder initialization" {
 
 test "image format detection png" {
     const png_signature = "\x89PNG\r\n\x1a\n";
-    const format = DreamBrowserImageDecoder.detect_format(png_signature);
+    const format = RealidreamBrowserImageDecoder.detect_format(png_signature);
     try std.testing.expect(format == .png);
 }
 
 test "image format detection jpeg" {
     const jpeg_signature = "\xFF\xD8\xFF";
-    const format = DreamBrowserImageDecoder.detect_format(jpeg_signature);
+    const format = RealidreamBrowserImageDecoder.detect_format(jpeg_signature);
     try std.testing.expect(format == .jpeg);
 }
 
 test "image format detection unknown" {
     const unknown_data = "not an image";
-    const format = DreamBrowserImageDecoder.detect_format(unknown_data);
+    const format = RealidreamBrowserImageDecoder.detect_format(unknown_data);
     try std.testing.expect(format == .unknown);
 }
 
@@ -303,13 +303,13 @@ test "image decoder cache" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var decoder = try DreamBrowserImageDecoder.init(arena.allocator());
+    var decoder = try RealidreamBrowserImageDecoder.init(arena.allocator());
     defer decoder.deinit();
     
     // Create a test image
     const test_url = "test.png";
     const pixels = try arena.allocator().alloc(u8, 100 * 100 * 4);
-    const test_image = DreamBrowserImageDecoder.DecodedImage{
+    const test_image = RealidreamBrowserImageDecoder.DecodedImage{
         .width = 100,
         .height = 100,
         .pixels = pixels,
@@ -330,11 +330,11 @@ test "image decoder cache stats" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     
-    var decoder = try DreamBrowserImageDecoder.init(arena.allocator());
+    var decoder = try RealidreamBrowserImageDecoder.init(arena.allocator());
     defer decoder.deinit();
     
     const stats = decoder.get_cache_stats();
     try std.testing.expect(stats.cached_images == 0);
-    try std.testing.expect(stats.max_cache_size == DreamBrowserImageDecoder.MAX_CACHED_IMAGES);
+    try std.testing.expect(stats.max_cache_size == RealidreamBrowserImageDecoder.MAX_CACHED_IMAGES);
 }
 
