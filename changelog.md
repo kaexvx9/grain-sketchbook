@@ -1,6 +1,22 @@
 # Changelog
 
-## 12025-01-20--0945--pst-
+> **Versioning**: We use chronological versioning (YYYYMMDD.HHMMSS) following Rich Hickey's
+> "Spec-ulation" philosophy. Breaking changes are broken—we only accrete.
+
+## 12025-01-20--1000--pst
+
+### RyeStyle: Accretion Over Breakage
+
+Adopted Rich Hickey's philosophy from "Spec-ulation":
+
+- **Breaking changes are broken** - don't do them
+- **Chronological versioning** - YYYYMMDD.HHMMSS over SemVer
+- **Names are enduring** - one-syllable names last forever
+- **Tend philosophy alignment** - stewardship, garden allocation, toroidal topology
+
+New section added to `docs/rye_style.md`.
+
+## 12025-01-20--0945--pst
 
 ### Basin Kernel v0.2.0: Grainscript REPL
 
