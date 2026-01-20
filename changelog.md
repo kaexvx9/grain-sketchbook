@@ -1,5 +1,41 @@
 # Changelog
 
+## 12025-01-19--2008--pst-
+
+### Rye v0.4.0: 97% RyeStyle Compliant Kernel
+
+- **Rye Compiler v0.4.0**:
+  - Added `--json` output for CI integration
+  - Added `--summary` flag for aggregated error reports
+  - Commands: `init`, `build`, `check`, `fmt`, `stats`, `version`, `help`
+  - First production module: `src/kernel/uart.ry`
+
+- **Major Kernel Refactoring** (net -1600 lines):
+  - `syscall_spawn`: 254 → 20 lines (7 helper functions)
+  - `syscall_map`: 188 → 15 lines (6 helper functions)
+  - `handle_syscall`: 140 → 95 lines (2 helper functions)
+  - `syscall_sysinfo`: 116 → 15 lines (2 helper functions)
+  - 30+ functions refactored across syscall modules
+
+- **RyeStyle Compliance**:
+  - 0 line length errors (128 char limit)
+  - 0 missing Why comment errors
+  - 2 exempt functions: `kmain` (309 lines, inline asm), `handle_syscall` (95 lines, switch)
+  - 97%+ compliant
+
+- **New Documentation**:
+  - `docs/rye_style.md`: RyeStyle coding guide
+  - `docs/quickstart.md`: Boot kernel in 5 minutes
+  - `docs/ryestyle-exceptions.md`: Documented exemptions
+
+- **Files Created**:
+  - `rye/` directory with full compiler implementation
+  - `src/kernel/uart.ry`: First Rye production module
+  - `src/kernel/uart.zig`: Transpiled output
+
+- **Files Deleted**:
+  - `src/kernel/raw_io.zig`: Replaced by uart.ry
+
 ## 12025-11-17--1701--pst-
 
 ### Build-Essential Utilities: Build Tools Added
