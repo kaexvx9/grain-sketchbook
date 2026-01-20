@@ -35,7 +35,7 @@ pub const FileSyscalls = struct {
         return f;
     }
 
-    fn alloc_handle(self: *BasinKernel, idx: usize, plen: u64, flags: OpenFlags, owner: u32) u32 {
+    fn alloc_handle(self: *BasinKernel, idx: usize, plen: u64, flags: OpenFlags, owner: u32) u64 {
         var h = &self.handles[idx];
         const id = self.next_handle_id;
         self.next_handle_id += 1;
@@ -46,7 +46,7 @@ pub const FileSyscalls = struct {
         h.buffer_size = 0;
         h.allocated = true;
         h.owner_process_id = owner;
-        self.update_handle_hash_table(id, idx);
+        self.update_handle_hash_table(id, @as(u32, @intCast(idx)));
         if (flags.truncate) h.buffer_size = 0;
         return id;
     }

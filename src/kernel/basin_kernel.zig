@@ -288,7 +288,7 @@ fn commit_mapping(self: *BasinKernel, idx: usize, addr: u64, size: u64, flags: M
     m.flags = flags;
     m.allocated = true;
     m.owner_process_id = owner;
-    self.add_mapping_to_hash_table(addr, idx);
+    self.add_mapping_to_hash_table(addr, @as(u32, @intCast(idx)));
     const pf = page_table.PageFlags{
         .read = flags.read, .write = flags.write, .execute = flags.execute, .shared = flags.shared, ._padding = 0,
     };

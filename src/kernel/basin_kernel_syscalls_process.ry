@@ -50,7 +50,7 @@ fn parse_elf_entry(self: *BasinKernel, exe: u64) struct { entry: u64, len: u64 }
     return .{ .entry = info.entry_point, .len = MIN_ELF };
 }
 
-fn load_segments(self: *BasinKernel, exe: u64, info: elf_parser.ElfHeader, reader: *const fn (u64, u32, [*]u8) ?u32) void {
+fn load_segments(self: *BasinKernel, exe: u64, info: elf_parser.ElfInfo, reader: *const fn (u64, u32, []u8) ?u32) void {
     if (info.phnum == 0 or info.phoff == 0 or info.phentsize < 56) return;
     const writer = self.vm_memory_writer orelse return;
     const count = @min(info.phnum, 16);
