@@ -164,7 +164,7 @@ Skate Agent (Knowledge Graph) [mostly independent]
    - **Current**: Modular structure in `build/` directory (good)
 
 4. **Documentation** (`docs/plans/`, `docs/tasks/`):
-   - **Coordination**: Update master `docs/plan.md` and `docs/tasks.md` after agent-specific updates
+   - **Coordination**: Update main `docs/plan.md` and `docs/tasks.md` after agent-specific updates
 
 ### Coordination Protocol
 
@@ -177,13 +177,13 @@ Skate Agent (Knowledge Graph) [mostly independent]
 **During Work**:
 1. Update agent-specific plan/tasks files
 2. Create coordination documents if affecting other agents
-3. Update master `docs/plan.md` and `docs/tasks.md` when complete
+3. Update main `docs/plan.md` and `docs/tasks.md` when complete
 
 **After Completing Work**:
 1. Update documentation
 2. Verify tests pass
 3. Create coordination summary if needed
-4. Update master documentation
+4. Update main documentation
 
 ---
 
@@ -211,7 +211,7 @@ Skate Agent (Knowledge Graph) [mostly independent]
 
 **Keep in `docs/`**:
 - `docs/grain_style.md` (active style guide)
-- `docs/plan.md`, `docs/tasks.md` (master summaries)
+- `docs/plan.md`, `docs/tasks.md` (main summaries)
 - `docs/plans/`, `docs/tasks/` (agent-specific plans/tasks)
 - `docs/agent-communications/` (active coordination)
 - `docs/proposals/` (active proposals)
@@ -269,7 +269,7 @@ Key coordination points:
 
 1. **Check Dependencies**: Review what you need from other agents before starting work
 2. **Coordinate Shared Modules**: Check in before modifying src/shared/ modules
-3. **Update Documentation**: Update your docs/plans/plan_{agent}.md and docs/tasks/tasks_{agent}.md, then update master docs/plan.md and docs/tasks.md
+3. **Update Documentation**: Update your docs/plans/plan_{agent}.md and docs/tasks/tasks_{agent}.md, then update main docs/plan.md and docs/tasks.md
 4. **Create Coordination Docs**: If your work affects other agents, create docs in docs/agent-communications/
 5. **Prevent Race Conditions**: Check docs/agent-communications/ for recent coordination before starting overlapping work
 

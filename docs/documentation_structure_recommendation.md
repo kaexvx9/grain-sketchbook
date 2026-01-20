@@ -197,9 +197,9 @@ docs/
 2. **Extract agent sections** from `plan.md` and `tasks.md`:
    - Identify agent-specific sections
    - Move to `plans/plan_{agent}.md` and `tasks/tasks_{agent}.md`
-   - Keep cross-agent sections in master files
+   - Keep cross-agent sections in main files
 
-3. **Create master files**:
+3. **Create main files**:
    - High-level status
    - Agent summaries
    - Cross-references
@@ -224,7 +224,7 @@ docs/
    - Move `plan.md` → `archaeology/docs/plan_2025-12-03.md`
    - Move `tasks.md` → `archaeology/docs/tasks_2025-12-03.md`
 
-2. **Create new master files**:
+2. **Create new main files**:
    - `plan.md` (new, high-level)
    - `tasks.md` (new, high-level)
 
@@ -238,18 +238,18 @@ docs/
    - Use `[Task Name](tasks/tasks_{agent}.md)` links
 
 2. **Dependency tracking**:
-   - List dependencies in master files
+   - List dependencies in main files
    - Link to dependent agent files
 
 3. **Integration points**:
-   - Document in master files
+   - Document in main files
    - Link to relevant agent files
 
 ---
 
 ## Coordination Mechanisms
 
-### 1. Master File Updates
+### 1. Main File Updates
 
 **When**: After each phase completion
 
@@ -273,7 +273,7 @@ Database Agent needs API Server from [Grain Core Agent](plans/plan_core.md#phase
 
 ### 3. Dependency Tracking
 
-**Location**: Master files, agent files
+**Location**: Main files, agent files
 
 **Format**:
 ```markdown
@@ -287,7 +287,7 @@ Database Agent needs API Server from [Grain Core Agent](plans/plan_core.md#phase
 **Frequency**: Weekly or after major phases
 
 **Process**:
-- Review master files
+- Review main files
 - Update agent statuses
 - Check dependencies
 - Verify integration points
@@ -299,7 +299,7 @@ Database Agent needs API Server from [Grain Core Agent](plans/plan_core.md#phase
 ### "Agents will lose sight of other agents"
 
 **Mitigation**:
-- Master files show all agent status
+- Main files show all agent status
 - Cross-references link to other agents
 - Dependency tracking shows connections
 - Regular sync ensures awareness
@@ -333,14 +333,14 @@ Database Agent needs API Server from [Grain Core Agent](plans/plan_core.md#phase
 ## Benefits of Hybrid Approach
 
 ### 1. Best of Both Worlds
-- **Coordination**: Master files keep agents aware
+- **Coordination**: Main files keep agents aware
 - **Performance**: Smaller files = faster operations
 - **Clarity**: Agents focus on their work
 - **Scalability**: Structure scales with agent count
 
 ### 2. Reduced Risk
-- **Dependencies**: Tracked in master files
-- **Integration**: Documented in master files
+- **Dependencies**: Tracked in main files
+- **Integration**: Documented in main files
 - **Context**: Preserved through cross-references
 - **Sync**: Regular process ensures consistency
 
@@ -356,7 +356,7 @@ Database Agent needs API Server from [Grain Core Agent](plans/plan_core.md#phase
 
 ### Why This Is Best
 
-1. **Addresses your concern**: Master files maintain coordination
+1. **Addresses your concern**: Main files maintain coordination
 2. **Improves performance**: Smaller files = faster operations
 3. **Reduces conflicts**: Agents edit different files
 4. **Scales well**: Structure grows with agent count
@@ -370,7 +370,7 @@ Database Agent needs API Server from [Grain Core Agent](plans/plan_core.md#phase
 
 ### Success Criteria
 
-- Master files < 500 lines each
+- Main files < 500 lines each
 - Agent files < 500 lines each
 - All dependencies tracked
 - All integration points documented
@@ -404,7 +404,7 @@ Database Agent needs API Server from [Grain Core Agent](plans/plan_core.md#phase
 **✅ Implement Hybrid Approach**
 
 **Rationale**:
-- Addresses coordination concerns (master files)
+- Addresses coordination concerns (main files)
 - Improves performance (smaller files)
 - Reduces conflicts (separate files)
 - Scales well (structure grows with agents)
@@ -421,5 +421,5 @@ Database Agent needs API Server from [Grain Core Agent](plans/plan_core.md#phase
 
 ---
 
-**Your concern about coordination is valid and important. The hybrid approach addresses this by keeping master files that show all agent status and dependencies, while still providing the performance benefits of smaller, focused files.**
+**Your concern about coordination is valid and important. The hybrid approach addresses this by keeping main files that show all agent status and dependencies, while still providing the performance benefits of smaller, focused files.**
 

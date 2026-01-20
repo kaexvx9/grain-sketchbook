@@ -49,7 +49,7 @@ You are the **tenth agent** working on **Grain Flow** for the Grain OS ecosystem
 
 4. **Coordination Protocol**:
    - Update `docs/plans/plan_flow.md` and `docs/tasks/tasks_flow.md` after each phase
-   - Update master `docs/plan.md` and `docs/tasks.md` with progress
+   - Update main `docs/plan.md` and `docs/tasks.md` with progress
    - Coordinate with Core Agent before modifying shared modules
    - Check in with other agents when modifying interfaces they depend on
 

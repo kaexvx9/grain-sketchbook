@@ -235,8 +235,8 @@ tell them to continue the next phase of implementation and when they're done upd
 
 **Tasks**:
 1. **Identify old-format docs**:
-   - `docs/plans/plan_*.md` (except `plan.md` master doc)
-   - `docs/tasks/tasks_*.md` (except `tasks.md` master doc)
+   - `docs/plans/plan_*.md` (except `plan.md` main doc)
+   - `docs/tasks/tasks_*.md` (except `tasks.md` main doc)
 
 2. **Check for new-format equivalents**:
    - Verify new-format doc exists for each old-format doc

@@ -66,7 +66,7 @@
 
 ### Documentation Root
 - `grain_style.md`, `gratitude.md`, `don_juan_matus_warriors_way.md` (foundational)
-- `plan.md`, `tasks.md` (master summaries)
+- `plan.md`, `tasks.md` (main summaries)
 - Active reference documents
 
 ### Core Coordination

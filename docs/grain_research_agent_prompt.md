@@ -49,7 +49,7 @@ You are the **tenth agent** working on **Grain Research** for the Grain OS ecosy
 
 4. **Coordination Protocol**:
    - Update `docs/plans/plan_research.md` and `docs/tasks/tasks_research.md` after each phase
-   - Update master `docs/plan.md` and `docs/tasks.md` with progress
+   - Update main `docs/plan.md` and `docs/tasks.md` with progress
    - Coordinate with Core Agent before modifying shared modules
    - Check in with other agents when modifying interfaces they depend on
 

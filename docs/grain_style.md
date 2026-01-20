@@ -1,7 +1,7 @@
 # GrainStyle
 
-> *GrainStyle and [RyeStyle](rye_style.md) are kept in sync. GrainStyle is for Zig development,
-> RyeStyle is for Rye development. The core principles are identical; Rye adds compiler enforcement.*
+> *[RyeStyle](rye_style.md) is the comprehensive main document. GrainStyle exists for Zig-specific
+> development context. All core principles are identical—RyeStyle adds compiler enforcement.*
 
 > "There are three things extremely hard: steel, a diamond, and to know one's self." — Benjamin
 > Franklin

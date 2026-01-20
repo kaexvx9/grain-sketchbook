@@ -562,7 +562,7 @@ Build Grain Bubble as a native Zig desktop application targeting Basin Kernel (V
 3. Create `docs/plans/plan_bubble.md` with detailed implementation plan
 4. Create `docs/tasks/tasks_bubble.md` with Phase 1 task breakdown
 5. Start Phase 1: Core Canvas implementation
-6. Update master `docs/plan.md` and `docs/tasks.md` with your status
+6. Update main `docs/plan.md` and `docs/tasks.md` with your status
 
 **Remember**: Build something designers will love, not just something that works. Make it Simple, Lovable, and Complete.
 
