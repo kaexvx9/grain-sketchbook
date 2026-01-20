@@ -1114,171 +1114,83 @@ pub const Interpreter = struct {
         return Value.from_null();
     }
 
-    /// Execute variable statement.
     fn execute_variable_statement(self: *Interpreter, node: Parser.Node) Error!Value {
-        // Assert: Node must be variable statement
         std.debug.assert(node.node_type == .stmt_var);
-
         const stmt_data = node.data.var_stmt;
-
-        // Check if variable already exists
-        if (self.find_variable(stmt_data.name) != null) {
-            return Error.variable_already_exists;
-        }
-
-        // Check variable limit
-        if (self.variables_len >= MAX_VARIABLES) {
-            return Error.too_many_variables;
-        }
-
-        // Evaluate initializer (if any)
-        var value = Value.from_null();
-        var inferred_type: ?VariableType = null;
-
-        if (stmt_data.init) |init_node_idx| {
-            const init_node = self.parser.get_node(init_node_idx) orelse return Error.runtime_error;
-            value = try self.evaluate_expression(init_node);
-
-            // Type inference: infer type from initializer if not explicitly declared
-            if (stmt_data.type_node == null) {
-                const inferred_type_name = try self.infer_type_from_value(value);
-                const type_name_copy = try self.allocator.dupe(u8, inferred_type_name);
-                errdefer self.allocator.free(type_name_copy);
-
-                inferred_type = VariableType{
-                    .type_name = type_name_copy,
-                    .type_name_len = @as(u32, @intCast(type_name_copy.len)),
-                    .is_inferred = true,
-                };
-            }
-        }
-
-        // Parse declared type (if any)
-        var declared_type: ?VariableType = null;
-        if (stmt_data.type_node) |type_node_idx| {
-            const type_node = self.parser.get_node(type_node_idx) orelse return Error.runtime_error;
-            if (type_node.node_type == .type_named) {
-                const type_name = type_node.data.type_named.name;
-                const type_name_copy = try self.allocator.dupe(u8, type_name);
-                errdefer self.allocator.free(type_name_copy);
-
-                declared_type = VariableType{
-                    .type_name = type_name_copy,
-                    .type_name_len = @as(u32, @intCast(type_name_copy.len)),
-                    .is_inferred = false,
-                };
-
-                // Type checking: verify initializer matches declared type
-                if (stmt_data.init) |init_node_idx| {
-                    const init_node = self.parser.get_node(init_node_idx) orelse return Error.runtime_error;
-                    const init_value = try self.evaluate_expression(init_node);
-                    if (!self.value_matches_type(init_value, type_name)) {
-                        return Error.type_mismatch;
-                    }
-                }
-            }
-        }
-
-        // Use declared type if available, otherwise use inferred type
-        const var_type = declared_type orelse inferred_type;
-
-        // Allocate variable name
-        const var_name = try self.allocator.dupe(u8, stmt_data.name);
-        errdefer self.allocator.free(var_name);
-
-        // Store variable (with scope information and type)
-        self.variables[self.variables_len] = Variable{
-            .name = var_name,
-            .name_len = @as(u32, @intCast(var_name.len)),
-            .value = value,
-            .is_const = false,
-            .scope = if (self.scope_depth == 0) .global else .local,
-            .scope_depth = self.scope_depth,
-            .var_type = var_type,
-        };
-        self.variables_len += 1;
-
+        if (self.find_variable(stmt_data.name) != null) return Error.variable_already_exists;
+        if (self.variables_len >= MAX_VARIABLES) return Error.too_many_variables;
+        const eval_result = try self.eval_var_init(stmt_data);
+        const var_type = try self.resolve_var_type(stmt_data, eval_result.value);
+        try self.store_variable(stmt_data.name, eval_result.value, false, var_type);
         return Value.from_null();
     }
 
-    /// Execute constant statement.
-    fn execute_constant_statement(self: *Interpreter, node: Parser.Node) Error!Value {
-        // Assert: Node must be constant statement
-        std.debug.assert(node.node_type == .stmt_const);
-
-        const stmt_data = node.data.var_stmt; // Reuse VarStmtData
-
-        // Check if variable already exists
-        if (self.find_variable(stmt_data.name) != null) {
-            return Error.variable_already_exists;
+    fn eval_var_init(self: *Interpreter, stmt: anytype) Error!struct { value: Value } {
+        if (stmt.init) |idx| {
+            const n = self.parser.get_node(idx) orelse return Error.runtime_error;
+            return .{ .value = try self.evaluate_expression(n) };
         }
+        return .{ .value = Value.from_null() };
+    }
 
-        // Check variable limit
-        if (self.variables_len >= MAX_VARIABLES) {
-            return Error.too_many_variables;
-        }
-
-        // Evaluate initializer (required for constants)
-        const init_node_idx = stmt_data.init orelse return Error.runtime_error;
-        const init_node = self.parser.get_node(init_node_idx) orelse return Error.runtime_error;
-        const value = try self.evaluate_expression(init_node);
-
-        // Allocate variable name
-        const var_name = try self.allocator.dupe(u8, stmt_data.name);
-        errdefer self.allocator.free(var_name);
-
-        // Type inference: infer type from initializer if not explicitly declared
-        var inferred_type: ?VariableType = null;
-        if (stmt_data.type_node == null) {
-            const inferred_type_name = try self.infer_type_from_value(value);
-            const type_name_copy = try self.allocator.dupe(u8, inferred_type_name);
-            errdefer self.allocator.free(type_name_copy);
-
-            inferred_type = VariableType{
-                .type_name = type_name_copy,
-                .type_name_len = @as(u32, @intCast(type_name_copy.len)),
-                .is_inferred = true,
-            };
-        }
-
-        // Parse declared type (if any)
-        var declared_type: ?VariableType = null;
-        if (stmt_data.type_node) |type_node_idx| {
-            const type_node = self.parser.get_node(type_node_idx) orelse return Error.runtime_error;
-            if (type_node.node_type == .type_named) {
-                const type_name = type_node.data.type_named.name;
-                const type_name_copy = try self.allocator.dupe(u8, type_name);
-                errdefer self.allocator.free(type_name_copy);
-
-                declared_type = VariableType{
-                    .type_name = type_name_copy,
-                    .type_name_len = @as(u32, @intCast(type_name_copy.len)),
-                    .is_inferred = false,
-                };
-
-                // Type checking: verify initializer matches declared type
-                if (!self.value_matches_type(value, type_name)) {
-                    return Error.type_mismatch;
-                }
+    fn resolve_var_type(self: *Interpreter, stmt: anytype, value: Value) Error!?VariableType {
+        if (stmt.type_node) |idx| {
+            const n = self.parser.get_node(idx) orelse return Error.runtime_error;
+            if (n.node_type == .type_named) {
+                const name = n.data.type_named.name;
+                if (stmt.init != null and !self.value_matches_type(value, name)) return Error.type_mismatch;
+                return try self.make_var_type(name, false);
             }
+        } else if (stmt.init != null) {
+            const inferred = try self.infer_type_from_value(value);
+            return try self.make_var_type(inferred, true);
         }
+        return null;
+    }
 
-        // Use declared type if available, otherwise use inferred type
-        const var_type = declared_type orelse inferred_type;
+    fn make_var_type(self: *Interpreter, name: []const u8, inferred: bool) Error!VariableType {
+        const copy = self.allocator.dupe(u8, name) catch return Error.OutOfMemory;
+        return VariableType{ .type_name = copy, .type_name_len = @intCast(copy.len), .is_inferred = inferred };
+    }
 
-        // Store variable (as constant, with scope information and type)
+    fn store_variable(self: *Interpreter, name: []const u8, value: Value, is_const: bool, vtype: ?VariableType) Error!void {
+        const name_copy = self.allocator.dupe(u8, name) catch return Error.OutOfMemory;
         self.variables[self.variables_len] = Variable{
-            .name = var_name,
-            .name_len = @as(u32, @intCast(var_name.len)),
+            .name = name_copy,
+            .name_len = @intCast(name_copy.len),
             .value = value,
-            .is_const = true,
+            .is_const = is_const,
             .scope = if (self.scope_depth == 0) .global else .local,
             .scope_depth = self.scope_depth,
-            .var_type = var_type,
+            .var_type = vtype,
         };
         self.variables_len += 1;
+    }
 
+    fn execute_constant_statement(self: *Interpreter, node: Parser.Node) Error!Value {
+        std.debug.assert(node.node_type == .stmt_const);
+        const stmt_data = node.data.var_stmt;
+        if (self.find_variable(stmt_data.name) != null) return Error.variable_already_exists;
+        if (self.variables_len >= MAX_VARIABLES) return Error.too_many_variables;
+        const init_idx = stmt_data.init orelse return Error.runtime_error;
+        const init_node = self.parser.get_node(init_idx) orelse return Error.runtime_error;
+        const value = try self.evaluate_expression(init_node);
+        const var_type = try self.resolve_const_type(stmt_data, value);
+        try self.store_variable(stmt_data.name, value, true, var_type);
         return Value.from_null();
+    }
+
+    fn resolve_const_type(self: *Interpreter, stmt: anytype, value: Value) Error!?VariableType {
+        if (stmt.type_node) |idx| {
+            const n = self.parser.get_node(idx) orelse return Error.runtime_error;
+            if (n.node_type == .type_named) {
+                const name = n.data.type_named.name;
+                if (!self.value_matches_type(value, name)) return Error.type_mismatch;
+                return try self.make_var_type(name, false);
+            }
+        }
+        const inferred = try self.infer_type_from_value(value);
+        return try self.make_var_type(inferred, true);
     }
 
     /// Execute if statement.

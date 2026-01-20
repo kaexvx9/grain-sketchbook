@@ -1,0 +1,237 @@
+//! Toroidal Data Structures for Rye
+//! Why: Provide memory-safe bounded data structures using toroidal topology.
+//! 
+//! The toroidal manifold Tⁿ is compact (bounded) with periodic boundaries.
+//! This eliminates edge cases: indices wrap naturally, no bounds check failures.
+//! See: docs/research/2026-01-03-075313-pst_toroidal_ml_synthesis_whitepaper.md
+
+const std = @import("std");
+
+/// Why: Toroidal index that wraps automatically (no overflow, no bounds errors).
+pub fn ToroidalIndex(comptime N: u32) type {
+    return struct {
+        value: u32,
+
+        const Self = @This();
+        const MAX: u32 = N;
+
+        /// Why: Create index with automatic wrap-around.
+        pub fn init(v: u32) Self {
+            return Self{ .value = v % N };
+        }
+
+        /// Why: Increment with periodic boundary (wraps at N).
+        pub fn inc(self: *Self) void {
+            self.value = (self.value + 1) % N;
+        }
+
+        /// Why: Decrement with periodic boundary (wraps at 0).
+        pub fn dec(self: *Self) void {
+            self.value = if (self.value == 0) N - 1 else self.value - 1;
+        }
+
+        /// Why: Add offset with wrap-around.
+        pub fn add(self: Self, offset: u32) Self {
+            return Self{ .value = (self.value + offset) % N };
+        }
+
+        /// Why: Subtract offset with wrap-around.
+        pub fn sub(self: Self, offset: u32) Self {
+            const off = offset % N;
+            return Self{ .value = if (self.value >= off) self.value - off else N - (off - self.value) };
+        }
+
+        /// Why: Get raw value for array access.
+        pub fn get(self: Self) u32 {
+            return self.value;
+        }
+
+        /// Why: Distance on torus (shortest path, accounts for wrap).
+        pub fn distance(self: Self, other: Self) u32 {
+            const d1 = if (self.value >= other.value) self.value - other.value else other.value - self.value;
+            const d2 = N - d1;
+            return @min(d1, d2);
+        }
+    };
+}
+
+/// Why: Toroidal buffer - circular buffer with no edge cases.
+pub fn ToroidalBuffer(comptime T: type, comptime N: u32) type {
+    return struct {
+        data: [N]T,
+        head: ToroidalIndex(N),
+        tail: ToroidalIndex(N),
+        count: u32,
+
+        const Self = @This();
+        const MAX: u32 = N;
+
+        /// Why: Initialize empty buffer.
+        pub fn init() Self {
+            return Self{
+                .data = undefined,
+                .head = ToroidalIndex(N).init(0),
+                .tail = ToroidalIndex(N).init(0),
+                .count = 0,
+            };
+        }
+
+        /// Why: Push item (overwrites oldest if full - toroidal wrap).
+        pub fn push(self: *Self, item: T) void {
+            self.data[self.head.get()] = item;
+            self.head.inc();
+            if (self.count < N) {
+                self.count += 1;
+            } else {
+                self.tail.inc();
+            }
+        }
+
+        /// Why: Pop oldest item (returns null if empty).
+        pub fn pop(self: *Self) ?T {
+            if (self.count == 0) return null;
+            const item = self.data[self.tail.get()];
+            self.tail.inc();
+            self.count -= 1;
+            return item;
+        }
+
+        /// Why: Peek at index relative to tail (toroidal access).
+        pub fn peek(self: *const Self, offset: u32) ?T {
+            if (offset >= self.count) return null;
+            const idx = self.tail.add(offset);
+            return self.data[idx.get()];
+        }
+
+        /// Why: Check if buffer is empty.
+        pub fn is_empty(self: *const Self) bool {
+            return self.count == 0;
+        }
+
+        /// Why: Check if buffer is full.
+        pub fn is_full(self: *const Self) bool {
+            return self.count == N;
+        }
+
+        /// Why: Get current count.
+        pub fn len(self: *const Self) u32 {
+            return self.count;
+        }
+
+        /// Why: Clear buffer.
+        pub fn clear(self: *Self) void {
+            self.head = ToroidalIndex(N).init(0);
+            self.tail = ToroidalIndex(N).init(0);
+            self.count = 0;
+        }
+    };
+}
+
+/// Why: Bounded parameter constrained to [min, max] range.
+pub fn BoundedParam(comptime min: i64, comptime max: i64) type {
+    return struct {
+        value: i64,
+
+        const Self = @This();
+        const MIN: i64 = min;
+        const MAX: i64 = max;
+        const RANGE: i64 = max - min + 1;
+
+        /// Why: Create parameter with clamping to valid range.
+        pub fn init(v: i64) Self {
+            return Self{ .value = clamp(v) };
+        }
+
+        /// Why: Create with toroidal wrap (periodic boundary).
+        pub fn init_wrap(v: i64) Self {
+            return Self{ .value = wrap(v) };
+        }
+
+        /// Why: Set value with clamping.
+        pub fn set(self: *Self, v: i64) void {
+            self.value = clamp(v);
+        }
+
+        /// Why: Set value with wrap-around.
+        pub fn set_wrap(self: *Self, v: i64) void {
+            self.value = wrap(v);
+        }
+
+        /// Why: Get current value.
+        pub fn get(self: Self) i64 {
+            return self.value;
+        }
+
+        /// Why: Add with clamping.
+        pub fn add_clamp(self: *Self, delta: i64) void {
+            self.value = clamp(self.value + delta);
+        }
+
+        /// Why: Add with wrap-around.
+        pub fn add_wrap(self: *Self, delta: i64) void {
+            self.value = wrap(self.value + delta);
+        }
+
+        /// Why: Normalize to [0, 1] range.
+        pub fn normalize(self: Self) f64 {
+            return @as(f64, @floatFromInt(self.value - MIN)) / @as(f64, @floatFromInt(RANGE - 1));
+        }
+
+        fn clamp(v: i64) i64 {
+            if (v < MIN) return MIN;
+            if (v > MAX) return MAX;
+            return v;
+        }
+
+        fn wrap(v: i64) i64 {
+            const shifted = v - MIN;
+            const wrapped = @mod(shifted, RANGE);
+            return wrapped + MIN;
+        }
+    };
+}
+
+/// Why: 2D toroidal grid - no edge cases in 2D traversal.
+pub fn ToroidalGrid(comptime T: type, comptime W: u32, comptime H: u32) type {
+    return struct {
+        data: [W * H]T,
+
+        const Self = @This();
+        const WIDTH: u32 = W;
+        const HEIGHT: u32 = H;
+
+        /// Why: Initialize with default value.
+        pub fn init(default: T) Self {
+            return Self{ .data = [_]T{default} ** (W * H) };
+        }
+
+        /// Why: Get cell with toroidal coordinates (wraps in both dimensions).
+        pub fn get(self: *const Self, x: u32, y: u32) T {
+            return self.data[index(x, y)];
+        }
+
+        /// Why: Set cell with toroidal coordinates.
+        pub fn set(self: *Self, x: u32, y: u32, val: T) void {
+            self.data[index(x, y)] = val;
+        }
+
+        /// Why: Get neighbor with offset (toroidal wrap).
+        pub fn neighbor(self: *const Self, x: u32, y: u32, dx: i32, dy: i32) T {
+            const nx = wrap_coord(x, dx, W);
+            const ny = wrap_coord(y, dy, H);
+            return self.data[index(nx, ny)];
+        }
+
+        fn index(x: u32, y: u32) usize {
+            return @as(usize, (y % H) * W + (x % W));
+        }
+
+        fn wrap_coord(base: u32, delta: i32, max: u32) u32 {
+            const b: i64 = @intCast(base);
+            const d: i64 = @intCast(delta);
+            const m: i64 = @intCast(max);
+            const result = @mod(b + d, m);
+            return @intCast(result);
+        }
+    };
+}
