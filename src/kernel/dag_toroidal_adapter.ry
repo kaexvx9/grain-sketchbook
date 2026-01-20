@@ -171,7 +171,7 @@ pub const UnifiedDag = struct {
     }
 
     fn find_free_slot(self: *UnifiedDag) ?usize {
-        for (self.nodes, 0..) |*n, i| {
+        for (&self.nodes, 0..) |*n, i| {
             if (!n.allocated) return i;
         }
         return null;
@@ -207,11 +207,11 @@ pub const UnifiedDag = struct {
 
     /// Why: Process all pending events.
     pub fn process_events(self: *UnifiedDag) u32 {
-        var count: u32 = 0;
+        var processed: u32 = 0;
         while (self.events.pop()) |_| {
-            count += 1;
+            processed += 1;
         }
-        return count;
+        return processed;
     }
 
     /// Why: Release node back to garden.

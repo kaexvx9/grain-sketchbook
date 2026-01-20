@@ -254,6 +254,26 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    // Unified DAG adapter for Aurora/Skate/Realidream.
+    const dag_toroidal_adapter_module = b.addModule("dag_toroidal_adapter", .{
+        .root_source_file = b.path("src/kernel/dag_toroidal_adapter.zig"),
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{
+            .{ .name = "toroidal", .module = toroidal_module },
+        },
+    });
+
+    // Realidream/Aurora/Skate toroidal integration.
+    const realidream_toroidal_module = b.addModule("realidream_toroidal_integration", .{
+        .root_source_file = b.path("src/realidream_toroidal_integration.zig"),
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{
+            .{ .name = "kernel/dag_toroidal_adapter.zig", .module = dag_toroidal_adapter_module },
+        },
+    });
+
     // Multi-architecture testing framework module.
     const test_framework_module = b.addModule("test_framework", .{
         .root_source_file = b.path("src/test_framework/root.zig"),
@@ -8333,6 +8353,20 @@ pub fn build(b: *std.Build) void {
     });
     const toroidal_dag_tests_run = b.addRunArtifact(toroidal_dag_tests);
     test_step.dependOn(&toroidal_dag_tests_run.step);
+
+    // Unified DAG Integration Test (Aurora, Skate, Realidream)
+    const unified_dag_integration_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("tests/171_unified_dag_integration_test.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "realidream_toroidal_integration", .module = realidream_toroidal_module },
+            },
+        }),
+    });
+    const unified_dag_integration_tests_run = b.addRunArtifact(unified_dag_integration_tests);
+    test_step.dependOn(&unified_dag_integration_tests_run.step);
 
     // Grain Bubble component tests
     // TEMPORARILY DISABLED: const grain_bubble_component_tests = b.addTest(.{
