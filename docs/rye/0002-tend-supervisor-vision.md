@@ -141,7 +141,7 @@ The naming reflects the philosophy:
 
 ## Application to Existing Modules
 
-The Basin kernel already embodies Tend philosophy. The 49 production Rye modules (7,080 lines) demonstrate:
+The Basin kernel already embodies Tend philosophy. The 55 production Rye modules (9,507 lines) demonstrate:
 
 | Module | Tend Pattern |
 |--------|--------------|
@@ -195,4 +195,4 @@ Future Rye versions may add:
 
 - `docs/rye/0001-rye-language-vision.md` - Rye language overview
 - `docs/rye_style.md` - RyeStyle constraints
-- `src/kernel/*.ry` - 49 production modules demonstrating Tend
+- `src/kernel/*.ry` - 55 production modules demonstrating Tend
