@@ -372,9 +372,9 @@ fn test_kernel_elf_loading(allocator: std.mem.Allocator) !void {
     vm2.set_serial_output(&serial_output);
     vm2.set_serial_input(&serial_input);
     
-    // Feed test commands to the kernel.
-    // The REPL responds to single chars: h=help, i=info, v=version, e=exit
-    const test_input = "hive"; // help, info, version, exit
+    // Feed test commands to the Grainscript kernel.
+    // The REPL accepts line-based commands: help, exit, or Grainscript code.
+    const test_input = "help\nexit\n";
     const pushed = serial_input.pushString(test_input);
     std.debug.print("[kernel_vm_test] Pushed {} bytes of input\n", .{pushed});
     
@@ -471,8 +471,12 @@ fn test_kernel_elf_loading(allocator: std.mem.Allocator) !void {
         std.debug.print("[kernel_vm_test] Serial output ({} bytes):\n", .{serial_output.total_written});
         std.debug.print("---\n{s}\n---\n", .{serial_output.buffer[0..out_len]});
         
-        // Note: First char is 'G' from "Grainscript REPL v0.1.0" - kernel reached REPL!
-        if (serial_output.buffer[0] == 'G') {
+        // Note: Output starts with newline then 'B' from "Basin Kernel v0.2.0"
+        // Or 'G' from "grainscript>" prompt. Either indicates successful boot.
+        const first_printable = for (serial_output.buffer[0..out_len]) |c| {
+            if (c >= 0x20 and c < 0x7f) break c;
+        } else 0;
+        if (first_printable == 'B' or first_printable == 'G' or first_printable == 'g') {
             std.debug.print("[kernel_vm_test] SUCCESS: Kernel reached REPL (Grainscript prompt starting)\n", .{});
         }
     }
