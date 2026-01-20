@@ -14,11 +14,11 @@ Boot the kernel in under 5 minutes.
 git clone https://codeberg.org/xy/ry.git
 cd ry
 
-# Build kernel
-zig build kernel
+# Build kernel (with Grainscript interpreter)
+zig build kernel-rv64
 
 # Run in QEMU
-qemu-system-riscv64 -M virt -nographic -bios none -kernel zig-out/bin/kernel
+./scripts/qemu_rv64.sh
 
 # Or use the VM test (auto-exits)
 zig build kernel-vm-test
@@ -27,15 +27,22 @@ zig build kernel-vm-test
 ## Expected Output
 
 ```
-Basin Kernel v0.1.0
-Grainscript> 
+Basin Kernel v0.2.0 (RISC-V64 + Grainscript)
+Copyright (c) 2026 Team Libra
+
+Type 'help' for commands, 'exit' to halt.
+
+grainscript> help
+Commands: help, exit, or Grainscript code
+Example: 42 + 8;
+grainscript> 
 ```
 
-Type `help` at the prompt for available commands.
+Type `help` at the prompt, or enter Grainscript expressions directly.
 
 ## Rye Compiler
 
-The kernel includes 55 modules written in Rye (9,500+ lines), our systems language:
+The kernel includes 60 modules written in Rye (14,000+ lines), our systems language:
 
 ```bash
 # Build Rye compiler
@@ -45,7 +52,7 @@ cd rye && zig build
 ./zig-out/bin/rye check ../src/kernel/*.ry
 
 # Get project statistics
-./zig-out/bin/rye stats ../src/kernel/*.ry
+./zig-out/bin/rye stats ../src/kernel/*.ry ../src/grainscript/*.ry
 
 # Compile .ry to .zig
 ./zig-out/bin/rye build ../src/kernel/uart.ry
@@ -55,16 +62,19 @@ cd rye && zig build
 
 ```
 ry/
-├── src/kernel/     # Basin kernel (55 Rye modules + 2 Zig files)
-│   ├── main.zig    # Kernel entry point (inline asm REPL)
-│   ├── entry.zig   # Entry point re-export
-│   ├── *.ry        # 55 Rye modules (uart, scheduler, syscalls, etc.)
-│   └── *.zig       # Transpiled Zig output
-├── rye/            # Rye compiler
+├── src/kernel/           # Basin kernel (57 Rye modules)
+│   ├── main_grainscript.ry  # Kernel entry (Grainscript REPL)
+│   ├── main.zig          # Minimal kernel (inline asm, backup)
+│   ├── entry.zig         # Entry point re-export
+│   └── *.ry              # Rye modules (uart, scheduler, syscalls, etc.)
+├── src/grainscript/      # Grainscript interpreter (3 Rye modules)
+│   ├── lexer.ry          # Tokenizer
+│   ├── parser.ry         # AST builder
+│   └── interpreter.ry    # Runtime
+├── rye/                  # Rye compiler
 │   └── src/main.zig
-├── docs/           # Documentation
-│   └── rye/        # Rye language docs
-└── build.zig       # Build system
+├── docs/rye/             # Rye language docs
+└── build.zig             # Build system
 ```
 
 ## Next Steps
