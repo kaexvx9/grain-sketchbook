@@ -94,7 +94,7 @@ pub const DagCore = struct {
     pending_events: []Event,
     pending_events_len: u32,
 
-    /// Initialize DAG with pre-allocated buffers.
+    /// Why: Initialize DAG with bounded pre-allocated buffers.
     pub fn init(allocator: std.mem.Allocator) !DagCore {
         // Assert: Allocator must be valid
         std.debug.assert(allocator.ptr != null);
@@ -122,7 +122,7 @@ pub const DagCore = struct {
         };
     }
 
-    /// Deinitialize DAG and free all resources.
+    /// Why: Release all DAG resources back to allocator.
     pub fn deinit(self: *DagCore) void {
         // Free node data
         for (self.nodes[0..self.nodes_len]) |*node| {
@@ -150,7 +150,7 @@ pub const DagCore = struct {
         self.allocator.free(self.pending_events);
     }
 
-    /// Add a node to the DAG.
+    /// Why: Add node with data and attributes (bounded by MAX_NODES).
     pub fn addNode(
         self: *DagCore,
         node_type: NodeType,
@@ -204,7 +204,7 @@ pub const DagCore = struct {
         return node_id;
     }
 
-    /// Add an edge to the DAG.
+    /// Why: Add edge between nodes (bounded by MAX_EDGES, acyclic).
     pub fn addEdge(
         self: *DagCore,
         from_node: u32,
@@ -245,7 +245,7 @@ pub const DagCore = struct {
         std.debug.assert(self.edges_len == edge_id + 1);
     }
 
-    /// Add an event to the DAG (HashDAG-style).
+    /// Why: Add event for streaming updates (HashDAG-style).
     pub fn addEvent(
         self: *DagCore,
         event_type: EventType,
@@ -296,7 +296,7 @@ pub const DagCore = struct {
         return event_id;
     }
 
-    /// Process pending events (TigerBeetle-style state machine).
+    /// Why: Process events deterministically (TigerBeetle-style).
     pub fn processEvents(self: *DagCore) !void {
         // Assert: Events must be valid
         std.debug.assert(self.pending_events_len <= MAX_PENDING_EVENTS);
@@ -335,7 +335,7 @@ pub const DagCore = struct {
         self.pending_events_len = 0;
     }
 
-    /// Get node by ID.
+    /// Why: Get node by ID (returns null if invalid).
     pub fn getNode(self: *const DagCore, node_id: u32) ?*const Node {
         // Assert: Node ID must be valid
         if (node_id >= self.nodes_len) {
@@ -345,7 +345,7 @@ pub const DagCore = struct {
         return &self.nodes[node_id];
     }
 
-    /// Get edges for a node (incoming or outgoing).
+    /// Why: Get edges for node (incoming or outgoing).
     pub fn getEdges(self: *const DagCore, node_id: u32, incoming: bool) []const Edge {
         // Assert: Node ID must be valid
         std.debug.assert(node_id < self.nodes_len);
@@ -370,7 +370,7 @@ pub const DagCore = struct {
         return &.{};
     }
 
-    /// Verify DAG is acyclic (assertion).
+    /// Why: Verify no cycles (DAG invariant).
     pub fn verifyAcyclic(self: *const DagCore) bool {
         // Simple check: verify no self-loops
         for (self.edges[0..self.edges_len]) |edge| {
