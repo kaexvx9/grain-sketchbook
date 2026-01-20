@@ -210,6 +210,9 @@ test "kernel channel create" {
 
 // Test kernel channel send syscall (validation only).
 test "kernel channel send validation" {
+    RawIO.disable();
+    defer RawIO.enable();
+
     const kernel = try create_test_kernel();
     defer std.testing.allocator.destroy(kernel);
     
@@ -237,14 +240,10 @@ test "kernel channel send validation" {
         0x1000,
         10,
         0,
-    ) catch |err| {
-        return err;
-    };
+    );
     
     // Assert: Send must fail (channel not found).
-    const send_result_unwrapped = send_result_invalid;
-    try std.testing.expect(send_result_unwrapped == .err);
-    try std.testing.expect(send_result_unwrapped.err == BasinError.not_found);
+    try std.testing.expectError(BasinError.not_found, send_result_invalid);
     
     // Try to send with valid channel ID (but invalid data pointer).
     const send_result_null = basin_kernel_mod.handle_syscall(
@@ -254,19 +253,17 @@ test "kernel channel send validation" {
         0, // Null pointer
         10,
         0,
-    ) catch |err| {
-        return err;
-    };
+    );
     
     // Assert: Send must fail (null pointer).
-    try std.testing.expect(send_result_null == .err);
-    if (send_result_null == .err) {
-        try std.testing.expect(send_result_null.err == BasinError.invalid_argument);
-    }
+    try std.testing.expectError(BasinError.invalid_argument, send_result_null);
 }
 
 // Test kernel channel recv syscall (validation only).
 test "kernel channel recv validation" {
+    RawIO.disable();
+    defer RawIO.enable();
+
     const kernel = try create_test_kernel();
     defer std.testing.allocator.destroy(kernel);
     
@@ -294,14 +291,10 @@ test "kernel channel recv validation" {
         0x1000,
         4096,
         0,
-    ) catch |err| {
-        return err;
-    };
+    );
     
     // Assert: Receive must fail (channel not found).
-    const recv_result_unwrapped = recv_result_invalid;
-    try std.testing.expect(recv_result_unwrapped == .err);
-    try std.testing.expect(recv_result_unwrapped.err == BasinError.not_found);
+    try std.testing.expectError(BasinError.not_found, recv_result_invalid);
     
     // Try to receive with valid channel ID but empty queue.
     const recv_result_empty = basin_kernel_mod.handle_syscall(
@@ -311,14 +304,9 @@ test "kernel channel recv validation" {
         0x1000,
         4096,
         0,
-    ) catch |err| {
-        return err;
-    };
+    );
     
     // Assert: Receive must fail (queue empty).
-    try std.testing.expect(recv_result_empty == .err);
-    if (recv_result_empty == .err) {
-        try std.testing.expect(recv_result_empty.err == BasinError.would_block);
-    }
+    try std.testing.expectError(BasinError.would_block, recv_result_empty);
 }
 

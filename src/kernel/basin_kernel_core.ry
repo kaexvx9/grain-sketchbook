@@ -383,6 +383,13 @@ pub const BasinKernel = struct {
         target.user_count = 0;
         target.memory_pool.allocated_pages = 0;
         target.memory_pool.next_free_page = 0;
+        target.channels.next_channel_id = 1;
+        target.channels.channel_count = 0;
+        for (&target.channels.channels) |*ch| {
+            ch.allocated = false;
+            ch.id = 0;
+        }
+        target.user_count = 1;
     }
 
     fn init_users(self: *BasinKernel) void {

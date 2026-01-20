@@ -107,8 +107,8 @@ const VM_MEM: u64 = 4 * 1024 * 1024;
 const USER_START: u64 = 0x100000;
 
 fn decode_syscall(num: u32) ?Syscall {
-    if (num < 10 or num > @intFromEnum(Syscall.getsid)) return null;
-    return @enumFromInt(num);
+    if (num < 1 or num > @intFromEnum(Syscall.set_resource_limit)) return null;
+    return std.meta.intToEnum(Syscall, num) catch return null;
 }
 
 fn record_profile(self: *BasinKernel, num: u32, start: u64) void {
@@ -411,7 +411,7 @@ fn syscall_channel_recv(self: *BasinKernel, ch: u64, ptr: u64, len: u64, timeout
     const recv_len = channel.receive(&msg_buf);
     if (recv_len == 0) {
         if (self.check_timeout(start, timeout)) return BasinError.ipc_timeout;
-        return SyscallResult.ok(0);
+        return BasinError.would_block;
     }
     if (self.check_timeout(start, timeout)) return BasinError.ipc_timeout;
     const writer = self.vm_memory_writer orelse return BasinError.invalid_syscall;
