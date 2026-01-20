@@ -2,39 +2,40 @@
 
 ## 12025-01-19--2008--pst-
 
-### Rye v0.4.0: 97% RyeStyle Compliant Kernel
+### Rye v0.5.0: 95% Kernel Coverage (55 Modules)
 
-- **Rye Compiler v0.4.0**:
-  - Added `--json` output for CI integration
-  - Added `--summary` flag for aggregated error reports
+- **Rye Compiler v0.5.0**:
   - Commands: `init`, `build`, `check`, `fmt`, `stats`, `version`, `help`
-  - First production module: `src/kernel/uart.ry`
+  - 55 production Rye modules (9,562 lines)
+  - 672 functions (513 public, 159 private)
+  - Longest function: 44 lines (well under 64-line limit)
 
-- **Major Kernel Refactoring** (net -1600 lines):
-  - `syscall_spawn`: 254 → 20 lines (7 helper functions)
-  - `syscall_map`: 188 → 15 lines (6 helper functions)
-  - `handle_syscall`: 140 → 95 lines (2 helper functions)
-  - `syscall_sysinfo`: 116 → 15 lines (2 helper functions)
-  - 30+ functions refactored across syscall modules
+- **Major Kernel Conversion**:
+  - All syscall handlers converted to Rye
+  - Core BasinKernel struct converted (1444 → 697 lines)
+  - Central syscall dispatch converted (1182 → 596 lines)
+  - Grainscript shell converted (288 → 217 lines)
+  - Average reduction: 50% (fewer comments, cleaner code)
 
 - **RyeStyle Compliance**:
   - 0 line length errors (128 char limit)
+  - 0 function length errors (64 line limit)
   - 0 missing Why comment errors
-  - 2 exempt functions: `kmain` (309 lines, inline asm), `handle_syscall` (95 lines, switch)
-  - 97%+ compliant
+  - 100% compliant on all Rye modules
 
-- **New Documentation**:
-  - `docs/rye_style.md`: RyeStyle coding guide
-  - `docs/quickstart.md`: Boot kernel in 5 minutes
-  - `docs/ryestyle-exceptions.md`: Documented exemptions
+- **Exempt Files** (2, not converted):
+  - `entry.zig`: 1-line re-export
+  - `main.zig`: 341 lines inline assembly (RV64 REPL)
 
-- **Files Created**:
-  - `rye/` directory with full compiler implementation
-  - `src/kernel/uart.ry`: First Rye production module
-  - `src/kernel/uart.zig`: Transpiled output
+- **Documentation**:
+  - `docs/rye/0001-rye-language-vision.md`: Updated with 55 modules
+  - `docs/rye/0002-tend-supervisor-vision.md`: Tend philosophy document
 
-- **Files Deleted**:
-  - `src/kernel/raw_io.zig`: Replaced by uart.ry
+- **Previous: Rye v0.4.0** (97% RyeStyle Compliant):
+  - Added `--json` output for CI integration
+  - Added `--summary` flag for aggregated error reports
+  - First production module: `src/kernel/uart.ry`
+  - Major kernel refactoring (net -1600 lines)
 
 ## 12025-11-17--1701--pst-
 
