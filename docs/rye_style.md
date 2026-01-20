@@ -279,6 +279,63 @@ src/
     repl.ry
 ```
 
+## Accretion Over Breakage
+
+Following Rich Hickey's insight from "Spec-ulation": **breaking changes are broken**.
+
+We reject Semantic Versioning's premise that major version bumps make breakage acceptable. Instead:
+
+| Don't | Do |
+|-------|-----|
+| Break a function | Create `foo2` or `new_ns.foo` |
+| Remove a function | Create new namespace without it |
+| Require more args | Create new function with new name |
+| Provide less return | Create new function with new name |
+| Bump major version | Give birth to a new name |
+
+**Why?** Because "you might be screwed" is worse than "you are screwed." Major version bumps say
+nothing about *what* broke. You might as well change the name entirely.
+
+### Chronological Versioning
+
+Rye uses **chronological versioning** instead of semantic versioning:
+
+```
+YYYYMMDD.HHMMSS.variant
+12025-01-20.0945.basin
+```
+
+This conveys:
+- **When** it was released (absolute, not relative)
+- **Causality** (later timestamps came after earlier ones)
+- **No false promises** about compatibility
+
+### The Tend Philosophy
+
+Our "Tend" philosophy (see `docs/rye/0002-tend-supervisor-vision.md`) aligns perfectly:
+
+- **Stewardship over ownership**: Tend to your users, don't abandon them
+- **Garden allocation**: Plots grow, they don't shrink
+- **Toroidal topology**: No edges means no breaking boundaries
+- **Names are precious**: One-syllable names are rare—make them endure
+
+### Accretion in Practice
+
+```rye
+// BAD: Breaking change
+pub fn parse(input: []const u8) !Ast { ... }
+// Later: "we need options now"
+pub fn parse(input: []const u8, opts: Options) !Ast { ... } // BREAKS CALLERS
+
+// GOOD: Accretion
+pub fn parse(input: []const u8) !Ast { ... }
+// Later: new function with new name
+pub fn parse_with_opts(input: []const u8, opts: Options) !Ast { ... } // GROWS API
+```
+
+Maven Central never breaks because it's "an accreting collection of immutable things." 
+Rye aspires to the same: **grow forever, break never**.
+
 ## The Last Stage
 
 At the end of the day, keep trying things out, have fun, and remember—Rye is hardy grain that grows
@@ -287,7 +344,7 @@ heart.
 
 ---
 
-**now == next + 1** 🌾⚒️
+**now == next + 1**
 
 ---
 
