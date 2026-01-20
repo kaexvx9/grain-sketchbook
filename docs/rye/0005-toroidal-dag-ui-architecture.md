@@ -415,24 +415,28 @@ button.on_click = fn() {
 
 ## Part 7: Implementation Path
 
-### Phase 1: Core Types (Current)
+### Phase 1: Core Types (Complete)
 - [x] ToroidalIndex in toroidal.ry
 - [x] ToroidalBuffer in toroidal.ry
+- [x] ToroidalGrid in toroidal.ry
+- [x] BoundedParam in toroidal.ry
 - [x] Garden concept documented
-- [ ] ToroidalDag structure
 
-### Phase 2: DAG Core
-- [ ] Create dag_toroidal.ry
-- [ ] Implement node/edge gardens
-- [ ] Implement toroidal event queue
-- [ ] Implement propagation
+### Phase 2: DAG Core (Complete)
+- [x] dag_toroidal.ry (324 lines)
+- [x] dag_toroidal_adapter.ry (235 lines)
+- [x] Node/edge gardens implemented
+- [x] Toroidal event queue implemented
+- [x] 170_toroidal_dag_test.zig (14 tests)
 
-### Phase 3: UI Integration
-- [ ] Aurora editor DAG backend
-- [ ] Realidream browser DAG backend
-- [ ] Unified view mapping
+### Phase 3: UI Integration (Complete)
+- [x] realidream_toroidal_integration.ry (284 lines)
+- [x] RealidreamIntegration (DOM nodes)
+- [x] AuroraIntegration (AST nodes)
+- [x] SkateIntegration (visual nodes)
+- [x] 171_unified_dag_integration_test.zig (13 tests)
 
-### Phase 4: Kernel Integration
+### Phase 4: Kernel Integration (Next)
 - [ ] UI DAG syscalls in Basin
 - [ ] Grainscript UI bindings
 - [ ] Event loop integration
