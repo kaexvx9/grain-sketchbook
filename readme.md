@@ -9,7 +9,7 @@
 
 **This entire codebase was built using Cursor Ultra ($200/month) in Auto Mode.**
 
-168,000+ lines of Zig/Rye and counting. 500+ source files and counting. 249/249 tests passing. 55 Rye modules (9,500+ lines). A complete RISC-V64 operating system with JIT compiler, networking stack, and scripting language — built by AI agents working autonomously.
+168,000+ lines of Zig/Rye and counting. 500+ source files. 249/249 tests passing. **59 Rye modules (14,000+ lines)**. Kernel + Grainscript 100% converted to Rye. Toroidal Garden Architecture. A complete RISC-V64 operating system with JIT compiler, networking stack, and scripting language — built by AI agents.
 
 ---
 

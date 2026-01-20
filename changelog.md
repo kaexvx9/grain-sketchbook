@@ -1,5 +1,35 @@
 # Changelog
 
+## 12025-01-20--0900--pst-
+
+### Rye v0.6.0: Full Grainscript Conversion + Toroidal Garden Architecture
+
+- **Grainscript 100% Rye**:
+  - `lexer.ry`: 647 lines
+  - `parser.ry`: 1,296 lines (refactored `parse_function_declaration`)
+  - `interpreter.ry`: 2,156 lines (refactored from 2,601)
+  - All 3 modules RyeStyle compliant
+
+- **Interpreter Refactoring**:
+  - `call_user_function`: 133 → 20 lines (5 helper functions)
+  - `evaluate_assign_expression`: 70 → 14 lines (2 helpers)
+  - `register_builtin_commands`: 67 → 12 lines (`add_builtin` helper)
+  - `register_string_functions`: 144 → 27 lines
+  - `register_math_functions`: 105 → 24 lines
+
+- **Toroidal Garden Architecture** (docs/rye/0003):
+  - Garden allocation replaces arena allocation
+  - `ToroidalIndex(N)`: Wrapping index with bounds
+  - `ToroidalBuffer(T, N)`: Circular buffer
+  - `BoundedParam(min, max)`: Clamped parameters
+  - Unified Rye/Basin design philosophy
+
+- **Stats**:
+  - 59 Rye modules (13,907 lines)
+  - 830 functions (541 public, 289 private)
+  - Longest function: 63 lines (`parse_function_call`)
+  - Kernel boots to Grainscript REPL ✅
+
 ## 12025-01-20--0730--pst-
 
 ### Rye v0.5.1: 100% Test Suite Passing (249/249)
