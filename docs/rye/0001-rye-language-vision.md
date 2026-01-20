@@ -79,7 +79,7 @@ Features implemented (v0.4.0):
 - Emitter (identity transform for Phase 1)
 - `--json` output for CI integration
 - `--summary` for aggregated reports
-- **Production modules** (28, 2804 lines):
+- **Production modules** (31, 3223 lines):
   - `uart.ry` - UART driver
   - `debug.ry` - Kernel debug utilities
   - `panic.ry` - Panic handler
@@ -108,6 +108,9 @@ Features implemented (v0.4.0):
   - `elf_parser.ry` - ELF parsing
   - `network_interface_stats.ry` - Network stats
   - `memory_stats.ry` - Memory statistics
+  - `process_group_stats.ry` - Process group stats
+  - `udp_socket_stats.ry` - UDP socket stats
+  - `scheduler_stats.ry` - Scheduler stats
 
 ## Why Not Just Use Zig?
 
