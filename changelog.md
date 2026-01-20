@@ -1,5 +1,20 @@
 # Changelog
 
+## 12025-01-20--0730--pst-
+
+### Rye v0.5.1: 100% Test Suite Passing (249/249)
+
+- **Test Suite Fixes**:
+  - `decode_syscall`: Fixed range check rejecting syscalls 1-9 (spawn, exit, yield, wait)
+  - `syscall_channel_recv`: Return `would_block` on empty queue (was `ok(0)`)
+  - `init_in_place`: Initialize channels table and `user_count = 1`
+  - Test expectations updated to use `expectError` for error-propagating syscalls
+
+- **Results**:
+  - 249/249 tests passing (100%)
+  - Kernel boots successfully
+  - Grainscript REPL working
+
 ## 12025-01-19--2008--pst-
 
 ### Rye v0.5.0: 95% Kernel Coverage (55 Modules)
