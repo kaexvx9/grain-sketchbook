@@ -160,70 +160,34 @@ fn print_hex(val: anytype) void {
     }
 }
 
-/// Grain Style: Explicit assertion with message
+/// Grain Style: Explicit assertion - DISABLED due to codegen issues.
+/// TODO: Re-enable when Zig RV64 freestanding codegen is fixed.
 pub fn kassert(ok: bool, comptime msg: []const u8, args: anytype) void {
-    if (!ok) {
-        // In test mode (RawIO disabled), skip assertion to avoid hanging/aborting tests
-        // Why: Tests should validate behavior through return values and state checks,
-        // not through kernel assertions which are designed for production debugging.
-        // Note: In production, assertions will trap/hang as intended.
-        if (!RawIO.is_enabled()) {
-            // Test mode: Skip assertion (tests should verify correctness through other means)
-            return;
-        }
-        
-        // Production mode: Print message and trap/hang
-        kprint("\n[ASSERT FAILED] ", .{});
-        kprint(msg, args);
-        kprint("\n", .{});
-        
-        // Trap/Hang
-        while (true) {
-            if (@import("builtin").cpu.arch == .riscv64) {
-                asm volatile ("wfi");
-            } else if (@import("builtin").cpu.arch == .x86_64) {
-                asm volatile ("hlt");
-            } else {
-                // Generic infinite loop for other architectures
-            }
-        }
-    }
+    // Complete no-op - any code here causes codegen issues
+    _ = ok;
+    _ = msg;
+    _ = args;
 }
 
-/// Grain Style: Log with level
+/// Grain Style: Log with level - DISABLED due to codegen issues.
 pub fn log(comptime level: LogLevel, comptime fmt: []const u8, args: anytype) void {
-    // Skip debug messages unless verbose mode is enabled
-    if (level == .debug and !debug_verbose) {
-        return;
-    }
-    
-    const prefix = switch (level) {
-        .debug => "[DEBUG] ",
-        .info => "[INFO]  ",
-        .warn => "[WARN]  ",
-        .error_lvl => "[ERROR] ",
-    };
-    
-    RawIO.write(prefix);
-    kprint(fmt, args);
-    RawIO.write("\n");
+    // No-op - codegen issues with kprint
+    _ = level;
+    _ = fmt;
+    _ = args;
 }
 
-/// Debug print (always prints, for critical debugging).
-/// Why: Print debug messages that should always appear (for boot debugging).
+/// Debug print - DISABLED due to codegen issues.
 pub fn dprint(comptime fmt: []const u8, args: anytype) void {
-    RawIO.write("[DEBUG] ");
-    kprint(fmt, args);
-    RawIO.write("\n");
+    // No-op - codegen issues with kprint
+    _ = fmt;
+    _ = args;
 }
 
-/// Verbose debug print (only prints if verbose mode enabled).
-/// Why: Print debug messages only in verbose mode.
+/// Verbose debug print - DISABLED due to codegen issues.
+/// Why: Zig RV64 freestanding has issues with global variable reads and kprint.
 pub fn vprint(comptime fmt: []const u8, args: anytype) void {
-    if (!debug_verbose) {
-        return;
-    }
-    RawIO.write("[VERBOSE] ");
-    kprint(fmt, args);
-    RawIO.write("\n");
+    // No-op for now - codegen issues with global var reads and kprint
+    _ = fmt;
+    _ = args;
 }

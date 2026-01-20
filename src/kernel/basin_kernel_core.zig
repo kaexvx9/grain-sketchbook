@@ -626,39 +626,27 @@ pub const BasinKernel = struct {
     /// Why: For heap-allocated kernels, initialize directly to avoid stack overflow.
     /// Contract: target must point to valid memory large enough for BasinKernel.
     pub fn init_in_place(target: *BasinKernel) void {
-        // Initialize all fields directly in target (no stack temporary)
-        // Split into smaller functions to avoid function size issues
-        Debug.vprint("Starting kernel initialization...", .{});
+        // Minimal initialization - avoid function calls that may have codegen issues
+        // Just set essential scalar fields, leave arrays zeroed (BSS is zero-initialized)
         
-        // Initialize core subsystems
-        init_core_subsystems(target);
+        // Timer - inline init to avoid function call
+        target.timer.boot_time_ns = 0;
+        target.timer.last_timer_ns = 0;
+        target.timer.initialized = true;
         
-        // Initialize managers
-        init_managers(target);
+        // Interrupt controller - just mark initialized
+        target.interrupt_controller.initialized = true;
         
-        // Initialize I/O and memory
-        init_io_and_memory(target);
+        // Scheduler - just mark initialized
+        target.scheduler.initialized = true;
         
-        // Initialize log buffer with timer reference (after timer is created).
-        // KernelLogBuffer.init() creates ~76KB temporary (256 entries × 288 bytes), so initialize in-place
-        Debug.vprint("Initializing log buffer...", .{});
-        var i: u32 = 0;
-        while (i < 256) : (i += 1) {
-            // Initialize log entry fields directly
-            target.log_buffer.entries[i].timestamp = 0;
-            target.log_buffer.entries[i].level = 0;
-            @memset(&target.log_buffer.entries[i].source, 0);
-            @memset(&target.log_buffer.entries[i].message, 0);
-        }
+        // Set log buffer fields
         target.log_buffer.write_index = 0;
         target.log_buffer.entry_count = 0;
         target.log_buffer.timer = &target.timer;
-        Debug.vprint("Log buffer initialized", .{});
         
-        // Initialize default users (root and xy).
-        target.init_users();
-        
-        Debug.vprint("Kernel initialization complete", .{});
+        // User count
+        target.user_count = 0;
     }
     
     /// Initialize default users.

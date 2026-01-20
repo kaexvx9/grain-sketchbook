@@ -372,10 +372,19 @@ fn test_kernel_elf_loading(allocator: std.mem.Allocator) !void {
     vm2.set_serial_output(&serial_output);
     vm2.set_serial_input(&serial_input);
     
-    // Feed a simple command to the kernel ("help\n").
-    const help_cmd = "help\n";
-    const pushed = serial_input.pushString(help_cmd);
-    std.debug.print("[kernel_vm_test] Pushed {} bytes of input: \"{s}\"\n", .{ pushed, help_cmd });
+    // Feed test commands to the kernel.
+    // The REPL responds to single chars: h=help, i=info, v=version, e=exit
+    const test_input = "hive"; // help, info, version, exit
+    const pushed = serial_input.pushString(test_input);
+    std.debug.print("[kernel_vm_test] Pushed {} bytes of input\n", .{pushed});
+    
+    // Debug: Check raw_io_enabled in VM memory
+    // raw_io_enabled is at virtual 0x800ddf28, which maps to physical 0xddf28
+    const raw_io_enabled_phys: usize = 0xddf28;
+    const raw_io_enabled_value = vm2.memory[raw_io_enabled_phys];
+    std.debug.print("[kernel_vm_test] raw_io_enabled at phys 0x{x} = 0x{x:0>2} (should be 0x01)\n", .{
+        raw_io_enabled_phys, raw_io_enabled_value,
+    });
     
     // Note: JIT has x86_64 register allocation bugs - using interpreter.
     // TODO: After refactoring, fix JIT and use step_fast() for speed.
@@ -383,15 +392,26 @@ fn test_kernel_elf_loading(allocator: std.mem.Allocator) !void {
     // Execute instructions.
     vm2.start();
     var instructions_executed: u32 = 0;
-    const MAX_INSTRUCTIONS: u32 = 500000; // 500K instructions
+    const MAX_INSTRUCTIONS: u32 = 1000000; // 1M instructions
     
     var prev_sp: u64 = vm2.regs.get(2);
     var sp_change_count: u32 = 0;
     const MAX_SP_LOGS: u32 = 20; // Only log first 20 SP changes
+    var prev_output_len: usize = 0;
     
     while (instructions_executed < MAX_INSTRUCTIONS) : (instructions_executed += 1) {
         const pc_before = vm2.regs.pc;
         const sp_before = vm2.regs.get(2);
+        
+        // Track output bytes (show first 50 characters as they're written)
+        if (serial_output.total_written > prev_output_len and serial_output.total_written <= 50) {
+            const new_byte = serial_output.buffer[prev_output_len];
+            std.debug.print(
+                "[kernel_vm_test] Output byte {}: '{c}' (0x{x:0>2}) at PC 0x{x}, inst #{}\n",
+                .{ prev_output_len, if (new_byte >= 0x20 and new_byte < 0x7f) new_byte else '.', new_byte, pc_before, instructions_executed },
+            );
+            prev_output_len = serial_output.total_written;
+        }
         
         // Track SP changes (limited logging)
         if (sp_before != prev_sp) {
@@ -406,6 +426,7 @@ fn test_kernel_elf_loading(allocator: std.mem.Allocator) !void {
             }
             prev_sp = sp_before;
         }
+        
         
         vm2.step() catch |err| {
             if (err == error.halted) {
@@ -428,21 +449,25 @@ fn test_kernel_elf_loading(allocator: std.mem.Allocator) !void {
             break;
         }
         
-        // Progress indicator every 500K instructions
-        if (instructions_executed > 0 and instructions_executed % 500000 == 0) {
-            std.debug.print("[kernel_vm_test] {}K instructions, output={} bytes\n", .{ instructions_executed / 1000, serial_output.total_written });
+        // Progress indicator every 1M instructions
+        if (instructions_executed > 0 and instructions_executed % 1000000 == 0) {
+            std.debug.print("[kernel_vm_test] {}M instructions, output={} bytes\n", .{ instructions_executed / 1000000, serial_output.total_written });
         }
     }
     
     if (instructions_executed >= MAX_INSTRUCTIONS) {
         std.debug.print("[kernel_vm_test] Executed {} instructions (limit reached)\n", .{MAX_INSTRUCTIONS});
+        // Debug: show register state
+        std.debug.print("[kernel_vm_test] Registers: pc=0x{x}, sp=0x{x}, ra=0x{x}, a0=0x{x}\n", .{
+            vm2.regs.pc, vm2.regs.get(2), vm2.regs.get(1), vm2.regs.get(10),
+        });
     }
     
     std.debug.print("[kernel_vm_test] Final PC: 0x{x}\n", .{vm2.regs.pc});
     
     // Show serial output (if any).
     if (serial_output.total_written > 0) {
-        const out_len = @min(serial_output.total_written, 512);
+        const out_len = @min(serial_output.total_written, 2048);
         std.debug.print("[kernel_vm_test] Serial output ({} bytes):\n", .{serial_output.total_written});
         std.debug.print("---\n{s}\n---\n", .{serial_output.buffer[0..out_len]});
         

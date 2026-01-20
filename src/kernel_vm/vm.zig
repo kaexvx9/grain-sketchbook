@@ -7,6 +7,10 @@ const SerialInput = @import("serial.zig").SerialInput;
 // Debug flags (set to true for verbose output).
 const DEBUG_SBI_GETCHAR = false;
 const DEBUG_SBI_CALLS = false;
+const DEBUG_UART_WRITES = false; // Disabled
+const DEBUG_SB_INSTRUCTIONS = false; // Disabled
+const DEBUG_RAW_IO_ENABLED_READS = false;
+var sb_instruction_count: u64 = 0;
 const jit_mod = @import("jit.zig");
 const error_log_mod = @import("error_log.zig");
 const performance_mod = @import("performance.zig");
@@ -3162,10 +3166,26 @@ pub const VM = struct {
             self.last_error = VMError.invalid_memory_access;
             return VMError.invalid_memory_access;
         }
+        
+        // Debug: Track reads from raw_io_enabled (0x800ddf28 -> phys 0xddf28)
+        if (DEBUG_RAW_IO_ENABLED_READS) {
+            if (eff_addr == 0x800ddf28) {
+                std.debug.print("LBU raw_io_enabled: phys=0x{x}, value=0x{x:0>2}, PC=0x{x}\n", .{
+                    phys_offset, self.memory[@intCast(phys_offset)], self.regs.pc,
+                });
+            }
+            // Also track reads from the first UART pointer location (0x800ddf20)
+            if (eff_addr >= 0x800ddf20 and eff_addr < 0x800ddf30) {
+                std.debug.print("LBU .data: addr=0x{x}, value=0x{x:0>2}, PC=0x{x}\n", .{
+                    eff_addr, self.memory[@intCast(phys_offset)], self.regs.pc,
+                });
+            }
+        }
 
         // Check for UART MMIO read (virtual address 0x10000000+).
         // Why: Kernel reads from UART for input status and data.
         const UART_VIRT_BASE: u64 = 0x10000000;
+        const DEBUG_UART_READS = false;
         var byte: u8 = undefined;
         if (eff_addr >= UART_VIRT_BASE and eff_addr < UART_VIRT_BASE + 0x1000) {
             const uart_offset = eff_addr - UART_VIRT_BASE;
@@ -3173,6 +3193,9 @@ pub const VM = struct {
                 // RBR (Receiver Buffer Register) - return input byte.
                 if (self.serial_input) |input| {
                     byte = input.pop() orelse 0;
+                    if (DEBUG_UART_READS and byte != 0) {
+                        std.debug.print("DEBUG: UART RBR read -> 0x{x:0>2}\n", .{byte});
+                    }
                 } else {
                     byte = 0;
                 }
@@ -3184,6 +3207,9 @@ pub const VM = struct {
                 if (self.serial_input) |input| {
                     if (input.hasInput()) {
                         lsr |= 0x01; // Data ready
+                        if (DEBUG_UART_READS) {
+                            std.debug.print("DEBUG: UART LSR read -> 0x{x:0>2} (data ready!)\n", .{lsr});
+                        }
                     }
                 }
                 byte = lsr;
@@ -3386,6 +3412,20 @@ pub const VM = struct {
         // Workaround: If x8 (s0/fp) is 0x0, check if the address would be valid.
         // If not, try using sp instead (for stack-relative accesses).
         var eff_addr = base_addr +% offset;
+
+        // Debug: track SB instructions
+        if (DEBUG_SB_INSTRUCTIONS) {
+            sb_instruction_count += 1;
+            // Log first 50 SB instructions and any to UART range
+            if (sb_instruction_count <= 50 or (eff_addr >= 0x10000000 and eff_addr < 0x10001000)) {
+                std.debug.print("SB #{}: addr=0x{x}, byte=0x{x:0>2}, PC=0x{x}\n", .{
+                    sb_instruction_count,
+                    eff_addr,
+                    @as(u8, @truncate(self.regs.get(rs2))),
+                    self.regs.pc,
+                });
+            }
+        }
         if (rs1 == 8 and base_addr == 0x0) {
             // If address with x8=0x0 is out of bounds, try sp instead.
             const test_phys = self.translate_address(eff_addr);
@@ -3446,6 +3486,14 @@ pub const VM = struct {
             // This is a UART write - capture as serial output.
             if (self.serial_output) |serial| {
                 serial.writeByte(byte);
+                // Debug: log UART writes
+                if (DEBUG_UART_WRITES and serial.total_written <= 100) {
+                    std.debug.print("UART write: '{c}' (0x{x:0>2}) at PC 0x{x}\n", .{
+                        if (byte >= 0x20 and byte < 0x7f) byte else '.',
+                        byte,
+                        self.regs.pc,
+                    });
+                }
             }
             // Still write to memory (in case kernel reads it back).
         }

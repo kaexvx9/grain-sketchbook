@@ -1,66 +1,69 @@
 //! Simple REPL for Kernel Interactive Mode
 //! Why: Provide interactive command interface for development and testing.
 //! Grain Style: Explicit types, bounded allocations, comprehensive assertions.
+//!
+//! NOTE: This is a minimal REPL using inline assembly for UART output.
+//! The full REPL with Grainscript evaluation is disabled due to Zig codegen issues
+//! on RISC-V64 freestanding targets. See docs/zig/2025-06-30-riscv64-freestanding-codegen-issues.md
 
-const std = @import("std");
-const Debug = @import("debug.zig");
 const RawIO = @import("raw_io.zig");
 const BasinKernel = @import("basin_kernel.zig").BasinKernel;
-const grainscript = @import("grainscript");
-const Lexer = grainscript.Lexer;
-const Parser = grainscript.Parser;
-const Interpreter = grainscript.Interpreter;
+
+/// Minimal UART output - comptime unrolled, inline asm only.
+/// Why: Zig's RISC-V freestanding codegen has issues with runtime loops and function calls.
+const Uart = struct {
+    inline fn putc(c: u8) void {
+        asm volatile (
+            \\lui t1, 0x10000
+            \\sb %[byte], 0(t1)
+            :
+            : [byte] "r" (c),
+        );
+    }
+    
+    pub inline fn print(comptime s: []const u8) void {
+        inline for (s) |c| {
+            putc(c);
+        }
+    }
+};
 
 /// Simple REPL for kernel interactive mode.
-/// Why: Allow interactive commands during development.
 pub const Repl = struct {
     kernel: *BasinKernel,
     running: bool,
-    /// Fixed buffer allocator for Grainscript execution.
-    /// Why: Provide memory allocation for Grainscript interpreter in freestanding kernel.
-    /// Grain Style: Bounded allocation (64KB buffer), explicit lifetime.
-    allocator_buffer: [64 * 1024]u8 = undefined, // 64KB buffer for Grainscript
-    fixed_allocator: std.heap.FixedBufferAllocator,
 
     const Self = @This();
-    const MAX_LINE_LEN: u32 = 512;
-    const MAX_ARGS: u32 = 16;
+    const MAX_LINE_LEN: u32 = 256;
 
     /// Initialize REPL.
     pub fn init(kernel: *BasinKernel) Self {
-        var repl = Self{
+        return Self{
             .kernel = kernel,
             .running = true,
-            .allocator_buffer = undefined,
-            .fixed_allocator = undefined,
         };
-        // Initialize fixed buffer allocator for Grainscript
-        repl.fixed_allocator = std.heap.FixedBufferAllocator.init(&repl.allocator_buffer);
-        return repl;
     }
 
     /// Run REPL loop.
-    /// Why: Read commands from UART, parse, execute, print results.
     pub fn run(self: *Self) void {
-        Debug.kprint("\n", .{});
-        Debug.kprint("Grainscript REPL v0.1.0\n", .{});
-        Debug.kprint("Type 'help' for commands, 'exit' to quit.\n", .{});
-        Debug.kprint("\n", .{});
+        Uart.print("\n");
+        Uart.print("Grainscript REPL v0.1.0\n");
+        Uart.print("Type 'help' for commands, 'exit' to quit.\n");
+        Uart.print("\n");
 
         var line_buf: [MAX_LINE_LEN]u8 = undefined;
         var line_len: u32 = 0;
 
         while (self.running) {
             // Print prompt
-            Debug.kprint("grainscript> ", .{});
+            Uart.print("grainscript> ");
 
             // Read line from UART (blocking wait for input)
             line_len = 0;
             while (line_len < MAX_LINE_LEN) {
-                // Wait for character (blocking)
                 const c = RawIO.read_byte_blocking();
                 
-                // Handle newline (enter key)
+                // Handle newline
                 if (c == '\n' or c == '\r') {
                     break;
                 }
@@ -69,293 +72,63 @@ pub const Repl = struct {
                 if (c == '\x08' or c == '\x7f') {
                     if (line_len > 0) {
                         line_len -= 1;
-                        // Echo backspace (move cursor back)
-                        RawIO.write_byte('\x08');
-                        RawIO.write_byte(' ');
-                        RawIO.write_byte('\x08');
+                        Uart.print("\x08 \x08");
                     }
                     continue;
                 }
                 
-                // Add character to line
-                if (c >= 0x20 and c < 0x7f) { // Printable ASCII
+                // Add printable character
+                if (c >= 0x20 and c < 0x7f) {
                     line_buf[line_len] = c;
                     line_len += 1;
-                    RawIO.write_byte(c); // Echo character
+                    RawIO.write_byte(c);
                 }
             }
             
-            // Echo newline
-            Debug.kprint("\n", .{});
+            Uart.print("\n");
 
             // Process command
             if (line_len > 0) {
-                self.process_command(line_buf[0..line_len]);
+                self.process_line(line_buf[0..line_len]);
             }
         }
     }
-
-    /// Process command line.
-    fn process_command(self: *Self, line: []const u8) void {
-        // Trim whitespace
-        var trimmed = line;
-        while (trimmed.len > 0 and (trimmed[0] == ' ' or trimmed[0] == '\t')) {
-            trimmed = trimmed[1..];
-        }
-        while (trimmed.len > 0 and (trimmed[trimmed.len - 1] == ' ' or trimmed[trimmed.len - 1] == '\t')) {
-            trimmed = trimmed[0..trimmed.len - 1];
-        }
-
-        if (trimmed.len == 0) {
-            return; // Empty line
-        }
-
-        // Parse command and arguments
-        var args: [MAX_ARGS][]const u8 = undefined;
-        var arg_count: u32 = 0;
-        var i: u32 = 0;
-        var start: u32 = 0;
-
-        while (i < trimmed.len and arg_count < MAX_ARGS) {
-            if (trimmed[i] == ' ' or trimmed[i] == '\t') {
-                if (i > start) {
-                    args[arg_count] = trimmed[start..i];
-                    arg_count += 1;
-                }
-                start = i + 1;
-            }
-            i += 1;
-        }
-        
-        if (start < trimmed.len and arg_count < MAX_ARGS) {
-            args[arg_count] = trimmed[start..];
-            arg_count += 1;
-        }
-
-        if (arg_count == 0) {
-            return;
-        }
-
-        const command = args[0];
-        const command_args = if (arg_count > 1) args[1..arg_count] else &[_][]const u8{};
-
-        // Execute command
-        self.execute_command(command, command_args);
-    }
-
-    /// Execute command.
-    fn execute_command(self: *Self, command: []const u8, args: []const []const u8) void {
-        // Help command
-        if (std.mem.eql(u8, command, "help")) {
-            Debug.kprint("Available commands:\n", .{});
-            Debug.kprint("  help          - Show this help message\n", .{});
-            Debug.kprint("  sysinfo       - Show system information\n", .{});
-            Debug.kprint("  ps            - List processes\n", .{});
-            Debug.kprint("  echo <text>   - Print text\n", .{});
-            Debug.kprint("  eval <code>   - Execute Grainscript code\n", .{});
-            Debug.kprint("  clear         - Clear screen\n", .{});
-            Debug.kprint("  exit          - Exit REPL\n", .{});
-            return;
-        }
-
-        // Exit command
-        if (std.mem.eql(u8, command, "exit")) {
-            Debug.kprint("Goodbye!\n", .{});
+    
+    /// Process a line of input.
+    fn process_line(self: *Self, line: []const u8) void {
+        // Check for exit
+        if (line.len >= 4 and line[0] == 'e' and line[1] == 'x' and line[2] == 'i' and line[3] == 't') {
+            Uart.print("Goodbye!\n");
             self.running = false;
             return;
         }
-
-        // Sysinfo command
-        if (std.mem.eql(u8, command, "sysinfo")) {
-            self.cmd_sysinfo();
+        
+        // Check for help
+        if (line.len >= 4 and line[0] == 'h' and line[1] == 'e' and line[2] == 'l' and line[3] == 'p') {
+            Uart.print("Commands: help, exit, sysinfo\n");
             return;
         }
-
-        // Process list command
-        if (std.mem.eql(u8, command, "ps")) {
-            self.cmd_ps();
+        
+        // Check for sysinfo
+        if (line.len >= 7 and line[0] == 's' and line[1] == 'y' and line[2] == 's') {
+            Uart.print("Basin Kernel v0.1.0 (RISC-V64)\n");
+            Uart.print("Users: ");
+            // Print user count as digit (0-9)
+            const count = self.kernel.user_count;
+            if (count < 10) {
+                Uart.putc('0' + @as(u8, @intCast(count)));
+            } else {
+                Uart.print("10+");
+            }
+            Uart.print("\n");
             return;
         }
-
-        // Echo command
-        if (std.mem.eql(u8, command, "echo")) {
-            self.cmd_echo(args);
-            return;
-        }
-
-        // Eval command (Grainscript execution)
-        if (std.mem.eql(u8, command, "eval")) {
-            self.cmd_eval(args);
-            return;
-        }
-
-        // Clear command
-        if (std.mem.eql(u8, command, "clear")) {
-            self.cmd_clear();
-            return;
-        }
-
-        // Unknown command
-        Debug.kprint("Unknown command: ", .{});
-        for (command) |c| {
+        
+        // Echo back unknown commands
+        Uart.print("Unknown: ");
+        for (line) |c| {
             RawIO.write_byte(c);
         }
-        Debug.kprint("\n", .{});
-        Debug.kprint("Type 'help' for available commands.\n", .{});
-    }
-
-    /// Execute sysinfo command.
-    fn cmd_sysinfo(self: *Self) void {
-        // Count processes
-        const MAX_PROCESSES = 256; // From basin_kernel_types.zig
-        var process_count: u32 = 0;
-        var i: u32 = 0;
-        while (i < MAX_PROCESSES) : (i += 1) {
-            if (self.kernel.processes[i].allocated) {
-                process_count += 1;
-            }
-        }
-        
-        Debug.kprint("System Information:\n", .{});
-        Debug.kprint("  Kernel: Basin Kernel v0.1.0\n", .{});
-        Debug.kprint("  Architecture: RISC-V64\n", .{});
-        Debug.kprint("  Users: {d}\n", .{self.kernel.user_count});
-        Debug.kprint("  Processes: {d}\n", .{process_count});
-    }
-
-    /// Execute ps command.
-    fn cmd_ps(self: *Self) void {
-        Debug.kprint("Process List:\n", .{});
-        Debug.kprint("  PID  State\n", .{});
-        
-        const MAX_PROCESSES = 256; // From basin_kernel_types.zig
-        var count: u32 = 0;
-        var i: u32 = 0;
-        while (i < MAX_PROCESSES) : (i += 1) {
-            if (self.kernel.processes[i].allocated) {
-                const pid = self.kernel.processes[i].id;
-                const state_str = switch (self.kernel.processes[i].state) {
-                    .running => "running",
-                    .exited => "exited",
-                    .free => "free",
-                };
-                Debug.kprint("  {d}  {s}\n", .{ pid, state_str });
-                count += 1;
-            }
-        }
-        
-        if (count == 0) {
-            Debug.kprint("  (no processes)\n", .{});
-        }
-    }
-
-    /// Execute clear command.
-    /// Why: Clear screen for better REPL experience.
-    fn cmd_clear(self: *Self) void {
-        _ = self;
-        // ANSI escape sequence to clear screen and move cursor to top-left
-        Debug.kprint("\x1b[2J\x1b[H", .{});
-    }
-
-    /// Execute echo command.
-    fn cmd_echo(self: *Self, args: []const []const u8) void {
-        _ = self;
-        if (args.len == 0) {
-            Debug.kprint("\n", .{});
-            return;
-        }
-
-        var first = true;
-        for (args) |arg| {
-            if (!first) {
-                RawIO.write_byte(' ');
-            }
-            first = false;
-            for (arg) |c| {
-                RawIO.write_byte(c);
-            }
-        }
-        Debug.kprint("\n", .{});
-    }
-
-    /// Execute eval command (Grainscript execution).
-    /// Why: Execute Grainscript code in kernel REPL for testing and development.
-    fn cmd_eval(self: *Self, args: []const []const u8) void {
-        if (args.len == 0) {
-            Debug.kprint("Error: eval requires code argument\n", .{});
-            Debug.kprint("Usage: eval <grainscript_code>\n", .{});
-            Debug.kprint("Example: eval \"42 + 8;\"\n", .{});
-            return;
-        }
-
-        // Join all arguments into source code (with spaces)
-        var source_buf: [MAX_LINE_LEN]u8 = undefined;
-        var source_len: u32 = 0;
-        var first = true;
-
-        for (args) |arg| {
-            if (!first) {
-                if (source_len < source_buf.len) {
-                    source_buf[source_len] = ' ';
-                    source_len += 1;
-                }
-            }
-            first = false;
-
-            for (arg) |c| {
-                if (source_len >= source_buf.len) {
-                    Debug.kprint("Error: Code too long (max {d} chars)\n", .{MAX_LINE_LEN});
-                    return;
-                }
-                source_buf[source_len] = c;
-                source_len += 1;
-            }
-        }
-
-        const source = source_buf[0..source_len];
-
-        // Reset fixed buffer allocator for new execution
-        self.fixed_allocator.reset();
-        const allocator = self.fixed_allocator.allocator();
-
-        cmd_eval_internal(self, allocator, source) catch |err| {
-            Debug.kprint("Grainscript error: {s}\n", .{@errorName(err)});
-        };
-    }
-
-    /// Internal Grainscript execution (with error handling).
-    fn cmd_eval_internal(self: *Self, allocator: std.mem.Allocator, source: []const u8) !void {
-        _ = self; // Kernel reference available if needed for syscalls
-
-        // Initialize Grainscript components
-        var lexer = try Lexer.init(allocator, source);
-        defer lexer.deinit();
-
-        try lexer.tokenize();
-
-        var parser = try Parser.init(allocator, &lexer);
-        defer parser.deinit();
-
-        try parser.parse();
-
-        var interpreter = try Interpreter.init(allocator, &parser);
-        defer interpreter.deinit();
-
-        // Execute Grainscript
-        try interpreter.execute();
-
-        // Print output from interpreter (freestanding-compatible).
-        const output = interpreter.get_output();
-        if (output.len > 0) {
-            Debug.kprint("{s}", .{output});
-        }
-
-        // Print result (if any)
-        const exit_code = interpreter.get_exit_code();
-        if (exit_code == 0) {
-            Debug.kprint("OK (exit code: {d})\n", .{exit_code});
-        } else {
-            Debug.kprint("Exit code: {d}\n", .{exit_code});
-        }
+        Uart.print("\n");
     }
 };
