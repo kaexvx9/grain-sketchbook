@@ -246,6 +246,14 @@ pub fn build(b: *std.Build) void {
     // Note: process_execution.zig is now in kernel_vm directory
     // Why: Avoids circular dependency - kernel_vm/integration.zig imports it as a file
 
+    // Toroidal data structures for bounded, edge-case-free operations.
+    // Why: Core primitives for DAG UI backend (Aurora, Skate, Realidream).
+    const toroidal_module = b.addModule("toroidal", .{
+        .root_source_file = b.path("src/kernel/toroidal.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     // Multi-architecture testing framework module.
     const test_framework_module = b.addModule("test_framework", .{
         .root_source_file = b.path("src/test_framework/root.zig"),
@@ -8310,6 +8318,21 @@ pub fn build(b: *std.Build) void {
     });
     const framework_x86_full_stack_tests_run = b.addRunArtifact(framework_x86_full_stack_tests);
     test_step.dependOn(&framework_x86_full_stack_tests_run.step);
+
+    // Toroidal DAG UI Backend Test
+    // Why: Verify toroidal primitives for Aurora/Skate/Realidream unified backend.
+    const toroidal_dag_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("tests/170_toroidal_dag_test.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "toroidal", .module = toroidal_module },
+            },
+        }),
+    });
+    const toroidal_dag_tests_run = b.addRunArtifact(toroidal_dag_tests);
+    test_step.dependOn(&toroidal_dag_tests_run.step);
 
     // Grain Bubble component tests
     // TEMPORARILY DISABLED: const grain_bubble_component_tests = b.addTest(.{
