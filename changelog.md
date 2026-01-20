@@ -1,24 +1,38 @@
 # Changelog
 
-> **Versioning**: We use chronological versioning (YYYYMMDD.HHMMSS) following Rich Hickey's
-> "Spec-ulation" philosophy. Breaking changes are broken—we only accrete.
+> **Versioning**: Chronological (`YYYYMMDD.HHMM`) per Rich Hickey's "Spec-ulation."
+> Breaking changes are broken—we only accrete. Names are enduring.
 
-## 12025-01-20--1000--pst
+## 20260120.0952
 
-### RyeStyle: Accretion Over Breakage
+First chronological release. All prior SemVer tags deleted.
 
-Adopted Rich Hickey's philosophy from "Spec-ulation":
+### Basin Kernel
+- Boots in QEMU RISC-V64 with Grainscript REPL
+- `zig build kernel-rv64` — default kernel with interpreter
+- `zig build kernel-minimal-rv64` — inline ASM fallback
+- 60 Rye modules (14,021 lines)
+- 249/249 tests passing
 
-- **Breaking changes are broken** - don't do them
-- **Chronological versioning** - YYYYMMDD.HHMMSS over SemVer
-- **Names are enduring** - one-syllable names last forever
-- **Tend philosophy alignment** - stewardship, garden allocation, toroidal topology
+### Rye Compiler
+- Compiler-enforced: 64-line functions, 128-char lines, `/// Why:` comments
+- Commands: `init`, `build`, `check`, `fmt`, `stats`, `version`, `help`
+- Transpiles `.ry` → `.zig`
 
-New section added to `docs/rye_style.md`.
+### Grainscript
+- Lexer, Parser, Interpreter (100% Rye)
+- REPL commands: `help`, `exit`, `echo <expr>`
 
-## 12025-01-20--0945--pst
+### Philosophy (RyeStyle)
+- Accretion over breakage
+- Chronological versioning
+- Tend (stewardship over ownership)
+- Garden allocation (plots grow, never shrink)
+- Toroidal topology (no edges, no breaks)
 
-### Basin Kernel v0.2.0: Grainscript REPL
+---
+
+## History (Pre-Chronological)
 
 - **Grainscript Kernel Now Default**:
   - `zig build kernel-rv64` builds full Grainscript kernel
