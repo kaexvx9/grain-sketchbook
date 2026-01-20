@@ -1,0 +1,16 @@
+//! Hello World in Rye
+//! Why: Demonstrate basic Rye syntax and compiler validation.
+
+/// Print a greeting.
+/// Why: Entry point for the hello world program.
+pub fn main() void {
+    const message = "Hello from Rye!";
+    print(message);
+}
+
+/// Print a string to stdout.
+/// Why: Wrapper for system output.
+fn print(msg: []const u8) void {
+    _ = msg;
+    // In a real implementation, this would call the system print function.
+}

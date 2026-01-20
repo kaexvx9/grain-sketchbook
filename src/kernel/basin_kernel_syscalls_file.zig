@@ -23,99 +23,42 @@ const can_open_file_descriptor = core.can_open_file_descriptor;
 /// File syscall handlers for BasinKernel.
 /// Why: Extract file system syscalls to separate module for organization.
 pub const FileSyscalls = struct {
-    pub fn syscall_open(
-        self: *BasinKernel,
-        path_ptr: u64,
-        path_len: u64,
-        flags: u64,
-        _arg4: u64,
-    ) BasinError!SyscallResult {
-        // Assert: self pointer must be valid.
-        const self_ptr = @intFromPtr(self);
-        Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
-        
-        _ = _arg4;
-        
-        // Assert: path pointer must be valid (non-zero, within VM memory).
-        if (path_ptr == 0) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Null pointer
-        }
-        
-        const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default (matches syscall_map)
-        if (path_ptr >= VM_MEMORY_SIZE) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Path pointer exceeds VM memory
-        }
-        
-        // Assert: path length must be reasonable (max 4096 bytes).
-        if (path_len == 0) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Empty path
-        }
-        if (path_len > 4096) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Path too long
-        }
-        
-        // Assert: path must fit within VM memory.
-        if (path_ptr + path_len > VM_MEMORY_SIZE) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Path exceeds VM memory
-        }
-        
-        // Decode flags (OpenFlags packed struct).
+    const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024;
+
+    /// Validate path arguments for file syscalls.
+    /// Why: Common validation for open, read, write syscalls.
+    fn validate_path_args(path_ptr: u64, path_len: u64) ?BasinError {
+        if (path_ptr == 0) return BasinError.invalid_argument;
+        if (path_ptr >= VM_MEMORY_SIZE) return BasinError.invalid_argument;
+        if (path_len == 0 or path_len > 4096) return BasinError.invalid_argument;
+        if (path_ptr + path_len > VM_MEMORY_SIZE) return BasinError.invalid_argument;
+        if (path_len > 255) return BasinError.invalid_argument;
+        return null;
+    }
+
+    /// Validate and decode open flags.
+    /// Why: Check flags have valid permissions and no reserved bits.
+    fn validate_open_flags(flags: u64) ?OpenFlags {
         const open_flags = @as(OpenFlags, @bitCast(@as(u32, @truncate(flags))));
-        
-        // Assert: flags padding must be zero (no reserved bits set).
-        if (open_flags._padding != 0) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Reserved bits set
-        }
-        
-        // Assert: flags must have at least one permission (read or write).
-        if (!open_flags.read and !open_flags.write) {
-            return SyscallResult.fail(BasinError.invalid_argument); // No permissions set
-        }
-        
-        // Assert: path length must fit in handle path buffer (max 256 bytes, so max path_len is 255).
-        // Note: path_len is the string length, handle.path is 256 bytes, so max path_len is 255.
-        if (path_len > 255) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Path too long for handle buffer
-        }
-        
-        // Assert: path_len must be > 0 (already checked above, but double-check for safety).
-        Debug.kassert(path_len > 0, "Path len is 0", .{});
-        Debug.kassert(path_len <= 255, "Path len > 255", .{});
-        
-        // Find free handle entry.
-        const handle_idx = self.find_free_handle() orelse {
-            return SyscallResult.fail(BasinError.out_of_memory); // Handle table full
-        };
-        
-        // Get current process index (with caching optimization).
-        // Why: Track which process owns this handle for resource cleanup.
-        const current_process_idx = self.find_current_process_index();
-        const owner_process_id = if (current_process_idx) |idx| @as(u32, @truncate(self.processes[idx].id)) else 0;
-        
-        // Check file descriptor limit for current process.
-        if (current_process_idx) |idx| {
-            const current_process = &self.processes[idx];
-            if (!self.can_open_file_descriptor(current_process)) {
-                return SyscallResult.fail(BasinError.resource_exhausted); // File descriptor limit exceeded
-            }
-        }
-        
-        // Allocate handle entry.
+        if (open_flags._padding != 0) return null;
+        if (!open_flags.read and !open_flags.write) return null;
+        return open_flags;
+    }
+
+    /// Allocate and initialize a file handle.
+    /// Why: Common handle setup for open syscall.
+    fn allocate_handle(
+        self: *BasinKernel,
+        handle_idx: usize,
+        path_len: u64,
+        open_flags: OpenFlags,
+        owner_process_id: u32,
+    ) u32 {
         var file_handle = &self.handles[handle_idx];
         const handle_id = self.next_handle_id;
         self.next_handle_id += 1;
-        
-        // Assert: Handle ID must be non-zero (1-based).
         Debug.kassert(handle_id != 0, "Handle ID is 0", .{});
-        
-        // Note: Actual path reading from VM memory is handled by integration layer.
-        // This kernel syscall validates parameters and creates handle entry.
-        // Integration layer will:
-        // 1. Read path string from VM memory at path_ptr
-        // 2. Look up or create file in storage filesystem
-        // 3. Link handle to storage file entry
-        // For now, we create handle entry and store path length.
+
         file_handle.id = handle_id;
         file_handle.path_len = @as(u32, @intCast(path_len));
         file_handle.flags = open_flags;
@@ -123,34 +66,61 @@ pub const FileSyscalls = struct {
         file_handle.buffer_size = 0;
         file_handle.allocated = true;
         file_handle.owner_process_id = owner_process_id;
-        
-        // Update handle hash table for O(1) lookup.
+
         self.update_handle_hash_table(handle_id, handle_idx);
-        
-        // If truncate flag is set, clear buffer.
-        if (open_flags.truncate) {
-            file_handle.buffer_size = 0;
-        }
-        
-        // Update process resource usage (increment file descriptor count).
+        if (open_flags.truncate) file_handle.buffer_size = 0;
+        return handle_id;
+    }
+
+    /// Why: Open a file, return handle ID.
+    pub fn syscall_open(
+        self: *BasinKernel,
+        path_ptr: u64,
+        path_len: u64,
+        flags: u64,
+        _arg4: u64,
+    ) BasinError!SyscallResult {
+        _ = _arg4;
+        const self_ptr = @intFromPtr(self);
+        Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
+
+        if (validate_path_args(path_ptr, path_len)) |err| return SyscallResult.fail(err);
+
+        const open_flags = validate_open_flags(flags) orelse {
+            return SyscallResult.fail(BasinError.invalid_argument);
+        };
+
+        const handle_idx = self.find_free_handle() orelse {
+            return SyscallResult.fail(BasinError.out_of_memory);
+        };
+
+        const current_process_idx = self.find_current_process_index();
+        const owner_pid = if (current_process_idx) |i| @as(u32, @truncate(self.processes[i].id)) else 0;
+
         if (current_process_idx) |idx| {
-            self.processes[idx].open_file_descriptors += 1;
+            if (!self.can_open_file_descriptor(&self.processes[idx])) {
+                return SyscallResult.fail(BasinError.resource_exhausted);
+            }
         }
-        
-        // Assert: Handle must be allocated correctly.
-        Debug.kassert(file_handle.allocated, "Handle not allocated", .{});
-        Debug.kassert(file_handle.id == handle_id, "Handle ID mismatch", .{});
-        Debug.kassert(file_handle.path_len == @as(u32, @intCast(path_len)), "Path len mismatch", .{});
-        
-        const result = SyscallResult.ok(handle_id);
-        
-        // Assert: result must be success (not error).
-        Debug.kassert(result == .success, "Result not success", .{});
-        Debug.kassert(result.success == handle_id, "Result value mismatch", .{});
-        
-        return result;
+
+        const handle_id = allocate_handle(self, handle_idx, path_len, open_flags, owner_pid);
+
+        if (current_process_idx) |idx| self.processes[idx].open_file_descriptors += 1;
+
+        Debug.kassert(self.handles[handle_idx].allocated, "Handle not allocated", .{});
+        return SyscallResult.ok(handle_id);
     }
     
+    /// Validate file buffer arguments.
+    fn validate_file_buffer(handle: u64, ptr: u64, len: u64) ?SyscallResult {
+        if (handle == 0) return SyscallResult.fail(BasinError.invalid_argument);
+        if (ptr == 0 or ptr >= VM_MEMORY_SIZE) return SyscallResult.fail(BasinError.invalid_argument);
+        if (len == 0 or len > 1024 * 1024) return SyscallResult.fail(BasinError.invalid_argument);
+        if (ptr + len > VM_MEMORY_SIZE) return SyscallResult.fail(BasinError.invalid_argument);
+        return null;
+    }
+
+    /// Why: Read data from an open file handle into a buffer.
     pub fn syscall_read(
         self: *BasinKernel,
         handle: u64,
@@ -158,101 +128,31 @@ pub const FileSyscalls = struct {
         buffer_len: u64,
         timeout_ns: u64,
     ) BasinError!SyscallResult {
-        // Assert: self pointer must be valid.
-        const self_ptr = @intFromPtr(self);
-        Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
-        
-        // Record start time for timeout checking.
-        const start_time_ns = self.timer.get_monotonic_ns();
-        
-        // Assert: handle must be valid (non-zero).
-        if (handle == 0) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Invalid handle
-        }
-        
-        // Assert: buffer pointer must be valid (non-zero, within VM memory).
-        if (buffer_ptr == 0) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Null pointer
-        }
-        
-        const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default (matches syscall_map)
-        if (buffer_ptr >= VM_MEMORY_SIZE) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Buffer pointer exceeds VM memory
-        }
-        
-        // Assert: buffer length must be reasonable (max 1MB per read).
-        if (buffer_len == 0) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Zero-length buffer
-        }
-        if (buffer_len > 1024 * 1024) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Buffer too large (> 1MB)
-        }
-        
-        // Assert: buffer must fit within VM memory.
-        if (buffer_ptr + buffer_len > VM_MEMORY_SIZE) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Buffer exceeds VM memory
-        }
-        
-        // Find handle by ID.
-        const handle_idx = self.find_handle_by_id(handle) orelse {
-            return SyscallResult.fail(BasinError.invalid_handle); // Handle not found
+        if (validate_file_buffer(handle, buffer_ptr, buffer_len)) |err| return err;
+
+        const start_ns = self.timer.get_monotonic_ns();
+        const idx = self.find_handle_by_id(handle) orelse {
+            return SyscallResult.fail(BasinError.invalid_handle);
         };
-        
-        // Assert: Handle must be allocated.
-        Debug.kassert(self.handles[handle_idx].allocated, "Handle not allocated", .{});
-        Debug.kassert(self.handles[handle_idx].id == handle, "Handle ID mismatch", .{});
-        
-        var file_handle = &self.handles[handle_idx];
-        
-        // Assert: Handle must be readable.
-        if (!file_handle.flags.read) {
-            return SyscallResult.fail(BasinError.permission_denied); // Handle not readable
+
+        var fh = &self.handles[idx];
+        if (!fh.flags.read) return SyscallResult.fail(BasinError.permission_denied);
+        if (self.check_timeout(start_ns, timeout_ns)) {
+            return SyscallResult.fail(BasinError.file_io_timeout);
         }
-        
-        // Check timeout before operation.
-        if (self.check_timeout(start_time_ns, timeout_ns)) {
-            return SyscallResult.fail(BasinError.file_io_timeout); // Timeout expired
+
+        const avail = if (fh.position < fh.buffer_size) fh.buffer_size - fh.position else 0;
+        const to_read = @min(avail, @as(u32, @intCast(buffer_len)));
+        fh.position += to_read;
+
+        if (self.check_timeout(start_ns, timeout_ns)) {
+            return SyscallResult.fail(BasinError.file_io_timeout);
         }
-        
-        // Note: Actual file data reading is handled by integration layer.
-        // This kernel syscall validates parameters and calculates read size.
-        // Integration layer will:
-        // 1. Look up file in storage filesystem by handle path
-        // 2. Read data from storage file entry
-        // 3. Write data to VM memory at buffer_ptr
-        // For now, we use handle buffer (in-memory file data).
-        // Calculate bytes to read (min of available data and buffer size).
-        // Note: In a real implementation, this would be a blocking operation that checks timeout periodically.
-        const available = if (file_handle.position < file_handle.buffer_size)
-            file_handle.buffer_size - file_handle.position
-        else
-            0;
-        const bytes_to_read = @min(available, @as(u32, @intCast(buffer_len)));
-        
-        // Note: Integration layer will write data to VM memory.
-        // For now, just update position (data is in handle buffer).
-        file_handle.position += bytes_to_read;
-        
-        // Check timeout after operation.
-        if (self.check_timeout(start_time_ns, timeout_ns)) {
-            return SyscallResult.fail(BasinError.file_io_timeout); // Timeout expired
-        }
-        
-        // Assert: Position must not exceed buffer size.
-        Debug.kassert(file_handle.position <= file_handle.buffer_size, "Position > buffer size", .{});
-        
-        const bytes_read: u64 = @as(u64, @intCast(bytes_to_read));
-        const result = SyscallResult.ok(bytes_read);
-        
-        // Assert: result must be success (not error).
-        Debug.kassert(result == .success, "Result not success", .{});
-        Debug.kassert(result.success == bytes_read, "Result value mismatch", .{});
-        Debug.kassert(result.success <= buffer_len, "Read > buffer len", .{});
-        
-        return result;
+
+        return SyscallResult.ok(@as(u64, to_read));
     }
-    
+
+    /// Why: Write data from a buffer to an open file handle.
     pub fn syscall_write(
         self: *BasinKernel,
         handle: u64,
@@ -260,152 +160,50 @@ pub const FileSyscalls = struct {
         data_len: u64,
         timeout_ns: u64,
     ) BasinError!SyscallResult {
-        // Assert: self pointer must be valid.
-        const self_ptr = @intFromPtr(self);
-        Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
-        
-        // Record start time for timeout checking.
-        const start_time_ns = self.timer.get_monotonic_ns();
-        
-        // Assert: handle must be valid (non-zero).
-        if (handle == 0) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Invalid handle
-        }
-        
-        // Assert: data pointer must be valid (non-zero, within VM memory).
-        if (data_ptr == 0) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Null pointer
-        }
-        
-        const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default (matches syscall_map)
-        if (data_ptr >= VM_MEMORY_SIZE) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Data pointer exceeds VM memory
-        }
-        
-        // Assert: data length must be reasonable (max 1MB per write).
-        if (data_len == 0) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Zero-length data
-        }
-        if (data_len > 1024 * 1024) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Data too large (> 1MB)
-        }
-        
-        // Assert: data must fit within VM memory.
-        if (data_ptr + data_len > VM_MEMORY_SIZE) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Data exceeds VM memory
-        }
-        
-        // Find handle by ID.
-        const handle_idx = self.find_handle_by_id(handle) orelse {
-            return SyscallResult.fail(BasinError.invalid_handle); // Handle not found
+        if (validate_file_buffer(handle, data_ptr, data_len)) |err| return err;
+
+        const start_ns = self.timer.get_monotonic_ns();
+        const idx = self.find_handle_by_id(handle) orelse {
+            return SyscallResult.fail(BasinError.invalid_handle);
         };
-        
-        // Assert: Handle must be allocated.
-        Debug.kassert(self.handles[handle_idx].allocated, "Handle not allocated", .{});
-        Debug.kassert(self.handles[handle_idx].id == handle, "Handle ID mismatch", .{});
-        
-        var file_handle = &self.handles[handle_idx];
-        
-        // Assert: Handle must be writable.
-        if (!file_handle.flags.write) {
-            return SyscallResult.fail(BasinError.permission_denied); // Handle not writable
+
+        var fh = &self.handles[idx];
+        if (!fh.flags.write) return SyscallResult.fail(BasinError.permission_denied);
+        if (self.check_timeout(start_ns, timeout_ns)) {
+            return SyscallResult.fail(BasinError.file_io_timeout);
         }
-        
-        // Check timeout before operation.
-        if (self.check_timeout(start_time_ns, timeout_ns)) {
-            return SyscallResult.fail(BasinError.file_io_timeout); // Timeout expired
+
+        const max_buf = fh.buffer.len;
+        const avail = if (fh.position < max_buf) @as(u32, @intCast(max_buf - fh.position)) else 0;
+        const to_write = @min(@as(u32, @intCast(data_len)), avail);
+
+        fh.position += to_write;
+        if (fh.position > fh.buffer_size) fh.buffer_size = @as(u32, @intCast(fh.position));
+
+        if (self.check_timeout(start_ns, timeout_ns)) {
+            return SyscallResult.fail(BasinError.file_io_timeout);
         }
-        
-        // Calculate bytes to write (min of data length and available buffer space).
-        const data_len_u32 = @as(u32, @intCast(data_len));
-        const max_buffer_size = file_handle.buffer.len;
-        const available_space = if (file_handle.position < max_buffer_size)
-            @as(u32, @intCast(max_buffer_size - file_handle.position))
-        else
-            0;
-        const bytes_to_write = @min(data_len_u32, available_space);
-        
-        // Write data to handle buffer (simulated - in real implementation, would read from VM memory).
-        // Note: In a real implementation, this would be a blocking operation that checks timeout periodically.
-        // For now, just update position and buffer size.
-        file_handle.position += bytes_to_write;
-        if (file_handle.position > file_handle.buffer_size) {
-            file_handle.buffer_size = @as(u32, @intCast(file_handle.position));
-        }
-        
-        // Check timeout after operation.
-        if (self.check_timeout(start_time_ns, timeout_ns)) {
-            return SyscallResult.fail(BasinError.file_io_timeout); // Timeout expired
-        }
-        
-        // Assert: Position and buffer size must be valid.
-        Debug.kassert(file_handle.position <= max_buffer_size, "Position > max buffer", .{});
-        Debug.kassert(file_handle.buffer_size <= max_buffer_size, "Buffer size > max", .{});
-        
-        const bytes_written: u64 = @as(u64, @intCast(bytes_to_write));
-        const result = SyscallResult.ok(bytes_written);
-        
-        // Assert: result must be success (not error).
-        Debug.kassert(result == .success, "Result not success", .{});
-        Debug.kassert(result.success == bytes_written, "Result value mismatch", .{});
-        Debug.kassert(result.success <= data_len, "Written > data len", .{}); // Can't write more than data length
-        
-        return result;
+
+        return SyscallResult.ok(@as(u64, to_write));
     }
-    
-    pub fn syscall_close(
-        self: *BasinKernel,
-        handle: u64,
-        _arg2: u64,
-        _arg3: u64,
-        _arg4: u64,
-    ) BasinError!SyscallResult {
-        // Assert: self pointer must be valid.
-        const self_ptr = @intFromPtr(self);
-        Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
-        
-        _ = _arg2;
-        _ = _arg3;
-        _ = _arg4;
-        
-        // Assert: handle must be valid (non-zero).
-        if (handle == 0) {
-            return SyscallResult.fail(BasinError.invalid_argument); // Invalid handle
-        }
-        
-        // Find handle by ID.
-        const handle_idx = self.find_handle_by_id(handle) orelse {
-            return SyscallResult.fail(BasinError.invalid_handle); // Handle not found
-        };
-        
-        // Assert: Handle must be allocated.
-        Debug.kassert(self.handles[handle_idx].allocated, "Handle not allocated", .{});
-        Debug.kassert(self.handles[handle_idx].id == handle, "Handle ID mismatch", .{});
-        
-        // Close handle (free entry).
+
+    /// Deallocate a handle and update process resources.
+    /// Why: Common cleanup logic for syscall_close.
+    fn deallocate_handle(self: *BasinKernel, handle_idx: usize) void {
         var file_handle = &self.handles[handle_idx];
         const owner_pid = file_handle.owner_process_id;
-        const closed_handle_id = file_handle.id;
-        
-        // Invalidate handle hash table entry before deallocating.
-        self.invalidate_handle_hash_table(closed_handle_id);
-        
+        const closed_id = file_handle.id;
+
+        self.invalidate_handle_hash_table(closed_id);
         file_handle.allocated = false;
         file_handle.id = 0;
         file_handle.path_len = 0;
         file_handle.position = 0;
         file_handle.buffer_size = 0;
         file_handle.owner_process_id = 0;
-        
-        // Invalidate MRU cache if closed handle was the MRU handle.
-        // Why: Ensure MRU cache doesn't point to deallocated handle.
-        if (self.mru_handle_id == closed_handle_id) {
-            self.invalidate_mru_handle_cache();
-        }
-        
-        // Update process resource usage (decrement file descriptor count).
+
+        if (self.mru_handle_id == closed_id) self.invalidate_mru_handle_cache();
+
         if (owner_pid > 0) {
             for (0..MAX_PROCESSES) |i| {
                 if (self.processes[i].allocated and self.processes[i].id == owner_pid) {
@@ -416,20 +214,34 @@ pub const FileSyscalls = struct {
                 }
             }
         }
-        
-        // Assert: Handle must be unallocated after close.
-        Debug.kassert(!file_handle.allocated, "Handle still allocated", .{});
-        Debug.kassert(file_handle.id == 0, "Handle ID not 0", .{});
-        
-        const result = SyscallResult.ok(0);
-        
-        // Assert: result must be success (not error).
-        Debug.kassert(result == .success, "Result not success", .{});
-        Debug.kassert(result.success == 0, "Result not 0", .{}); // Close returns 0 on success
-        
-        return result;
     }
-    
+
+    /// Why: Close an open file handle and release resources.
+    pub fn syscall_close(
+        self: *BasinKernel,
+        handle: u64,
+        _arg2: u64,
+        _arg3: u64,
+        _arg4: u64,
+    ) BasinError!SyscallResult {
+        _ = _arg2;
+        _ = _arg3;
+        _ = _arg4;
+
+        if (handle == 0) return SyscallResult.fail(BasinError.invalid_argument);
+
+        const handle_idx = self.find_handle_by_id(handle) orelse {
+            return SyscallResult.fail(BasinError.invalid_handle);
+        };
+
+        Debug.kassert(self.handles[handle_idx].allocated, "Handle not allocated", .{});
+        deallocate_handle(self, handle_idx);
+        Debug.kassert(!self.handles[handle_idx].allocated, "Handle still allocated", .{});
+
+        return SyscallResult.ok(0);
+    }
+
+    /// Why: Delete a file from the filesystem.
     pub fn syscall_unlink(
         self: *BasinKernel,
         path_ptr: u64,
@@ -450,7 +262,6 @@ pub const FileSyscalls = struct {
             return SyscallResult.fail(BasinError.invalid_argument); // Null pointer
         }
         
-        const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default
         if (path_ptr >= VM_MEMORY_SIZE) {
             return SyscallResult.fail(BasinError.invalid_argument); // Path pointer exceeds VM memory
         }
@@ -489,7 +300,8 @@ pub const FileSyscalls = struct {
         const result = SyscallResult.ok(0);
         return result;
     }
-    
+
+    /// Why: Rename or move a file in the filesystem.
     pub fn syscall_rename(
         self: *BasinKernel,
         old_path_ptr: u64,
@@ -507,7 +319,6 @@ pub const FileSyscalls = struct {
             return SyscallResult.fail(BasinError.invalid_argument); // Null pointer
         }
         
-        const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default
         if (old_path_ptr >= VM_MEMORY_SIZE) {
             return SyscallResult.fail(BasinError.invalid_argument); // Old path pointer exceeds VM memory
         }
@@ -556,7 +367,8 @@ pub const FileSyscalls = struct {
         const result = SyscallResult.ok(0);
         return result;
     }
-    
+
+    /// Why: Create a new directory in the filesystem.
     pub fn syscall_mkdir(
         self: *BasinKernel,
         path_ptr: u64,
@@ -577,7 +389,6 @@ pub const FileSyscalls = struct {
             return SyscallResult.fail(BasinError.invalid_argument); // Null pointer
         }
         
-        const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default
         if (path_ptr >= VM_MEMORY_SIZE) {
             return SyscallResult.fail(BasinError.invalid_argument); // Path pointer exceeds VM memory
         }
@@ -610,7 +421,8 @@ pub const FileSyscalls = struct {
         const result = SyscallResult.ok(0);
         return result;
     }
-    
+
+    /// Why: Open a directory for reading entries.
     pub fn syscall_opendir(
         self: *BasinKernel,
         path_ptr: u64,
@@ -631,7 +443,6 @@ pub const FileSyscalls = struct {
             return SyscallResult.fail(BasinError.invalid_argument);
         }
         
-        const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default
         if (path_ptr >= VM_MEMORY_SIZE) {
             return SyscallResult.fail(BasinError.invalid_argument);
         }
@@ -670,7 +481,8 @@ pub const FileSyscalls = struct {
         const result = SyscallResult.ok(handle_id);
         return result;
     }
-    
+
+    /// Why: Read the next entry from an open directory.
     pub fn syscall_readdir(
         self: *BasinKernel,
         dir_handle: u64,
@@ -695,7 +507,6 @@ pub const FileSyscalls = struct {
             return SyscallResult.fail(BasinError.invalid_argument);
         }
         
-        const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024; // 4MB default
         if (entry_ptr >= VM_MEMORY_SIZE) {
             return SyscallResult.fail(BasinError.invalid_argument);
         }
@@ -735,7 +546,8 @@ pub const FileSyscalls = struct {
         const result = SyscallResult.ok(1); // 1 byte for "."
         return result;
     }
-    
+
+    /// Why: Close an open directory handle.
     pub fn syscall_closedir(
         self: *BasinKernel,
         dir_handle: u64,

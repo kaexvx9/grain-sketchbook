@@ -290,7 +290,7 @@ pub const BasinKernel = struct {
             .storage = Storage.init(),
             .keyboard = Keyboard.init(),
             .mouse = Mouse.init(),
-            .log_buffer = undefined, // Will initialize below with timer reference
+            .log_buffer = undefined,
             .memory_pool = MemoryPool.init(),
             .page_table = PageTable.init(),
             .page_fault_stats = PageFaultStats.init(),
@@ -298,58 +298,48 @@ pub const BasinKernel = struct {
             .cow_table = CowTable.init(),
             .syscall_profiler = SyscallPerformanceProfiler.init(),
         };
-        
-        // Initialize log buffer with timer reference (after timer is created).
         kernel.log_buffer = KernelLogBuffer.init(&kernel.timer);
-        
-        // Initialize default users (root and xy).
         kernel.init_users();
-        
-        // Assert: All mappings must be unallocated initially.
+        kernel.assert_initial_state();
+        return kernel;
+    }
+
+    /// Assert kernel is in valid initial state.
+    /// Why: Postcondition check for init(), validates all invariants hold.
+    fn assert_initial_state(kernel: *BasinKernel) void {
+        // Mappings must be unallocated.
         for (kernel.mappings, 0..) |mapping, i| {
             Debug.kassert(!mapping.allocated, "Mapping {d} should be unallocated", .{i});
         }
-        
-        // Assert: Next allocation address must be page-aligned.
-        Debug.kassert(kernel.next_alloc_addr % 4096 == 0, "Next alloc addr {x} not aligned", .{kernel.next_alloc_addr});
-        
-        // Assert: All handles must be unallocated initially.
+        Debug.kassert(kernel.next_alloc_addr % 4096 == 0, "Next alloc addr not aligned", .{});
+
+        // Handles must be unallocated.
         for (kernel.handles, 0..) |handle, i| {
             Debug.kassert(!handle.allocated, "Handle {d} should be unallocated", .{i});
             Debug.kassert(handle.id == 0, "Handle {d} ID should be 0", .{i});
         }
-        
-        // Assert: Next handle ID must be non-zero (1-based).
         Debug.kassert(kernel.next_handle_id != 0, "Next handle ID is 0", .{});
-        
-        // Assert: MRU cache must be invalid initially.
+
+        // MRU cache must be invalid.
         Debug.kassert(kernel.mru_handle_index == MAX_HANDLES, "MRU index not invalid", .{});
         Debug.kassert(kernel.mru_handle_id == 0, "MRU ID not 0", .{});
-        
-        // Assert: Handle hash table must be invalid initially.
+
+        // Hash table must be invalid.
         for (kernel.handle_id_to_index) |idx| {
             Debug.kassert(idx == MAX_HANDLES, "Hash table entry not invalid", .{});
         }
-        
-        // Assert: Current process index cache must be invalid initially.
-        Debug.kassert(kernel.current_process_index == MAX_PROCESSES, "Current process index not invalid", .{});
-        
-        // Assert: Root user must exist.
-        Debug.kassert(kernel.user_count >= 1, "User count {d} < 1", .{kernel.user_count});
-        Debug.kassert(kernel.users[0].uid == 0, "First user UID {d} != 0", .{kernel.users[0].uid});
-        
-        // Assert: Timer must be initialized.
+
+        // Process and user state.
+        Debug.kassert(kernel.current_process_index == MAX_PROCESSES, "Current process not invalid", .{});
+        Debug.kassert(kernel.user_count >= 1, "User count < 1", .{});
+        Debug.kassert(kernel.users[0].uid == 0, "First user UID != 0", .{});
+
+        // Subsystems must be initialized.
         Debug.kassert(kernel.timer.initialized, "Timer not initialized", .{});
         Debug.kassert(kernel.timer.boot_time_ns > 0, "Boot time is zero", .{});
-        
-        // Assert: Interrupt controller must be initialized.
-        Debug.kassert(kernel.interrupt_controller.initialized, "Interrupt controller not initialized", .{});
-        
-        // Assert: Scheduler must be initialized.
+        Debug.kassert(kernel.interrupt_controller.initialized, "Interrupt controller not init", .{});
         Debug.kassert(kernel.scheduler.initialized, "Scheduler not initialized", .{});
         Debug.kassert(kernel.scheduler.current_pid == 0, "Current PID not 0 at init", .{});
-        
-        return kernel;
     }
     
     /// Why: For heap-allocated kernels, initialize directly to avoid stack overflow.

@@ -123,87 +123,53 @@ pub const BootSequence = struct {
     }
 };
 
-/// Execute kernel boot sequence.
+/// Verify core subsystems (timer, interrupt, memory, storage).
+fn verify_core_subsystems(kernel: *BasinKernel, boot: *BootSequence) void {
+    Debug.kassert(kernel.timer.initialized, "Timer not init", .{});
+    boot.advance(.timer);
+
+    Debug.kassert(kernel.interrupt_controller.initialized, "Interrupt not init", .{});
+    boot.advance(.interrupt);
+
+    Debug.kassert(kernel.memory_pool.allocated_pages <= 1024, "Memory pool invalid", .{});
+    boot.advance(.memory);
+
+    Debug.kassert(kernel.storage.file_count <= 128, "Storage invalid", .{});
+    boot.advance(.storage);
+}
+
+/// Verify runtime subsystems (scheduler, channels, input, users).
+fn verify_runtime_subsystems(kernel: *BasinKernel, boot: *BootSequence) void {
+    Debug.kassert(kernel.scheduler.initialized, "Scheduler not init", .{});
+    boot.advance(.scheduler);
+
+    Debug.kassert(kernel.channels.channel_count <= 64, "Channels invalid", .{});
+    boot.advance(.channels);
+
+    Debug.kassert(kernel.keyboard.last_key_code == 0, "Keyboard not init", .{});
+    Debug.kassert(kernel.mouse.x == 0 and kernel.mouse.y == 0, "Mouse not init", .{});
+    boot.advance(.input);
+
+    Debug.kassert(kernel.user_count >= 1, "No users", .{});
+    Debug.kassert(kernel.users[0].uid == 0, "Root not init", .{});
+    boot.advance(.users);
+}
+
 /// Why: Initialize all kernel subsystems in correct order with validation.
-/// Contract: kernel must be uninitialized (all subsystems at default state).
-/// Postcondition: All subsystems initialized, boot sequence complete.
 pub fn boot_kernel(kernel: *BasinKernel) void {
-    // Assert: Kernel timer must be initialized (precondition).
     Debug.kassert(kernel.timer.initialized, "Timer not initialized", .{});
-    
-    // Create boot sequence tracker.
+
     var boot = BootSequence.init();
-    
-    // Start boot sequence.
     boot.start(&kernel.timer);
     Debug.log(.info, "Boot sequence started", .{});
-    
-    // Phase 1: Timer (already initialized in BasinKernel.init()).
-    // Why: Timer is needed for all time-based operations.
-    Debug.kassert(kernel.timer.initialized, "Timer not initialized", .{});
-    boot.advance(.timer);
-    Debug.log(.info, "Boot phase: Timer initialized", .{});
-    
-    // Phase 2: Interrupt controller (already initialized).
-    // Why: Interrupt controller is needed for interrupt handling.
-    Debug.kassert(kernel.interrupt_controller.initialized, "Interrupt controller not initialized", .{});
-    boot.advance(.interrupt);
-    Debug.log(.info, "Boot phase: Interrupt controller initialized", .{});
-    
-    // Phase 3: Memory pool (already initialized).
-    // Why: Memory pool is needed for kernel allocations.
-    const MAX_PAGES: u32 = 1024; // From memory.zig
-    Debug.kassert(kernel.memory_pool.allocated_pages <= MAX_PAGES, "Memory pool invalid", .{});
-    boot.advance(.memory);
-    Debug.log(.info, "Boot phase: Memory pool initialized", .{});
-    
-    // Phase 4: Storage (already initialized).
-    // Why: Storage is needed for file I/O operations.
-    const MAX_FILES: u32 = 128; // From storage.zig
-    Debug.kassert(kernel.storage.file_count <= MAX_FILES, "Storage invalid", .{});
-    boot.advance(.storage);
-    Debug.log(.info, "Boot phase: Storage initialized", .{});
-    
-    // Phase 5: Scheduler (already initialized).
-    // Why: Scheduler is needed for process management.
-    Debug.kassert(kernel.scheduler.initialized, "Scheduler not initialized", .{});
-    boot.advance(.scheduler);
-    Debug.log(.info, "Boot phase: Scheduler initialized", .{});
-    
-    // Phase 6: IPC channels (already initialized).
-    // Why: IPC channels are needed for inter-process communication.
-    const MAX_CHANNELS: u32 = 64; // From channel.zig
-    Debug.kassert(kernel.channels.channel_count <= MAX_CHANNELS, "Channels invalid", .{});
-    boot.advance(.channels);
-    Debug.log(.info, "Boot phase: IPC channels initialized", .{});
-    
-    // Phase 7: Input devices (already initialized).
-    // Why: Input devices are needed for keyboard/mouse input.
-    Debug.kassert(kernel.keyboard.last_key_code == 0, "Keyboard not initialized", .{});
-    Debug.kassert(kernel.mouse.x == 0 and kernel.mouse.y == 0, "Mouse not initialized", .{});
-    boot.advance(.input);
-    Debug.log(.info, "Boot phase: Input devices initialized", .{});
-    
-    // Phase 8: Users (already initialized).
-    // Why: Users are needed for permission checks.
-    Debug.kassert(kernel.user_count >= 1, "No users initialized", .{});
-    Debug.kassert(kernel.users[0].uid == 0, "Root user not initialized", .{});
-    boot.advance(.users);
-    Debug.log(.info, "Boot phase: Users initialized ({d} users)", .{kernel.user_count});
-    
-    // Complete boot sequence.
+
+    verify_core_subsystems(kernel, &boot);
+    verify_runtime_subsystems(kernel, &boot);
+
     boot.complete(&kernel.timer);
-    const boot_duration_ns = boot.get_boot_duration_ns();
-    const boot_duration_ms = boot_duration_ns / 1000000;
-    Debug.log(.info, "Boot sequence complete ({d} ms)", .{boot_duration_ms});
-    
-    // Assert: Boot must be complete (postcondition).
+    const ms = boot.get_boot_duration_ns() / 1000000;
+    Debug.log(.info, "Boot complete ({d} ms)", .{ms});
+
     Debug.kassert(boot.is_complete(), "Boot not complete", .{});
-    
-    // Assert: All subsystems must be initialized (postcondition).
-    Debug.kassert(kernel.timer.initialized, "Timer not initialized", .{});
-    Debug.kassert(kernel.interrupt_controller.initialized, "Interrupt controller not initialized", .{});
-    Debug.kassert(kernel.scheduler.initialized, "Scheduler not initialized", .{});
-    Debug.kassert(kernel.user_count >= 1, "No users initialized", .{});
 }
 

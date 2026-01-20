@@ -185,7 +185,9 @@ pub const MemoryStats = struct {
         }
         
         const mapped_bytes = @as(u64, self.mapped_pages) * PAGE_SIZE;
-        const usage_percent = (@as(f64, @floatFromInt(mapped_bytes)) * 100.0) / @as(f64, @floatFromInt(self.total_memory_bytes));
+        const mapped_f = @as(f64, @floatFromInt(mapped_bytes));
+        const total_f = @as(f64, @floatFromInt(self.total_memory_bytes));
+        const usage_percent = (mapped_f * 100.0) / total_f;
         
         // Assert: Usage percentage must be valid (postcondition).
         Debug.kassert(usage_percent >= 0.0, "Usage percentage negative", .{});

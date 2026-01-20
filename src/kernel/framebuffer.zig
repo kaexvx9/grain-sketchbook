@@ -28,8 +28,8 @@ pub const Framebuffer = struct {
     bpp: u32,
     memory: []u8,
 
-    // Initialize framebuffer
-    // Why: Set up framebuffer state and clear to background color.
+    /// Initialize framebuffer.
+    /// Why: Set up framebuffer state and clear to background color.
     pub fn init(memory: []u8) Framebuffer {
         std.debug.assert(memory.len >= FRAMEBUFFER_SIZE);
         std.debug.assert(FRAMEBUFFER_WIDTH > 0);
@@ -52,8 +52,8 @@ pub const Framebuffer = struct {
         return fb;
     }
 
-    // Clear framebuffer to a color
-    // Why: Fill entire framebuffer with a single color (e.g., background).
+    /// Clear framebuffer to a color.
+    /// Why: Fill entire framebuffer with a single color (e.g., background).
     pub fn clear(self: *const Framebuffer, color: u32) void {
         std.debug.assert(self.memory.len == FRAMEBUFFER_SIZE);
 
@@ -77,8 +77,8 @@ pub const Framebuffer = struct {
         std.debug.assert(self.memory[FRAMEBUFFER_SIZE - 4] == r);
     }
 
-    // Draw a single pixel
-    // Why: Basic pixel-level drawing primitive.
+    /// Draw a single pixel.
+    /// Why: Basic pixel-level drawing primitive.
     pub fn draw_pixel(self: *const Framebuffer, x: u32, y: u32, color: u32) void {
         std.debug.assert(x < self.width);
         std.debug.assert(y < self.height);
@@ -104,8 +104,8 @@ pub const Framebuffer = struct {
         std.debug.assert(self.memory[offset + 0] == r);
     }
 
-    // Draw a filled rectangle
-    // Why: Common drawing primitive for UI elements.
+    /// Draw a filled rectangle.
+    /// Why: Common drawing primitive for UI elements.
     pub fn draw_rect(self: *const Framebuffer, x: u32, y: u32, w: u32, h: u32, color: u32) void {
         std.debug.assert(x < self.width);
         std.debug.assert(y < self.height);
@@ -126,8 +126,8 @@ pub const Framebuffer = struct {
         std.debug.assert(self.memory[(y * self.width + x) * self.bpp] == @as(u8, @truncate((color >> 24) & 0xFF)));
     }
 
-    // Draw a test pattern
-    // Why: Visual verification that framebuffer is working.
+    /// Draw a test pattern.
+    /// Why: Visual verification that framebuffer is working.
     pub fn draw_test_pattern(self: *const Framebuffer) void {
         std.debug.assert(self.memory.len == FRAMEBUFFER_SIZE);
 
@@ -155,9 +155,8 @@ pub const Framebuffer = struct {
         std.debug.assert(self.memory[red_offset] == 0xFF);
     }
 
-    // Draw a single character using 8x8 bitmap font
-    // Why: Basic text rendering primitive for kernel messages.
-    // GrainStyle: Explicit bounds checking, deterministic rendering.
+    /// Draw a single character using 8x8 bitmap font.
+    /// Why: Basic text rendering primitive for kernel messages.
     pub fn draw_char(self: *const Framebuffer, ch: u8, x: u32, y: u32, fg_color: u32, bg_color: u32) void {
         // Assert: character position must be within bounds.
         std.debug.assert(x + 8 <= self.width);
@@ -205,9 +204,8 @@ pub const Framebuffer = struct {
         }
     }
     
-    // Draw text string at position
-    // Why: Render kernel boot messages and status text.
-    // GrainStyle: Explicit bounds checking, deterministic rendering.
+    /// Draw text string at position.
+    /// Why: Render kernel boot messages and status text.
     pub fn draw_text(self: *const Framebuffer, text: []const u8, x: u32, y: u32, fg_color: u32, bg_color: u32) void {
         // Assert: text must not be empty.
         std.debug.assert(text.len > 0);

@@ -1,5 +1,9 @@
 # GrainStyle
 
+> *This document has evolved into [RyeStyle](rye_style.md), which includes compiler-enforced
+> constraints for the Rye language. The content below remains as historical reference and for
+> Zig-based development.*
+
 > "There are three things extremely hard: steel, a diamond, and to know one's self." — Benjamin
 > Franklin
 

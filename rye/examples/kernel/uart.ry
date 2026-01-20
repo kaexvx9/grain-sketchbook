@@ -1,0 +1,50 @@
+//! UART Driver for Basin Kernel
+//! Why: Provides early boot console output via memory-mapped UART.
+
+const UART_BASE: u32 = 0x10000000;
+
+/// Write a single byte to UART.
+/// Why: Direct hardware access for early boot output before interrupts.
+pub fn putc(c: u8) void {
+    asm volatile (
+        \\lui t1, 0x10000
+        \\sb %[byte], 0(t1)
+        :
+        : [byte] "r" (c),
+    );
+}
+
+/// Read a byte from UART (non-blocking).
+/// Why: Poll UART for input during REPL.
+pub fn getc() ?u8 {
+    var lsr: u8 = undefined;
+    asm volatile (
+        \\lui t1, 0x10000
+        \\lbu %[lsr], 5(t1)
+        : [lsr] "=r" (lsr)
+    );
+    if ((lsr & 0x01) == 0) return null;
+
+    var byte: u8 = undefined;
+    asm volatile (
+        \\lui t1, 0x10000
+        \\lbu %[byte], 0(t1)
+        : [byte] "=r" (byte)
+    );
+    return byte;
+}
+
+/// Print a string to UART.
+/// Why: Convenience wrapper for multi-character output.
+pub fn print(comptime s: []const u8) void {
+    inline for (s) |c| {
+        putc(c);
+    }
+}
+
+/// Print a string with newline.
+/// Why: Common pattern for line-based output.
+pub fn println(comptime s: []const u8) void {
+    print(s);
+    putc('\n');
+}

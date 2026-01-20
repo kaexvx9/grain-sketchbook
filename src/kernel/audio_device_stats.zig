@@ -254,12 +254,15 @@ pub const AudioDeviceStats = struct {
     /// Why: Calculate error rate for monitoring.
     /// Returns: Error rate percentage (0.0 to 100.0).
     pub fn get_error_rate(self: *const AudioDeviceStats) f64 {
-        const total_operations = self.total_devices_created + self.total_volume_changes + self.total_format_changes + self.total_bytes_read + self.total_bytes_written + self.total_devices_deleted;
+        const total_operations = self.total_devices_created + self.total_volume_changes +
+            self.total_format_changes + self.total_bytes_read + self.total_bytes_written +
+            self.total_devices_deleted;
         if (total_operations == 0) {
             return 0.0;
         }
-        
-        const total_errors = self.total_creation_errors + self.total_configuration_errors + self.total_io_errors + self.total_deletion_errors;
+
+        const total_errors = self.total_creation_errors + self.total_configuration_errors +
+            self.total_io_errors + self.total_deletion_errors;
         const error_rate = (@as(f64, @floatFromInt(total_errors)) * 100.0) / @as(f64, @floatFromInt(total_operations));
         
         // Assert: Error rate must be valid (postcondition).

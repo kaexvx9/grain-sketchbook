@@ -1,0 +1,66 @@
+//! Basin Kernel Entry Point
+//! Why: First Rye code executed after bootloader.
+//! Copyright (c) 2026 Team Libra. All rights reserved.
+
+const uart = @import("uart.ry");
+
+/// Kernel entry point.
+/// Why: Called by bootloader after hardware init completes.
+pub export fn kmain() noreturn {
+    print_banner();
+    uart.println("[Basin] Ready. Type 'h' for help.");
+    repl_loop();
+    halt();
+}
+
+/// Print the kernel boot banner.
+/// Why: Visual confirmation that kernel has started.
+fn print_banner() void {
+    uart.println("");
+    uart.println("  ____            _       ");
+    uart.println(" | __ )  __ _ ___(_)_ __  ");
+    uart.println(" |  _ \\ / _` / __| | '_ \\ ");
+    uart.println(" | |_) | (_| \\__ \\ | | | |");
+    uart.println(" |____/ \\__,_|___/_|_| |_|");
+    uart.println("");
+    uart.println("Basin Kernel v0.1.0 (Rye)");
+    uart.println("Copyright (c) 2026 Team Libra");
+    uart.println("");
+}
+
+/// Main REPL loop.
+/// Why: Provide interactive shell for kernel testing.
+fn repl_loop() void {
+    uart.print("gs> ");
+    while (true) {
+        if (uart.getc()) |c| {
+            uart.putc(c); // Echo
+            if (c == '\r' or c == '\n') {
+                uart.putc('\n');
+                uart.print("gs> ");
+            } else if (c == 'h') {
+                uart.println("");
+                uart.println("Commands: h=help, i=info, v=version, e=exit");
+            } else if (c == 'i') {
+                uart.println("");
+                uart.println("Basin Kernel on RISC-V64");
+            } else if (c == 'v') {
+                uart.println("");
+                uart.println("v0.1.0");
+            } else if (c == 'e') {
+                uart.println("");
+                uart.println("Goodbye!");
+                return;
+            }
+        }
+    }
+}
+
+/// Halt the CPU.
+/// Why: Final state after kernel shutdown.
+fn halt() noreturn {
+    uart.println("[Halted]");
+    while (true) {
+        asm volatile ("wfi");
+    }
+}

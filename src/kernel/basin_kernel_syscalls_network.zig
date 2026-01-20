@@ -19,6 +19,7 @@ const BasinKernel = core.BasinKernel;
 /// Network syscall handlers for BasinKernel.
 /// Why: Extract network syscalls to separate module for organization.
 pub const NetworkSyscalls = struct {
+    /// Why: Create a new network interface with a given name.
     pub fn syscall_network_create_interface(
         self: *BasinKernel,
         name_ptr: u64,
@@ -663,9 +664,7 @@ pub const NetworkSyscalls = struct {
         return result;
     }
     
-    /// Send data on TCP socket.
     /// Why: Transmit data on connected socket.
-    /// Contract: socket_id must be valid, data_ptr and data_len must be valid, socket must be connected.
     pub fn syscall_tcp_send(
         self: *BasinKernel,
         socket_id: u64,
@@ -673,88 +672,25 @@ pub const NetworkSyscalls = struct {
         data_len: u64,
         timeout_ns: u64,
     ) BasinError!SyscallResult {
-        // Assert: self pointer must be valid.
-        const self_ptr = @intFromPtr(self);
-        Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
-        
-        // Record start time for timeout checking.
+        if (validate_udp_buffer(socket_id, data_ptr, data_len)) |err| return err;
+
         const start_time_ns = self.timer.get_monotonic_ns();
-        
-        // Assert: Socket ID must be non-zero.
-        if (socket_id == 0) {
-            return BasinError.invalid_argument; // Invalid socket ID
-        }
-        
-        // Assert: Data pointer must be valid (non-zero, within VM memory).
-        if (data_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
-        }
-        
-        const VM_MEMORY_SIZE_SEND: u64 = 4 * 1024 * 1024; // 4MB default
-        if (data_ptr >= VM_MEMORY_SIZE_SEND) {
-            return BasinError.invalid_argument; // Data pointer exceeds VM memory
-        }
-        
-        // Assert: Data length must be reasonable (max socket buffer size).
-        if (data_len == 0) {
-            return BasinError.invalid_argument; // Zero-length data
-        }
-        if (data_len > 64 * 1024) {
-            return BasinError.invalid_argument; // Data too large
-        }
-        
-        // Assert: Data must fit within VM memory.
-        if (data_ptr + data_len > VM_MEMORY_SIZE_SEND) {
-            return BasinError.invalid_argument; // Data exceeds VM memory
-        }
-        
-        // Check timeout before operation.
-        if (self.check_timeout(start_time_ns, timeout_ns)) {
-            return BasinError.network_timeout; // Timeout expired
-        }
-        
-        // Read data from VM memory (stub: would use vm_memory_reader).
-        // For now, use a placeholder data slice.
-        const data = "test";
-        
-        // Send data.
-        // Note: In a real implementation, this would check timeout periodically if blocking.
+        if (self.check_timeout(start_time_ns, timeout_ns)) return BasinError.network_timeout;
+
+        const data = "test"; // Stub: would use vm_memory_reader
+
         const bytes_sent = self.tcp_sockets.send_data(socket_id, data) orelse {
-            // Check timeout after operation.
-            if (self.check_timeout(start_time_ns, timeout_ns)) {
-                return BasinError.network_timeout; // Timeout expired
-            }
-            return BasinError.not_found; // Socket not found or invalid state
+            if (self.check_timeout(start_time_ns, timeout_ns)) return BasinError.network_timeout;
+            return BasinError.not_found;
         };
-        
-        // Check timeout after operation.
-        if (self.check_timeout(start_time_ns, timeout_ns)) {
-            return BasinError.network_timeout; // Timeout expired
-        }
-        
-        // Update process resource usage (network bytes sent).
-        const current_pid = self.scheduler.get_current();
-        if (current_pid > 0) {
-            for (0..MAX_PROCESSES) |i| {
-                if (self.processes[i].allocated and self.processes[i].id == current_pid) {
-                    self.processes[i].network_bytes_sent += bytes_sent;
-                    break;
-                }
-            }
-        }
-        
-        const result = SyscallResult.ok(bytes_sent);
-        
-        // Assert: result must be success (not error).
-        Debug.kassert(result == .success, "Result not success", .{});
-        
-        return result;
+
+        if (self.check_timeout(start_time_ns, timeout_ns)) return BasinError.network_timeout;
+
+        update_process_bytes_sent(self, bytes_sent);
+        return SyscallResult.ok(bytes_sent);
     }
     
-    /// Receive data from TCP socket.
     /// Why: Read incoming data from connected socket.
-    /// Contract: socket_id must be valid, buffer_ptr and buffer_len must be valid, socket must be connected.
     pub fn syscall_tcp_recv(
         self: *BasinKernel,
         socket_id: u64,
@@ -762,87 +698,23 @@ pub const NetworkSyscalls = struct {
         buffer_len: u64,
         timeout_ns: u64,
     ) BasinError!SyscallResult {
-        // Assert: self pointer must be valid.
-        const self_ptr = @intFromPtr(self);
-        Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
-        
-        // Record start time for timeout checking.
+        if (validate_udp_buffer(socket_id, buffer_ptr, buffer_len)) |err| return err;
+
         const start_time_ns = self.timer.get_monotonic_ns();
-        
-        // Assert: Socket ID must be non-zero.
-        if (socket_id == 0) {
-            return BasinError.invalid_argument; // Invalid socket ID
-        }
-        
-        // Assert: Buffer pointer must be valid (non-zero, within VM memory).
-        if (buffer_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
-        }
-        
-        const VM_MEMORY_SIZE_RECV: u64 = 4 * 1024 * 1024; // 4MB default
-        if (buffer_ptr >= VM_MEMORY_SIZE_RECV) {
-            return BasinError.invalid_argument; // Buffer pointer exceeds VM memory
-        }
-        
-        // Assert: Buffer length must be reasonable (max socket buffer size).
-        if (buffer_len == 0) {
-            return BasinError.invalid_argument; // Zero-length buffer
-        }
-        if (buffer_len > 64 * 1024) {
-            return BasinError.invalid_argument; // Buffer too large
-        }
-        
-        // Assert: Buffer must fit within VM memory.
-        if (buffer_ptr + buffer_len > VM_MEMORY_SIZE_RECV) {
-            return BasinError.invalid_argument; // Buffer exceeds VM memory
-        }
-        
-        // Check timeout before operation.
-        if (self.check_timeout(start_time_ns, timeout_ns)) {
-            return BasinError.network_timeout; // Timeout expired
-        }
-        
-        // Create buffer slice (stub: would use vm_memory_writer).
+        if (self.check_timeout(start_time_ns, timeout_ns)) return BasinError.network_timeout;
+
         var buffer: [64 * 1024]u8 = undefined;
         const buffer_slice = buffer[0..@as(usize, @intCast(buffer_len))];
-        
-        // Receive data.
-        // Note: In a real implementation, this would be a blocking operation that checks timeout periodically.
-        const bytes_received = self.tcp_sockets.recv_data(socket_id, buffer_slice) orelse {
-            // Check timeout after operation.
-            if (self.check_timeout(start_time_ns, timeout_ns)) {
-                return BasinError.network_timeout; // Timeout expired
-            }
-            return BasinError.not_found; // Socket not found or invalid state
+
+        const bytes_recv = self.tcp_sockets.recv_data(socket_id, buffer_slice) orelse {
+            if (self.check_timeout(start_time_ns, timeout_ns)) return BasinError.network_timeout;
+            return BasinError.not_found;
         };
-        
-        // Check timeout after operation.
-        if (self.check_timeout(start_time_ns, timeout_ns)) {
-            return BasinError.network_timeout; // Timeout expired
-        }
-        
-        // Update process resource usage (network bytes received).
-        const current_pid = self.scheduler.get_current();
-        if (current_pid > 0) {
-            for (0..MAX_PROCESSES) |i| {
-                if (self.processes[i].allocated and self.processes[i].id == current_pid) {
-                    self.processes[i].network_bytes_received += bytes_received;
-                    break;
-                }
-            }
-        }
-        
-        // Write data to VM memory (stub: would use vm_memory_writer).
-        // For now, just return bytes received.
-        // Note: buffer_ptr is validated above but not written to in stub implementation.
-        
-        const result = SyscallResult.ok(bytes_received);
-        
-        // Assert: result must be success (not error).
-        Debug.kassert(result == .success, "Result not success", .{});
-        
-        return result;
+
+        if (self.check_timeout(start_time_ns, timeout_ns)) return BasinError.network_timeout;
+
+        update_process_bytes_recv(self, bytes_recv);
+        return SyscallResult.ok(bytes_recv);
     }
     
     /// Close TCP socket.
@@ -999,9 +871,33 @@ pub const NetworkSyscalls = struct {
         return result;
     }
     
+    /// Validate UDP data buffer arguments.
+    /// Why: Common validation for sendto/recvfrom.
+    fn validate_udp_buffer(socket_id: u64, ptr: u64, len: u64) ?BasinError {
+        const VM_MEM: u64 = 4 * 1024 * 1024;
+        if (socket_id == 0) return BasinError.invalid_argument;
+        if (ptr == 0 or ptr >= VM_MEM) return BasinError.invalid_argument;
+        if (len == 0 or len > 64 * 1024) return BasinError.invalid_argument;
+        if (ptr + len > VM_MEM) return BasinError.invalid_argument;
+        return null;
+    }
+
+    /// Update process network bytes sent.
+    /// Why: Track network usage per process.
+    fn update_process_bytes_sent(self: *BasinKernel, bytes: u64) void {
+        const pid = self.scheduler.get_current();
+        if (pid > 0) {
+            for (0..MAX_PROCESSES) |i| {
+                if (self.processes[i].allocated and self.processes[i].id == pid) {
+                    self.processes[i].network_bytes_sent += bytes;
+                    break;
+                }
+            }
+        }
+    }
+
     /// Send data to remote address and port on UDP socket.
     /// Why: Transmit data to remote endpoint.
-    /// Contract: socket_id must be valid, data_ptr, data_len, addr, and port must be valid.
     pub fn syscall_udp_sendto(
         self: *BasinKernel,
         socket_id: u64,
@@ -1009,75 +905,35 @@ pub const NetworkSyscalls = struct {
         data_len: u64,
         addr: u64,
     ) BasinError!SyscallResult {
-        // Assert: self pointer must be valid.
-        const self_ptr = @intFromPtr(self);
-        Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
-        
-        // Assert: Socket ID must be non-zero.
-        if (socket_id == 0) {
-            return BasinError.invalid_argument; // Invalid socket ID
-        }
-        
-        // Assert: Data pointer must be valid (non-zero, within VM memory).
-        if (data_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
-        }
-        
-        const VM_MEMORY_SIZE_SENDTO: u64 = 4 * 1024 * 1024; // 4MB default
-        if (data_ptr >= VM_MEMORY_SIZE_SENDTO) {
-            return BasinError.invalid_argument; // Data pointer exceeds VM memory
-        }
-        
-        // Assert: Data length must be reasonable (max socket buffer size).
-        if (data_len == 0) {
-            return BasinError.invalid_argument; // Zero-length data
-        }
-        if (data_len > 64 * 1024) {
-            return BasinError.invalid_argument; // Data too large
-        }
-        
-        // Assert: Data must fit within VM memory.
-        if (data_ptr + data_len > VM_MEMORY_SIZE_SENDTO) {
-            return BasinError.invalid_argument; // Data exceeds VM memory
-        }
-        
-        // Stub: would extract port from arguments properly.
-        // For now, use addr as IPv4 address and port as 0.
+        if (validate_udp_buffer(socket_id, data_ptr, data_len)) |err| return err;
+
         const ipv4_addr = @as(u32, @truncate(addr));
-        const ipv4_port: u16 = 0; // Stub: would extract from arguments
-        
-        // Read data from VM memory (stub: would use vm_memory_reader).
-        // For now, use a placeholder data slice.
-        const data = "test";
-        
-        // Send data.
-        const bytes_sent = self.udp_sockets.sendto(socket_id, data, ipv4_addr, ipv4_port) orelse {
-            return BasinError.not_found; // Socket not found or invalid state
+        const data = "test"; // Stub: would use vm_memory_reader
+
+        const bytes_sent = self.udp_sockets.sendto(socket_id, data, ipv4_addr, 0) orelse {
+            return BasinError.not_found;
         };
-        
-        // Update process resource usage (network bytes sent).
-        const current_pid = self.scheduler.get_current();
-        if (current_pid > 0) {
+
+        update_process_bytes_sent(self, bytes_sent);
+        return SyscallResult.ok(bytes_sent);
+    }
+    
+    /// Update process network bytes received.
+    /// Why: Track network usage per process.
+    fn update_process_bytes_recv(self: *BasinKernel, bytes: u64) void {
+        const pid = self.scheduler.get_current();
+        if (pid > 0) {
             for (0..MAX_PROCESSES) |i| {
-                if (self.processes[i].allocated and self.processes[i].id == current_pid) {
-                    self.processes[i].network_bytes_sent += bytes_sent;
+                if (self.processes[i].allocated and self.processes[i].id == pid) {
+                    self.processes[i].network_bytes_received += bytes;
                     break;
                 }
             }
         }
-        
-        const result = SyscallResult.ok(bytes_sent);
-        
-        // Assert: result must be success (not error).
-        Debug.kassert(result == .success, "Result not success", .{});
-        
-        return result;
     }
-    
+
     /// Receive data from UDP socket.
     /// Why: Read incoming data from bound socket.
-    /// Contract: socket_id must be valid, buffer_ptr and buffer_len must be valid.
     pub fn syscall_udp_recvfrom(
         self: *BasinKernel,
         socket_id: u64,
@@ -1085,80 +941,36 @@ pub const NetworkSyscalls = struct {
         buffer_len: u64,
         addr_ptr: u64,
     ) BasinError!SyscallResult {
-        // Assert: self pointer must be valid.
-        const self_ptr = @intFromPtr(self);
-        Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
-        
-        // Assert: Socket ID must be non-zero.
-        if (socket_id == 0) {
-            return BasinError.invalid_argument; // Invalid socket ID
-        }
-        
-        // Assert: Buffer pointer must be valid (non-zero, within VM memory).
-        if (buffer_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
-        }
-        
-        const VM_MEMORY_SIZE_RECVFROM: u64 = 4 * 1024 * 1024; // 4MB default
-        if (buffer_ptr >= VM_MEMORY_SIZE_RECVFROM) {
-            return BasinError.invalid_argument; // Buffer pointer exceeds VM memory
-        }
-        
-        // Assert: Buffer length must be reasonable (max socket buffer size).
-        if (buffer_len == 0) {
-            return BasinError.invalid_argument; // Zero-length buffer
-        }
-        if (buffer_len > 64 * 1024) {
-            return BasinError.invalid_argument; // Buffer too large
-        }
-        
-        // Assert: Buffer must fit within VM memory.
-        if (buffer_ptr + buffer_len > VM_MEMORY_SIZE_RECVFROM) {
-            return BasinError.invalid_argument; // Buffer exceeds VM memory
-        }
-        
-        // Create buffer slice (stub: would use vm_memory_writer).
+        if (validate_udp_buffer(socket_id, buffer_ptr, buffer_len)) |err| return err;
+
         var buffer: [64 * 1024]u8 = undefined;
         const buffer_slice = buffer[0..@as(usize, @intCast(buffer_len))];
-        
-        // Create address and port pointers (stub: would use vm_memory_writer).
+
         var remote_addr: u32 = 0;
         var remote_port: u16 = 0;
         const addr_ptr_opt: ?*u32 = if (addr_ptr != 0) &remote_addr else null;
         const port_ptr_opt: ?*u16 = if (addr_ptr != 0) &remote_port else null;
-        
-        // Receive data (remote_addr and remote_port are written by recvfrom if addr_ptr != 0).
-        const bytes_received = self.udp_sockets.recvfrom(socket_id, buffer_slice, addr_ptr_opt, port_ptr_opt) orelse {
-            return BasinError.not_found; // Socket not found or invalid state
-        };
-        
-        // Update process resource usage (network bytes received).
-        const current_pid = self.scheduler.get_current();
-        if (current_pid > 0) {
-            for (0..MAX_PROCESSES) |i| {
-                if (self.processes[i].allocated and self.processes[i].id == current_pid) {
-                    self.processes[i].network_bytes_received += bytes_received;
-                    break;
-                }
-            }
-        }
-        
-        // Write data and address/port to VM memory (stub: would use vm_memory_writer).
-        // For now, just return bytes received.
-        // Note: addr_ptr is validated above but not written to in stub implementation.
-        
-        const result = SyscallResult.ok(bytes_received);
-        
-        // Assert: result must be success (not error).
-        Debug.kassert(result == .success, "Result not success", .{});
-        
-        return result;
+
+        const bytes_recv = self.udp_sockets.recvfrom(
+            socket_id,
+            buffer_slice,
+            addr_ptr_opt,
+            port_ptr_opt,
+        ) orelse return BasinError.not_found;
+
+        update_process_bytes_recv(self, bytes_recv);
+        return SyscallResult.ok(bytes_recv);
     }
     
-    /// Send data on UDP socket with timeout.
+    /// Extract addr and timeout from combined argument.
+    fn extract_addr_timeout(combined: u64) struct { addr: u32, timeout_ns: u64 } {
+        const addr = @as(u32, @truncate(combined));
+        const timeout_ms = @as(u32, @truncate(combined >> 32));
+        const timeout_ns: u64 = if (timeout_ms > 0) @as(u64, timeout_ms) * 1_000_000 else 0;
+        return .{ .addr = addr, .timeout_ns = timeout_ns };
+    }
+
     /// Why: Transmit data on UDP socket with timeout support.
-    /// Contract: socket_id must be valid, data_ptr and data_len must be valid, addr_and_timeout contains IPv4 address and timeout_ms.
     pub fn syscall_udp_sendto_with_timeout(
         self: *BasinKernel,
         socket_id: u64,
@@ -1166,98 +978,26 @@ pub const NetworkSyscalls = struct {
         data_len: u64,
         addr_and_timeout: u64,
     ) BasinError!SyscallResult {
-        // Assert: self pointer must be valid.
-        const self_ptr = @intFromPtr(self);
-        Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
-        
-        // Record start time for timeout checking.
-        const start_time_ns = self.timer.get_monotonic_ns();
-        
-        // Extract IPv4 address and timeout from combined argument.
-        // Format: lower 32 bits = IPv4 address (u32), upper 32 bits = timeout_ms (u32), convert to nanoseconds
-        const ipv4_addr = @as(u32, @truncate(addr_and_timeout));
-        const timeout_ms = @as(u32, @truncate(addr_and_timeout >> 32));
-        const timeout_ns: u64 = if (timeout_ms > 0) @as(u64, timeout_ms) * 1_000_000 else 0;
-        
-        // Assert: Socket ID must be non-zero.
-        if (socket_id == 0) {
-            return BasinError.invalid_argument; // Invalid socket ID
-        }
-        
-        // Assert: Data pointer must be valid (non-zero, within VM memory).
-        if (data_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
-        }
-        
-        const VM_MEMORY_SIZE_SENDTO: u64 = 4 * 1024 * 1024; // 4MB default
-        if (data_ptr >= VM_MEMORY_SIZE_SENDTO) {
-            return BasinError.invalid_argument; // Data pointer exceeds VM memory
-        }
-        
-        // Assert: Data length must be reasonable (max socket buffer size).
-        if (data_len == 0) {
-            return BasinError.invalid_argument; // Zero-length data
-        }
-        if (data_len > 64 * 1024) {
-            return BasinError.invalid_argument; // Data too large
-        }
-        
-        // Assert: Data must fit within VM memory.
-        if (data_ptr + data_len > VM_MEMORY_SIZE_SENDTO) {
-            return BasinError.invalid_argument; // Data exceeds VM memory
-        }
-        
-        // Check timeout before operation.
-        if (self.check_timeout(start_time_ns, timeout_ns)) {
-            return BasinError.network_timeout; // Timeout expired
-        }
-        
-        // Stub: would extract port from arguments properly.
-        // For now, use addr as IPv4 address and port as 0.
-        const ipv4_port: u16 = 0; // Stub: would extract from arguments
-        
-        // Read data from VM memory (stub: would use vm_memory_reader).
-        // For now, use a placeholder data slice.
-        const data = "test";
-        
-        // Send data.
-        // Note: In a real implementation, this would be a blocking operation that checks timeout periodically.
-        const bytes_sent = self.udp_sockets.sendto(socket_id, data, ipv4_addr, ipv4_port) orelse {
-            // Check timeout after operation.
-            if (self.check_timeout(start_time_ns, timeout_ns)) {
-                return BasinError.network_timeout; // Timeout expired
-            }
-            return BasinError.not_found; // Socket not found or invalid state
+        if (validate_udp_buffer(socket_id, data_ptr, data_len)) |err| return err;
+
+        const params = extract_addr_timeout(addr_and_timeout);
+        const start_ns = self.timer.get_monotonic_ns();
+
+        if (self.check_timeout(start_ns, params.timeout_ns)) return BasinError.network_timeout;
+
+        const data = "test"; // Stub
+        const bytes = self.udp_sockets.sendto(socket_id, data, params.addr, 0) orelse {
+            if (self.check_timeout(start_ns, params.timeout_ns)) return BasinError.network_timeout;
+            return BasinError.not_found;
         };
-        
-        // Check timeout after operation.
-        if (self.check_timeout(start_time_ns, timeout_ns)) {
-            return BasinError.network_timeout; // Timeout expired
-        }
-        
-        // Update process resource usage (network bytes sent).
-        const current_pid = self.scheduler.get_current();
-        if (current_pid > 0) {
-            for (0..MAX_PROCESSES) |i| {
-                if (self.processes[i].allocated and self.processes[i].id == current_pid) {
-                    self.processes[i].network_bytes_sent += bytes_sent;
-                    break;
-                }
-            }
-        }
-        
-        const result = SyscallResult.ok(bytes_sent);
-        
-        // Assert: result must be success (not error).
-        Debug.kassert(result == .success, "Result not success", .{});
-        
-        return result;
+
+        if (self.check_timeout(start_ns, params.timeout_ns)) return BasinError.network_timeout;
+
+        update_process_bytes_sent(self, bytes);
+        return SyscallResult.ok(bytes);
     }
     
-    /// Receive data from UDP socket with timeout.
     /// Why: Read incoming data from bound socket with timeout support.
-    /// Contract: socket_id must be valid, buffer_ptr and buffer_len must be valid, addr_ptr_and_timeout contains addr_ptr and timeout_ms.
     pub fn syscall_udp_recvfrom_with_timeout(
         self: *BasinKernel,
         socket_id: u64,
@@ -1265,100 +1005,30 @@ pub const NetworkSyscalls = struct {
         buffer_len: u64,
         addr_ptr_and_timeout: u64,
     ) BasinError!SyscallResult {
-        // Assert: self pointer must be valid.
-        const self_ptr = @intFromPtr(self);
-        Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
-        
-        // Record start time for timeout checking.
-        const start_time_ns = self.timer.get_monotonic_ns();
-        
-        // Extract addr_ptr and timeout from combined argument.
-        // Format: lower 32 bits = addr_ptr (u32), upper 32 bits = timeout_ms (u32), convert to nanoseconds
-        const addr_ptr = @as(u32, @truncate(addr_ptr_and_timeout));
-        const timeout_ms = @as(u32, @truncate(addr_ptr_and_timeout >> 32));
-        const timeout_ns: u64 = if (timeout_ms > 0) @as(u64, timeout_ms) * 1_000_000 else 0;
-        
-        // Assert: Socket ID must be non-zero.
-        if (socket_id == 0) {
-            return BasinError.invalid_argument; // Invalid socket ID
-        }
-        
-        // Assert: Buffer pointer must be valid (non-zero, within VM memory).
-        if (buffer_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
-        }
-        
-        const VM_MEMORY_SIZE_RECVFROM: u64 = 4 * 1024 * 1024; // 4MB default
-        if (buffer_ptr >= VM_MEMORY_SIZE_RECVFROM) {
-            return BasinError.invalid_argument; // Buffer pointer exceeds VM memory
-        }
-        
-        // Assert: Buffer length must be reasonable (max socket buffer size).
-        if (buffer_len == 0) {
-            return BasinError.invalid_argument; // Zero-length buffer
-        }
-        if (buffer_len > 64 * 1024) {
-            return BasinError.invalid_argument; // Buffer too large
-        }
-        
-        // Assert: Buffer must fit within VM memory.
-        if (buffer_ptr + buffer_len > VM_MEMORY_SIZE_RECVFROM) {
-            return BasinError.invalid_argument; // Buffer exceeds VM memory
-        }
-        
-        // Check timeout before operation.
-        if (self.check_timeout(start_time_ns, timeout_ns)) {
-            return BasinError.network_timeout; // Timeout expired
-        }
-        
-        // Create buffer slice (stub: would use vm_memory_writer).
+        if (validate_udp_buffer(socket_id, buffer_ptr, buffer_len)) |err| return err;
+
+        const params = extract_addr_timeout(addr_ptr_and_timeout);
+        const start_ns = self.timer.get_monotonic_ns();
+
+        if (self.check_timeout(start_ns, params.timeout_ns)) return BasinError.network_timeout;
+
         var buffer: [64 * 1024]u8 = undefined;
-        const buffer_slice = buffer[0..@as(usize, @intCast(buffer_len))];
-        
-        // Create address and port pointers (stub: would use vm_memory_writer).
+        const buf_slice = buffer[0..@as(usize, @intCast(buffer_len))];
+
         var remote_addr: u32 = 0;
         var remote_port: u16 = 0;
-        const addr_ptr_opt: ?*u32 = if (addr_ptr != 0) &remote_addr else null;
-        const port_ptr_opt: ?*u16 = if (addr_ptr != 0) &remote_port else null;
-        
-        // Receive data.
-        // Note: In a real implementation, this would be a blocking operation that checks timeout periodically.
-        // Receive data (remote_addr and remote_port are written by recvfrom if addr_ptr != 0).
-        const bytes_received = self.udp_sockets.recvfrom(socket_id, buffer_slice, addr_ptr_opt, port_ptr_opt) orelse {
-            // Check timeout after operation.
-            if (self.check_timeout(start_time_ns, timeout_ns)) {
-                return BasinError.network_timeout; // Timeout expired
-            }
-            return BasinError.not_found; // Socket not found or invalid state
+        const addr_opt: ?*u32 = if (params.addr != 0) &remote_addr else null;
+        const port_opt: ?*u16 = if (params.addr != 0) &remote_port else null;
+
+        const bytes = self.udp_sockets.recvfrom(socket_id, buf_slice, addr_opt, port_opt) orelse {
+            if (self.check_timeout(start_ns, params.timeout_ns)) return BasinError.network_timeout;
+            return BasinError.not_found;
         };
-        
-        // Check timeout after operation.
-        if (self.check_timeout(start_time_ns, timeout_ns)) {
-            return BasinError.network_timeout; // Timeout expired
-        }
-        
-        // Update process resource usage (network bytes received).
-        const current_pid = self.scheduler.get_current();
-        if (current_pid > 0) {
-            for (0..MAX_PROCESSES) |i| {
-                if (self.processes[i].allocated and self.processes[i].id == current_pid) {
-                    self.processes[i].network_bytes_received += bytes_received;
-                    break;
-                }
-            }
-        }
-        
-        // Write data to VM memory (stub: would use vm_memory_writer).
-        // For now, just return bytes received.
-        // Note: buffer_ptr is validated above but not written to in stub implementation.
-        
-        const result = SyscallResult.ok(bytes_received);
-        
-        // Assert: result must be success (not error).
-        Debug.kassert(result == .success, "Result not success", .{});
-        
-        return result;
+
+        if (self.check_timeout(start_ns, params.timeout_ns)) return BasinError.network_timeout;
+
+        update_process_bytes_recv(self, bytes);
+        return SyscallResult.ok(bytes);
     }
     
     /// Close UDP socket.
@@ -1564,7 +1234,7 @@ pub const NetworkSyscalls = struct {
         }
         
         // Assert: UdpSocketStats structure must fit within VM memory.
-        // UdpSocketStats size: 9 fields (4 u64 + 1 u32 + 1 u64 + 2 u64 + 1 u64) = 4*8 + 4 + 8 + 2*8 + 8 = 32 + 4 + 8 + 16 + 8 = 68 bytes
+        // UdpSocketStats: 9 fields = 68 bytes.
         const UDP_STATS_SIZE: u64 = 68;
         if (stats_ptr + UDP_STATS_SIZE > VM_MEMORY_SIZE) {
             return BasinError.invalid_argument; // Stats structure exceeds VM memory

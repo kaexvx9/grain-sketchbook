@@ -118,14 +118,25 @@ pub const StatsSyscalls = struct {
         return result;
     }
     
-    /// Get resource usage syscall.
+    /// Validate VM pointer with size check.
+    fn validate_usage_ptr(ptr: u64, size: u64) ?BasinError {
+        const VM_MEM: u64 = 4 * 1024 * 1024;
+        if (ptr == 0 or ptr >= VM_MEM) return BasinError.invalid_argument;
+        if (ptr + size > VM_MEM) return BasinError.invalid_argument;
+        return null;
+    }
+
+    /// Count file descriptors owned by process.
+    fn count_fds_for_pid(self: *BasinKernel, pid: u64) u32 {
+        var count: u32 = 0;
+        const pid32 = @as(u32, @truncate(pid));
+        for (self.handles) |h| {
+            if (h.allocated and h.owner_process_id == pid32) count += 1;
+        }
+        return count;
+    }
+
     /// Why: Expose per-process resource usage (CPU, memory, network, file descriptors).
-    /// Returns: Resource usage information for the specified process.
-    /// Arguments:
-    ///   - arg1: Process ID (pid)
-    ///   - arg2: Resource usage pointer (ResourceUsage struct in VM memory)
-    ///   - arg3: Unused
-    ///   - arg4: Unused
     pub fn syscall_get_resource_usage(
         self: *BasinKernel,
         pid: u64,
@@ -133,101 +144,57 @@ pub const StatsSyscalls = struct {
         _arg3: u64,
         _arg4: u64,
     ) BasinError!SyscallResult {
-        // Assert: self pointer must be valid.
-        const self_ptr = @intFromPtr(self);
-        Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
-        
         _ = _arg3;
         _ = _arg4;
-        
-        // Assert: Process ID must be valid (non-zero).
-        if (pid == 0) {
-            return BasinError.invalid_argument; // Invalid process ID
-        }
-        
-        // Assert: Usage pointer must be valid (non-zero, within VM memory).
-        if (usage_ptr == 0) {
-            return BasinError.invalid_argument; // Null pointer
-        }
-        
-        const VM_MEMORY_SIZE: u64 = 4 * 1024 * 1024;
-        if (usage_ptr >= VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Pointer out of bounds
-        }
-        
-        // Calculate ResourceUsage struct size (8 + 8 + 8 + 8 + 8 + 4 + 4 = 48 bytes).
-        const RESOURCE_USAGE_SIZE: u64 = 48;
-        if (usage_ptr + RESOURCE_USAGE_SIZE > VM_MEMORY_SIZE) {
-            return BasinError.invalid_argument; // Buffer extends beyond VM memory
-        }
-        
-        // Find process in process table.
-        var found: ?u32 = null;
-        for (0..MAX_PROCESSES) |i| {
-            if (self.processes[i].allocated and self.processes[i].id == pid) {
-                found = @intCast(i);
-                break;
-            }
-        }
-        
-        // Assert: Process must exist.
-        if (found == null) {
-            return BasinError.process_not_found; // Process not found
-        }
-        
-        const process_idx = found.?;
-        const process = &self.processes[process_idx];
-        
-        // Count open file descriptors for this process.
-        var file_descriptor_count: u32 = 0;
-        for (self.handles) |handle| {
-            if (handle.allocated and handle.owner_process_id == @as(u32, @truncate(pid))) {
-                file_descriptor_count += 1;
-            }
-        }
-        
-        // Count open network connections for this process.
-        // Note: This is a simplified count - in a full implementation, we would
-        // track which sockets belong to which process.
-        var connection_count: u32 = 0;
-        // Stub: Connection counting would iterate through TCP/UDP socket managers
-        // and count sockets owned by this process. For now, we use the process's
-        // open_connections field which should be updated by socket operations.
-        connection_count = process.open_connections;
-        
-        // Create ResourceUsage struct.
-        const usage = ResourceUsage{
+
+        if (pid == 0) return BasinError.invalid_argument;
+        if (validate_usage_ptr(usage_ptr, 48)) |err| return err;
+
+        const idx = find_proc_by_pid(self, pid) orelse return BasinError.process_not_found;
+        const process = &self.processes[idx];
+
+        // Build usage struct (stub: would write to VM memory).
+        _ = ResourceUsage{
             .pid = @intCast(pid),
             .cpu_time_ns = process.cpu_time_ns,
             .memory_used = process.memory_used,
             .network_bytes_sent = process.network_bytes_sent,
             .network_bytes_received = process.network_bytes_received,
-            .open_file_descriptors = file_descriptor_count,
-            .open_connections = connection_count,
+            .open_file_descriptors = count_fds_for_pid(self, pid),
+            .open_connections = process.open_connections,
         };
-        
-        // Stub: In a real VM, this would write the ResourceUsage struct to VM memory at usage_ptr.
-        // Note: usage is validated below but not written to VM memory (stub).
-        
-        // Assert: Usage must be valid.
-        Debug.kassert(usage.pid == @as(u32, @truncate(pid)), "Usage PID mismatch", .{});
-        
-        const result = SyscallResult.ok(0);
-        
-        // Assert: result must be success (not error).
-        Debug.kassert(result == .success, "Result not success", .{});
-        
-        return result;
+
+        return SyscallResult.ok(0);
     }
     
     /// Set resource limit for a process.
+    /// Find process index by ID.
+    fn find_proc_by_pid(self: *BasinKernel, pid: u64) ?u32 {
+        for (0..MAX_PROCESSES) |i| {
+            if (self.processes[i].allocated and self.processes[i].id == pid) return @intCast(i);
+        }
+        return null;
+    }
+
+    /// Apply a resource limit to a process.
+    fn apply_limit(process: *Process, limit_type: u64, value: u64) ?BasinError {
+        switch (limit_type) {
+            0 => process.max_cpu_time_ns = value,
+            1 => process.max_memory_bytes = value,
+            2 => {
+                if (value > 0xFFFFFFFF) return BasinError.invalid_argument;
+                process.max_file_descriptors = @truncate(value);
+            },
+            3 => {
+                if (value > 0xFFFFFFFF) return BasinError.invalid_argument;
+                process.max_connections = @truncate(value);
+            },
+            else => return BasinError.invalid_argument,
+        }
+        return null;
+    }
+
     /// Why: Configure per-process resource limits to prevent resource exhaustion.
-    /// Contract: pid must be valid, limit_type must be valid, limit_value must be reasonable.
-    ///   - arg1: Process ID (pid)
-    ///   - arg2: Limit type (0 = CPU time, 1 = memory, 2 = file descriptors, 3 = connections)
-    ///   - arg3: Limit value (CPU time in nanoseconds, memory in bytes, counts for others)
-    ///   - arg4: Unused
     pub fn syscall_set_resource_limit(
         self: *BasinKernel,
         pid: u64,
@@ -235,80 +202,19 @@ pub const StatsSyscalls = struct {
         limit_value: u64,
         _arg4: u64,
     ) BasinError!SyscallResult {
-        // Assert: self pointer must be valid.
-        const self_ptr = @intFromPtr(self);
-        Debug.kassert(self_ptr != 0, "Self ptr is null", .{});
-        Debug.kassert(self_ptr % @alignOf(BasinKernel) == 0, "Self ptr unaligned", .{});
-        
         _ = _arg4;
-        
-        // Assert: Process ID must be valid (non-zero).
-        if (pid == 0) {
-            return BasinError.invalid_argument; // Invalid process ID
+
+        if (pid == 0 or limit_type > 3) return BasinError.invalid_argument;
+
+        const idx = find_proc_by_pid(self, pid) orelse return BasinError.process_not_found;
+
+        // Permission check: root or self.
+        const current = self.scheduler.get_current();
+        if (current != pid and !self.current_user.is_root()) {
+            return BasinError.permission_denied;
         }
-        
-        // Assert: Limit type must be valid (0-3).
-        if (limit_type > 3) {
-            return BasinError.invalid_argument; // Invalid limit type
-        }
-        
-        // Find process in process table.
-        var found: ?u32 = null;
-        for (0..MAX_PROCESSES) |i| {
-            if (self.processes[i].allocated and self.processes[i].id == pid) {
-                found = @intCast(i);
-                break;
-            }
-        }
-        
-        // Assert: Process must exist.
-        if (found == null) {
-            return BasinError.process_not_found; // Process not found
-        }
-        
-        const process_idx = found.?;
-        const process = &self.processes[process_idx];
-        
-        // Check permission: Only root or the process itself can set limits.
-        const current_pid = self.scheduler.get_current();
-        if (current_pid != pid and !self.current_user.is_root()) {
-            return BasinError.permission_denied; // Permission denied
-        }
-        
-        // Set limit based on type.
-        switch (limit_type) {
-            0 => {
-                // CPU time limit (nanoseconds).
-                process.max_cpu_time_ns = limit_value;
-            },
-            1 => {
-                // Memory limit (bytes).
-                process.max_memory_bytes = limit_value;
-            },
-            2 => {
-                // File descriptor limit (count).
-                if (limit_value > 0xFFFFFFFF) {
-                    return BasinError.invalid_argument; // Limit value too large
-                }
-                process.max_file_descriptors = @as(u32, @truncate(limit_value));
-            },
-            3 => {
-                // Network connection limit (count).
-                if (limit_value > 0xFFFFFFFF) {
-                    return BasinError.invalid_argument; // Limit value too large
-                }
-                process.max_connections = @as(u32, @truncate(limit_value));
-            },
-            else => {
-                return BasinError.invalid_argument; // Invalid limit type
-            },
-        }
-        
-        const result = SyscallResult.ok(0);
-        
-        // Assert: result must be success (not error).
-        Debug.kassert(result == .success, "Result not success", .{});
-        
-        return result;
+
+        if (apply_limit(&self.processes[idx], limit_type, limit_value)) |err| return err;
+        return SyscallResult.ok(0);
     }
 };

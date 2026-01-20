@@ -74,124 +74,51 @@ pub fn loop() noreturn {
     }
 }
 
-/// Handle exception (called from VM on exception).
+/// Log exception and record page fault stats if applicable.
+fn log_and_record_exception(
+    kernel: *BasinKernel,
+    exc: ExceptionType,
+    pc: u64,
+    val: u64,
+) void {
+    switch (exc) {
+        .illegal_instruction => Debug.kprint("kernel: illegal instr PC=0x{x}\n", .{pc}),
+        .load_address_misaligned, .store_address_misaligned => {
+            Debug.kprint("kernel: misaligned PC=0x{x} addr=0x{x}\n", .{ pc, val });
+        },
+        .load_access_fault, .store_access_fault => {
+            Debug.kprint("kernel: access fault PC=0x{x} addr=0x{x}\n", .{ pc, val });
+        },
+        .instruction_access_fault => Debug.kprint("kernel: instr fault PC=0x{x}\n", .{pc}),
+        .instruction_page_fault => {
+            Debug.kprint("kernel: instr page fault PC=0x{x}\n", .{pc});
+            kernel.page_fault_stats.record_page_fault(.instruction, val);
+        },
+        .load_page_fault, .store_page_fault => {
+            Debug.kprint("kernel: page fault PC=0x{x} addr=0x{x}\n", .{ pc, val });
+            const ft = if (exc == .load_page_fault) page_fault_stats.PageFaultType.load else .store;
+            kernel.page_fault_stats.record_page_fault(ft, val);
+        },
+        .breakpoint => Debug.kprint("kernel: breakpoint PC=0x{x}\n", .{pc}),
+        .environment_call_from_u_mode, .environment_call_from_s_mode => {
+            Debug.kprint("kernel: ecall PC=0x{x}\n", .{pc});
+        },
+        else => Debug.kprint("kernel: exc {d} PC=0x{x}\n", .{ @intFromEnum(exc), pc }),
+    }
+}
+
 /// Why: Process exceptions (illegal instruction, misaligned access, etc.).
-/// Contract: Exception type must be valid, kernel must be initialized.
-/// GrainStyle: Explicit error handling, bounded execution.
-/// Note: Exception statistics are tracked by VM, not kernel.
 pub fn handle_exception(
     kernel: *BasinKernel,
     exception_type: ExceptionType,
     exception_pc: u64,
     exception_value: u64,
 ) void {
-    // Assert: Kernel pointer must be valid (precondition).
-    const kernel_ptr = @intFromPtr(kernel);
-    Debug.kassert(kernel_ptr != 0, "Kernel ptr is null", .{});
-    Debug.kassert(kernel_ptr % @alignOf(BasinKernel) == 0, "Kernel ptr unaligned", .{});
-    
-    // Assert: Exception type must be valid (precondition).
-    const exception_id = @intFromEnum(exception_type);
-    Debug.kassert(exception_id < 16, "Invalid exception type", .{});
-    
-    // Log exception (for debugging).
-    // Why: Track exceptions for debugging and error recovery.
-    Debug.kprint("kernel: exception {d} at PC=0x{x}, value=0x{x}\n", .{
-        exception_id,
-        exception_pc,
-        exception_value,
-    });
-    
-    // Determine if exception is fatal (should terminate process).
-    // Why: Some exceptions are fatal and should terminate the process.
-    const is_fatal = is_fatal_exception(exception_type);
-    
-    // Handle exception based on type.
-    // Why: Different exceptions require different handling.
-    switch (exception_type) {
-        .illegal_instruction => {
-            // Illegal instruction: fatal exception, terminate process.
-            // Why: Invalid instructions indicate program errors.
-            Debug.kprint("kernel: illegal instruction at PC=0x{x} (fatal)\n", .{exception_pc});
-        },
-        .load_address_misaligned, .store_address_misaligned => {
-            // Misaligned access: fatal exception, terminate process.
-            // Why: Misaligned accesses indicate program errors.
-            Debug.kprint("kernel: misaligned access at PC=0x{x}, address=0x{x} (fatal)\n", .{
-                exception_pc,
-                exception_value,
-            });
-        },
-        .load_access_fault, .store_access_fault => {
-            // Access fault: fatal exception, terminate process.
-            // Why: Access faults indicate memory protection violations.
-            Debug.kprint("kernel: access fault at PC=0x{x}, address=0x{x} (fatal)\n", .{
-                exception_pc,
-                exception_value,
-            });
-        },
-        .instruction_access_fault => {
-            // Instruction access fault: fatal exception, terminate process.
-            // Why: Instruction fetch faults indicate program errors.
-            Debug.kprint("kernel: instruction access fault at PC=0x{x} (fatal)\n", .{exception_pc});
-        },
-        .instruction_page_fault => {
-            // Instruction page fault: record statistics, then terminate process.
-            // Why: Instruction page faults indicate memory protection violations.
-            Debug.kprint("kernel: instruction page fault at PC=0x{x}, address=0x{x} (fatal)\n", .{
-                exception_pc,
-                exception_value,
-            });
-            // Record page fault statistics.
-            kernel.page_fault_stats.record_page_fault(
-                page_fault_stats.PageFaultType.instruction,
-                exception_value,
-            );
-        },
-        .load_page_fault, .store_page_fault => {
-            // Page fault: record statistics, then terminate process.
-            // Why: Page faults indicate memory protection violations.
-            Debug.kprint("kernel: page fault at PC=0x{x}, address=0x{x} (fatal)\n", .{
-                exception_pc,
-                exception_value,
-            });
-            
-            // Record page fault statistics.
-            const fault_type = if (exception_type == .load_page_fault) 
-                page_fault_stats.PageFaultType.load 
-            else 
-                page_fault_stats.PageFaultType.store;
-            kernel.page_fault_stats.record_page_fault(fault_type, exception_value);
-        },
-        .breakpoint => {
-            // Breakpoint: non-fatal, continue execution.
-            // Why: Breakpoints are for debugging, not errors.
-            Debug.kprint("kernel: breakpoint at PC=0x{x}\n", .{exception_pc});
-        },
-        .environment_call_from_u_mode, .environment_call_from_s_mode => {
-            // Environment call (syscall): handled by VM's syscall handler.
-            // Why: Syscalls are handled by VM, not trap loop.
-            // Note: This should not be called from trap loop.
-            Debug.kprint("kernel: environment call at PC=0x{x} (handled by VM)\n", .{exception_pc});
-        },
-        else => {
-            // Other exceptions: log and continue (non-fatal by default).
-            // Why: Handle unknown exceptions gracefully.
-            Debug.kprint("kernel: unknown exception {d} at PC=0x{x}\n", .{
-                exception_id,
-                exception_pc,
-            });
-        },
-    }
-    
-    // Terminate process on fatal exceptions.
-    // Why: Fatal exceptions indicate unrecoverable errors.
-    if (is_fatal) {
+    log_and_record_exception(kernel, exception_type, exception_pc, exception_value);
+
+    if (is_fatal_exception(exception_type)) {
         terminate_process_on_exception(kernel, exception_type, exception_pc);
     }
-    
-    // Assert: Exception must be handled (postcondition).
-    Debug.kassert(true, "Exception handled", .{});
 }
 
 /// Check if exception is fatal (should terminate process).
@@ -222,90 +149,50 @@ fn is_fatal_exception(exception_type: ExceptionType) bool {
 /// Why: Cleanly terminate process when fatal exception occurs.
 /// Contract: Kernel must be initialized, current process must exist.
 /// GrainStyle: Explicit error handling, bounded execution.
+/// Find process index, using cache or fallback search.
+fn find_process_for_termination(kernel: *BasinKernel, pid: u64) ?u32 {
+    if (kernel.find_current_process_index()) |idx| return idx;
+    var i: u32 = 0;
+    while (i < 16) : (i += 1) {
+        if (kernel.processes[i].allocated and kernel.processes[i].id == pid) return i;
+    }
+    return null;
+}
+
+/// Mark process as terminated and cleanup.
+fn do_terminate_process(kernel: *BasinKernel, idx: u32, exit_status: u32, pid: u64) void {
+    const process = &kernel.processes[idx];
+    process.state = .exited;
+    process.exit_status = exit_status;
+
+    if (kernel.scheduler.is_current(pid)) {
+        kernel.scheduler.clear_current();
+        kernel.invalidate_current_process_cache();
+    }
+
+    const resource_cleanup = @import("resource_cleanup.zig");
+    _ = resource_cleanup.cleanup_process_resources(kernel, @truncate(pid));
+}
+
 fn terminate_process_on_exception(
     kernel: *BasinKernel,
     exception_type: ExceptionType,
     exception_pc: u64,
 ) void {
-    // Assert: Kernel pointer must be valid (precondition).
-    const kernel_ptr = @intFromPtr(kernel);
-    Debug.kassert(kernel_ptr != 0, "Kernel ptr is null", .{});
-    Debug.kassert(kernel_ptr % @alignOf(BasinKernel) == 0, "Kernel ptr unaligned", .{});
-    
-    // Get current process ID from scheduler.
-    const current_process_id = kernel.scheduler.get_current();
-    
-    // If no current process, nothing to terminate.
-    if (current_process_id == 0) {
-        Debug.kprint("kernel: no current process to terminate\n", .{});
+    const pid = kernel.scheduler.get_current();
+    if (pid == 0) {
+        Debug.kprint("kernel: no process to terminate\n", .{});
         return;
     }
-    
-    // Find process in process table (using cached lookup if available).
-    // Why: Locate process to terminate.
-    var found: ?u32 = null;
-    const parent_idx = kernel.find_current_process_index();
-    if (parent_idx) |idx_val| {
-        found = idx_val;
-    } else {
-        // Fallback: linear search if cache miss.
-        const max_processes: u32 = 16; // MAX_PROCESSES constant (from BasinKernel).
-        var i: u32 = 0;
-        while (i < max_processes) : (i += 1) {
-            if (kernel.processes[i].allocated and kernel.processes[i].id == current_process_id) {
-                found = i;
-                break;
-            }
-        }
-    }
-    
-    if (found) |idx| {
-        const process = &kernel.processes[idx];
-        
-        // Calculate exit status from exception type.
-        // Why: Exit status = 128 + exception code (Unix convention).
-        const exception_code = @intFromEnum(exception_type);
-        const exit_status: u32 = 128 + @as(u32, @truncate(exception_code));
-        
-        // Mark process as exited.
-        process.state = .exited;
-        process.exit_status = exit_status;
-        
-        // Clear from scheduler.
-        if (kernel.scheduler.is_current(current_process_id)) {
-            kernel.scheduler.clear_current();
-            // Invalidate current process cache when process terminates due to exception.
-            // Why: Ensure cache doesn't point to terminated process.
-            kernel.invalidate_current_process_cache();
-        }
-        
-        // Clean up process resources (memory mappings, handles, channels).
-        // Why: Free resources when process terminates due to exception.
-        const process_id_u32 = @as(u32, @truncate(current_process_id));
-        const resource_cleanup = @import("resource_cleanup.zig");
-        const resources_cleaned = resource_cleanup.cleanup_process_resources(
-            kernel,
-            process_id_u32,
-        );
-        
-        // Log process termination.
-        Debug.kprint("kernel: process {d} terminated due to exception {d} at PC=0x{x}, exit status={d}, resources cleaned={d}\n", .{
-            current_process_id,
-            exception_code,
-            exception_pc,
-            exit_status,
-            resources_cleaned,
-        });
-        
-        // Assert: Process must be marked as exited (postcondition).
-        Debug.kassert(process.state == .exited, "Process not exited", .{});
-        Debug.kassert(process.exit_status == exit_status, "Exit status mismatch", .{});
-        
-        // Assert: Resources cleaned must be reasonable (postcondition).
-        const MAX_RESOURCES: u32 = 1000;
-        Debug.kassert(resources_cleaned <= MAX_RESOURCES * 3, "Resources cleaned too large", .{});
-    } else {
-        // Process not found (should not happen).
-        Debug.kprint("kernel: process {d} not found for termination\n", .{current_process_id});
-    }
+
+    const idx = find_process_for_termination(kernel, pid) orelse {
+        Debug.kprint("kernel: pid {d} not found\n", .{pid});
+        return;
+    };
+
+    const exc_code = @intFromEnum(exception_type);
+    const exit_status: u32 = 128 + @as(u32, @truncate(exc_code));
+
+    do_terminate_process(kernel, idx, exit_status, pid);
+    Debug.kprint("kernel: pid {d} exc {d} PC=0x{x}\n", .{ pid, exc_code, exception_pc });
 }

@@ -1,4 +1,4 @@
-const RawIO = @import("raw_io.zig");
+const RawIO = @import("uart.zig");
 const std = @import("std");
 
 /// Global debug/verbose flag.
@@ -26,10 +26,8 @@ pub const LogLevel = enum {
     error_lvl, // 'error' is a keyword
 };
 
-/// Grain Style: Minimal kprint implementation to avoid heavy std dependencies
-/// and linker errors with atomics.
-/// Grain Style: Minimal kprint implementation to avoid heavy std dependencies
-/// and linker errors with atomics.
+/// Kernel print function.
+/// Why: Minimal printf for kernel output without std library atomics.
 pub fn kprint(comptime fmt: []const u8, args: anytype) void {
     var arg_idx: usize = 0;
     var i: usize = 0;
@@ -160,8 +158,8 @@ fn print_hex(val: anytype) void {
     }
 }
 
-/// Grain Style: Explicit assertion - DISABLED due to codegen issues.
-/// TODO: Re-enable when Zig RV64 freestanding codegen is fixed.
+/// Kernel assertion.
+/// Why: Runtime invariant checking (disabled due to Zig RV64 codegen issues).
 pub fn kassert(ok: bool, comptime msg: []const u8, args: anytype) void {
     // Complete no-op - any code here causes codegen issues
     _ = ok;
@@ -169,7 +167,8 @@ pub fn kassert(ok: bool, comptime msg: []const u8, args: anytype) void {
     _ = args;
 }
 
-/// Grain Style: Log with level - DISABLED due to codegen issues.
+/// Log with level.
+/// Why: Structured logging with severity (disabled due to codegen issues).
 pub fn log(comptime level: LogLevel, comptime fmt: []const u8, args: anytype) void {
     // No-op - codegen issues with kprint
     _ = level;
@@ -177,7 +176,8 @@ pub fn log(comptime level: LogLevel, comptime fmt: []const u8, args: anytype) vo
     _ = args;
 }
 
-/// Debug print - DISABLED due to codegen issues.
+/// Debug print.
+/// Why: Conditional debug output (disabled due to codegen issues).
 pub fn dprint(comptime fmt: []const u8, args: anytype) void {
     // No-op - codegen issues with kprint
     _ = fmt;

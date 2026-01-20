@@ -1,0 +1,14 @@
+//! Test file with missing Why comment
+//! Why: Test that the validator catches missing Why comments on public functions.
+
+/// This is a public function without a Why comment.
+pub fn no_why_comment() void {
+    const x = 1;
+    _ = x;
+}
+
+/// Private function - no Why needed.
+fn private_func() void {
+    const y = 2;
+    _ = y;
+}

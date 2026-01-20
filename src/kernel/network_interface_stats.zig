@@ -182,7 +182,8 @@ pub const NetworkInterfaceStats = struct {
     /// Why: Calculate error rate for monitoring.
     /// Returns: Error rate percentage (0.0 to 100.0).
     pub fn get_error_rate(self: *const NetworkInterfaceStats) f64 {
-        const total_operations = self.total_interfaces_created + self.total_ipv4_configurations + self.total_ipv6_configurations + self.total_interfaces_deleted;
+        const total_operations = self.total_interfaces_created + self.total_ipv4_configurations +
+            self.total_ipv6_configurations + self.total_interfaces_deleted;
         if (total_operations == 0) {
             return 0.0;
         }

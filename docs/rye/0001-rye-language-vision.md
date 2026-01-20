@@ -1,8 +1,9 @@
 # Rye Language Vision
 
 **Date**: 2025-06-30  
-**Status**: Vision / Long-term  
-**Relationship**: Zig-inspired, Grain OS native language
+**Status**: Phase 1 Implemented  
+**Relationship**: Zig-inspired, Grain OS native language  
+**Implementation**: `rye/` - Transpiler to Zig with RyeStyle validation
 
 ## Overview
 
@@ -49,9 +50,36 @@ Rye is a systems programming language designed for the Grain OS ecosystem. It dr
 
 ## Relationship to Zig
 
-**Phase 1 (Now)**: Use Zig, document bugs, contribute fixes upstream  
+**Phase 1 (Complete)**: Rye transpiler validates `.ry` files and emits `.zig`  
 **Phase 2 (Future)**: Fork Zig frontend, customize for Grain Style  
 **Phase 3 (Long-term)**: Native Rye compiler (self-hosting)
+
+### Phase 1 Implementation
+
+The `rye/` directory contains the Phase 1 transpiler:
+
+```bash
+# Build
+cd rye && zig build
+
+# Validate RyeStyle constraints
+./zig-out/bin/rye check src/*.ry
+
+# Compile to Zig
+./zig-out/bin/rye build src/main.ry
+```
+
+Features implemented (v0.4.0):
+- 128-character line length enforcement
+- 64-line function length enforcement
+- `/// Why:` comment requirement for public functions
+- Lexer with Zig-compatible tokens
+- Parser for function detection with doc comment tracking
+- Validator with full RyeStyle constraint checking
+- Emitter (identity transform for Phase 1)
+- `--json` output for CI integration
+- `--summary` for aggregated reports
+- **First production module**: `src/kernel/uart.ry` (UART driver)
 
 ## Why Not Just Use Zig?
 
@@ -102,5 +130,6 @@ No timeline. Rye is a vision document, not a project plan. We build it when:
 
 ## See Also
 
-- `docs/zig/2025-06-30-riscv64-freestanding-codegen-issues.md` - Bugs that motivated this
-- `docs/grain_style.md` - Coding philosophy Rye would enforce
+- `docs/rye_style.md` - RyeStyle: the coding philosophy Rye enforces
+- `docs/zig/2025-06-30-riscv64-freestanding-codegen-issues.md` - Bugs that motivated Rye
+- `docs/grain_style.md` - Original GrainStyle (historical, for Zig development)

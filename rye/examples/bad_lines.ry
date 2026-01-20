@@ -1,0 +1,8 @@
+//! Test file with lines that are too long
+//! Why: Test that the validator catches long lines.
+
+/// This function has a comment that is way too long and should trigger the line length validator because it exceeds the 128 character limit by quite a bit.
+pub fn example() void {
+    const x = 1;
+    _ = x;
+}

@@ -6,7 +6,7 @@
 //! The full REPL with Grainscript evaluation is disabled due to Zig codegen issues
 //! on RISC-V64 freestanding targets. See docs/zig/2025-06-30-riscv64-freestanding-codegen-issues.md
 
-const RawIO = @import("raw_io.zig");
+const RawIO = @import("uart.zig");
 const BasinKernel = @import("basin_kernel.zig").BasinKernel;
 
 /// Minimal UART output - comptime unrolled, inline asm only.
@@ -37,6 +37,7 @@ pub const Repl = struct {
     const MAX_LINE_LEN: u32 = 256;
 
     /// Initialize REPL.
+    /// Why: Set up REPL state with kernel reference.
     pub fn init(kernel: *BasinKernel) Self {
         return Self{
             .kernel = kernel,
@@ -45,6 +46,7 @@ pub const Repl = struct {
     }
 
     /// Run REPL loop.
+    /// Why: Main interactive loop for Grainscript shell.
     pub fn run(self: *Self) void {
         Uart.print("\n");
         Uart.print("Grainscript REPL v0.1.0\n");

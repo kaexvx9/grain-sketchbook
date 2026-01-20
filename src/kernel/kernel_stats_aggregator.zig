@@ -89,17 +89,20 @@ pub const KernelStatsSnapshot = struct {
         Debug.kassert(@intFromPtr(page_fault_stats) != 0, "Page fault stats ptr is null", .{});
         
         // Calculate total errors.
-        const total_errors = tcp_stats.total_connection_errors + tcp_stats.total_send_errors + tcp_stats.total_receive_errors +
-            udp_stats.total_send_errors + udp_stats.total_receive_errors +
-            network_stats.total_creation_errors + network_stats.total_configuration_errors + network_stats.total_deletion_errors +
-            audio_stats.total_creation_errors + audio_stats.total_configuration_errors + audio_stats.total_io_errors + audio_stats.total_deletion_errors;
-        
+        const total_errors = tcp_stats.total_connection_errors + tcp_stats.total_send_errors +
+            tcp_stats.total_receive_errors + udp_stats.total_send_errors +
+            udp_stats.total_receive_errors + network_stats.total_creation_errors +
+            network_stats.total_configuration_errors + network_stats.total_deletion_errors +
+            audio_stats.total_creation_errors + audio_stats.total_configuration_errors +
+            audio_stats.total_io_errors + audio_stats.total_deletion_errors;
+
         // Calculate total operations.
-        const total_operations = tcp_stats.total_packets_sent + tcp_stats.total_packets_received + tcp_stats.total_connected_transitions +
-            udp_stats.total_datagrams_sent + udp_stats.total_datagrams_received +
-            network_stats.total_interfaces_created + network_stats.total_ipv4_configurations + network_stats.total_ipv6_configurations +
-            audio_stats.total_devices_created + audio_stats.total_volume_changes + audio_stats.total_format_changes +
-            scheduler_stats.total_scheduling_decisions +
+        const total_operations = tcp_stats.total_packets_sent + tcp_stats.total_packets_received +
+            tcp_stats.total_connected_transitions + udp_stats.total_datagrams_sent +
+            udp_stats.total_datagrams_received + network_stats.total_interfaces_created +
+            network_stats.total_ipv4_configurations + network_stats.total_ipv6_configurations +
+            audio_stats.total_devices_created + audio_stats.total_volume_changes +
+            audio_stats.total_format_changes + scheduler_stats.total_scheduling_decisions +
             page_fault_stats.total_count;
         
         // Calculate health score (100.0 - error_rate).

@@ -7,7 +7,7 @@
 
 const std = @import("std");
 const Debug = @import("debug.zig");
-const RawIO = @import("raw_io.zig");
+const RawIO = @import("uart.zig");
 const BasinKernel = @import("basin_kernel.zig").BasinKernel;
 const grainscript = @import("grainscript");
 const Lexer = grainscript.Lexer;

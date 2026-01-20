@@ -36,7 +36,8 @@ pub export fn kmain() noreturn {
     Uart.print("gs> ");
     
     // Pure assembly REPL - Zig control flow has codegen issues on RV64 freestanding
-    // Commands: h=help, i=info, v=version, e=exit
+    // Commands: h=help, i=info, v=version, c=calc, e=exit
+    // Calc mode: type a digit 0-9, get it doubled
     asm volatile (
         \\  lui t1, 0x10000       # UART base in t1 (preserved)
         \\
@@ -54,6 +55,8 @@ pub export fn kmain() noreturn {
         \\  beq t3, t4, .Lcmd_info
         \\  li t4, 'v'
         \\  beq t3, t4, .Lcmd_version
+        \\  li t4, 'c'
+        \\  beq t3, t4, .Lcmd_calc
         \\  li t4, 'e'
         \\  beq t3, t4, .Lcmd_exit
         \\  li t4, 10
@@ -222,6 +225,78 @@ pub export fn kmain() noreturn {
         \\  li t3, '.'
         \\  sb t3, 0(t1)
         \\  li t3, '0'
+        \\  sb t3, 0(t1)
+        \\  li t3, 10
+        \\  sb t3, 0(t1)
+        \\  j .Lprompt
+        \\
+        \\.Lcmd_calc:
+        \\  # "alc: " then wait for digit, double it, print result
+        \\  li t3, 'a'
+        \\  sb t3, 0(t1)
+        \\  li t3, 'l'
+        \\  sb t3, 0(t1)
+        \\  li t3, 'c'
+        \\  sb t3, 0(t1)
+        \\  li t3, ':'
+        \\  sb t3, 0(t1)
+        \\  li t3, ' '
+        \\  sb t3, 0(t1)
+        \\  # Wait for digit
+        \\.Lcalc_wait:
+        \\  lbu t2, 5(t1)
+        \\  andi t2, t2, 1
+        \\  beqz t2, .Lcalc_wait
+        \\  lbu t3, 0(t1)
+        \\  sb t3, 0(t1)          # Echo digit
+        \\  # Check if digit 0-9
+        \\  li t4, '0'
+        \\  blt t3, t4, .Lcalc_nan
+        \\  li t4, '9'
+        \\  bgt t3, t4, .Lcalc_nan
+        \\  # Convert to number: n = c - '0'
+        \\  li t4, '0'
+        \\  sub t5, t3, t4        # t5 = digit value (0-9)
+        \\  # Double it: t5 = t5 * 2
+        \\  slli t5, t5, 1        # t5 = t5 << 1 = t5 * 2
+        \\  # Print " * 2 = "
+        \\  li t3, ' '
+        \\  sb t3, 0(t1)
+        \\  li t3, '*'
+        \\  sb t3, 0(t1)
+        \\  li t3, ' '
+        \\  sb t3, 0(t1)
+        \\  li t3, '2'
+        \\  sb t3, 0(t1)
+        \\  li t3, ' '
+        \\  sb t3, 0(t1)
+        \\  li t3, '='
+        \\  sb t3, 0(t1)
+        \\  li t3, ' '
+        \\  sb t3, 0(t1)
+        \\  # Print result (0-18, so up to 2 digits)
+        \\  li t4, 10
+        \\  blt t5, t4, .Lcalc_1dig
+        \\  # Two digits: print '1' then (t5 - 10)
+        \\  li t3, '1'
+        \\  sb t3, 0(t1)
+        \\  sub t5, t5, t4        # t5 = t5 - 10
+        \\.Lcalc_1dig:
+        \\  li t4, '0'
+        \\  add t3, t5, t4        # t3 = '0' + t5
+        \\  sb t3, 0(t1)
+        \\  li t3, 10
+        \\  sb t3, 0(t1)
+        \\  j .Lprompt
+        \\.Lcalc_nan:
+        \\  # Print " NaN\n"
+        \\  li t3, ' '
+        \\  sb t3, 0(t1)
+        \\  li t3, 'N'
+        \\  sb t3, 0(t1)
+        \\  li t3, 'a'
+        \\  sb t3, 0(t1)
+        \\  li t3, 'N'
         \\  sb t3, 0(t1)
         \\  li t3, 10
         \\  sb t3, 0(t1)

@@ -48,7 +48,9 @@ pub fn load_program_segment(
     
     // Create mapping for segment (use segment's virtual address).
     // Why: Map segment at its intended virtual address.
-    const map_result = syscall_map(kernel, segment.p_vaddr, aligned_size, @as(u64, @intCast(@as(u32, @bitCast(map_flags)))), 0) catch {
+    const flags_u32 = @as(u32, @bitCast(map_flags));
+    const flags_u64 = @as(u64, @intCast(flags_u32));
+    const map_result = syscall_map(kernel, segment.p_vaddr, aligned_size, flags_u64, 0) catch {
         return false; // Mapping failed
     };
     

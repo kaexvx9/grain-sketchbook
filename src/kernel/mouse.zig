@@ -180,7 +180,8 @@ pub const Mouse = struct {
     /// Returns: Last button state (pressed or released).
     pub fn get_last_button_state(self: *const Mouse) ButtonState {
         // Assert: Last button state must be valid.
-        Debug.kassert(self.last_button_state == .pressed or self.last_button_state == .released, "Last button state invalid", .{});
+        const valid = self.last_button_state == .pressed or self.last_button_state == .released;
+        Debug.kassert(valid, "Last button state invalid", .{});
         
         return self.last_button_state;
     }

@@ -11,6 +11,7 @@ pub const table = [_]Syscall{
     .{ .number = 1, .name = "exit", .description = "Terminates the calling task with a status code." },
 };
 
+/// Why: Look up syscall description by number for help output.
 pub fn describe(number: u16) ?Syscall {
     for (table) |entry| {
         if (entry.number == number) return entry;
