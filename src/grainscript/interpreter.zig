@@ -1,6 +1,10 @@
 const std = @import("std");
 const Parser = @import("parser.zig").Parser;
 
+fn is_whitespace(c: u8) bool {
+    return c == ' ' or c == '\t' or c == '\n' or c == '\r';
+}
+
 /// Grainscript Interpreter: Executes AST nodes.
 /// ~<~ Glow Airbend: explicit value types, bounded runtime state.
 /// ~~~~ Glow Waterbend: deterministic evaluation, iterative algorithms.
@@ -44,17 +48,17 @@ pub const Interpreter = struct {
         boolean: bool,
         null: void,
 
-        /// Create integer value.
+        /// Why: Construct Value from i64.
         pub fn from_integer(val: i64) Value {
             return Value{ .integer = val };
         }
 
-        /// Create float value.
+        /// Why: Construct Value from f64.
         pub fn from_float(val: f64) Value {
             return Value{ .float = val };
         }
 
-        /// Create string value (bounded).
+        /// Why: Construct Value from string with bounds check.
         pub fn from_string(allocator: std.mem.Allocator, str: []const u8) Error!Value {
             // Assert: String length must be bounded
             if (str.len > MAX_STRING_LEN) {
@@ -68,17 +72,17 @@ pub const Interpreter = struct {
             return Value{ .string = string_copy };
         }
 
-        /// Create boolean value.
+        /// Why: Construct Value from bool.
         pub fn from_boolean(val: bool) Value {
             return Value{ .boolean = val };
         }
 
-        /// Create null value.
+        /// Why: Construct null Value.
         pub fn from_null() Value {
             return Value{ .null = {} };
         }
 
-        /// Convert value to boolean (for truthiness).
+        /// Why: Evaluate truthiness for conditionals.
         pub fn to_boolean(self: Value) bool {
             return switch (self) {
                 .integer => |v| v != 0,
@@ -89,7 +93,7 @@ pub const Interpreter = struct {
             };
         }
 
-        /// Free string value (if string type).
+        /// Why: Release string memory if allocated.
         pub fn deinit(self: *Value, allocator: std.mem.Allocator) void {
             if (self.* == .string) {
                 allocator.free(self.string);
@@ -208,7 +212,7 @@ pub const Interpreter = struct {
         self.output_len = 0;
     }
 
-    /// Initialize interpreter with parser.
+    /// Why: Create interpreter with pre-allocated buffers.
     pub fn init(allocator: std.mem.Allocator, parser: *const Parser) !Interpreter {
         // Assert: Parser must be valid
         std.debug.assert(parser.get_node_count() > 0);
@@ -250,7 +254,7 @@ pub const Interpreter = struct {
         return interpreter;
     }
 
-    /// Deinitialize interpreter and free memory.
+    /// Why: Release all interpreter memory.
     pub fn deinit(self: *Interpreter) void {
         // Assert: Interpreter must be valid
         _ = self.allocator; // Allocator is used below
@@ -787,14 +791,11 @@ pub const Interpreter = struct {
             return Error.type_mismatch;
         }
         const str = args[0].string;
-        // Find start (skip whitespace)
         var start: u32 = 0;
-        while (start < str.len and (str[start] == ' ' or str[start] == '\t' or str[start] == '\n' or str[start] == '\r')) : (start += 1) {}
-        // Find end (skip whitespace from end)
+        while (start < str.len and is_whitespace(str[start])) : (start += 1) {}
         var end: u32 = @intCast(str.len);
-        while (end > start and (str[end - 1] == ' ' or str[end - 1] == '\t' or str[end - 1] == '\n' or str[end - 1] == '\r')) : (end -= 1) {}
-        const trimmed = str[start..end];
-        return try Value.from_string(interpreter.allocator, trimmed);
+        while (end > start and is_whitespace(str[end - 1])) : (end -= 1) {}
+        return try Value.from_string(interpreter.allocator, str[start..end]);
     }
 
     /// Built-in abs function: Absolute value.
@@ -1336,7 +1337,7 @@ pub const Interpreter = struct {
         return try Value.from_string(interpreter.allocator, result);
     }
 
-    /// Execute AST (evaluate all top-level statements).
+    /// Why: Run program by evaluating AST nodes.
     pub fn execute(self: *Interpreter) Error!void {
         // Assert: Interpreter must be initialized
         std.debug.assert(self.parser.get_node_count() > 0);
@@ -2555,14 +2556,29 @@ pub const Interpreter = struct {
     /// Check if value matches type name.
     fn value_matches_type(self: *const Interpreter, value: Value, type_name: []const u8) bool {
         _ = self;
-        // Type name matching (case-sensitive)
         return switch (value) {
-            .integer => std.mem.eql(u8, type_name, "i32") or std.mem.eql(u8, type_name, "i64") or std.mem.eql(u8, type_name, "int"),
-            .float => std.mem.eql(u8, type_name, "f32") or std.mem.eql(u8, type_name, "f64") or std.mem.eql(u8, type_name, "float"),
-            .string => std.mem.eql(u8, type_name, "string") or std.mem.eql(u8, type_name, "str"),
-            .boolean => std.mem.eql(u8, type_name, "bool") or std.mem.eql(u8, type_name, "boolean"),
-            .null => std.mem.eql(u8, type_name, "null") or std.mem.eql(u8, type_name, "void"),
+            .integer => is_int_type(type_name),
+            .float => is_float_type(type_name),
+            .string => is_string_type(type_name),
+            .boolean => is_bool_type(type_name),
+            .null => is_null_type(type_name),
         };
+    }
+
+    fn is_int_type(t: []const u8) bool {
+        return std.mem.eql(u8, t, "i32") or std.mem.eql(u8, t, "i64") or std.mem.eql(u8, t, "int");
+    }
+    fn is_float_type(t: []const u8) bool {
+        return std.mem.eql(u8, t, "f32") or std.mem.eql(u8, t, "f64") or std.mem.eql(u8, t, "float");
+    }
+    fn is_string_type(t: []const u8) bool {
+        return std.mem.eql(u8, t, "string") or std.mem.eql(u8, t, "str");
+    }
+    fn is_bool_type(t: []const u8) bool {
+        return std.mem.eql(u8, t, "bool") or std.mem.eql(u8, t, "boolean");
+    }
+    fn is_null_type(t: []const u8) bool {
+        return std.mem.eql(u8, t, "null") or std.mem.eql(u8, t, "void");
     }
 
     /// Find variable by name (with scope resolution).
@@ -2593,7 +2609,7 @@ pub const Interpreter = struct {
         return null;
     }
 
-    /// Get exit code.
+    /// Why: Return program exit status.
     pub fn get_exit_code(self: *const Interpreter) u32 {
         return self.exit_code;
     }
