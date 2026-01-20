@@ -60,6 +60,13 @@ Our design goals are safety, performance, and developer experience. In that orde
 important. Good style advances these goals. Does the code make for more or less safety, performance
 or developer experience? That is why we need style.
 
+Put this way, style is more than readability, and readability is table stakes, a means to an end
+rather than an end in itself.
+
+> "...in programming, style is not something to pursue directly. Style is necessary only where
+> understanding is missing." ─ [Let Over
+> Lambda](https://letoverlambda.com/index.cl/guest/chap1.html)
+
 ## The Path with Heart
 
 Before we begin, there is a question that only experience can answer: **Does this path have heart?**
@@ -84,6 +91,11 @@ solves the axes simultaneously, to achieve something elegant.
 > "Simplicity and elegance are unpopular because they require hard work and discipline to achieve" —
 > Edsger Dijkstra
 
+Contrary to popular belief, simplicity is also not the first attempt but the hardest revision. It's
+easy to say "let's do something simple", but to do that in practice takes thought, multiple passes,
+many sketches, and still we may have to ["throw one
+away"](https://en.wikipedia.org/wiki/The_Mythical_Man-Month).
+
 ## Technical Debt
 
 Rye has a "zero technical debt" policy. We do it right the first time. This is important because
@@ -105,28 +117,67 @@ goals.
 Code](https://spinroot.com/gerard/pdf/P10.pdf) will change the way you code forever. To expand:
 
 - Use **only very simple, explicit control flow** for clarity. **Do not use recursion** to ensure
-  that all executions that should be bounded are bounded.
+  that all executions that should be bounded are bounded. Use **only a minimum of excellent
+  abstractions** but only if they make the best sense of the domain.
 
 - **Put a limit on everything** because, in reality, this is what we expect—everything has a limit.
-  All loops and all queues must have a fixed upper bound.
+  All loops and all queues must have a fixed upper bound. This follows the
+  ["fail-fast"](https://en.wikipedia.org/wiki/Fail-fast) principle.
 
 - Use explicitly-sized types like `u32` for everything, avoid architecture-specific `usize`.
 
 - **Assertions detect programmer errors.** The assertion density of the code must average a minimum
   of two assertions per function.
 
+  - **Assert all function arguments and return values, pre/postconditions and invariants.** A
+    function must not operate blindly on data it has not checked.
+
+  - **[Pair assertions](https://tigerbeetle.com/blog/2023-12-27-it-takes-two-to-contract).** For
+    every property you want to enforce, try to find at least two different code paths where an
+    assertion can be added.
+
+  - Split compound assertions: prefer `assert(a); assert(b);` over `assert(a and b);`.
+
+  - Use single-line `if` to assert an implication: `if (a) assert(b)`.
+
+  - **Assert the relationships of compile-time constants** as a sanity check.
+
+  - **The golden rule of assertions is to assert the _positive space_ that you do expect AND to
+    assert the _negative space_ that you do not expect.**
+
 - All memory must be statically allocated at startup. **No memory may be dynamically allocated (or
-  freed and reallocated) after initialization.**
+  freed and reallocated) after initialization.** This is the Garden Allocation philosophy.
 
 - Declare variables at the **smallest possible scope**.
 
 - Restrict the length of function bodies. We enforce a **hard limit of 64 lines per function**
   (2^6, binary-aligned). This is enforced by the Rye compiler.
 
-- All errors must be handled.
+- All errors must be handled. An [analysis of production failures](https://www.usenix.org/system/files/conference/osdi14/osdi14-paper-yuan.pdf) found that 92% of catastrophic failures were due to incorrect error handling.
 
 - **Always motivate, always say why. Never forget to say why.** For public functions, Rye requires
   a `/// Why:` doc comment. This is enforced by the compiler.
+
+Beyond these rules:
+
+- Compound conditions that evaluate multiple booleans make it difficult for the reader to verify
+  that all cases are handled. Split compound conditions into simple conditions using nested
+  `if/else` branches.
+
+- Negations are not easy! State invariants positively:
+
+  ```rye
+  if (index < length) {
+      // The invariant holds.
+  } else {
+      // The invariant doesn't hold.
+  }
+  ```
+
+- Whenever your program has to interact with external entities, **don't do things directly in
+  reaction to external events**. Instead, your program should run at its own pace.
+
+- **Explicitly pass options to library functions at the call site, instead of relying on defaults**.
 
 ## Rye-Specific Rules
 
@@ -152,6 +203,16 @@ error: function 'kmain' exceeds 64-line limit (has 72 lines)
   |
   = help: split into smaller functions
 ```
+
+Splitting code into functions requires taste. Some rules of thumb:
+
+* Good function shape is often the inverse of an hourglass: a few parameters, a simple return
+  type, and a lot of meaty logic between the braces.
+* Centralize control flow. When splitting a large function, try to keep all switch/if
+  statements in the "parent" function, and move non-branchy logic fragments to helper functions.
+  ["Push `if`s up and `for`s down"](https://matklad.github.io/2023/11/15/push-ifs-up-and-fors-down.html).
+* Similarly, centralize state manipulation. Let the parent function keep all relevant state in
+  local variables, and use helpers to compute what needs to change. Keep leaf functions pure.
 
 ### Line Length (Compiler-Enforced)
 
@@ -200,33 +261,67 @@ pub fn uart_putc(c: u8) void {
 }
 ```
 
-The assembler guarantees:
-- Register constraints are honored
-- No spurious clobbers
-- Correct addressing for all memory models
-
 ## Performance
 
 > "The lack of back-of-the-envelope performance sketches is the root of all evil." — Rivacindela
 > Hudsoni
 
-- Think about performance from the outset, from the beginning.
+- Think about performance from the outset, from the beginning. **The best time to solve performance
+  is in the design phase.**
 - Perform back-of-the-envelope sketches with respect to the four resources (network, disk, memory,
   CPU) and their two main characteristics (bandwidth, latency).
 - Optimize for the slowest resources first (network, disk, memory, CPU) in that order.
+- Distinguish between the control plane and data plane.
 - Amortize costs by batching accesses.
+- Let the CPU be a sprinter doing the 100m. Be predictable. Don't force the CPU to zig zag.
 - Be explicit. Minimize dependence on the compiler to do the right thing for you.
+- Extract hot loops into stand-alone functions with primitive arguments without `self`.
 
 ## Developer Experience
 
+> "There are only two hard things in Computer Science: cache invalidation, naming things, and
+> off-by-one errors." — Phil Karlton
+
 ### Naming Things
 
-- **Get the nouns and verbs just right.**
+- **Get the nouns and verbs just right.** Great names are the essence of great code.
 - **Use `rye_case` for function, variable, and file names.** rye_case is identical to snake_case.
 - Do not abbreviate variable names.
+- Use proper capitalization for acronyms (`VSRState`, not `VsrState`).
 - Add units or qualifiers to variable names, put them last: `latency_ms_max` not `max_latency_ms`.
-- **Write descriptive commit messages.**
-- Don't forget to say why.
+- Infuse names with meaning: `gpa: Allocator` and `arena: Allocator` are better than 
+  `allocator: Allocator`.
+- When choosing related names, try hard to find names with the same number of characters so that
+  related variables all line up in the source.
+- When a single function calls out to a helper function, prefix the helper name with the calling
+  function name: `read_sector()` and `read_sector_callback()`.
+- Callbacks go last in the list of parameters.
+- _Order_ matters for readability. Put important things near the top. The `main` function goes first.
+- **Write descriptive commit messages** that inform and delight the reader.
+- Don't forget to say why. Code alone is not documentation.
+- Don't forget to say how.
+- Comments are sentences, with a space after the slash, with a capital letter and a full stop.
+
+### Cache Invalidation
+
+- Don't duplicate variables or take aliases to them.
+- If you don't mean a function argument to be copied, pass as `*const`.
+- Construct larger structs _in-place_ by passing an _out pointer_ during initialization.
+- **Shrink the scope** to minimize the number of variables at play.
+- Calculate or check variables close to where/when they are used. **Don't introduce variables before
+  they are needed.**
+- Use simpler function signatures and return types to reduce dimensionality.
+- Ensure that functions run to completion without suspending.
+- Be on your guard for **[buffer bleeds](https://en.wikipedia.org/wiki/Heartbleed)**.
+- Use newlines to **group resource allocation and deallocation**.
+
+### Off-By-One Errors
+
+- **The usual suspects for off-by-one errors are casual interactions between an `index`, a `count`
+  or a `size`.** To go from an `index` to a `count` you need to add one. To go from a `count` to a
+  `size` you need to multiply by the unit.
+
+- Show your intent with respect to division. Use `@divExact()`, `@divFloor()` or `div_ceil()`.
 
 ### Style By The Numbers
 
@@ -234,6 +329,7 @@ The assembler guarantees:
 - Use 4 spaces of indentation.
 - **Hard limit all line lengths to at most 128 columns** (2^7, binary-aligned).
 - **Hard limit all function bodies to at most 64 lines** (2^6, binary-aligned).
+- Add braces to the `if` statement unless it fits on a single line.
 
 ## Graincard Constraints
 
@@ -302,7 +398,7 @@ Rye uses **chronological versioning** instead of semantic versioning:
 
 ```
 YYYYMMDD.HHMMSS.variant
-12025-01-20.0945.basin
+20260120.0945.basin
 ```
 
 This conveys:
