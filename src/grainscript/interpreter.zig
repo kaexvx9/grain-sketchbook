@@ -309,7 +309,9 @@ pub const Interpreter = struct {
         try self.register_string_utility_functions();
     }
 
-    fn add_builtin(self: *Interpreter, name: []const u8, params: u32, handler: BuiltinHandler) !void {
+    const BuiltinFn = *const fn (*Interpreter, []const Value) Error!Value;
+
+    fn add_builtin(self: *Interpreter, name: []const u8, params: u32, handler: BuiltinFn) !void {
         const name_copy = try self.allocator.dupe(u8, name);
         self.functions[self.functions_len] = Function{
             .name = name_copy,
@@ -1903,7 +1905,7 @@ pub const Interpreter = struct {
         return if (ret) |v| try self.copy_value(v) else Value.from_null();
     }
 
-    fn get_fn_decl(self: *Interpreter, name: []const u8) Error!Parser.Node.FnDeclData {
+    fn get_fn_decl(self: *Interpreter, name: []const u8) Error!Parser.FnDeclData {
         const idx = self.find_function_decl_node(name) orelse return Error.runtime_error;
         const node = self.parser.get_node(idx) orelse return Error.runtime_error;
         if (node.node_type != .decl_fn) return Error.runtime_error;
@@ -1922,7 +1924,7 @@ pub const Interpreter = struct {
         return idx;
     }
 
-    fn bind_params(self: *Interpreter, params: []u32, len: u32, args: []const Value, frame: u32) Error!void {
+    fn bind_params(self: *Interpreter, params: []const u32, len: u32, args: []const Value, frame: u32) Error!void {
         var i: u32 = 0;
         while (i < len) : (i += 1) {
             const pnode = self.parser.get_node(params[i]) orelse return Error.runtime_error;
