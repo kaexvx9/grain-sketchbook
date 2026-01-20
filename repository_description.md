@@ -33,9 +33,13 @@
 ### Project Identity Tags
 - `clutch-os`
 - `grain-os`
+- `skate`
 - `teambrick06`
 - `framework-oriented`
 - `mechanical-precision`
+
+### Codeberg Namespaces
+- `codeberg.org/skate` - Visual programming / Skate integration
 
 ### Philosophical Tags
 - `vedic-astrology`

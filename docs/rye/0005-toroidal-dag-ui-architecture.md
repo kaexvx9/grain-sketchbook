@@ -3,6 +3,7 @@
 **Date**: 2026-01-20
 **Status**: Architecture Vision
 **Builds On**: 0003-toroidal-garden-architecture.md, dag_ui_synthesis.md
+**Repository**: codeberg.org/realidream
 
 ---
 
