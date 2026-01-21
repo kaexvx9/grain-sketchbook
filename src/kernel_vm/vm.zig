@@ -806,13 +806,15 @@ pub const VM = struct {
     /// Read memory at address (little-endian, 8 bytes).
     /// Grain Style: Validate address, bounds checking, alignment.
     pub fn read64(self: *Self, addr: u64) VMError!u64 {
-        // Assert: address must be within memory bounds.
-        std.debug.assert(addr + 8 <= self.memory_size);
+        // Check: address must be within memory bounds.
+        if (addr + 8 > self.memory_size) {
+            self.exception_stats.record_exception(5); // Load access fault
+            return VMError.invalid_memory_access;
+        }
 
-        // Assert: address must be 8-byte aligned (RISC-V64 requirement).
+        // Check: address must be 8-byte aligned (RISC-V64 requirement).
         if (addr % 8 != 0) {
-            // Record exception (load address misaligned, code 4).
-            self.exception_stats.record_exception(4);
+            self.exception_stats.record_exception(4); // Load address misaligned
             return VMError.unaligned_memory_access;
         }
 

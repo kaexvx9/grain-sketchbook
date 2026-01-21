@@ -31,6 +31,15 @@ pub const MemoryPool = struct {
         };
     }
 
+    /// Initialize memory pool in-place to avoid 4MB stack allocation.
+    /// Why: Critical for heap-allocated kernels.
+    pub fn init_in_place(target: *MemoryPool) void {
+        @memset(&target.buffer, 0);
+        for (&target.page_states) |*ps| ps.* = .free;
+        target.allocated_pages = 0;
+        target.next_free_page = 0;
+    }
+
     /// Allocate pages.
     /// Why: Allocate contiguous pages for kernel use.
     pub fn allocate_pages(self: *MemoryPool, num: u32) ?u32 {

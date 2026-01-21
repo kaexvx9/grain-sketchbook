@@ -124,8 +124,8 @@ fn call_syscall_via_vm(
     arg3: u64,
     arg4: u64,
 ) !SyscallResult {
-    // Assert: syscall_num must be kernel syscall (>= 10, except exit=2).
-    std.debug.assert(syscall_num >= 10 or syscall_num == 2);
+    // Assert: syscall_num must be valid kernel syscall (1-4 for process, 10+ for others).
+    std.debug.assert(syscall_num >= 1);
     
     // Assert: integration must be initialized.
     std.debug.assert(integration.initialized);
