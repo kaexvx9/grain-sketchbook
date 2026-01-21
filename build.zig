@@ -305,6 +305,29 @@ pub fn build(b: *std.Build) void {
     const vantage_x86_64_step = b.step("vantage-x86_64", "Build Vantage VM for x86_64 (boots Basin via RISC-V emulation)");
     vantage_x86_64_step.dependOn(&vantage_x86_64_install.step);
 
+    // Basin Kernel for RISC-V64 (test program for Vantage)
+    // Why: Basin targets RISC-V only. This test kernel runs on Vantage VM.
+    const riscv64_freestanding = b.resolveTargetQuery(.{
+        .cpu_arch = .riscv64,
+        .os_tag = .freestanding,
+        .abi = .none,
+    });
+    const basin_rv64_exe = b.addExecutable(.{
+        .name = "basin-rv64",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/basin/hello_riscv.zig"),
+            .target = riscv64_freestanding,
+            .optimize = .ReleaseSmall,
+            .code_model = .medium, // Required for kernel at 0x80000000
+        }),
+    });
+    basin_rv64_exe.setLinkerScript(b.path("src/basin/linker_riscv64.ld"));
+    basin_rv64_exe.root_module.red_zone = false;
+    basin_rv64_exe.root_module.stack_check = false;
+    const basin_rv64_install = b.addInstallArtifact(basin_rv64_exe, .{});
+    const basin_rv64_step = b.step("basin-rv64", "Build Basin kernel for RISC-V64 (runs on Vantage VM)");
+    basin_rv64_step.dependOn(&basin_rv64_install.step);
+
     // Kernel platform module (for testing platform abstraction) - kept for kernel tests
     const kernel_platform_module = b.addModule("kernel_platform", .{
         .root_source_file = b.path("src/kernel/kernel_platform.zig"),

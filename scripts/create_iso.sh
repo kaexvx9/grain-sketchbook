@@ -19,6 +19,9 @@ echo "[BUILD] Building Vantage VM for x86_64..."
 cd "$PROJECT_DIR"
 zig build vantage-x86_64
 
+echo "[BUILD] Building Basin kernel for RISC-V64..."
+zig build basin-rv64
+
 echo "[LIMINE] Checking for Limine..."
 if [ ! -d "$LIMINE_DIR" ]; then
     echo "[LIMINE] Cloning Limine v10.x binary release..."
@@ -35,9 +38,8 @@ mkdir -p "$ISO_ROOT/EFI/BOOT"
 echo "[ISO] Copying Vantage VM..."
 cp "$PROJECT_DIR/zig-out/bin/vantage" "$ISO_ROOT/boot/"
 
-# TODO: Also copy Basin kernel (RISC-V) as module
-# echo "[ISO] Copying Basin kernel (RISC-V)..."
-# cp "$PROJECT_DIR/zig-out/bin/grain-rv64" "$ISO_ROOT/boot/basin-rv64"
+echo "[ISO] Copying Basin kernel (RISC-V64)..."
+cp "$PROJECT_DIR/zig-out/bin/basin-rv64" "$ISO_ROOT/boot/"
 
 echo "[ISO] Copying Limine configuration..."
 cp "$PROJECT_DIR/limine.conf" "$ISO_ROOT/boot/limine/"

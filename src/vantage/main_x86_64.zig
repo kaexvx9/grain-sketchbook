@@ -10,6 +10,7 @@
 
 const std = @import("std");
 const limine = @import("limine");
+const riscv = @import("riscv_core.zig");
 
 // Limine requests - placed in special section for bootloader discovery
 pub export var base_revision: limine.BaseRevision linksection(".limine_requests") = .{
@@ -62,6 +63,17 @@ var hhdm_offset: u64 = 0;
 
 /// Total usable memory in bytes.
 var total_memory: u64 = 0;
+
+/// Usable memory region for VM.
+var vm_memory_base: u64 = 0;
+var vm_memory_ptr: [*]u8 = undefined;
+var vm_memory_size: u64 = 0;
+
+/// RISC-V core instance.
+var riscv_core: riscv.RiscvCore = .{};
+
+/// Console framebuffer for RISC-V output.
+var console_fb: riscv.Framebuffer = undefined;
 
 /// Simple framebuffer pixel write.
 /// Why: Basic graphics output for early boot.
@@ -123,19 +135,37 @@ fn init_framebuffer() bool {
     return false;
 }
 
-/// Initialize memory map.
+/// Initialize memory map and find usable region for VM.
 fn init_memory() bool {
     if (memmap_request.response) |response| {
         const entries = response.entries();
         total_memory = 0;
 
+        // Find largest usable region for VM (need at least 8MB).
+        const MIN_VM_MEMORY: u64 = 8 * 1024 * 1024;
+
         for (entries) |entry| {
             if (entry.type == .usable) {
                 total_memory += entry.length;
+
+                // Use largest region that's at least 8MB for VM memory.
+                if (entry.length >= MIN_VM_MEMORY and entry.length > vm_memory_size) {
+                    vm_memory_base = entry.base;
+                    vm_memory_size = entry.length;
+                    // Limit VM to 64MB max (reasonable for Basin).
+                    if (vm_memory_size > 64 * 1024 * 1024) {
+                        vm_memory_size = 64 * 1024 * 1024;
+                    }
+                }
             }
         }
 
-        return total_memory > 0;
+        // Convert physical address to virtual using HHDM.
+        if (vm_memory_size >= MIN_VM_MEMORY) {
+            vm_memory_ptr = @ptrFromInt(hhdm_offset + vm_memory_base);
+        }
+
+        return total_memory > 0 and vm_memory_size >= MIN_VM_MEMORY;
     }
     return false;
 }
@@ -181,63 +211,198 @@ fn update_status(msg: []const u8) void {
     print_at(70, 190, msg, 0x0066ccff);
 }
 
+/// Load ELF and set up RISC-V core.
+/// Why: Parse RISC-V ELF from Limine module and load into VM memory.
+fn load_basin_kernel() bool {
+    if (module_request.response) |response| {
+        const modules = response.modules();
+        if (modules.len > 0) {
+            const basin_module = modules[0];
+            const elf_data = basin_module.address[0..basin_module.size];
+
+            // Validate ELF header.
+            if (elf_data.len < 64) return false;
+
+            // Check ELF magic.
+            if (elf_data[0] != 0x7F or elf_data[1] != 'E' or
+                elf_data[2] != 'L' or elf_data[3] != 'F')
+            {
+                return false;
+            }
+
+            // Check 64-bit, little-endian, RISC-V.
+            if (elf_data[4] != 2) return false; // 64-bit
+            if (elf_data[5] != 1) return false; // Little-endian
+
+            // Read machine type (offset 18-19, little-endian).
+            const machine: u16 = @as(u16, elf_data[18]) | (@as(u16, elf_data[19]) << 8);
+            if (machine != 243) return false; // RISC-V
+
+            // Read entry point (offset 24-31, little-endian).
+            var entry: u64 = 0;
+            var i: u6 = 0;
+            while (i < 8) : (i += 1) {
+                entry |= @as(u64, elf_data[24 + i]) << @intCast(i * 8);
+            }
+
+            // Read program header offset (offset 32-39).
+            var phoff: u64 = 0;
+            i = 0;
+            while (i < 8) : (i += 1) {
+                phoff |= @as(u64, elf_data[32 + i]) << @intCast(i * 8);
+            }
+
+            // Read program header count (offset 56-57).
+            const phnum: u16 = @as(u16, elf_data[56]) | (@as(u16, elf_data[57]) << 8);
+
+            // Load each PT_LOAD segment.
+            const KERNEL_BASE: u64 = 0x80000000;
+            var ph_idx: u16 = 0;
+            while (ph_idx < phnum) : (ph_idx += 1) {
+                const ph_offset = phoff + @as(u64, ph_idx) * 56; // 56 bytes per Phdr
+                if (ph_offset + 56 > elf_data.len) break;
+
+                // Read p_type (first 4 bytes).
+                const p_type: u32 = @as(u32, elf_data[@intCast(ph_offset)]) |
+                    (@as(u32, elf_data[@intCast(ph_offset + 1)]) << 8) |
+                    (@as(u32, elf_data[@intCast(ph_offset + 2)]) << 16) |
+                    (@as(u32, elf_data[@intCast(ph_offset + 3)]) << 24);
+
+                if (p_type != 1) continue; // Skip non-PT_LOAD
+
+                // Read p_offset (bytes 8-15).
+                var p_off: u64 = 0;
+                var j: u6 = 0;
+                while (j < 8) : (j += 1) {
+                    p_off |= @as(u64, elf_data[@intCast(ph_offset + 8 + j)]) << @intCast(j * 8);
+                }
+
+                // Read p_vaddr (bytes 16-23).
+                var p_vaddr: u64 = 0;
+                j = 0;
+                while (j < 8) : (j += 1) {
+                    p_vaddr |= @as(u64, elf_data[@intCast(ph_offset + 16 + j)]) << @intCast(j * 8);
+                }
+
+                // Read p_filesz (bytes 32-39).
+                var p_filesz: u64 = 0;
+                j = 0;
+                while (j < 8) : (j += 1) {
+                    p_filesz |= @as(u64, elf_data[@intCast(ph_offset + 32 + j)]) << @intCast(j * 8);
+                }
+
+                // Read p_memsz (bytes 40-47).
+                var p_memsz: u64 = 0;
+                j = 0;
+                while (j < 8) : (j += 1) {
+                    p_memsz |= @as(u64, elf_data[@intCast(ph_offset + 40 + j)]) << @intCast(j * 8);
+                }
+
+                // Translate virtual address to physical.
+                const phys_addr = if (p_vaddr >= KERNEL_BASE)
+                    p_vaddr - KERNEL_BASE
+                else
+                    p_vaddr;
+
+                // Bounds check.
+                if (phys_addr + p_filesz > vm_memory_size) continue;
+                if (p_off + p_filesz > elf_data.len) continue;
+
+                // Copy segment to VM memory.
+                var k: u64 = 0;
+                while (k < p_filesz) : (k += 1) {
+                    vm_memory_ptr[@intCast(phys_addr + k)] = elf_data[@intCast(p_off + k)];
+                }
+
+                // Zero-fill BSS (memsz > filesz).
+                while (k < p_memsz and phys_addr + k < vm_memory_size) : (k += 1) {
+                    vm_memory_ptr[@intCast(phys_addr + k)] = 0;
+                }
+            }
+
+            // Set entry point.
+            riscv_core.set_pc(entry);
+            return true;
+        }
+    }
+    return false;
+}
+
 /// Vantage VM entry point.
 /// Why: Called by Limine after boot.
 export fn _start() callconv(.c) noreturn {
-    // Verify base revision is supported
+    // Verify base revision is supported.
     if (!base_revision.is_supported()) {
         limine.hcf();
     }
 
-    // Initialize framebuffer
+    // Initialize framebuffer.
     if (!init_framebuffer()) {
         limine.hcf();
     }
     vantage_state = .framebuffer_init;
 
-    // Initialize HHDM
+    // Initialize HHDM (needed before memory init).
     if (!init_hhdm()) {
         limine.hcf();
     }
 
-    // Initialize memory map
+    // Initialize memory map.
     if (!init_memory()) {
         limine.hcf();
     }
     vantage_state = .memory_init;
 
-    // Draw boot banner
+    // Draw boot banner.
     draw_boot_banner();
 
-    // TODO: Initialize RISC-V VM
-    // const vm = VM.init(...);
+    // Initialize RISC-V core with allocated memory.
+    riscv_core.init(vm_memory_ptr, vm_memory_size);
     vantage_state = .vm_init;
-    update_status("RISC-V VM initialized");
+    update_status("RISC-V core initialized");
 
-    // TODO: Load Basin kernel from initrd module
-    // if (module_request.response) |response| {
-    //     const modules = response.modules();
-    //     if (modules.len > 0) {
-    //         const basin_elf = modules[0];
-    //         vm.load_elf(basin_elf.address[0..basin_elf.size]);
-    //     }
-    // }
-    vantage_state = .basin_loaded;
-    update_status("Basin kernel loaded");
+    // Set up console framebuffer for SBI output.
+    console_fb = riscv.Framebuffer.init(
+        fb_addr,
+        @intCast(fb_width),
+        @intCast(fb_height),
+        @intCast(fb_pitch),
+    );
+    // Position console below boot banner.
+    console_fb.cursor_y = 16;
+    riscv_core.framebuffer = &console_fb;
 
-    // Draw success indicator (green rectangle)
-    fill_rect(fb_width - 120, 80, 50, 50, 0x0044ff44);
+    // Load Basin kernel from Limine module.
+    if (load_basin_kernel()) {
+        vantage_state = .basin_loaded;
+        update_status("Basin kernel loaded - starting RISC-V");
 
-    // TODO: Start RISC-V execution loop
-    // while (true) {
-    //     vm.step();
-    //     // Handle framebuffer updates, input, etc.
-    // }
+        // Draw success indicator (green rectangle).
+        fill_rect(fb_width - 120, 80, 50, 50, 0x0044ff44);
 
-    update_status("Vantage VM ready (halted)");
-    vantage_state = .running;
+        // Start RISC-V execution loop.
+        vantage_state = .running;
 
-    // Halt for now (VM loop not yet implemented)
+        // Run in batches for responsiveness.
+        while (riscv_core.state == .running or riscv_core.state == .ecall) {
+            const executed = riscv_core.run(10000);
+            if (executed == 0) break;
+        }
+
+        // Show final state.
+        if (riscv_core.state == .halted) {
+            update_status("Basin kernel halted");
+        } else if (riscv_core.state == .errored) {
+            update_status("Basin kernel error");
+            fill_rect(fb_width - 120, 80, 50, 50, 0x00ff4444);
+        }
+    } else {
+        // No Basin kernel module provided.
+        update_status("No Basin kernel module - halting");
+        fill_rect(fb_width - 120, 80, 50, 50, 0x00ffaa00); // Orange indicator.
+    }
+
+    // Halt.
     limine.hcf();
 }
 
