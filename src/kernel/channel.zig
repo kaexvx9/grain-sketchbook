@@ -6,7 +6,7 @@ const Debug = @import("debug.zig");
 
 pub const MAX_MESSAGE_SIZE: u32 = 512;
 pub const MAX_MESSAGES: u32 = 8;
-const MAX_CHANNELS: u32 = 8;
+pub const MAX_CHANNELS: u32 = 8;
 
 /// Channel message.
 /// Why: Store message data in channel queue.
