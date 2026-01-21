@@ -4159,12 +4159,17 @@ pub const VM = struct {
         const arg3 = self.regs.get(12);
         const arg4 = self.regs.get(13);
 
-        if (syscall_num < 10) {
-            // SBI call: platform services (timer, console, reset).
-            self.handle_sbi_call(@truncate(syscall_num), arg1, arg2, arg3, arg4);
-        } else {
-            // Kernel syscall: dispatch to handler (handles invalid syscall nums).
+        // If a kernel syscall handler is registered, route ALL ecalls to it.
+        // The kernel handles syscalls 1-4 (process) and 10+ (other).
+        // SBI calls (0) are only used when no kernel handler is registered.
+        if (self.syscall_handler != null) {
             self.handle_kernel_syscall(@truncate(syscall_num), arg1, arg2, arg3, arg4);
+        } else if (syscall_num == 0) {
+            // SBI call 0: SET_TIMER (only when no kernel handler).
+            self.handle_sbi_call(0, arg1, arg2, arg3, arg4);
+        } else {
+            // No handler and non-zero syscall: halt VM.
+            self.state = .halted;
         }
     }
     

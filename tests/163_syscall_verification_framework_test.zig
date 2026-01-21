@@ -203,7 +203,10 @@ test "syscall verification: yield (syscall 3)" {
     // Objective: Verify yield syscall works correctly through VM path.
     // Methodology: Call yield via VM ECALL, verify no crash.
     // Why: yield is simplest syscall (no arguments, void return).
-    
+
+    RawIO.disable();
+    defer RawIO.enable();
+
     var test_setup = create_test_integration();
     defer test_setup.deinit();
     var integration = test_setup.integration;
