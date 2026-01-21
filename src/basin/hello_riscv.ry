@@ -1,13 +1,9 @@
 //! Basin Kernel for Vantage VM
-//! Why: RISC-V64 kernel demonstrating full Vantage emulation.
+//! Why: RISC-V64 kernel with interactive REPL.
 //! Grain Style: Explicit types, static allocation.
-//!
-//! Simplified version that avoids complex string operations
-//! to work around potential relocation issues.
 
 // === SBI Interface ===
 
-/// SBI console putchar (legacy extension 0x01).
 fn sbi_putchar(c: u8) void {
     asm volatile ("ecall"
         :
@@ -17,34 +13,16 @@ fn sbi_putchar(c: u8) void {
     );
 }
 
-/// Print a simple message character by character.
-fn print_hello() void {
-    sbi_putchar('H');
-    sbi_putchar('e');
-    sbi_putchar('l');
-    sbi_putchar('l');
-    sbi_putchar('o');
-    sbi_putchar(' ');
-    sbi_putchar('f');
-    sbi_putchar('r');
-    sbi_putchar('o');
-    sbi_putchar('m');
-    sbi_putchar(' ');
-    sbi_putchar('B');
-    sbi_putchar('a');
-    sbi_putchar('s');
-    sbi_putchar('i');
-    sbi_putchar('n');
-    sbi_putchar('!');
-    sbi_putchar('\n');
+fn sbi_getchar() u64 {
+    var result: u64 = undefined;
+    asm volatile ("ecall"
+        : [ret] "={a0}" (result)
+        : [ext] "{a7}" (@as(u64, 0x02)),
+        : .{ .memory = true }
+    );
+    return result;
 }
 
-/// Print a digit.
-fn print_digit(d: u8) void {
-    sbi_putchar('0' + d);
-}
-
-/// SBI system reset (extension 0x53525354 = "SRST").
 fn sbi_shutdown() noreturn {
     asm volatile ("ecall"
         :
@@ -57,55 +35,88 @@ fn sbi_shutdown() noreturn {
     unreachable;
 }
 
-// === Kernel Entry ===
+// === Helpers ===
 
-/// Entry point (naked function for stack setup).
-export fn _start() callconv(.naked) noreturn {
-    asm volatile (
-        \\lui sp, 0x80100
-        \\call basin_main
-    );
-    unreachable;
+fn print_num(n: u64) void {
+    if (n >= 10) print_num(n / 10);
+    sbi_putchar(@truncate((n % 10) + '0'));
 }
 
-/// Compute Fibonacci number (test computation).
 fn fib(n: u64) u64 {
     if (n <= 1) return n;
     var a: u64 = 0;
     var b: u64 = 1;
     var i: u64 = 2;
     while (i <= n) : (i += 1) {
-        const c = a + b;
+        const tmp = a + b;
         a = b;
-        b = c;
+        b = tmp;
     }
     return b;
 }
 
-/// Main kernel function.
-export fn basin_main() callconv(.c) noreturn {
-    // Print hello
-    print_hello();
+fn print_str(comptime s: []const u8) void {
+    inline for (s) |c| sbi_putchar(c);
+}
 
-    // Print fib(10) = 55
-    sbi_putchar('f');
-    sbi_putchar('i');
-    sbi_putchar('b');
-    sbi_putchar('(');
-    sbi_putchar('1');
-    sbi_putchar('0');
-    sbi_putchar(')');
-    sbi_putchar('=');
+fn read_char() u64 {
+    var c: u64 = 0xFFFFFFFFFFFFFFFF;
+    while (c == 0xFFFFFFFFFFFFFFFF) c = sbi_getchar();
+    return c;
+}
 
-    const f10 = fib(10);
-    print_digit(@truncate(f10 / 10));
-    print_digit(@truncate(f10 % 10));
+// === Entry ===
+
+export fn _start() callconv(.naked) noreturn {
+    asm volatile ("lui sp, 0x80100\ncall basin_main");
+    unreachable;
+}
+
+// === REPL ===
+
+// Global to avoid optimizer issues
+var g_cmd: u64 = 0;
+
+fn do_help() void {
+    print_str("h:help f:fib q:quit\n");
+}
+
+fn do_fib(n: *u64) void {
+    print_str("fib(");
+    print_num(n.*);
+    print_str(")=");
+    print_num(fib(n.*));
     sbi_putchar('\n');
+    n.* += 1;
+    if (n.* > 20) n.* = 0;
+}
 
-    // Print OK
-    sbi_putchar('O');
-    sbi_putchar('K');
-    sbi_putchar('\n');
-
+fn do_quit() noreturn {
+    print_str("Goodbye!\n");
     sbi_shutdown();
+}
+
+export fn basin_main() callconv(.c) noreturn {
+    print_str("Basin Kernel v0.2\n");
+    print_str("Commands: h=help f=fib q=quit\n");
+
+    var fib_n: u64 = 0;
+
+    while (true) {
+        print_str("> ");
+        g_cmd = read_char();
+        sbi_putchar(@truncate(g_cmd));
+        sbi_putchar('\n');
+
+        // Command dispatch
+        if (g_cmd == 104) {
+            do_help();
+        } else if (g_cmd == 102) {
+            do_fib(&fib_n);
+        } else if (g_cmd == 113) {
+            do_quit();
+        } else {
+            print_str("OK\n");
+        }
+    }
 }

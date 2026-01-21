@@ -63,6 +63,14 @@ pub const RiscvCore = struct {
     /// Set by host after initialization.
     framebuffer: ?*Framebuffer = null,
 
+    /// Input buffer for SBI getchar.
+    /// Why: Host pushes characters, kernel reads via SBI.
+    input_buffer: [256]u8 = [_]u8{0} ** 256,
+    /// Read position in input buffer.
+    input_read: u8 = 0,
+    /// Write position in input buffer.
+    input_write: u8 = 0,
+
     /// Initialize core with external memory.
     /// Why: Memory comes from Limine, not statically allocated.
     pub fn init(self: *RiscvCore, mem: [*]u8, mem_size: u64) void {
@@ -73,6 +81,34 @@ pub const RiscvCore = struct {
         self.memory_size = mem_size;
         self.instructions_executed = 0;
         self.framebuffer = null;
+        self.input_read = 0;
+        self.input_write = 0;
+    }
+
+    /// Push a character to the input buffer.
+    /// Why: Host pushes keyboard input for kernel to read via SBI getchar.
+    /// Returns: true if character was added, false if buffer full.
+    pub fn push_input(self: *RiscvCore, c: u8) bool {
+        const next_write = self.input_write +% 1;
+        if (next_write == self.input_read) return false; // Buffer full
+        self.input_buffer[self.input_write] = c;
+        self.input_write = next_write;
+        return true;
+    }
+
+    /// Pop a character from the input buffer.
+    /// Why: Called by SBI getchar handler.
+    /// Returns: character if available, null if buffer empty.
+    pub fn pop_input(self: *RiscvCore) ?u8 {
+        if (self.input_read == self.input_write) return null; // Buffer empty
+        const c = self.input_buffer[self.input_read];
+        self.input_read +%= 1;
+        return c;
+    }
+
+    /// Check if input is available.
+    pub fn has_input(self: *const RiscvCore) bool {
+        return self.input_read != self.input_write;
     }
 
     /// Set program counter.
@@ -867,8 +903,13 @@ pub const RiscvCore = struct {
 
             // Legacy console getchar (extension 0x02)
             0x02 => {
-                // No input support yet
-                result.value = @bitCast(@as(i64, -1));
+                // Read character from input buffer
+                if (self.pop_input()) |c| {
+                    result.value = c;
+                } else {
+                    // No input available - return -1
+                    result.value = @bitCast(@as(i64, -1));
+                }
             },
 
             // System reset (extension 0x53525354 = "SRST")
