@@ -235,7 +235,8 @@ test "syscall verification: error code propagation" {
     // Methodology: Call invalid syscall, verify error code.
     // Why: Error handling is critical for syscall correctness.
     
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test invalid syscall number (should return invalid_syscall error).
@@ -255,7 +256,8 @@ test "syscall verification: register state preservation" {
     // Methodology: Set registers, call syscall, verify registers unchanged (except a0).
     // Why: Register state preservation is critical for syscall correctness.
     
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var vm = test_setup.vm;
     var integration = test_setup.integration;
     
@@ -288,7 +290,8 @@ test "syscall verification: exit (syscall 2)" {
     // Why: exit is simplest syscall with side effect (halts VM).
     // Note: exit syscall (2) is special - it halts the VM.
     
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test exit via VM ECALL path (with status 42).
@@ -319,7 +322,8 @@ test "syscall verification: get_process_info (syscall 52)" {
     // Methodology: Call get_process_info via VM ECALL, verify result.
     // Why: get_process_info is syscall with pointer argument.
     
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test get_process_info with invalid PID (should return error).
@@ -354,7 +358,8 @@ test "syscall verification: get_priority (syscall 55)" {
     // Methodology: Call get_priority via VM ECALL, verify result.
     // Why: get_priority is syscall with simple argument and return value.
     
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test get_priority with invalid PID (should return error).
@@ -390,7 +395,8 @@ test "syscall verification: getpgid (syscall 57)" {
     // Methodology: Call getpgid via VM ECALL, verify result.
     // Why: getpgid is syscall with simple argument and return value.
     
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test getpgid with invalid PID (should return error).
@@ -426,7 +432,8 @@ test "syscall verification: getsid (syscall 59)" {
     // Methodology: Call getsid via VM ECALL, verify result.
     // Why: getsid is syscall with simple argument and return value.
     
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test getsid with invalid PID (should return error).
@@ -463,7 +470,8 @@ test "syscall verification: getsid (syscall 59)" {
 
 // Test: map syscall (memory management - critical for VM).
 test "syscall verification: map (syscall 10)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test map with page-aligned size (4KB) and kernel-chosen address.
@@ -484,7 +492,8 @@ test "syscall verification: map (syscall 10)" {
 
 // Test: unmap syscall (memory cleanup).
 test "syscall verification: unmap (syscall 11)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test unmap with invalid (unaligned) address.
@@ -503,7 +512,8 @@ test "syscall verification: unmap (syscall 11)" {
 
 // Test: clock_gettime syscall (time operations - commonly used).
 test "syscall verification: clock_gettime (syscall 40)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test clock_gettime with valid pointer.
@@ -532,7 +542,8 @@ test "syscall verification: clock_gettime (syscall 40)" {
 
 // Test: wait syscall (process management).
 test "syscall verification: wait (syscall 4)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test wait with invalid PID (should return error).
@@ -548,7 +559,8 @@ test "syscall verification: wait (syscall 4)" {
 
 // Test: open syscall (file I/O - fundamental).
 test "syscall verification: open (syscall 30)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test open with null pointer (should return error).
@@ -564,7 +576,8 @@ test "syscall verification: open (syscall 30)" {
 
 // Test: close syscall (file I/O - resource cleanup).
 test "syscall verification: close (syscall 33)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test close with invalid handle (should return error).
@@ -595,7 +608,8 @@ test "syscall verification: close (syscall 33)" {
 
 // Test: read syscall (file I/O - fundamental for data access).
 test "syscall verification: read (syscall 31)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test read with invalid handle (should return error).
@@ -636,7 +650,8 @@ test "syscall verification: read (syscall 31)" {
 
 // Test: write syscall (file I/O - fundamental for data output).
 test "syscall verification: write (syscall 32)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test write with invalid handle (should return error).
@@ -690,7 +705,8 @@ test "syscall verification: write (syscall 32)" {
 
 // Test: mkdir syscall (directory creation).
 test "syscall verification: mkdir (syscall 36)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test mkdir with null pointer (should return error).
@@ -706,7 +722,8 @@ test "syscall verification: mkdir (syscall 36)" {
 
 // Test: opendir syscall (directory opening).
 test "syscall verification: opendir (syscall 37)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test opendir with null pointer (should return error).
@@ -722,7 +739,8 @@ test "syscall verification: opendir (syscall 37)" {
 
 // Test: readdir syscall (directory reading).
 test "syscall verification: readdir (syscall 38)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test readdir with invalid handle (should return error).
@@ -763,7 +781,8 @@ test "syscall verification: readdir (syscall 38)" {
 
 // Test: closedir syscall (directory closing).
 test "syscall verification: closedir (syscall 39)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test closedir with invalid handle (should return error).
@@ -796,7 +815,8 @@ test "syscall verification: closedir (syscall 39)" {
 
 // Test: protect syscall (memory protection - completes memory management).
 test "syscall verification: protect (syscall 12)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test protect with invalid address (should return error).
@@ -816,7 +836,8 @@ test "syscall verification: protect (syscall 12)" {
 
 // Test: spawn syscall (process creation - critical process management).
 test "syscall verification: spawn (syscall 1)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test spawn with null pointer (should return error).
@@ -832,7 +853,8 @@ test "syscall verification: spawn (syscall 1)" {
 
 // Test: set_priority syscall (process priority setting).
 test "syscall verification: set_priority (syscall 54)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test set_priority with invalid PID (should return error).
@@ -861,7 +883,8 @@ test "syscall verification: set_priority (syscall 54)" {
 
 // Test: setpgid syscall (process group setting).
 test "syscall verification: setpgid (syscall 56)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test setpgid with invalid PID (should return error).
@@ -880,7 +903,8 @@ test "syscall verification: setpgid (syscall 56)" {
 
 // Test: setsid syscall (session creation).
 test "syscall verification: setsid (syscall 58)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test setsid (should succeed or return error depending on process state).
@@ -899,7 +923,8 @@ test "syscall verification: setsid (syscall 58)" {
 
 // Test: unlink syscall (file deletion).
 test "syscall verification: unlink (syscall 34)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test unlink with null pointer (should return error).
@@ -915,7 +940,8 @@ test "syscall verification: unlink (syscall 34)" {
 
 // Test: rename syscall (file/directory renaming).
 test "syscall verification: rename (syscall 35)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test rename with null old path pointer (should return error).
@@ -941,7 +967,8 @@ test "syscall verification: rename (syscall 35)" {
 
 // Test: sleep_until syscall (time operations expansion).
 test "syscall verification: sleep_until (syscall 41)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test sleep_until with valid timeout pointer.
@@ -968,7 +995,8 @@ test "syscall verification: sleep_until (syscall 41)" {
 
 // Test: enumerate_processes syscall (system information expansion).
 test "syscall verification: enumerate_processes (syscall 51)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test enumerate_processes with null buffer pointer (should return error).
@@ -984,7 +1012,8 @@ test "syscall verification: enumerate_processes (syscall 51)" {
 
 // Test: read_kernel_log syscall (system information expansion).
 test "syscall verification: read_kernel_log (syscall 53)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test read_kernel_log with null buffer pointer (should return error).
@@ -1004,7 +1033,8 @@ test "syscall verification: read_kernel_log (syscall 53)" {
 
 // Test: channel_create syscall (IPC channel creation).
 test "syscall verification: channel_create (syscall 20)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test channel_create (should succeed or return error depending on resources).
@@ -1019,7 +1049,8 @@ test "syscall verification: channel_create (syscall 20)" {
 
 // Test: channel_send syscall (IPC channel sending).
 test "syscall verification: channel_send (syscall 21)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test channel_send with invalid channel ID (should return error).
@@ -1050,7 +1081,8 @@ test "syscall verification: channel_send (syscall 21)" {
 
 // Test: channel_recv syscall (IPC channel receiving).
 test "syscall verification: channel_recv (syscall 22)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test channel_recv with invalid channel ID (should return error).
@@ -1081,7 +1113,8 @@ test "syscall verification: channel_recv (syscall 22)" {
 
 // Test: kill syscall (process signal sending).
 test "syscall verification: kill (syscall 80)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test kill with invalid PID (should return error).
@@ -1110,7 +1143,8 @@ test "syscall verification: kill (syscall 80)" {
 
 // Test: signal syscall (signal handler registration).
 test "syscall verification: signal (syscall 81)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test signal with valid signal number and handler pointer.
@@ -1141,7 +1175,8 @@ test "syscall verification: signal (syscall 81)" {
 
 // Test: sigaction syscall (signal action registration - completes signal operations).
 test "syscall verification: sigaction (syscall 82)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test sigaction with valid signal number and action pointer.
@@ -1170,7 +1205,8 @@ test "syscall verification: sigaction (syscall 82)" {
 
 // Test: read_input_event syscall (input event reading).
 test "syscall verification: read_input_event (syscall 60)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test read_input_event with null buffer pointer (should return error).
@@ -1186,7 +1222,8 @@ test "syscall verification: read_input_event (syscall 60)" {
 
 // Test: fb_clear syscall (framebuffer clearing).
 test "syscall verification: fb_clear (syscall 70)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test fb_clear (should succeed or return error depending on framebuffer state).
@@ -1201,7 +1238,8 @@ test "syscall verification: fb_clear (syscall 70)" {
 
 // Test: fb_draw_pixel syscall (framebuffer pixel drawing).
 test "syscall verification: fb_draw_pixel (syscall 71)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test fb_draw_pixel with valid coordinates and color.
@@ -1220,7 +1258,8 @@ test "syscall verification: fb_draw_pixel (syscall 71)" {
 
 // Test: fb_draw_text syscall (framebuffer text drawing).
 test "syscall verification: fb_draw_text (syscall 72)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test fb_draw_text with null text pointer (should return error).
@@ -1244,7 +1283,8 @@ test "syscall verification: fb_draw_text (syscall 72)" {
 
 // Test: tcp_socket syscall (TCP socket creation - important networking).
 test "syscall verification: tcp_socket (syscall 100)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test tcp_socket (should succeed or return error depending on network state).
@@ -1259,7 +1299,8 @@ test "syscall verification: tcp_socket (syscall 100)" {
 
 // Test: network_create_interface syscall (network interface creation).
 test "syscall verification: network_create_interface (syscall 90)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test network_create_interface with null name pointer (should return error).
@@ -1275,7 +1316,8 @@ test "syscall verification: network_create_interface (syscall 90)" {
 
 // Test: network_get_interface syscall (network interface query).
 test "syscall verification: network_get_interface (syscall 93)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test network_get_interface with invalid interface ID (should return error).
@@ -1308,7 +1350,8 @@ test "syscall verification: network_get_interface (syscall 93)" {
 
 // Test: tcp_bind syscall (TCP socket binding).
 test "syscall verification: tcp_bind (syscall 101)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test tcp_bind with invalid socket (should return error).
@@ -1327,7 +1370,8 @@ test "syscall verification: tcp_bind (syscall 101)" {
 
 // Test: tcp_connect syscall (TCP connection).
 test "syscall verification: tcp_connect (syscall 104)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test tcp_connect with invalid socket (should return error).
@@ -1346,7 +1390,8 @@ test "syscall verification: tcp_connect (syscall 104)" {
 
 // Test: tcp_close syscall (TCP socket closing).
 test "syscall verification: tcp_close (syscall 107)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test tcp_close with invalid socket (should return error).
@@ -1364,7 +1409,8 @@ test "syscall verification: tcp_close (syscall 107)" {
 
 // Test: udp_socket syscall (UDP socket creation).
 test "syscall verification: udp_socket (syscall 110)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test udp_socket (should succeed or return error depending on network state).
@@ -1379,7 +1425,8 @@ test "syscall verification: udp_socket (syscall 110)" {
 
 // Test: udp_bind syscall (UDP socket binding).
 test "syscall verification: udp_bind (syscall 111)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test udp_bind with invalid socket (should return error).
@@ -1398,7 +1445,8 @@ test "syscall verification: udp_bind (syscall 111)" {
 
 // Test: network_set_state syscall (network interface state setting).
 test "syscall verification: network_set_state (syscall 91)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test network_set_state with invalid interface ID (should return error).
@@ -1417,7 +1465,8 @@ test "syscall verification: network_set_state (syscall 91)" {
 
 // Test: network_delete_interface syscall (network interface deletion).
 test "syscall verification: network_delete_interface (syscall 95)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test network_delete_interface with invalid interface ID (should return error).
@@ -1439,7 +1488,8 @@ test "syscall verification: network_delete_interface (syscall 95)" {
 
 // Test: tcp_listen syscall (TCP socket listening).
 test "syscall verification: tcp_listen (syscall 102)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test tcp_listen with invalid socket (should return error).
@@ -1458,7 +1508,8 @@ test "syscall verification: tcp_listen (syscall 102)" {
 
 // Test: tcp_send syscall (TCP data sending).
 test "syscall verification: tcp_send (syscall 105)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test tcp_send with invalid socket (should return error).
@@ -1488,7 +1539,8 @@ test "syscall verification: tcp_send (syscall 105)" {
 
 // Test: tcp_recv syscall (TCP data receiving).
 test "syscall verification: tcp_recv (syscall 106)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test tcp_recv with invalid socket (should return error).
@@ -1518,7 +1570,8 @@ test "syscall verification: tcp_recv (syscall 106)" {
 
 // Test: udp_close syscall (UDP socket closing).
 test "syscall verification: udp_close (syscall 114)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test udp_close with invalid socket (should return error).
@@ -1536,7 +1589,8 @@ test "syscall verification: udp_close (syscall 114)" {
 
 // Test: network_set_ipv4 syscall (IPv4 configuration).
 test "syscall verification: network_set_ipv4 (syscall 92)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test network_set_ipv4 with invalid interface ID (should return error).
@@ -1556,7 +1610,8 @@ test "syscall verification: network_set_ipv4 (syscall 92)" {
 
 // Test: network_enumerate_interfaces syscall (network interface enumeration).
 test "syscall verification: network_enumerate_interfaces (syscall 96)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test network_enumerate_interfaces with null buffer pointer (should return error).
@@ -1576,7 +1631,8 @@ test "syscall verification: network_enumerate_interfaces (syscall 96)" {
 
 // Test: tcp_accept syscall (TCP connection acceptance).
 test "syscall verification: tcp_accept (syscall 103)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test tcp_accept with invalid socket (should return error).
@@ -1595,7 +1651,8 @@ test "syscall verification: tcp_accept (syscall 103)" {
 
 // Test: udp_sendto syscall (UDP data sending).
 test "syscall verification: udp_sendto (syscall 112)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test udp_sendto with invalid socket (should return error).
@@ -1616,7 +1673,8 @@ test "syscall verification: udp_sendto (syscall 112)" {
 
 // Test: udp_recvfrom syscall (UDP data receiving).
 test "syscall verification: udp_recvfrom (syscall 113)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test udp_recvfrom with invalid socket (should return error).
@@ -1637,7 +1695,8 @@ test "syscall verification: udp_recvfrom (syscall 113)" {
 
 // Test: network_get_stats syscall (network statistics).
 test "syscall verification: network_get_stats (syscall 97)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test network_get_stats with invalid interface ID (should return error).
@@ -1666,7 +1725,8 @@ test "syscall verification: network_get_stats (syscall 97)" {
 
 // Test: audio_create_device syscall (audio device creation).
 test "syscall verification: audio_create_device (syscall 120)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test audio_create_device with null name pointer (should return error).
@@ -1682,7 +1742,8 @@ test "syscall verification: audio_create_device (syscall 120)" {
 
 // Test: audio_get_device syscall (audio device query).
 test "syscall verification: audio_get_device (syscall 128)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test audio_get_device with invalid device ID (should return error).
@@ -1701,7 +1762,8 @@ test "syscall verification: audio_get_device (syscall 128)" {
 
 // Test: audio_enumerate_devices syscall (audio device enumeration).
 test "syscall verification: audio_enumerate_devices (syscall 132)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test audio_enumerate_devices with null buffer pointer (should return error).
@@ -1721,7 +1783,8 @@ test "syscall verification: audio_enumerate_devices (syscall 132)" {
 
 // Test: audio_set_volume syscall (audio volume setting).
 test "syscall verification: audio_set_volume (syscall 121)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test audio_set_volume with invalid device ID (should return error).
@@ -1740,7 +1803,8 @@ test "syscall verification: audio_set_volume (syscall 121)" {
 
 // Test: audio_delete_device syscall (audio device deletion).
 test "syscall verification: audio_delete_device (syscall 133)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test audio_delete_device with invalid device ID (should return error).
@@ -1758,7 +1822,8 @@ test "syscall verification: audio_delete_device (syscall 133)" {
 
 // Test: audio_get_stats syscall (audio statistics).
 test "syscall verification: audio_get_stats (syscall 134)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test audio_get_stats with invalid device ID (should return error).
@@ -1777,7 +1842,8 @@ test "syscall verification: audio_get_stats (syscall 134)" {
 
 // Test: kernel_get_stats syscall (kernel statistics).
 test "syscall verification: kernel_get_stats (syscall 135)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test kernel_get_stats with null stats pointer (should return error).
@@ -1793,7 +1859,8 @@ test "syscall verification: kernel_get_stats (syscall 135)" {
 
 // Test: health_check syscall (system health check).
 test "syscall verification: health_check (syscall 136)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test health_check (should succeed or return error depending on system state).
@@ -1808,7 +1875,8 @@ test "syscall verification: health_check (syscall 136)" {
 
 // Test: get_resource_usage syscall (resource usage query).
 test "syscall verification: get_resource_usage (syscall 137)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test get_resource_usage with null usage pointer (should return error).
@@ -1824,7 +1892,8 @@ test "syscall verification: get_resource_usage (syscall 137)" {
 
 // Test: set_resource_limit syscall (resource limit setting).
 test "syscall verification: set_resource_limit (syscall 140)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test set_resource_limit with invalid resource type (should return error or succeed).
@@ -1846,7 +1915,8 @@ test "syscall verification: set_resource_limit (syscall 140)" {
 
 // Test: audio_set_state syscall (audio device state setting).
 test "syscall verification: audio_set_state (syscall 123)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test audio_set_state with invalid device ID (should return error).
@@ -1865,7 +1935,8 @@ test "syscall verification: audio_set_state (syscall 123)" {
 
 // Test: audio_set_format syscall (audio format setting).
 test "syscall verification: audio_set_format (syscall 129)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test audio_set_format with invalid device ID (should return error).
@@ -1884,7 +1955,8 @@ test "syscall verification: audio_set_format (syscall 129)" {
 
 // Test: audio_read syscall (audio data reading).
 test "syscall verification: audio_read (syscall 130)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test audio_read with invalid device ID (should return error).
@@ -1914,7 +1986,8 @@ test "syscall verification: audio_read (syscall 130)" {
 
 // Test: audio_write syscall (audio data writing).
 test "syscall verification: audio_write (syscall 131)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test audio_write with invalid device ID (should return error).
@@ -1944,7 +2017,8 @@ test "syscall verification: audio_write (syscall 131)" {
 
 // Test: tcp_enumerate_sockets syscall (TCP socket enumeration).
 test "syscall verification: tcp_enumerate_sockets (syscall 108)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test tcp_enumerate_sockets with null buffer pointer (should return error).
@@ -1960,7 +2034,8 @@ test "syscall verification: tcp_enumerate_sockets (syscall 108)" {
 
 // Test: tcp_get_stats syscall (TCP socket statistics).
 test "syscall verification: tcp_get_stats (syscall 109)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test tcp_get_stats with invalid socket (should return error).
@@ -1979,7 +2054,8 @@ test "syscall verification: tcp_get_stats (syscall 109)" {
 
 // Test: udp_enumerate_sockets syscall (UDP socket enumeration).
 test "syscall verification: udp_enumerate_sockets (syscall 115)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test udp_enumerate_sockets with null buffer pointer (should return error).
@@ -1995,7 +2071,8 @@ test "syscall verification: udp_enumerate_sockets (syscall 115)" {
 
 // Test: udp_get_stats syscall (UDP socket statistics).
 test "syscall verification: udp_get_stats (syscall 116)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test udp_get_stats with invalid socket (should return error).
@@ -2018,7 +2095,8 @@ test "syscall verification: udp_get_stats (syscall 116)" {
 
 // Test: audio_set_mute syscall (audio mute setting).
 test "syscall verification: audio_set_mute (syscall 122)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test audio_set_mute with invalid device ID (should return error).
@@ -2037,7 +2115,8 @@ test "syscall verification: audio_set_mute (syscall 122)" {
 
 // Test: audio_set_active_output syscall (audio active output setting).
 test "syscall verification: audio_set_active_output (syscall 124)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test audio_set_active_output with invalid device ID (should return error).
@@ -2055,7 +2134,8 @@ test "syscall verification: audio_set_active_output (syscall 124)" {
 
 // Test: audio_set_active_input syscall (audio active input setting).
 test "syscall verification: audio_set_active_input (syscall 125)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test audio_set_active_input with invalid device ID (should return error).
@@ -2073,7 +2153,8 @@ test "syscall verification: audio_set_active_input (syscall 125)" {
 
 // Test: audio_set_master_volume syscall (master volume setting).
 test "syscall verification: audio_set_master_volume (syscall 126)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test audio_set_master_volume with valid volume (should succeed or return error).
@@ -2090,7 +2171,8 @@ test "syscall verification: audio_set_master_volume (syscall 126)" {
 
 // Test: audio_set_master_mute syscall (master mute setting).
 test "syscall verification: audio_set_master_mute (syscall 127)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test audio_set_master_mute with mute value (should succeed or return error).
@@ -2107,7 +2189,8 @@ test "syscall verification: audio_set_master_mute (syscall 127)" {
 
 // Test: network_set_ipv6 syscall (IPv6 configuration).
 test "syscall verification: network_set_ipv6 (syscall 94)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test network_set_ipv6 with invalid interface ID (should return error).
@@ -2127,7 +2210,8 @@ test "syscall verification: network_set_ipv6 (syscall 94)" {
 
 // Test: udp_sendto_with_timeout syscall (UDP send with timeout).
 test "syscall verification: udp_sendto_with_timeout (syscall 138)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test udp_sendto_with_timeout with invalid socket (should return error).
@@ -2150,7 +2234,8 @@ test "syscall verification: udp_sendto_with_timeout (syscall 138)" {
 
 // Test: udp_recvfrom_with_timeout syscall (UDP receive with timeout).
 test "syscall verification: udp_recvfrom_with_timeout (syscall 139)" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Test udp_recvfrom_with_timeout with invalid socket (should return error).
@@ -2182,7 +2267,8 @@ const MIN_THROUGHPUT_OPS_PER_SEC: u64 = 100; // Minimum 100 ops/sec.
 
 // Test: Benchmark syscall latency through VM path.
 test "performance validation: syscall latency benchmark" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Benchmark sysinfo syscall latency (lightweight syscall).
@@ -2216,7 +2302,8 @@ test "performance validation: syscall latency benchmark" {
 
 // Test: Benchmark syscall throughput through VM path.
 test "performance validation: syscall throughput benchmark" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Measure syscall throughput (bounded iteration).
@@ -2248,7 +2335,8 @@ test "performance validation: syscall throughput benchmark" {
 
 // Test: Benchmark multiple syscall types (mixed workload).
 test "performance validation: mixed syscall types benchmark" {
-    const test_setup = create_test_integration();
+    var test_setup = create_test_integration();
+    defer test_setup.deinit();
     var integration = test_setup.integration;
     
     // Benchmark mixed syscall types (process, memory, file, network).
