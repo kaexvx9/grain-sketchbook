@@ -231,6 +231,51 @@ pub fn build(b: *std.Build) void {
     const kernel_shell_step = b.step("kernel-shell-rv64", "Build Kernel Shell RISC-V64 executable");
     kernel_shell_step.dependOn(&kernel_shell_install.step);
 
+    // x86_64 UEFI Bootloader target
+    const uefi_target = std.Target.Query{
+        .cpu_arch = .x86_64,
+        .os_tag = .uefi,
+        .abi = .msvc, // UEFI uses Microsoft ABI
+    };
+    const uefi_resolved = b.resolveTargetQuery(uefi_target);
+
+    const uefi_bootloader = b.addExecutable(.{
+        .name = "bootx64",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/boot/x86_64_uefi.zig"),
+            .target = uefi_resolved,
+            .optimize = .ReleaseSmall,
+        }),
+    });
+    const uefi_install = b.addInstallArtifact(uefi_bootloader, .{
+        .dest_dir = .{ .override = .{ .custom = "efi/boot" } },
+    });
+    const uefi_step = b.step("uefi-boot", "Build x86_64 UEFI bootloader (BOOTX64.EFI)");
+    uefi_step.dependOn(&uefi_install.step);
+
+    // x86_64 Freestanding Kernel target (for after UEFI handoff)
+    const x86_64_kernel_target = std.Target.Query{
+        .cpu_arch = .x86_64,
+        .os_tag = .freestanding,
+        .abi = .none,
+    };
+    const x86_64_kernel_resolved = b.resolveTargetQuery(x86_64_kernel_target);
+
+    // x86_64 kernel module
+    const x86_64_module = b.addModule("x86_64", .{
+        .root_source_file = b.path("src/kernel_vm/x86_64.zig"),
+        .target = x86_64_kernel_resolved,
+        .optimize = optimize,
+    });
+
+    const x86_64_drivers_module = b.addModule("x86_64_drivers", .{
+        .root_source_file = b.path("src/boot/x86_64_drivers.zig"),
+        .target = x86_64_kernel_resolved,
+        .optimize = optimize,
+    });
+    _ = x86_64_module; // Will be used by x86_64 kernel
+    _ = x86_64_drivers_module; // Will be used by x86_64 kernel
+
     // Kernel platform module (for testing platform abstraction) - kept for kernel tests
     const kernel_platform_module = b.addModule("kernel_platform", .{
         .root_source_file = b.path("src/kernel/kernel_platform.zig"),

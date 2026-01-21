@@ -265,6 +265,70 @@ fn print(con_out: *EfiSimpleTextOutputProtocol, comptime msg: []const u8) void {
 
 /// UEFI entry point.
 /// Why: Called by UEFI firmware to start bootloader.
+/// Note: Zig's UEFI target provides system table via std.os.uefi.
+pub fn main() void {
+    // Get UEFI system table from Zig's UEFI support
+    const uefi = @import("std").os.uefi;
+    const system_table = uefi.system_table;
+    const con_out = system_table.con_out orelse {
+        // No console, halt
+        while (true) {
+            asm volatile ("hlt");
+        }
+    };
+
+    // Clear screen and print banner
+    _ = con_out.clearScreen() catch false;
+    
+    // Print welcome message (UCS-2 string)
+    const banner = comptime blk: {
+        const msg = "Basin Kernel Bootloader v0.1\r\n";
+        var buf: [msg.len:0]u16 = undefined;
+        for (msg, 0..) |c, i| {
+            buf[i] = c;
+        }
+        break :blk buf;
+    };
+    _ = con_out.outputString(&banner) catch false;
+
+    const line2 = comptime blk: {
+        const msg = "=============================\r\n\r\n";
+        var buf: [msg.len:0]u16 = undefined;
+        for (msg, 0..) |c, i| {
+            buf[i] = c;
+        }
+        break :blk buf;
+    };
+    _ = con_out.outputString(&line2) catch false;
+
+    const status_msg = comptime blk: {
+        const msg = "[BOOT] UEFI bootloader started successfully.\r\n";
+        var buf: [msg.len:0]u16 = undefined;
+        for (msg, 0..) |c, i| {
+            buf[i] = c;
+        }
+        break :blk buf;
+    };
+    _ = con_out.outputString(&status_msg) catch false;
+
+    const halt_msg = comptime blk: {
+        const msg = "[BOOT] Halting (kernel loading not yet implemented).\r\n";
+        var buf: [msg.len:0]u16 = undefined;
+        for (msg, 0..) |c, i| {
+            buf[i] = c;
+        }
+        break :blk buf;
+    };
+    _ = con_out.outputString(&halt_msg) catch false;
+
+    // Halt
+    while (true) {
+        asm volatile ("hlt");
+    }
+}
+
+/// Alternative entry point with full UEFI parameters (for custom entry).
+/// Why: Direct UEFI entry when not using Zig's start code.
 pub fn efi_main(image_handle: *anyopaque, system_table: *EfiSystemTable) callconv(.C) EfiStatus {
     const con_out = system_table.con_out;
     const boot_services = system_table.boot_services;
