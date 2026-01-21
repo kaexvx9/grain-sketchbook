@@ -5,10 +5,11 @@
 const std = @import("std");
 
 /// Target architecture.
-/// Why: Specify which architecture to emulate.
+/// Why: Specify which architecture to emulate or target.
 pub const Architecture = enum(u8) {
     riscv64 = 0,
     aarch64 = 1,
+    x86_64 = 2,
 };
 
 /// Architecture-specific register file interface.
@@ -100,6 +101,12 @@ pub const ArchConfig = struct {
                 .instruction_length = 4,
                 .register_count = 31, // AArch64 has 31 general-purpose registers (x0-x30)
             },
+            .x86_64 => ArchConfig{
+                .arch = .x86_64,
+                .memory_size = 8 * 1024 * 1024, // 8MB default
+                .instruction_length = 1, // x86_64 has variable-length instructions (1-15 bytes)
+                .register_count = 16, // x86_64 has 16 general-purpose registers (rax-r15)
+            },
         };
     }
     
@@ -111,8 +118,10 @@ pub const ArchConfig = struct {
             return false;
         }
         
-        // Assert: Instruction length must be valid (4 bytes for both architectures).
-        if (self.instruction_length != 4) {
+        // Assert: Instruction length must be valid.
+        // RISC-V and AArch64: 4 bytes fixed
+        // x86_64: 1 byte minimum (variable-length, actual range 1-15)
+        if (self.instruction_length == 0 or self.instruction_length > 15) {
             return false;
         }
         
@@ -131,6 +140,7 @@ pub fn get_arch_name(arch: Architecture) []const u8 {
     return switch (arch) {
         .riscv64 => "RISC-V64",
         .aarch64 => "AArch64",
+        .x86_64 => "x86_64",
     };
 }
 

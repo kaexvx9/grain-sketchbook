@@ -175,14 +175,17 @@ ui.run()
 
 ## Phase 6: Framework x86_64 Target
 
-### 6.1 Vantage VM for x86_64
+### 6.1 Vantage VM for x86_64 (COMPLETE)
 
-The Vantage VM needs x86_64 backend:
+Created `src/kernel_vm/x86_64.zig` with:
 
-- [ ] x86_64 instruction encoding
-- [ ] x86_64 register mapping
-- [ ] x86_64 calling convention
-- [ ] x86_64 syscall interface
+- [x] x86_64 instruction encoding (Prefix, Opcode structs)
+- [x] x86_64 register mapping (Register enum, RegisterFile struct)
+- [x] x86_64 calling convention (CallingConvention struct)
+- [x] x86_64 syscall interface (Syscall enum, syscall_regs)
+- [x] ModRM/SIB/REX encoding helpers
+- [x] RFLAGS bit definitions
+- [x] Unit tests for all components
 
 ### 6.2 Bootloader
 
@@ -208,8 +211,8 @@ For Framework laptop:
 2. **Wire event loop** - ✅ COMPLETE (BasinKernel.tick() with UI)
 3. **Add UI builtins** - ✅ COMPLETE (9 UI functions in Grainscript)
 4. **Create shell UI** - ✅ COMPLETE (examples/shell.gs)
-5. **Vantage x86_64** - Port VM to x86_64
-6. **Boot on Framework** - Real hardware boot
+5. **Vantage x86_64** - ✅ COMPLETE (x86_64.zig with registers, opcodes, syscalls)
+6. **Boot on Framework** - Create bootloader and hardware drivers
 
 ---
 
