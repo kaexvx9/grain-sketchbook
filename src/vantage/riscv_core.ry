@@ -176,7 +176,22 @@ pub const RiscvCore = struct {
     pub fn step(self: *RiscvCore) bool {
         if (self.state != .running) return false;
 
-        // Fetch instruction (4 bytes at PC).
+        // Fetch first 16 bits to check if compressed instruction.
+        const first_half = self.read_half(self.regs.pc) orelse {
+            self.state = .errored;
+            self.last_error = .memory_fault;
+            return false;
+        };
+
+        // Check for compressed instruction (RVC).
+        // Compressed instructions have lower 2 bits != 0b11.
+        const is_compressed = (first_half & 0b11) != 0b11;
+
+        if (is_compressed) {
+            return self.step_compressed(first_half);
+        }
+
+        // Fetch full 32-bit instruction.
         const inst = self.read_word(self.regs.pc) orelse {
             self.state = .errored;
             self.last_error = .memory_fault;
@@ -510,6 +525,322 @@ pub const RiscvCore = struct {
         return true;
     }
 
+    /// Execute one compressed instruction (RVC).
+    /// Why: Support 16-bit compressed RISC-V instructions.
+    fn step_compressed(self: *RiscvCore, inst: u16) bool {
+        const op: u2 = @truncate(inst);
+        const funct3: u3 = @truncate(inst >> 13);
+        var next_pc = self.regs.pc + 2;
+
+        switch (op) {
+            0b00 => {
+                // Quadrant 0: C.ADDI4SPN, C.LW, C.SW, etc.
+                switch (funct3) {
+                    0b000 => {
+                        // C.ADDI4SPN: rd' = x2 + imm
+                        const rd = extract_rvc_rd_prime(inst);
+                        const imm = extract_c_addi4spn_imm(inst);
+                        if (imm == 0) {
+                            // Reserved (illegal instruction)
+                            self.state = .errored;
+                            self.last_error = .invalid_instruction;
+                            return false;
+                        }
+                        const sp = self.get_reg(2);
+                        self.set_reg(rd, sp +% imm);
+                    },
+                    0b010 => {
+                        // C.LW: rd' = mem[rs1' + imm]
+                        const rd = extract_rvc_rd_prime(inst);
+                        const rs1 = extract_rvc_rs1_prime(inst);
+                        const imm = extract_c_lw_imm(inst);
+                        const addr = self.get_reg(rs1) +% imm;
+                        if (self.read_word(addr)) |v| {
+                            self.set_reg(rd, @as(u64, @bitCast(@as(i64, @as(i32, @bitCast(v))))));
+                        } else {
+                            self.state = .errored;
+                            self.last_error = .memory_fault;
+                            return false;
+                        }
+                    },
+                    0b011 => {
+                        // C.LD: rd' = mem[rs1' + imm] (RV64 only)
+                        const rd = extract_rvc_rd_prime(inst);
+                        const rs1 = extract_rvc_rs1_prime(inst);
+                        const imm = extract_c_ld_imm(inst);
+                        const addr = self.get_reg(rs1) +% imm;
+                        if (self.read_dword(addr)) |v| {
+                            self.set_reg(rd, v);
+                        } else {
+                            self.state = .errored;
+                            self.last_error = .memory_fault;
+                            return false;
+                        }
+                    },
+                    0b110 => {
+                        // C.SW: mem[rs1' + imm] = rs2'
+                        const rs1 = extract_rvc_rs1_prime(inst);
+                        const rs2 = extract_rvc_rs2_prime(inst);
+                        const imm = extract_c_lw_imm(inst);
+                        const addr = self.get_reg(rs1) +% imm;
+                        if (!self.write_word(addr, @truncate(self.get_reg(rs2)))) {
+                            self.state = .errored;
+                            self.last_error = .memory_fault;
+                            return false;
+                        }
+                    },
+                    0b111 => {
+                        // C.SD: mem[rs1' + imm] = rs2' (RV64 only)
+                        const rs1 = extract_rvc_rs1_prime(inst);
+                        const rs2 = extract_rvc_rs2_prime(inst);
+                        const imm = extract_c_ld_imm(inst);
+                        const addr = self.get_reg(rs1) +% imm;
+                        if (!self.write_dword(addr, self.get_reg(rs2))) {
+                            self.state = .errored;
+                            self.last_error = .memory_fault;
+                            return false;
+                        }
+                    },
+                    else => {
+                        self.state = .errored;
+                        self.last_error = .invalid_instruction;
+                        return false;
+                    },
+                }
+            },
+            0b01 => {
+                // Quadrant 1: C.ADDI, C.JAL, C.LI, C.LUI, C.SRLI, C.SRAI, C.ANDI, C.SUB, C.J, C.BEQZ, C.BNEZ
+                switch (funct3) {
+                    0b000 => {
+                        // C.ADDI / C.NOP
+                        const rd: u5 = @truncate(inst >> 7);
+                        const imm = extract_c_imm6(inst);
+                        if (rd != 0) {
+                            const val = self.get_reg(rd);
+                            self.set_reg(rd, @bitCast(@as(i64, @bitCast(val)) +% imm));
+                        }
+                    },
+                    0b001 => {
+                        // C.ADDIW (RV64 only)
+                        const rd: u5 = @truncate(inst >> 7);
+                        const imm = extract_c_imm6(inst);
+                        if (rd != 0) {
+                            const val: i32 = @truncate(@as(i64, @bitCast(self.get_reg(rd))));
+                            const result: i32 = val +% @as(i32, @truncate(imm));
+                            self.set_reg(rd, @bitCast(@as(i64, result)));
+                        }
+                    },
+                    0b010 => {
+                        // C.LI: rd = imm
+                        const rd: u5 = @truncate(inst >> 7);
+                        const imm = extract_c_imm6(inst);
+                        self.set_reg(rd, @bitCast(imm));
+                    },
+                    0b011 => {
+                        // C.LUI / C.ADDI16SP
+                        const rd: u5 = @truncate(inst >> 7);
+                        if (rd == 2) {
+                            // C.ADDI16SP
+                            const imm = extract_c_addi16sp_imm(inst);
+                            if (imm == 0) {
+                                self.state = .errored;
+                                self.last_error = .invalid_instruction;
+                                return false;
+                            }
+                            const sp = self.get_reg(2);
+                            self.set_reg(2, @bitCast(@as(i64, @bitCast(sp)) +% imm));
+                        } else if (rd != 0) {
+                            // C.LUI
+                            const imm = extract_c_lui_imm(inst);
+                            self.set_reg(rd, @bitCast(imm));
+                        }
+                    },
+                    0b100 => {
+                        // C.SRLI, C.SRAI, C.ANDI, C.SUB, C.XOR, C.OR, C.AND, C.SUBW, C.ADDW
+                        const funct2: u2 = @truncate(inst >> 10);
+                        const rd = extract_rvc_rd_prime(inst);
+                        switch (funct2) {
+                            0b00 => {
+                                // C.SRLI
+                                const shamt = extract_c_shamt(inst);
+                                const val = self.get_reg(rd);
+                                self.set_reg(rd, val >> shamt);
+                            },
+                            0b01 => {
+                                // C.SRAI
+                                const shamt = extract_c_shamt(inst);
+                                const val: i64 = @bitCast(self.get_reg(rd));
+                                self.set_reg(rd, @bitCast(val >> shamt));
+                            },
+                            0b10 => {
+                                // C.ANDI
+                                const imm = extract_c_imm6(inst);
+                                const val = self.get_reg(rd);
+                                self.set_reg(rd, val & @as(u64, @bitCast(imm)));
+                            },
+                            0b11 => {
+                                // C.SUB, C.XOR, C.OR, C.AND, C.SUBW, C.ADDW
+                                const rs2 = extract_rvc_rs2_prime(inst);
+                                const funct1: u1 = @truncate(inst >> 12);
+                                const funct2b: u2 = @truncate(inst >> 5);
+                                if (funct1 == 0) {
+                                    switch (funct2b) {
+                                        0b00 => self.set_reg(rd, @bitCast(@as(i64, @bitCast(self.get_reg(rd))) -% @as(i64, @bitCast(self.get_reg(rs2))))), // C.SUB
+                                        0b01 => self.set_reg(rd, self.get_reg(rd) ^ self.get_reg(rs2)), // C.XOR
+                                        0b10 => self.set_reg(rd, self.get_reg(rd) | self.get_reg(rs2)), // C.OR
+                                        0b11 => self.set_reg(rd, self.get_reg(rd) & self.get_reg(rs2)), // C.AND
+                                    }
+                                } else {
+                                    // RV64C: C.SUBW, C.ADDW
+                                    const val1: i32 = @truncate(@as(i64, @bitCast(self.get_reg(rd))));
+                                    const val2: i32 = @truncate(@as(i64, @bitCast(self.get_reg(rs2))));
+                                    const result: i32 = switch (funct2b) {
+                                        0b00 => val1 -% val2, // C.SUBW
+                                        0b01 => val1 +% val2, // C.ADDW
+                                        else => blk: {
+                                            self.state = .errored;
+                                            self.last_error = .invalid_instruction;
+                                            break :blk 0;
+                                        },
+                                    };
+                                    if (self.state == .running) {
+                                        self.set_reg(rd, @bitCast(@as(i64, result)));
+                                    }
+                                }
+                            },
+                        }
+                    },
+                    0b101 => {
+                        // C.J
+                        const imm = extract_c_j_imm(inst);
+                        next_pc = @bitCast(@as(i64, @bitCast(self.regs.pc)) +% imm);
+                    },
+                    0b110 => {
+                        // C.BEQZ
+                        const rs1 = extract_rvc_rs1_prime(inst);
+                        const imm = extract_c_b_imm(inst);
+                        if (self.get_reg(rs1) == 0) {
+                            next_pc = @bitCast(@as(i64, @bitCast(self.regs.pc)) +% imm);
+                        }
+                    },
+                    0b111 => {
+                        // C.BNEZ
+                        const rs1 = extract_rvc_rs1_prime(inst);
+                        const imm = extract_c_b_imm(inst);
+                        if (self.get_reg(rs1) != 0) {
+                            next_pc = @bitCast(@as(i64, @bitCast(self.regs.pc)) +% imm);
+                        }
+                    },
+                }
+            },
+            0b10 => {
+                // Quadrant 2: C.SLLI, C.LWSP, C.LDSP, C.JR, C.MV, C.EBREAK, C.JALR, C.ADD, C.SWSP, C.SDSP
+                switch (funct3) {
+                    0b000 => {
+                        // C.SLLI
+                        const rd: u5 = @truncate(inst >> 7);
+                        const shamt = extract_c_shamt(inst);
+                        if (rd != 0) {
+                            self.set_reg(rd, self.get_reg(rd) << shamt);
+                        }
+                    },
+                    0b010 => {
+                        // C.LWSP
+                        const rd: u5 = @truncate(inst >> 7);
+                        const imm = extract_c_lwsp_imm(inst);
+                        const addr = self.get_reg(2) +% imm;
+                        if (self.read_word(addr)) |v| {
+                            self.set_reg(rd, @as(u64, @bitCast(@as(i64, @as(i32, @bitCast(v))))));
+                        } else {
+                            self.state = .errored;
+                            self.last_error = .memory_fault;
+                            return false;
+                        }
+                    },
+                    0b011 => {
+                        // C.LDSP (RV64 only)
+                        const rd: u5 = @truncate(inst >> 7);
+                        const imm = extract_c_ldsp_imm(inst);
+                        const addr = self.get_reg(2) +% imm;
+                        if (self.read_dword(addr)) |v| {
+                            self.set_reg(rd, v);
+                        } else {
+                            self.state = .errored;
+                            self.last_error = .memory_fault;
+                            return false;
+                        }
+                    },
+                    0b100 => {
+                        // C.JR, C.MV, C.EBREAK, C.JALR, C.ADD
+                        const rs1: u5 = @truncate(inst >> 7);
+                        const rs2: u5 = @truncate(inst >> 2);
+                        const funct1: u1 = @truncate(inst >> 12);
+                        if (funct1 == 0) {
+                            if (rs2 == 0) {
+                                // C.JR
+                                next_pc = self.get_reg(rs1) & ~@as(u64, 1);
+                            } else {
+                                // C.MV
+                                self.set_reg(rs1, self.get_reg(rs2));
+                            }
+                        } else {
+                            if (rs1 == 0 and rs2 == 0) {
+                                // C.EBREAK
+                                self.state = .ebreak;
+                                return false;
+                            } else if (rs2 == 0) {
+                                // C.JALR
+                                const target = self.get_reg(rs1) & ~@as(u64, 1);
+                                self.set_reg(1, self.regs.pc + 2);
+                                next_pc = target;
+                            } else {
+                                // C.ADD
+                                self.set_reg(rs1, @bitCast(@as(i64, @bitCast(self.get_reg(rs1))) +% @as(i64, @bitCast(self.get_reg(rs2)))));
+                            }
+                        }
+                    },
+                    0b110 => {
+                        // C.SWSP
+                        const rs2: u5 = @truncate(inst >> 2);
+                        const imm = extract_c_swsp_imm(inst);
+                        const addr = self.get_reg(2) +% imm;
+                        if (!self.write_word(addr, @truncate(self.get_reg(rs2)))) {
+                            self.state = .errored;
+                            self.last_error = .memory_fault;
+                            return false;
+                        }
+                    },
+                    0b111 => {
+                        // C.SDSP (RV64 only)
+                        const rs2: u5 = @truncate(inst >> 2);
+                        const imm = extract_c_sdsp_imm(inst);
+                        const addr = self.get_reg(2) +% imm;
+                        if (!self.write_dword(addr, self.get_reg(rs2))) {
+                            self.state = .errored;
+                            self.last_error = .memory_fault;
+                            return false;
+                        }
+                    },
+                    else => {
+                        self.state = .errored;
+                        self.last_error = .invalid_instruction;
+                        return false;
+                    },
+                }
+            },
+            0b11 => {
+                // Not compressed (should not reach here)
+                self.state = .errored;
+                self.last_error = .invalid_instruction;
+                return false;
+            },
+        }
+
+        self.regs.pc = next_pc;
+        self.instructions_executed += 1;
+        return self.state == .running;
+    }
+
     /// Handle SBI ecall.
     /// Why: Process RISC-V SBI calls (console, system control).
     /// Returns: true if handled and execution should continue.
@@ -760,6 +1091,161 @@ fn decode_j_imm(inst: u32) i64 {
     const extended: i32 = @bitCast(raw);
     const shifted: i32 = (extended << 11) >> 11;
     return @as(i64, shifted);
+}
+
+// === RVC (Compressed) instruction field extractors ===
+
+/// Extract rd' (3-bit register, maps to x8-x15).
+fn extract_rvc_rd_prime(inst: u16) u5 {
+    return @as(u5, @truncate((inst >> 2) & 0b111)) + 8;
+}
+
+/// Extract rs1' (3-bit register, maps to x8-x15).
+fn extract_rvc_rs1_prime(inst: u16) u5 {
+    return @as(u5, @truncate((inst >> 7) & 0b111)) + 8;
+}
+
+/// Extract rs2' (3-bit register, maps to x8-x15).
+fn extract_rvc_rs2_prime(inst: u16) u5 {
+    return @as(u5, @truncate((inst >> 2) & 0b111)) + 8;
+}
+
+/// Extract C.ADDI4SPN immediate.
+fn extract_c_addi4spn_imm(inst: u16) u64 {
+    // imm[5:4|9:6|2|3]
+    const b54: u64 = ((inst >> 11) & 0b11) << 4;
+    const b96: u64 = ((inst >> 7) & 0b1111) << 6;
+    const b2: u64 = ((inst >> 6) & 1) << 2;
+    const b3: u64 = ((inst >> 5) & 1) << 3;
+    return b54 | b96 | b2 | b3;
+}
+
+/// Extract C.LW/C.SW immediate.
+fn extract_c_lw_imm(inst: u16) u64 {
+    // imm[5:3|2|6]
+    const b53: u64 = ((inst >> 10) & 0b111) << 3;
+    const b2: u64 = ((inst >> 6) & 1) << 2;
+    const b6: u64 = ((inst >> 5) & 1) << 6;
+    return b53 | b2 | b6;
+}
+
+/// Extract C.LD/C.SD immediate.
+fn extract_c_ld_imm(inst: u16) u64 {
+    // imm[5:3|7:6]
+    const b53: u64 = ((inst >> 10) & 0b111) << 3;
+    const b76: u64 = ((inst >> 5) & 0b11) << 6;
+    return b53 | b76;
+}
+
+/// Extract 6-bit signed immediate (C.ADDI, C.LI, C.ANDI).
+fn extract_c_imm6(inst: u16) i64 {
+    const imm5: u16 = (inst >> 12) & 1;
+    const imm40: u16 = (inst >> 2) & 0b11111;
+    const raw: u16 = (imm5 << 5) | imm40;
+    // Sign-extend from bit 5
+    const extended: i16 = @bitCast(raw);
+    const shifted: i16 = (extended << 10) >> 10;
+    return @as(i64, shifted);
+}
+
+/// Extract C.ADDI16SP immediate.
+fn extract_c_addi16sp_imm(inst: u16) i64 {
+    // imm[9|4|6|8:7|5]
+    const b9: u64 = @as(u64, (inst >> 12) & 1) << 9;
+    const b4: u64 = @as(u64, (inst >> 6) & 1) << 4;
+    const b6: u64 = @as(u64, (inst >> 5) & 1) << 6;
+    const b87: u64 = @as(u64, (inst >> 3) & 0b11) << 7;
+    const b5: u64 = @as(u64, (inst >> 2) & 1) << 5;
+    const raw: u64 = b9 | b4 | b6 | b87 | b5;
+    // Sign-extend from bit 9
+    const extended: i64 = @bitCast(raw);
+    const shifted: i64 = (extended << 54) >> 54;
+    return shifted;
+}
+
+/// Extract C.LUI immediate.
+fn extract_c_lui_imm(inst: u16) i64 {
+    const imm17: u64 = @as(u64, (inst >> 12) & 1) << 17;
+    const imm1612: u64 = @as(u64, (inst >> 2) & 0b11111) << 12;
+    const raw: u64 = imm17 | imm1612;
+    // Sign-extend from bit 17
+    const extended: i64 = @bitCast(raw);
+    const shifted: i64 = (extended << 46) >> 46;
+    return shifted;
+}
+
+/// Extract shift amount (C.SRLI, C.SRAI, C.SLLI).
+fn extract_c_shamt(inst: u16) u6 {
+    const shamt5: u6 = @as(u6, @truncate((inst >> 12) & 1)) << 5;
+    const shamt40: u6 = @truncate((inst >> 2) & 0b11111);
+    return shamt5 | shamt40;
+}
+
+/// Extract C.J immediate.
+fn extract_c_j_imm(inst: u16) i64 {
+    // imm[11|4|9:8|10|6|7|3:1|5]
+    const b11: u64 = @as(u64, (inst >> 12) & 1) << 11;
+    const b4: u64 = @as(u64, (inst >> 11) & 1) << 4;
+    const b98: u64 = @as(u64, (inst >> 9) & 0b11) << 8;
+    const b10: u64 = @as(u64, (inst >> 8) & 1) << 10;
+    const b6: u64 = @as(u64, (inst >> 7) & 1) << 6;
+    const b7: u64 = @as(u64, (inst >> 6) & 1) << 7;
+    const b31: u64 = @as(u64, (inst >> 3) & 0b111) << 1;
+    const b5: u64 = @as(u64, (inst >> 2) & 1) << 5;
+    const raw: u64 = b11 | b4 | b98 | b10 | b6 | b7 | b31 | b5;
+    // Sign-extend from bit 11
+    const extended: i64 = @bitCast(raw);
+    const shifted: i64 = (extended << 52) >> 52;
+    return shifted;
+}
+
+/// Extract C.BEQZ/C.BNEZ immediate.
+fn extract_c_b_imm(inst: u16) i64 {
+    // imm[8|4:3|7:6|2:1|5]
+    const b8: u64 = @as(u64, (inst >> 12) & 1) << 8;
+    const b43: u64 = @as(u64, (inst >> 10) & 0b11) << 3;
+    const b76: u64 = @as(u64, (inst >> 5) & 0b11) << 6;
+    const b21: u64 = @as(u64, (inst >> 3) & 0b11) << 1;
+    const b5: u64 = @as(u64, (inst >> 2) & 1) << 5;
+    const raw: u64 = b8 | b43 | b76 | b21 | b5;
+    // Sign-extend from bit 8
+    const extended: i64 = @bitCast(raw);
+    const shifted: i64 = (extended << 55) >> 55;
+    return shifted;
+}
+
+/// Extract C.LWSP immediate.
+fn extract_c_lwsp_imm(inst: u16) u64 {
+    // imm[5|4:2|7:6]
+    const b5: u64 = @as(u64, (inst >> 12) & 1) << 5;
+    const b42: u64 = @as(u64, (inst >> 4) & 0b111) << 2;
+    const b76: u64 = @as(u64, (inst >> 2) & 0b11) << 6;
+    return b5 | b42 | b76;
+}
+
+/// Extract C.LDSP immediate.
+fn extract_c_ldsp_imm(inst: u16) u64 {
+    // imm[5|4:3|8:6]
+    const b5: u64 = @as(u64, (inst >> 12) & 1) << 5;
+    const b43: u64 = @as(u64, (inst >> 5) & 0b11) << 3;
+    const b86: u64 = @as(u64, (inst >> 2) & 0b111) << 6;
+    return b5 | b43 | b86;
+}
+
+/// Extract C.SWSP immediate.
+fn extract_c_swsp_imm(inst: u16) u64 {
+    // imm[5:2|7:6]
+    const b52: u64 = @as(u64, (inst >> 9) & 0b1111) << 2;
+    const b76: u64 = @as(u64, (inst >> 7) & 0b11) << 6;
+    return b52 | b76;
+}
+
+/// Extract C.SDSP immediate.
+fn extract_c_sdsp_imm(inst: u16) u64 {
+    // imm[5:3|8:6]
+    const b53: u64 = @as(u64, (inst >> 10) & 0b111) << 3;
+    const b86: u64 = @as(u64, (inst >> 7) & 0b111) << 6;
+    return b53 | b86;
 }
 
 /// Translate virtual address to physical.
