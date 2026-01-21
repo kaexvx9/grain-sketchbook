@@ -54,9 +54,15 @@ With the toroidal DAG UI architecture complete (Phases 1-4), the next goal is ge
    - Single global kernel instance
    - Matches freestanding deployment model
 
-### 5.2 Wire Event Loop to Kernel
+### 5.2 Wire Event Loop to Kernel (COMPLETE)
 
-Connect `ui_event_loop.ry` to `basin_kernel.ry`:
+Connected `ui_event_loop.ry` to `basin_kernel.ry`:
+- Added `ui_loop: UiEventLoop` field to `BasinKernel`
+- Added `tick()` method for main kernel loop
+- Added `queue_input_event()` for input routing
+- Added `get_ui_stats()` and `get_ui_loop()` for access
+
+Previous implementation plan (now complete):
 
 ```rye
 /// In basin_kernel.ry

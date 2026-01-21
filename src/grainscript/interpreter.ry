@@ -251,6 +251,10 @@ pub const Interpreter = struct {
         // Register built-in commands
         try interpreter.register_builtin_commands();
 
+        // Register UI built-in functions
+        const ui_builtins = @import("ui_builtins.zig");
+        try ui_builtins.register_ui_builtins(&interpreter);
+
         return interpreter;
     }
 
@@ -309,9 +313,11 @@ pub const Interpreter = struct {
         try self.register_string_utility_functions();
     }
 
-    const BuiltinFn = *const fn (*Interpreter, []const Value) Error!Value;
+    pub const BuiltinFn = *const fn (*Interpreter, []const Value) Error!Value;
 
-    fn add_builtin(self: *Interpreter, name: []const u8, params: u32, handler: BuiltinFn) !void {
+    /// Why: Register a built-in function.
+    /// Public so external modules can add custom builtins.
+    pub fn add_builtin(self: *Interpreter, name: []const u8, params: u32, handler: BuiltinFn) !void {
         const name_copy = try self.allocator.dupe(u8, name);
         self.functions[self.functions_len] = Function{
             .name = name_copy,
