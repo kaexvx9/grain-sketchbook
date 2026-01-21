@@ -319,9 +319,10 @@ test "interrupt controller multiple pending" {
 
 // Test interrupt type enum values.
 test "interrupt type enum" {
-    // Assert: Interrupt type enum values must match RISC-V interrupt IDs.
-    try std.testing.expect(@intFromEnum(InterruptType.software) == 1);
-    try std.testing.expect(@intFromEnum(InterruptType.timer) == 5);
-    try std.testing.expect(@intFromEnum(InterruptType.external) == 9);
+    // Assert: Interrupt type enum values are unified (architecture-agnostic).
+    // Note: These are unified IDs, not RISC-V raw interrupt IDs.
+    try std.testing.expect(@intFromEnum(InterruptType.software) == 0);
+    try std.testing.expect(@intFromEnum(InterruptType.timer) == 1);
+    try std.testing.expect(@intFromEnum(InterruptType.external) == 2);
 }
 
