@@ -23,13 +23,14 @@ With the toroidal DAG UI architecture complete (Phases 1-4), the next goal is ge
 | 3. UI Integration | realidream_toroidal_integration.ry | 284 |
 | 4. Kernel Integration | basin_kernel_syscalls_ui.ry, grainscript_ui_bindings.ry, ui_event_loop.ry | 1,158 |
 
-**Total**: 66 Rye modules, 16,012 lines, 324/324 tests passing
+**Total**: 67 Rye modules, 16,305 lines, **333/333 tests passing**
 
-### Blocking Issues
+### Blocking Issues (RESOLVED)
 
-9 kernel integration tests fail with signal 11/6 (stack overflow):
-- `BasinKernel` struct is too large for stack allocation
-- Tests instantiate full kernel on stack, exceeding default limits
+~~9 kernel integration tests fail with signal 11/6 (stack overflow)~~
+- **Fixed**: Added `init_in_place()` for heap allocation
+- **Fixed**: Corrected syscall routing for process syscalls (1-4)
+- **Fixed**: All array bounds and memory leak issues resolved
 
 ---
 

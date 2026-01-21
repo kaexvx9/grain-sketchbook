@@ -38,6 +38,8 @@ const kernel_stats_aggregator = @import("kernel_stats_aggregator.zig");
 const KernelStatsSnapshot = kernel_stats_aggregator.KernelStatsSnapshot;
 const syscall_performance_profiler = @import("syscall_performance_profiler.zig");
 const SyscallPerformanceProfiler = syscall_performance_profiler.SyscallPerformanceProfiler;
+const ui_event_loop = @import("ui_event_loop.zig");
+const UiEventLoop = ui_event_loop.EventLoop;
 
 const types = @import("basin_kernel_types.zig");
 const MemoryMapping = types.MemoryMapping;
@@ -96,6 +98,7 @@ pub const BasinKernel = struct {
     memory_stats: MemoryStats,
     cow_table: CowTable,
     syscall_profiler: SyscallPerformanceProfiler,
+    ui_loop: UiEventLoop,
     vm_memory_reader: ?*const fn (addr: u64, len: u32, buffer: []u8) ?u32 = null,
     vm_memory_reader_user_data: ?*anyopaque = null,
     vm_memory_writer: ?*const fn (addr: u64, len: u32, data: []const u8) ?u32 = null,
@@ -125,6 +128,7 @@ pub const BasinKernel = struct {
             .memory_stats = MemoryStats.init(),
             .cow_table = CowTable.init(),
             .syscall_profiler = SyscallPerformanceProfiler.init(),
+            .ui_loop = UiEventLoop.init(),
         };
         kernel.log_buffer = KernelLogBuffer.init(&kernel.timer);
         kernel.init_users();
@@ -175,6 +179,7 @@ pub const BasinKernel = struct {
         target.memory_stats = MemoryStats.init();
         target.cow_table = CowTable.init();
         target.syscall_profiler = SyscallPerformanceProfiler.init();
+        target.ui_loop = UiEventLoop.init();
         target.vm_memory_reader = null;
         target.vm_memory_reader_user_data = null;
         target.vm_memory_writer = null;
@@ -734,5 +739,42 @@ pub const BasinKernel = struct {
     pub fn can_open_connection(_: *const BasinKernel, p: *const Process) bool {
         if (p.max_connections == 0) return true;
         return (p.open_connections + 1) <= p.max_connections;
+    }
+
+    // === UI Event Loop Integration ===
+
+    /// Why: Process one kernel tick including UI events.
+    /// Call this from the main kernel loop.
+    pub fn tick(self: *BasinKernel) void {
+        // 1. Process pending interrupts.
+        self.interrupt_controller.process_pending();
+
+        // 2. Run scheduler tick.
+        self.scheduler.tick();
+
+        // 3. Process UI events.
+        const current_ns = self.timer.get_monotonic_ns();
+        _ = self.ui_loop.tick(current_ns);
+    }
+
+    /// Why: Queue an input event for UI processing.
+    pub fn queue_input_event(self: *BasinKernel, event: ui_event_loop.InputEvent) void {
+        self.ui_loop.queue_input(event);
+    }
+
+    /// Why: Get UI loop statistics for monitoring.
+    pub fn get_ui_stats(self: *const BasinKernel) struct {
+        apps_registered: u32,
+        events_pending: u32,
+    } {
+        return .{
+            .apps_registered = self.ui_loop.app_count,
+            .events_pending = self.ui_loop.input_queue.len(),
+        };
+    }
+
+    /// Why: Get mutable reference to UI event loop for advanced usage.
+    pub fn get_ui_loop(self: *BasinKernel) *UiEventLoop {
+        return &self.ui_loop;
     }
 };

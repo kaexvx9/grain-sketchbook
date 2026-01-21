@@ -6,7 +6,7 @@
 //! - ToroidalDag (garden-allocated, new toroidal code)
 
 const std = @import("std");
-const toroidal = @import("toroidal");
+const toroidal = @import("toroidal.zig");
 pub const toroidal_types = toroidal; // Re-export for dependent modules.
 const ToroidalIndex = toroidal.ToroidalIndex;
 const ToroidalBuffer = toroidal.ToroidalBuffer;
