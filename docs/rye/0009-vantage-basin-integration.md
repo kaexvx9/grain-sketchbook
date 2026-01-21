@@ -23,19 +23,19 @@
 │  └─────────────────────────────────────────────────────┘    │
 │  ┌─────────────────────────────────────────────────────┐    │
 │  │ src/vantage/riscv_core.zig                          │    │
-│  │  - RV64I base instruction set                       │    │
-│  │  - M extension (multiply/divide)                    │    │
-│  │  - SBI console output                               │    │
+│  │  - RV64I + RVC + M extension                        │    │
+│  │  - SBI console I/O (putchar/getchar)                │    │
+│  │  - Input buffer (256-byte ring)                     │    │
 │  │  - Memory read/write                                │    │
-│  │  - 9/9 unit tests passing                           │    │
+│  │  - 12/12 unit tests passing                         │    │
 │  └─────────────────────────────────────────────────────┘    │
 ├─────────────────────────────────────────────────────────────┤
 │                Basin Kernel (RISC-V64)                       │
 │  ┌─────────────────────────────────────────────────────┐    │
-│  │ src/basin/hello_riscv.zig (test kernel)             │    │
+│  │ src/basin/hello_riscv.zig (REPL kernel)             │    │
 │  │  - Entry at 0x80000000                              │    │
-│  │  - SBI console output                               │    │
-│  │  - SBI shutdown                                     │    │
+│  │  - Interactive command shell                        │    │
+│  │  - Commands: h=help, f=fib, q=quit                  │    │
 │  └─────────────────────────────────────────────────────┘    │
 │  ┌─────────────────────────────────────────────────────┐    │
 │  │ src/kernel/basin_kernel.zig (full kernel)           │    │
@@ -66,27 +66,36 @@
 
 2. **RISC-V64 Core** (`src/vantage/riscv_core.zig`)
    - Full RV64I instruction set
+   - RVC compressed instructions (16-bit)
    - M extension (multiply/divide)
-   - SBI console output (legacy putchar)
+   - SBI console I/O (putchar/getchar)
    - SBI system reset
-   - 9/9 unit tests passing
+   - Input buffer (256-byte ring buffer)
+   - 12/12 unit tests passing
 
-3. **Basin Test Kernel** (`src/basin/hello_riscv.zig`)
+3. **Basin REPL Kernel** (`src/basin/hello_riscv.zig`)
    - Entry point at 0x80000000
-   - SBI console output
+   - Interactive command shell
+   - Commands: h=help, f=fib, q=quit
+   - SBI console I/O
    - Linker script for RISC-V kernel
 
-4. **Build System**
+4. **Integration Test** (`src/vantage/basin_integration_test.zig`)
+   - Loads Basin ELF binary
+   - Sends keyboard input to VM
+   - Captures console output
+   - Verifies REPL functionality
+
+5. **Build System**
    - `zig build vantage-x86_64` - Vantage VM
-   - `zig build basin-rv64` - Basin test kernel
+   - `zig build basin-rv64` - Basin REPL kernel
    - `./scripts/create_iso.sh` - Bootable ISO
 
 ### In Progress
 
-1. **Vantage <-> Basin Interface**
-   - Need to define syscall interface
-   - Need to map framebuffer to Basin
-   - Need to handle keyboard input
+1. **Grainscript Integration**
+   - Port interpreter to freestanding RISC-V
+   - Connect UI built-ins to Vantage framebuffer
 
 ### Pending
 
@@ -94,9 +103,9 @@
    - Port `basin_kernel.zig` to freestanding RISC-V
    - Implement MMIO for Vantage devices
 
-2. **Grainscript Integration**
-   - Port interpreter to freestanding RISC-V
-   - Connect UI built-ins to Vantage framebuffer
+2. **Direct Framebuffer Access**
+   - Map framebuffer to Basin via MMIO
+   - Enable graphical UI from Basin
 
 ## Build Commands
 
@@ -137,28 +146,28 @@ Vantage provides Basin with:
 
 ## Next Steps
 
-1. **Phase 1: Verify Hello World**
+1. **Phase 1: Test in QEMU** (current)
    - Test Vantage ISO in QEMU with display
-   - Verify Basin prints to framebuffer
+   - Verify Basin REPL works on real framebuffer
 
-2. **Phase 2: Add Input**
-   - Implement SBI getchar
-   - Map keyboard input to Basin
+2. **Phase 2: Grainscript Interpreter**
+   - Port interpreter to freestanding RISC-V
+   - Add REPL command to launch Grainscript
 
-3. **Phase 3: Port Basin Kernel**
-   - Create `src/basin/main.zig` (full kernel)
-   - Implement MMIO handlers
+3. **Phase 3: Framebuffer Access**
+   - Map framebuffer to Basin via MMIO
+   - Implement pixel drawing from Basin
 
-4. **Phase 4: Grainscript Shell**
-   - Port interpreter to freestanding
-   - Create shell UI
+4. **Phase 4: Full Basin Kernel**
+   - Port process/memory management
+   - Implement syscall interface
 
 ## File Structure
 
 ```
 src/
 ├── basin/                      # Basin Kernel (RISC-V64)
-│   ├── hello_riscv.zig         # Test kernel
+│   ├── hello_riscv.zig         # REPL kernel
 │   ├── hello_riscv.ry          # Rye version
 │   └── linker_riscv64.ld       # Linker script
 ├── vantage/                    # Vantage VM (x86_64)
@@ -167,7 +176,9 @@ src/
 │   ├── riscv_core.zig          # RISC-V emulator
 │   ├── riscv_core.ry           # Rye version
 │   ├── riscv_core_test.zig     # Unit tests
-│   └── riscv_core_test.ry      # Rye version
+│   ├── riscv_core_test.ry      # Rye version
+│   ├── basin_integration_test.zig  # Integration test
+│   └── basin_integration_test.ry   # Rye version
 ├── boot/                       # Boot infrastructure
 │   ├── limine.zig              # Limine protocol
 │   ├── limine.ry               # Rye version
@@ -181,6 +192,7 @@ src/
 
 ## Statistics
 
-- **77 Rye modules** (19,892 lines)
+- **78 Rye modules** (20,745 lines)
 - **333/333 project tests** passing
-- **9/9 RISC-V core tests** passing
+- **12/12 RISC-V core tests** passing
+- **1/1 integration test** passing
