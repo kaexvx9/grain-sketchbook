@@ -1,0 +1,247 @@
+/* Campaign Website Global Styles */
+/* Following RyeStyle: explicit, clean, performant */
+/* Color scheme inspired by kae3g_avatar_sunset_color_map_libra_liberty */
+
+:root {
+  /* Base Colors from Image */
+  --color-orange-base: #fc9206;      /* Neon glow sunset orange */
+  --color-green-base: #91ab06;       /* Seafoam-sage-wave blue-green */
+  --color-beige-base: #aa903a;       /* Sea-meets-sand beige */
+  
+  /* Light Mode Palette */
+  --color-primary: #fc9206;          /* Sunset orange */
+  --color-primary-hover: #e68205;     /* Darker orange on hover */
+  --color-secondary: #91ab06;         /* Seafoam green */
+  --color-secondary-hover: #7d9505;  /* Darker green on hover */
+  --color-tertiary: #aa903a;         /* Sand beige */
+  
+  /* Light Mode Backgrounds */
+  --color-bg: #faf8f5;                /* Warm off-white */
+  --color-bg-alt: #f5f2ed;           /* Soft beige-tinted white */
+  --color-bg-surface: #ffffff;       /* Pure white for cards */
+  --color-bg-muted: #f0ede6;         /* Subtle background */
+  --color-bg-accent: #e8f4f0;        /* Very light teal-tinted background */
+  --color-bg-highlight: #f0f8f5;     /* Subtle green-blue highlight */
+  
+  /* Light Mode Text */
+  --color-text: #2c2416;             /* Deep brown-black */
+  --color-text-secondary: #5a4a3a;    /* Medium brown */
+  --color-text-muted: #8a7a6a;       /* Light brown */
+  --color-text-inverse: #faf8f5;     /* Off-white for dark backgrounds */
+  
+  /* Light Mode Borders */
+  --color-border: #e8e0d6;           /* Warm beige-gray */
+  --color-border-medium: #d4c4b0;     /* Medium beige */
+  --color-border-accent: var(--color-green-blue-subtle); /* Teal border accent */
+  
+  /* Semantic Colors - Light Mode */
+  --color-success: #6b8e23;          /* Olive green */
+  --color-warning: #ff8c00;           /* Burnt orange */
+  --color-error: #d2691e;             /* Chocolate */
+  --color-info: #4a90a4;              /* Blue-green */
+  
+  /* Light Mode: Darker Green-Blues */
+  --color-green-blue-dark: #2d5a4f;   /* Deep teal-green */
+  --color-green-blue-medium: #3d6b5e; /* Medium teal */
+  --color-green-blue-accent: #4a7c6f; /* Teal accent */
+  --color-green-blue-subtle: #5a8a7a; /* Lighter teal for borders */
+  
+  /* Typography */
+  --font-sans: system-ui, -apple-system, sans-serif;
+  --font-serif: Georgia, serif;
+  
+  /* Spacing */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 2rem;
+  --spacing-lg: 4rem;
+  
+  /* Layout */
+  --container-max-width: 1200px;
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 4px rgba(44, 36, 22, 0.1);
+  --shadow-md: 0 4px 12px rgba(44, 36, 22, 0.15);
+  --shadow-lg: 0 8px 24px rgba(44, 36, 22, 0.2);
+}
+
+/* Dark Mode Palette */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Dark Mode Accents (brighter for visibility) */
+    --color-primary: #ffa726;         /* Brighter sunset orange */
+    --color-primary-hover: #ff9800;   /* Even brighter on hover */
+    --color-secondary: #a5c94a;       /* Brighter seafoam green */
+    --color-secondary-hover: #9ccc65; /* Lighter green on hover */
+    --color-tertiary: #c4a85a;         /* Brighter sand beige */
+    
+    /* Dark Mode Backgrounds */
+    --color-bg: #2c2416;              /* Dark brown */
+    --color-bg-alt: #3a2e1f;          /* Medium dark brown */
+    --color-bg-surface: #1f1810;      /* Deepest brown for cards */
+    --color-bg-muted: #352a1d;        /* Subtle dark background */
+    --color-bg-accent: #3d2a35;       /* Mauve-tinted dark background */
+    --color-bg-highlight: #4a3440;    /* Purple-rose highlight background */
+    
+    /* Dark Mode Text */
+    --color-text: #faf8f5;            /* Warm off-white */
+    --color-text-secondary: #d4c4b0;   /* Light beige */
+    --color-text-muted: #8a7a6a;      /* Medium beige */
+    --color-text-inverse: #2c2416;    /* Dark brown for light backgrounds */
+    
+    /* Dark Mode Borders */
+    --color-border: #4a3e2f;          /* Medium brown */
+    --color-border-medium: #5a4a3a;   /* Lighter brown */
+    --color-border-accent: var(--color-purple-rose-subtle); /* Mauve border accent */
+    
+    /* Semantic Colors - Dark Mode */
+    --color-success: #8bc34a;         /* Bright green */
+    --color-warning: #ff9800;          /* Bright orange */
+    --color-error: #ff6b35;            /* Coral red */
+    --color-info: #66b3cc;             /* Bright blue-green */
+    
+    /* Dark Mode: Lighter Purple-Mauve-Rose */
+    --color-purple-rose-light: #d4a5c7;  /* Light mauve-rose */
+    --color-purple-rose-medium: #c895b8; /* Medium mauve */
+    --color-purple-rose-accent: #b885a9; /* Mauve accent */
+    --color-purple-rose-subtle: #a8759a; /* Deeper mauve for borders */
+    --color-purple-rose-pale: #e8c5d9;   /* Pale rose for highlights */
+    
+    /* Shadows (lighter for dark mode) */
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  }
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: var(--spacing-sm);
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
+}
+
+/* Button styles using color scheme */
+.button {
+  display: inline-block;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: 6px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+
+.button-primary {
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  border-color: var(--color-primary);
+}
+
+.button-primary:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  text-decoration: none;
+}
+
+.button-secondary {
+  background: var(--color-secondary);
+  color: var(--color-text-inverse);
+  border-color: var(--color-secondary);
+}
+
+.button-secondary:hover {
+  background: var(--color-secondary-hover);
+  border-color: var(--color-secondary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  text-decoration: none;
+}
+
+.button-outline {
+  background: transparent;
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.button-outline:hover {
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  text-decoration: none;
+}
+
+/* Accent button variants */
+.button-accent-green {
+  background: var(--color-green-blue-accent);
+  color: var(--color-text-inverse);
+  border-color: var(--color-green-blue-accent);
+}
+
+.button-accent-green:hover {
+  background: var(--color-green-blue-medium);
+  border-color: var(--color-green-blue-medium);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  text-decoration: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .button-accent-purple {
+    background: var(--color-purple-rose-accent);
+    color: var(--color-text);
+    border-color: var(--color-purple-rose-accent);
+  }
+
+  .button-accent-purple:hover {
+    background: var(--color-purple-rose-medium);
+    border-color: var(--color-purple-rose-medium);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    text-decoration: none;
+  }
+}
+
+/* Utility classes */
+.container {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: 0 var(--spacing-sm);
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding: 0 var(--spacing-md);
+  }
+}

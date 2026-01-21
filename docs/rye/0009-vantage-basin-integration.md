@@ -76,9 +76,15 @@
 3. **Basin REPL Kernel** (`src/basin/hello_riscv.zig`)
    - Entry point at 0x80000000
    - Interactive command shell
-   - Commands: h=help, f=fib, q=quit
+   - Commands: h=help, f=fib, e=expr (calculator with variables), q=quit
+   - Expression evaluator with variable support:
+     - Arithmetic: +, -, *, /, parentheses, negative numbers
+     - Variable assignment: `x = 5`
+     - Variable usage: `x * 2`, `x + 10`
+     - Up to 32 variables with 16-char names
    - SBI console I/O
    - Linker script for RISC-V kernel
+   - Version: v0.4
 
 4. **Integration Test** (`src/vantage/basin_integration_test.zig`)
    - Loads Basin ELF binary
@@ -149,9 +155,11 @@ Vantage provides Basin with:
 1. **Phase 1: Test in QEMU** (current)
    - Test Vantage ISO in QEMU with display
    - Verify Basin REPL works on real framebuffer
+   - Test expression evaluator (`e` command)
 
 2. **Phase 2: Grainscript Interpreter**
    - Port interpreter to freestanding RISC-V
+   - Replace std.mem.Allocator with static allocation
    - Add REPL command to launch Grainscript
 
 3. **Phase 3: Framebuffer Access**
@@ -196,3 +204,4 @@ src/
 - **333/333 project tests** passing
 - **12/12 RISC-V core tests** passing
 - **1/1 integration test** passing
+- **Basin REPL v0.4** with expression evaluator and variable support
