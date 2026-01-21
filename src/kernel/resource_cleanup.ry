@@ -3,10 +3,13 @@
 
 const Debug = @import("debug.zig");
 const BasinKernel = @import("basin_kernel.zig").BasinKernel;
+const types = @import("basin_kernel_types.zig");
+const channel = @import("channel.zig");
 
-const MAX_MAPPINGS: u32 = 256;
-const MAX_HANDLES: u32 = 256;
-const MAX_CHANNELS: u32 = 64;
+// Use correct constants from modules.
+const MAX_MAPPINGS: u32 = types.MAX_MAPPINGS;
+const MAX_HANDLES: u32 = types.MAX_HANDLES;
+const MAX_CHANNELS: u32 = channel.MAX_CHANNELS;
 
 /// Clean up all resources owned by a process.
 /// Why: Free memory mappings, handles, and channels when process exits.
