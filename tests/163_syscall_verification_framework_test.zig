@@ -150,10 +150,9 @@ fn call_syscall_via_vm(
     // Execute ECALL instruction (triggers syscall handler).
     // Note: execute_ecall reads from registers, doesn't need instruction encoding.
     // Note: exit syscall (2) will halt the VM.
-    vm.execute_ecall() catch |err| {
+    vm.execute_ecall() catch {
         // If ECALL execution fails, convert to BasinError.
         // Note: This shouldn't happen for valid syscalls, but handle it for safety.
-        _ = err;
         return SyscallResult.fail(BasinError.invalid_syscall);
     };
     

@@ -491,9 +491,8 @@ fn call_syscall_via_vm(
     vm.state = .running;
 
     // Execute ECALL instruction (triggers syscall handler).
-    vm.execute_ecall() catch |err| {
+    vm.execute_ecall() catch {
         // If ECALL execution fails, convert to BasinError.
-        _ = err;
         return SyscallResult.fail(BasinError.invalid_syscall);
     };
 
@@ -605,9 +604,8 @@ test "process lifecycle: spawn integration" {
     std.debug.assert(vm.syscall_handler != null);
     
     // Call sysinfo syscall with valid pointer.
-    const result = call_syscall_via_vm(integration, @intFromEnum(Syscall.sysinfo), info_ptr, 0, 0, 0) catch |err| {
+    const result = call_syscall_via_vm(integration, @intFromEnum(Syscall.sysinfo), info_ptr, 0, 0, 0) catch {
         // Syscall may fail in test environment - return early instead of panicking
-        _ = err;
         return;
     };
 

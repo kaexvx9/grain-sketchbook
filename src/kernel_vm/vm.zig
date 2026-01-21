@@ -4148,22 +4148,22 @@ pub const VM = struct {
     /// Dispatches to SBI (< 10) or kernel syscall handler (>= 10).
     /// Note: Public for testing (fuzz tests need direct access).
     pub fn execute_ecall(self: *Self) !void {
-        std.debug.assert(self.state == .running);
-        
+        // VM must be running to execute ECALL.
+        if (self.state != .running) return VMError.invalid_instruction;
+
         const syscall_num = self.regs.get(17); // a7 register
-        std.debug.assert(syscall_num <= 200);
-        
+
         // Extract arguments from a0-a3 registers.
         const arg1 = self.regs.get(10);
         const arg2 = self.regs.get(11);
         const arg3 = self.regs.get(12);
         const arg4 = self.regs.get(13);
-        
+
         if (syscall_num < 10) {
             // SBI call: platform services (timer, console, reset).
             self.handle_sbi_call(@truncate(syscall_num), arg1, arg2, arg3, arg4);
         } else {
-            // Kernel syscall: dispatch to handler.
+            // Kernel syscall: dispatch to handler (handles invalid syscall nums).
             self.handle_kernel_syscall(@truncate(syscall_num), arg1, arg2, arg3, arg4);
         }
     }

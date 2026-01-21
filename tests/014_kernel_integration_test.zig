@@ -353,10 +353,9 @@ test "Edge Case: Syscall error handling" {
     try testing.expect(vm.regs.get(10) >= FRAMEBUFFER_WIDTH);
 
     // Execute ECALL.
-    vm.execute_ecall() catch |err| {
+    vm.execute_ecall() catch {
         // ECALL execution may fail, that's okay.
         // Why: Invalid arguments may cause syscall handler to return error.
-        _ = err;
     };
 
     // Get result from a0 register (should be error code).
@@ -445,10 +444,9 @@ test "Memory Leak Detection: Framebuffer memory consistency" {
         _ = COLOR_DARK_BG; // Color constant is valid.
 
         // Execute ECALL.
-        vm.execute_ecall() catch |err| {
+        vm.execute_ecall() catch {
             // ECALL execution may fail, that's okay.
             // Why: Syscall may return error if framebuffer is not accessible.
-            _ = err;
         };
 
         // Verify framebuffer is cleared (check first pixel).
