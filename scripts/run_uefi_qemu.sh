@@ -16,6 +16,8 @@ zig build uefi-boot
 # Check if OVMF (UEFI firmware) is available
 OVMF_CODE=""
 OVMF_PATHS=(
+    "/usr/share/ovmf/OVMF.fd"
+    "/usr/share/OVMF/OVMF_CODE_4M.fd"
     "/usr/share/OVMF/OVMF_CODE.fd"
     "/usr/share/edk2/ovmf/OVMF_CODE.fd"
     "/usr/share/qemu/OVMF.fd"
