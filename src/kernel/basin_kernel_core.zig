@@ -132,6 +132,37 @@ pub const BasinKernel = struct {
         return kernel;
     }
 
+    /// Why: Initialize kernel in-place for heap allocation.
+    /// Use when kernel is too large for stack (4MB+ memory pool).
+    pub fn init_in_place(target: *BasinKernel) void {
+        target.* = BasinKernel{
+            .timer = Timer.init(),
+            .interrupt_controller = InterruptController.init(),
+            .scheduler = Scheduler.init(),
+            .process_group_manager = ProcessGroupManager.init(),
+            .process_group_stats = ProcessGroupStatsManager.init(),
+            .process_group_limits = ProcessGroupLimitsManager.init(),
+            .network_interfaces = NetworkInterfaceManager.init(),
+            .tcp_sockets = TcpSocketManager.init(),
+            .udp_sockets = UdpSocketManager.init(),
+            .audio_devices = AudioDeviceManager.init(),
+            .channels = ChannelTable.init(),
+            .storage = Storage.init(),
+            .keyboard = Keyboard.init(),
+            .mouse = Mouse.init(),
+            .log_buffer = undefined,
+            .memory_pool = MemoryPool.init(),
+            .page_table = PageTable.init(),
+            .page_fault_stats = PageFaultStats.init(),
+            .memory_stats = MemoryStats.init(),
+            .cow_table = CowTable.init(),
+            .syscall_profiler = SyscallPerformanceProfiler.init(),
+        };
+        target.log_buffer = KernelLogBuffer.init(&target.timer);
+        target.init_users();
+        target.assert_initial_state();
+    }
+
     fn assert_initial_state(kernel: *BasinKernel) void {
         for (kernel.mappings, 0..) |mapping, i| {
             Debug.kassert(!mapping.allocated, "Mapping {d} should be unallocated", .{i});
@@ -366,30 +397,6 @@ pub const BasinKernel = struct {
     fn init_io_and_memory(target: *BasinKernel) void {
         init_io_subsystems(target);
         init_memory_subsystems(target);
-    }
-
-    /// Why: For heap-allocated kernels, initialize directly.
-    pub fn init_in_place(target: *BasinKernel) void {
-        target.timer.boot_time_ns = 0;
-        target.timer.last_timer_ns = 0;
-        target.timer.initialized = true;
-        target.interrupt_controller.initialized = true;
-        target.scheduler.initialized = true;
-        target.scheduler.current_pid = 0;
-        target.scheduler.next_index = 0;
-        target.log_buffer.write_index = 0;
-        target.log_buffer.entry_count = 0;
-        target.log_buffer.timer = &target.timer;
-        target.user_count = 0;
-        target.memory_pool.allocated_pages = 0;
-        target.memory_pool.next_free_page = 0;
-        target.channels.next_channel_id = 1;
-        target.channels.channel_count = 0;
-        for (&target.channels.channels) |*ch| {
-            ch.allocated = false;
-            ch.id = 0;
-        }
-        target.user_count = 1;
     }
 
     fn init_users(self: *BasinKernel) void {

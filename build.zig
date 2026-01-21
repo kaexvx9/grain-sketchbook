@@ -146,8 +146,10 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/kernel/basin_kernel_lite.zig"),
         .target = target,
         .optimize = optimize,
+        .imports = &.{
+            .{ .name = "basin_kernel", .module = basin_kernel_module },
+        },
     });
-    _ = basin_kernel_lite_module;
 
     // RISC-V SBI module (platform runtime services).
     // Why: Our own Grain Style SBI wrapper (inspired by CascadeOS/zig-sbi, MIT licensed).
@@ -2781,6 +2783,7 @@ pub fn build(b: *std.Build) void {
             .optimize = optimize,
             .imports = &.{
                 .{ .name = "basin_kernel", .module = basin_kernel_module },
+                .{ .name = "basin_kernel_lite", .module = basin_kernel_lite_module },
             },
         }),
     });
@@ -8454,9 +8457,12 @@ pub fn build(b: *std.Build) void {
     // Basin Kernel Lite Test (stack-friendly kernel for testing)
     const basin_kernel_lite_tests = b.addTest(.{
         .root_module = b.createModule(.{
-            .root_source_file = b.path("src/kernel/basin_kernel_lite.zig"),
+            .root_source_file = b.path("tests/175_basin_kernel_lite_test.zig"),
             .target = target,
             .optimize = optimize,
+            .imports = &.{
+                .{ .name = "basin_kernel_lite", .module = basin_kernel_lite_module },
+            },
         }),
     });
     const basin_kernel_lite_tests_run = b.addRunArtifact(basin_kernel_lite_tests);

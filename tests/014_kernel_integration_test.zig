@@ -35,6 +35,13 @@ const basin_kernel = @import("basin_kernel");
 const BasinKernel = basin_kernel.BasinKernel;
 const framebuffer = @import("framebuffer");
 
+/// Why: Heap-allocate kernel to avoid stack overflow.
+fn create_test_kernel() !*BasinKernel {
+    const kernel = try testing.allocator.create(BasinKernel);
+    BasinKernel.init_in_place(kernel);
+    return kernel;
+}
+
 // Framebuffer constants (explicit types, no usize).
 const FRAMEBUFFER_WIDTH: u32 = framebuffer.FRAMEBUFFER_WIDTH;
 const FRAMEBUFFER_HEIGHT: u32 = framebuffer.FRAMEBUFFER_HEIGHT;
@@ -102,22 +109,23 @@ test "Kernel Boot: Integration layer initialization" {
     };
     
     // Set up integration layer (VM + Kernel).
-    var kernel = BasinKernel.init();
-    var integration = Integration.init_with_kernel(&vm, &kernel);
+    const kernel = try create_test_kernel();
+    defer testing.allocator.destroy(kernel);
+    var integration = Integration.init_with_kernel(&vm, kernel);
     integration.finish_init();
-    
+
     // Assert: Integration must be initialized (postcondition).
     try testing.expect(integration.initialized);
-    
+
     // Assert: VM must have syscall handler set (postcondition).
     try testing.expect(vm.syscall_handler != null);
-    
+
     // Assert: Framebuffer must be initialized (check first pixel is dark background).
     // Why: finish_init() calls vm.init_framebuffer(), which clears framebuffer to dark background.
     const fb_memory = vm.get_framebuffer_memory();
     const first_pixel = std.mem.readInt(u32, fb_memory[0..4], .little);
     try testing.expectEqual(COLOR_DARK_BG, first_pixel);
-    
+
     // Assert: Framebuffer memory size must match expected size (invariant).
     try testing.expectEqual(framebuffer.FRAMEBUFFER_SIZE, fb_memory.len);
 }
@@ -143,20 +151,21 @@ test "Kernel Boot: Execute kernel boot sequence" {
     };
     
     // Set up integration layer.
-    var kernel = BasinKernel.init();
-    var integration = Integration.init_with_kernel(&vm, &kernel);
+    const kernel = try create_test_kernel();
+    defer testing.allocator.destroy(kernel);
+    var integration = Integration.init_with_kernel(&vm, kernel);
     integration.finish_init();
-    
+
     // Assert: Integration must be initialized (precondition).
     try testing.expect(integration.initialized);
-    
+
     // Execute kernel boot sequence (bounded execution - TigerStyle).
     var step_count: u32 = 0;
     vm.state = .running;
-    
+
     // Assert: VM must start in running state (precondition).
     try testing.expect(vm.state == .running);
-    
+
     while (vm.state == .running and step_count < MAX_BOOT_STEPS) : (step_count += 1) {
         vm.step() catch {
             // If execution fails, that's okay (kernel may hit unimplemented instruction).
@@ -164,11 +173,11 @@ test "Kernel Boot: Execute kernel boot sequence" {
             break;
         };
     }
-    
+
     // Assert: Kernel must have executed (either halted or errored, not stuck).
     // Why: Bounded execution ensures test terminates even if kernel loops infinitely.
     try testing.expect(vm.state == .halted or vm.state == .errored or step_count >= MAX_BOOT_STEPS);
-    
+
     // Assert: Step count must be within bounds (postcondition).
     try testing.expect(step_count <= MAX_BOOT_STEPS);
 }
@@ -195,14 +204,15 @@ test "Stress Test: Long-running program execution" {
     try testing.expect(vm.regs.pc == 0x1000);
     
     // Set up integration layer.
-    var kernel = BasinKernel.init();
-    var integration = Integration.init_with_kernel(&vm, &kernel);
+    const kernel = try create_test_kernel();
+    defer testing.allocator.destroy(kernel);
+    var integration = Integration.init_with_kernel(&vm, kernel);
     integration.finish_init();
-    
+
     // Execute long-running program (bounded execution - TigerStyle).
     var step_count: u32 = 0;
     vm.state = .running;
-    
+
     const initial_x1 = vm.regs.get(1);
     
     // Assert: Initial register value must be valid (precondition).
@@ -291,12 +301,13 @@ test "Edge Case: Syscall error handling" {
     // Objective: Verify syscalls correctly handle invalid arguments.
     // Methodology: Call syscalls with invalid arguments, verify error codes.
     // Why: Error handling prevents invalid operations and provides clear feedback.
-    
+
     var vm: VM = undefined;
     VM.init(&vm, &[_]u8{}, 0x80000000);
-    
-    var kernel = BasinKernel.init();
-    var integration = Integration.init_with_kernel(&vm, &kernel);
+
+    const kernel = try create_test_kernel();
+    defer testing.allocator.destroy(kernel);
+    var integration = Integration.init_with_kernel(&vm, kernel);
     integration.finish_init();
     
     // Assert: Integration must be initialized (precondition).
@@ -377,12 +388,13 @@ test "Memory Leak Detection: Framebuffer memory consistency" {
     // Objective: Verify framebuffer memory remains consistent across multiple operations.
     // Methodology: Clear framebuffer multiple times, verify memory doesn't leak.
     // Why: Framebuffer memory consistency prevents visual artifacts and memory corruption.
-    
+
     var vm: VM = undefined;
     VM.init(&vm, &[_]u8{}, 0x80000000);
-    
-    var kernel = BasinKernel.init();
-    var integration = Integration.init_with_kernel(&vm, &kernel);
+
+    const kernel = try create_test_kernel();
+    defer testing.allocator.destroy(kernel);
+    var integration = Integration.init_with_kernel(&vm, kernel);
     integration.finish_init();
     
     // Assert: Integration must be initialized (precondition).

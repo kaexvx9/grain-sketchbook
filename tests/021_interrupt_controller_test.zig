@@ -4,10 +4,11 @@
 
 const std = @import("std");
 const basin_kernel = @import("basin_kernel");
-const BasinKernel = basin_kernel.BasinKernel;
 const InterruptController = basin_kernel.harbor_kernel.InterruptController;
 const InterruptType = basin_kernel.harbor_kernel.InterruptType;
 const InterruptHandler = basin_kernel.harbor_kernel.InterruptHandler;
+const basin_kernel_lite = @import("basin_kernel_lite");
+const BasinKernelLite = basin_kernel_lite.BasinKernelLite;
 
 // Test interrupt controller initialization.
 test "interrupt controller init" {
@@ -249,39 +250,40 @@ test "interrupt controller no handler" {
 }
 
 // Test kernel interrupt controller integration.
+// Why: Uses BasinKernelLite to avoid 4MB stack allocation.
 test "kernel interrupt controller integration" {
-    var kernel = BasinKernel.init();
-    
+    var kernel = BasinKernelLite.init();
+
     // Assert: Kernel interrupt controller must be initialized.
     try std.testing.expect(kernel.interrupt_controller.initialized);
     try std.testing.expect(kernel.interrupt_controller.pending == 0);
-    
+
     // Use a struct to hold mutable state (GrainStyle: no closures with mutable captures).
     const HandlerState = struct {
         called: bool = false,
-        
+
         fn handle(state: *@This(), _: InterruptType, _: ?*anyopaque) void {
             state.called = true;
         }
     };
-    
+
     var handler_state = HandlerState{};
-    
+
     const handler: InterruptHandler = struct {
         fn handle_wrapper(interrupt_type: InterruptType, context: ?*anyopaque) void {
             const state = @as(*HandlerState, @alignCast(@ptrCast(context.?)));
             HandlerState.handle(state, interrupt_type, null);
         }
     }.handle_wrapper;
-    
+
     kernel.interrupt_controller.register_timer_handler(handler, &handler_state);
-    
+
     // Assert: Handler must be registered.
     try std.testing.expect(kernel.interrupt_controller.timer_handler != null);
-    
+
     // Test interrupt handling.
     kernel.interrupt_controller.handle_interrupt(.timer);
-    
+
     // Assert: Handler must be called.
     try std.testing.expect(handler_state.called);
 }
