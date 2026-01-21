@@ -436,10 +436,10 @@ button.on_click = fn() {
 - [x] SkateIntegration (visual nodes)
 - [x] 171_unified_dag_integration_test.zig (13 tests)
 
-### Phase 4: Kernel Integration (Next)
-- [ ] UI DAG syscalls in Basin
-- [ ] Grainscript UI bindings
-- [ ] Event loop integration
+### Phase 4: Kernel Integration (Complete)
+- [x] UI DAG syscalls in Basin (basin_kernel_syscalls_ui.ry, 233 lines)
+- [x] Grainscript UI bindings (grainscript_ui_bindings.ry, 481 lines)
+- [ ] Event loop integration (next step)
 
 ---
 

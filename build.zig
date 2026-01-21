@@ -284,6 +284,16 @@ pub fn build(b: *std.Build) void {
         },
     });
 
+    // Grainscript UI bindings for user-space applications.
+    const grainscript_ui_bindings_module = b.addModule("grainscript_ui_bindings", .{
+        .root_source_file = b.path("src/kernel/grainscript_ui_bindings.zig"),
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{
+            .{ .name = "dag_toroidal_adapter.zig", .module = dag_toroidal_adapter_module },
+        },
+    });
+
     // Multi-architecture testing framework module.
     const test_framework_module = b.addModule("test_framework", .{
         .root_source_file = b.path("src/test_framework/root.zig"),
@@ -8391,6 +8401,20 @@ pub fn build(b: *std.Build) void {
     });
     const ui_dag_syscalls_tests_run = b.addRunArtifact(ui_dag_syscalls_tests);
     test_step.dependOn(&ui_dag_syscalls_tests_run.step);
+
+    // Grainscript UI Bindings Test
+    const grainscript_ui_bindings_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("tests/173_grainscript_ui_bindings_test.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "grainscript_ui_bindings", .module = grainscript_ui_bindings_module },
+            },
+        }),
+    });
+    const grainscript_ui_bindings_tests_run = b.addRunArtifact(grainscript_ui_bindings_tests);
+    test_step.dependOn(&grainscript_ui_bindings_tests_run.step);
 
     // Grain Bubble component tests
     // TEMPORARILY DISABLED: const grain_bubble_component_tests = b.addTest(.{

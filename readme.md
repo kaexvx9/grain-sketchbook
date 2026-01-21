@@ -9,7 +9,7 @@
 
 **This entire codebase was built using Cursor Ultra ($200/month) in Auto Mode.**
 
-168,000+ lines of Zig/Rye and counting. 500+ source files. 276/276 tests passing. **63 Rye modules (14,917 lines)**. Kernel + Grainscript 100% converted to Rye. Toroidal Garden Architecture. Unified DAG UI backend (Aurora + Skate + Realidream). A complete RISC-V64 operating system with JIT compiler, networking stack, and scripting language — built by AI agents.
+168,000+ lines of Zig/Rye and counting. 500+ source files. 304/304 tests passing. **65 Rye modules (15,567 lines)**. Kernel + Grainscript 100% converted to Rye. Toroidal Garden Architecture. Unified DAG UI backend (Aurora + Skate + Realidream). Grainscript UI bindings for user-space applications. A complete RISC-V64 operating system with JIT compiler, networking stack, and scripting language — built by AI agents.
 
 ---
 
