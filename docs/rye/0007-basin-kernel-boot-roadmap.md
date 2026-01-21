@@ -229,7 +229,8 @@ Created `src/boot/x86_64_drivers.zig`:
 - [x] All kernel integration tests pass (333/333)
 - [x] Grainscript shell runs with UI (examples/shell.gs)
 - [x] Basin kernel boots on Framework x86_64 (infrastructure complete)
-- [ ] Interactive REPL on real hardware (integration testing needed)
+- [x] UEFI bootloader runs in QEMU (tested successfully)
+- [ ] Interactive REPL on real hardware (kernel loading needed)
 
 ---
 
@@ -246,11 +247,11 @@ Created `src/boot/x86_64_drivers.zig`:
 
 **Remaining work for hardware boot:**
 
-1. Build UEFI bootloader as standalone EFI binary
+1. ~~Build UEFI bootloader as standalone EFI binary~~ ✅ DONE
 2. Create kernel ELF loading from filesystem
 3. Set up page tables for higher-half kernel
 4. Wire hardware drivers to kernel subsystems
-5. Test on QEMU x86_64 with UEFI
+5. ~~Test on QEMU x86_64 with UEFI~~ ✅ DONE (bootloader prints banner)
 6. Test on Framework laptop hardware
 
 **Statistics:**
