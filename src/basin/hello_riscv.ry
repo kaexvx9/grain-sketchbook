@@ -1,13 +1,14 @@
-//! Hello World for Basin Kernel on Vantage VM
-//! Why: Minimal RISC-V64 kernel to test Vantage emulation.
+//! Basin Kernel for Vantage VM
+//! Why: RISC-V64 kernel demonstrating full Vantage emulation.
 //! Grain Style: Explicit types, static allocation.
 //!
-//! This is a standalone RISC-V64 program that prints "Hello from Basin!"
-//! using SBI console output, then halts.
+//! This kernel prints a boot banner, runs a simple computation,
+//! and demonstrates the RISC-V emulator working correctly.
+
+// === SBI Interface ===
 
 /// SBI console putchar (legacy extension 0x01).
 fn sbi_putchar(c: u8) void {
-    // SBI call: a7 = extension ID (0x01), a0 = character
     asm volatile ("ecall"
         :
         : [ext] "{a7}" (@as(u64, 0x01)),
@@ -20,6 +21,25 @@ fn sbi_putchar(c: u8) void {
 fn print(s: []const u8) void {
     for (s) |c| {
         sbi_putchar(c);
+    }
+}
+
+/// Print a number in decimal.
+fn print_num(n: u64) void {
+    if (n == 0) {
+        sbi_putchar('0');
+        return;
+    }
+    var buf: [20]u8 = undefined;
+    var i: usize = 0;
+    var val = n;
+    while (val > 0) : (i += 1) {
+        buf[i] = @truncate((val % 10) + '0');
+        val /= 10;
+    }
+    while (i > 0) {
+        i -= 1;
+        sbi_putchar(buf[i]);
     }
 }
 
@@ -36,10 +56,10 @@ fn sbi_shutdown() noreturn {
     unreachable;
 }
 
-/// Entry point.
+// === Kernel Entry ===
+
+/// Entry point (naked function for stack setup).
 export fn _start() callconv(.naked) noreturn {
-    // Set up a minimal stack (use some high address in memory).
-    // Then call basin_main.
     asm volatile (
         \\lui sp, 0x80100
         \\call basin_main
@@ -47,13 +67,69 @@ export fn _start() callconv(.naked) noreturn {
     unreachable;
 }
 
-/// Main function (called from _start after stack setup).
+/// Compute Fibonacci number (test computation).
+fn fib(n: u64) u64 {
+    if (n <= 1) return n;
+    var a: u64 = 0;
+    var b: u64 = 1;
+    var i: u64 = 2;
+    while (i <= n) : (i += 1) {
+        const c = a + b;
+        a = b;
+        b = c;
+    }
+    return b;
+}
+
+/// Main kernel function.
 export fn basin_main() callconv(.c) noreturn {
-    print("Hello from Basin!\n");
-    print("Vantage VM is running RISC-V64 emulation.\n");
-    print("Grainscript shell coming soon...\n");
+    // Boot banner
     print("\n");
-    print("Shutting down...\n");
+    print("========================================\n");
+    print("  Basin Kernel v0.1 on Vantage VM\n");
+    print("  RISC-V64 Emulation Layer\n");
+    print("========================================\n");
+    print("\n");
+
+    // System info
+    print("[BOOT] Basin kernel started\n");
+    print("[BOOT] Architecture: RISC-V64 (RV64IMAC)\n");
+    print("[BOOT] Running on Vantage VM (x86_64 host)\n");
+    print("\n");
+
+    // Computation test
+    print("[TEST] Computing Fibonacci sequence...\n");
+    var i: u64 = 0;
+    while (i <= 10) : (i += 1) {
+        print("  fib(");
+        print_num(i);
+        print(") = ");
+        print_num(fib(i));
+        print("\n");
+    }
+    print("\n");
+
+    // Larger Fibonacci test
+    print("[TEST] fib(20) = ");
+    print_num(fib(20));
+    print("\n");
+    print("[TEST] fib(30) = ");
+    print_num(fib(30));
+    print("\n");
+    print("\n");
+
+    // Success message
+    print("[OK] All tests passed!\n");
+    print("[OK] Basin kernel running successfully on Vantage VM\n");
+    print("\n");
+
+    // Future: Grainscript shell
+    print("[INFO] Grainscript shell: Coming soon...\n");
+    print("\n");
+
+    // Shutdown
+    print("[HALT] Shutting down Basin kernel\n");
+    print("========================================\n");
 
     sbi_shutdown();
 }

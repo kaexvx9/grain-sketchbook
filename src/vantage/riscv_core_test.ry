@@ -208,10 +208,6 @@ test "riscv_core: run with shutdown" {
     var core: riscv.RiscvCore = .{};
     core.init(&test_memory, test_memory.len);
 
-    // Program: set a7 = 0x53525354 (SRST), then ecall to shutdown
-    // LUI a7, 0x53525 = 0x53525000
-    // ORI a7, a7, 0x354 (need ADDI since immediate is positive)
-    // Actually simpler: just test that step+handle_sbi works
     const program = [_]u8{
         0x93, 0x00, 0x10, 0x00, // ADDI x1, x0, 1
         0x93, 0x80, 0x10, 0x00, // ADDI x1, x1, 1
@@ -222,11 +218,85 @@ test "riscv_core: run with shutdown" {
     core.set_pc(0x80000000);
     core.state = .running;
 
-    // Execute 3 instructions manually
     _ = core.step();
     _ = core.step();
     _ = core.step();
 
     try std.testing.expectEqual(@as(u64, 3), core.get_reg(1));
     try std.testing.expectEqual(riscv.VMState.running, core.state);
+}
+
+// Test compressed C.ADDI instruction.
+test "riscv_core: c.addi compressed" {
+    var core: riscv.RiscvCore = .{};
+    core.init(&test_memory, test_memory.len);
+
+    // First set x10 = 100 using regular ADDI
+    // Then use C.ADDI x10, 5 to add 5
+    // C.ADDI x10, 5 = 0x0515 (funct3=000, imm[5]=0, rd=x10, imm[4:0]=00101, op=01)
+    const program = [_]u8{
+        0x13, 0x05, 0x40, 0x06, // ADDI x10, x0, 100
+        0x15, 0x05, // C.ADDI x10, 5
+    };
+    @memcpy(test_memory[0..program.len], &program);
+
+    core.set_pc(0x80000000);
+    core.state = .running;
+
+    _ = core.step(); // ADDI x10, x0, 100
+    try std.testing.expectEqual(@as(u64, 100), core.get_reg(10));
+
+    _ = core.step(); // C.ADDI x10, 5
+    try std.testing.expectEqual(@as(u64, 105), core.get_reg(10));
+    // PC should advance by 2 for compressed instruction
+    try std.testing.expectEqual(@as(u64, 0x80000006), core.regs.pc);
+}
+
+// Test compressed C.LI instruction.
+test "riscv_core: c.li compressed" {
+    var core: riscv.RiscvCore = .{};
+    core.init(&test_memory, test_memory.len);
+
+    // C.LI x11, 42 = 0x45a9 (funct3=010, imm[5]=0, rd=x11, imm[4:0]=11010, op=01)
+    // Actually: C.LI rd, imm: funct3=010, imm[5], rd, imm[4:0], op=01
+    // x11 = 01011, imm = 42 = 0b101010, imm[5]=1, imm[4:0]=01010
+    // Encoding: 010 | 1 | 01011 | 01010 | 01 = 0b0101010110101001 = 0x55a9
+    // Wait, let's use a simpler value: C.LI x11, 10
+    // imm = 10 = 0b001010, imm[5]=0, imm[4:0]=01010
+    // Encoding: 010 | 0 | 01011 | 01010 | 01 = 0b0100010110101001 = 0x45a9
+    const program = [_]u8{
+        0xa9, 0x45, // C.LI x11, 10 (little-endian)
+    };
+    @memcpy(test_memory[0..program.len], &program);
+
+    core.set_pc(0x80000000);
+    core.state = .running;
+
+    _ = core.step();
+    try std.testing.expectEqual(@as(u64, 10), core.get_reg(11));
+}
+
+// Test compressed C.MV instruction.
+test "riscv_core: c.mv compressed" {
+    var core: riscv.RiscvCore = .{};
+    core.init(&test_memory, test_memory.len);
+
+    // Set x12 = 999, then C.MV x11, x12
+    // C.MV rd, rs2: funct4=1000, rd, rs2, op=10
+    // rd=x11=01011, rs2=x12=01100
+    // Encoding: 1000 | 01011 | 01100 | 10 = 0b1000010110110010 = 0x85b2
+    const program = [_]u8{
+        0x13, 0x06, 0x70, 0x3e, // ADDI x12, x0, 999
+        0xb2, 0x85, // C.MV x11, x12
+    };
+    @memcpy(test_memory[0..program.len], &program);
+
+    core.set_pc(0x80000000);
+    core.state = .running;
+
+    _ = core.step(); // ADDI x12, x0, 999
+    try std.testing.expectEqual(@as(u64, 999), core.get_reg(12));
+
+    _ = core.step(); // C.MV x11, x12
+    try std.testing.expectEqual(@as(u64, 999), core.get_reg(11));
 }

@@ -9,7 +9,7 @@
 
 **This entire codebase was built using Cursor Ultra ($200/month) in Auto Mode.**
 
-168,000+ lines of Zig/Rye and counting. 500+ source files. **333/333 tests passing**. **77 Rye modules (20,378 lines)**. Kernel + Grainscript 100% converted to Rye. Toroidal Garden Architecture. Unified DAG UI backend (Aurora + Skate + Realidream). Grainscript UI bindings + kernel event loop. **Vantage VM** boots on x86_64 via Limine, emulates RISC-V64 to run Basin kernel. **RVC support** (compressed 16-bit instructions). **Basin hello_riscv.ry** - first RISC-V kernel binary. **RISC-V core unit tests** (9/9 passing). Basin Kernel Lite for stack-friendly testing. Heap allocation for VM (8MB) and kernel (4MB+) in tests. A complete RISC-V64 operating system with JIT compiler, networking stack, and scripting language — built by AI agents.
+168,000+ lines of Zig/Rye and counting. 500+ source files. **333/333 tests passing**. **77 Rye modules (20,524 lines)**. Kernel + Grainscript 100% converted to Rye. Toroidal Garden Architecture. Unified DAG UI backend (Aurora + Skate + Realidream). Grainscript UI bindings + kernel event loop. **Vantage VM** boots on x86_64 via Limine, emulates RISC-V64 to run Basin kernel. **RVC support** (compressed 16-bit instructions). **Basin kernel** with boot banner, Fibonacci test, SBI console. **RISC-V core unit tests** (12/12 passing). Basin Kernel Lite for stack-friendly testing. Heap allocation for VM (8MB) and kernel (4MB+) in tests. A complete RISC-V64 operating system with JIT compiler, networking stack, and scripting language — built by AI agents.
 
 ---
 
