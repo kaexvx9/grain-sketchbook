@@ -134,30 +134,53 @@ pub const BasinKernel = struct {
 
     /// Why: Initialize kernel in-place for heap allocation.
     /// Use when kernel is too large for stack (4MB+ memory pool).
+    /// Critical: Initialize fields individually to avoid stack-allocating 4MB temp.
     pub fn init_in_place(target: *BasinKernel) void {
-        target.* = BasinKernel{
-            .timer = Timer.init(),
-            .interrupt_controller = InterruptController.init(),
-            .scheduler = Scheduler.init(),
-            .process_group_manager = ProcessGroupManager.init(),
-            .process_group_stats = ProcessGroupStatsManager.init(),
-            .process_group_limits = ProcessGroupLimitsManager.init(),
-            .network_interfaces = NetworkInterfaceManager.init(),
-            .tcp_sockets = TcpSocketManager.init(),
-            .udp_sockets = UdpSocketManager.init(),
-            .audio_devices = AudioDeviceManager.init(),
-            .channels = ChannelTable.init(),
-            .storage = Storage.init(),
-            .keyboard = Keyboard.init(),
-            .mouse = Mouse.init(),
-            .log_buffer = undefined,
-            .memory_pool = MemoryPool.init(),
-            .page_table = PageTable.init(),
-            .page_fault_stats = PageFaultStats.init(),
-            .memory_stats = MemoryStats.init(),
-            .cow_table = CowTable.init(),
-            .syscall_profiler = SyscallPerformanceProfiler.init(),
-        };
+        // Initialize arrays with default values (no stack temp needed).
+        for (&target.mappings) |*m| m.* = MemoryMapping.init();
+        target.next_alloc_addr = 0x100000;
+        for (&target.handles) |*h| h.* = FileHandle.init();
+        target.next_handle_id = 1;
+        target.mru_handle_index = MAX_HANDLES;
+        target.mru_handle_id = 0;
+        for (&target.handle_id_to_index) |*idx| idx.* = MAX_HANDLES;
+        for (&target.mapping_addr_to_index) |*idx| idx.* = MAX_MAPPINGS;
+        for (&target.dir_handles) |*dh| dh.* = DirectoryHandle.init();
+        target.next_dir_handle_id = 1;
+        for (&target.processes) |*p| p.* = Process.init();
+        target.next_process_id = 1;
+        target.current_process_index = MAX_PROCESSES;
+        for (&target.users) |*u| u.* = User.init();
+        target.user_count = 0;
+        target.current_user = UserContext{ .uid = 0, .gid = 0, .euid = 0, .egid = 0 };
+
+        // Initialize subsystems (small structs, safe on stack).
+        target.timer = Timer.init();
+        target.interrupt_controller = InterruptController.init();
+        target.scheduler = Scheduler.init();
+        target.process_group_manager = ProcessGroupManager.init();
+        target.process_group_stats = ProcessGroupStatsManager.init();
+        target.process_group_limits = ProcessGroupLimitsManager.init();
+        target.network_interfaces = NetworkInterfaceManager.init();
+        target.tcp_sockets = TcpSocketManager.init();
+        target.udp_sockets = UdpSocketManager.init();
+        target.audio_devices = AudioDeviceManager.init();
+        target.channels = ChannelTable.init();
+        target.storage = Storage.init();
+        target.keyboard = Keyboard.init();
+        target.mouse = Mouse.init();
+        MemoryPool.init_in_place(&target.memory_pool);
+        target.page_table = PageTable.init();
+        target.page_fault_stats = PageFaultStats.init();
+        target.memory_stats = MemoryStats.init();
+        target.cow_table = CowTable.init();
+        target.syscall_profiler = SyscallPerformanceProfiler.init();
+        target.vm_memory_reader = null;
+        target.vm_memory_reader_user_data = null;
+        target.vm_memory_writer = null;
+        target.vm_memory_writer_user_data = null;
+
+        // Initialize log buffer with timer reference.
         target.log_buffer = KernelLogBuffer.init(&target.timer);
         target.init_users();
         target.assert_initial_state();
