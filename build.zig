@@ -140,6 +140,15 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    // Basin Kernel Lite module (test-friendly minimal kernel).
+    // Why: Full BasinKernel has 4MB buffer causing stack overflow in tests.
+    const basin_kernel_lite_module = b.addModule("basin_kernel_lite", .{
+        .root_source_file = b.path("src/kernel/basin_kernel_lite.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    _ = basin_kernel_lite_module;
+
     // RISC-V SBI module (platform runtime services).
     // Why: Our own Grain Style SBI wrapper (inspired by CascadeOS/zig-sbi, MIT licensed).
     const sbi_module = b.addModule("sbi", .{
@@ -8441,6 +8450,17 @@ pub fn build(b: *std.Build) void {
     });
     const ui_event_loop_tests_run = b.addRunArtifact(ui_event_loop_tests);
     test_step.dependOn(&ui_event_loop_tests_run.step);
+
+    // Basin Kernel Lite Test (stack-friendly kernel for testing)
+    const basin_kernel_lite_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/kernel/basin_kernel_lite.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    });
+    const basin_kernel_lite_tests_run = b.addRunArtifact(basin_kernel_lite_tests);
+    test_step.dependOn(&basin_kernel_lite_tests_run.step);
 
     // Grain Bubble component tests
     // TEMPORARILY DISABLED: const grain_bubble_component_tests = b.addTest(.{
