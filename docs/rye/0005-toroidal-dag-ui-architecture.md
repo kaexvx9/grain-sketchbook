@@ -439,7 +439,7 @@ button.on_click = fn() {
 ### Phase 4: Kernel Integration (Complete)
 - [x] UI DAG syscalls in Basin (basin_kernel_syscalls_ui.ry, 233 lines)
 - [x] Grainscript UI bindings (grainscript_ui_bindings.ry, 481 lines)
-- [ ] Event loop integration (next step)
+- [x] Event loop integration (ui_event_loop.ry, 444 lines)
 
 ---
 
