@@ -149,7 +149,8 @@ test "spawn syscall creates processes" {
     integration.finish_init();
 
     // Create minimal ELF header in VM memory.
-    const executable_ptr: u64 = 0x500000;
+    // Use address within VM_MEM (4MB = 0x400000).
+    const executable_ptr: u64 = 0x100000;
     var elf_header: [64]u8 = undefined;
     @memset(&elf_header, 0);
 
