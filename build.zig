@@ -273,8 +273,37 @@ pub fn build(b: *std.Build) void {
         .target = x86_64_kernel_resolved,
         .optimize = optimize,
     });
-    _ = x86_64_module; // Will be used by x86_64 kernel
-    _ = x86_64_drivers_module; // Will be used by x86_64 kernel
+    _ = x86_64_module; // Available for x86_64 kernel
+    _ = x86_64_drivers_module; // Available for x86_64 kernel
+
+    // Limine boot protocol module
+    const limine_module = b.addModule("limine", .{
+        .root_source_file = b.path("src/boot/limine.zig"),
+        .target = x86_64_kernel_resolved,
+        .optimize = .ReleaseSmall,
+    });
+
+    // Vantage VM for x86_64 (Limine boot protocol)
+    // Why: Vantage is the RISC-V emulator that runs Basin kernel on x86_64 hosts.
+    const vantage_x86_64_exe = b.addExecutable(.{
+        .name = "vantage",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/vantage/main_x86_64.zig"),
+            .target = x86_64_kernel_resolved,
+            .optimize = .ReleaseSmall,
+            .code_model = .kernel, // Required for higher-half kernel
+            .imports = &.{
+                .{ .name = "limine", .module = limine_module },
+            },
+        }),
+    });
+    vantage_x86_64_exe.setLinkerScript(b.path("src/kernel/linker_x86_64.ld"));
+    // Disable standard library features not available in freestanding
+    vantage_x86_64_exe.root_module.red_zone = false;
+    vantage_x86_64_exe.root_module.stack_check = false;
+    const vantage_x86_64_install = b.addInstallArtifact(vantage_x86_64_exe, .{});
+    const vantage_x86_64_step = b.step("vantage-x86_64", "Build Vantage VM for x86_64 (boots Basin via RISC-V emulation)");
+    vantage_x86_64_step.dependOn(&vantage_x86_64_install.step);
 
     // Kernel platform module (for testing platform abstraction) - kept for kernel tests
     const kernel_platform_module = b.addModule("kernel_platform", .{

@@ -1,4 +1,4 @@
-# Bootloader Selection Analysis for Basin Kernel
+# Bootloader Selection Analysis for Vantage VM
 
 **Date**: 2026-01-21
 **Status**: Decision Document
@@ -6,9 +6,23 @@
 
 ---
 
+## Architecture Clarification
+
+**Basin Kernel** targets **RISC-V only**. No Basin/Grain code targets x86_64 directly.
+
+**Vantage VM** is the virtualization layer that:
+1. Boots on x86_64 host (Framework laptop) via Limine
+2. Loads Basin kernel (RISC-V ELF)
+3. Emulates RISC-V64 to run Basin
+4. Provides hardware abstraction (framebuffer, input, etc.)
+
+This document analyzes bootloaders for **Vantage VM on x86_64**, not Basin directly.
+
+---
+
 ## Executive Summary
 
-After analyzing available bootloaders for x86_64, we recommend **Limine** as the bootloader for Basin kernel on Framework x86_64. This document explains the rationale based on Rye Style compatibility, toroidal architecture alignment, and practical considerations.
+After analyzing available bootloaders for x86_64, we recommend **Limine** as the bootloader for Vantage VM on Framework x86_64. This document explains the rationale based on Rye Style compatibility, toroidal architecture alignment, and practical considerations.
 
 ---
 
@@ -174,21 +188,29 @@ Limine provides the best balance of:
 
 ## Implementation Plan
 
-### Phase 1: Limine Integration
+### Phase 1: Limine Integration for Vantage
 
-1. Create `limine.zig` header (translate limine.h)
-2. Create `src/kernel/main_x86_64.zig` with Limine entry
-3. Create `linker_x86_64.ld` for higher-half kernel
-4. Add `limine.conf` for boot configuration
-5. Add build target `zig build kernel-x86_64`
+1. Create `limine.zig` header (translate limine.h) ✅
+2. Create `src/vantage/main_x86_64.zig` with Limine entry
+3. Create `linker_x86_64.ld` for higher-half Vantage ✅
+4. Add `limine.conf` for boot configuration ✅
+5. Add build target `zig build vantage-x86_64`
 
-### Phase 2: Bootable Image
+### Phase 2: Vantage VM Integration
 
-1. Create `scripts/create_iso.sh` using Limine tools
-2. Test in QEMU with UEFI and BIOS
-3. Document boot process
+1. Initialize RISC-V emulator from Vantage entry
+2. Load Basin kernel (RISC-V ELF) from initrd module
+3. Map host framebuffer to Basin's MMIO region
+4. Start RISC-V execution loop
 
-### Phase 3: Hardware Testing
+### Phase 3: Bootable Image
+
+1. Create `scripts/create_iso.sh` using Limine tools ✅
+2. Include Basin kernel as Limine module
+3. Test in QEMU with UEFI and BIOS
+4. Document boot process
+
+### Phase 4: Hardware Testing
 
 1. Create bootable USB image
 2. Test on Framework laptop
