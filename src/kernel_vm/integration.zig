@@ -764,8 +764,8 @@ fn syscall_handler_wrapper(
     arg3: u64,
     arg4: u64,
 ) u64 {
-    // Contract: syscall_num must be >= 10 (kernel syscalls, not SBI).
-    std.debug.assert(syscall_num >= 10);
+    // Note: syscall_num includes process syscalls (1-4) and other syscalls (10+).
+    // Process syscalls: 1=spawn, 2=exit, 3=yield, 4=wait.
 
     // Handle VM-specific syscalls directly (needs VM access).
     // Why: These syscalls need VM memory access, kernel doesn't have VM reference.
@@ -1065,7 +1065,7 @@ fn syscall_handler_wrapper(
 
 /// Internal syscall handler implementation.
 /// Contract:
-///   Input: kernel must be valid BasinKernel pointer, syscall_num >= 10
+///   Input: kernel must be valid BasinKernel pointer, syscall_num >= 1
 ///   Output: u64 result (negative = error code, non-negative = success value)
 /// Why: Separate implementation from wrapper for clarity.
 fn syscall_handler_wrapper_impl(
@@ -1076,8 +1076,7 @@ fn syscall_handler_wrapper_impl(
     arg3: u64,
     arg4: u64,
 ) u64 {
-    // Contract: syscall_num must be >= 10 (kernel syscalls, not SBI).
-    std.debug.assert(syscall_num >= 10);
+    // Note: syscall_num includes process syscalls (1-4) and other syscalls (10+).
 
     // Contract: kernel pointer must be valid.
     const kernel_ptr = @intFromPtr(kernel);
