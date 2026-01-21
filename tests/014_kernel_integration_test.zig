@@ -42,6 +42,18 @@ fn create_test_kernel() !*BasinKernel {
     return kernel;
 }
 
+/// Why: Heap-allocate VM to avoid stack overflow (8MB).
+fn create_test_vm_with_program(program: []const u8, load_addr: u64) !*VM {
+    const vm = try testing.allocator.create(VM);
+    VM.init(vm, program, load_addr);
+    return vm;
+}
+
+/// Why: Heap-allocate empty VM to avoid stack overflow (8MB).
+fn create_test_vm() !*VM {
+    return create_test_vm_with_program(&[_]u8{}, 0x80000000);
+}
+
 // Framebuffer constants (explicit types, no usize).
 const FRAMEBUFFER_WIDTH: u32 = framebuffer.FRAMEBUFFER_WIDTH;
 const FRAMEBUFFER_HEIGHT: u32 = framebuffer.FRAMEBUFFER_HEIGHT;
@@ -57,7 +69,7 @@ test "Kernel Boot: Load and initialize kernel ELF" {
     // Objective: Verify kernel ELF binary can be loaded and initialized correctly.
     // Methodology: Read kernel ELF file, load into VM, verify VM state and entry point.
     // Why: Foundation test for all kernel integration tests - must pass before others.
-    
+
     // Read kernel ELF binary.
     const kernel_path = "zig-out/bin/grain-rv64";
     const elf_data = std.fs.cwd().readFileAlloc(testing.allocator, kernel_path, 10 * 1024 * 1024) catch {
@@ -66,24 +78,27 @@ test "Kernel Boot: Load and initialize kernel ELF" {
         return;
     };
     defer testing.allocator.free(elf_data);
-    
+
     // Assert: ELF data must be non-empty (precondition).
     try testing.expect(elf_data.len > 0);
-    
+
+    // Heap-allocate VM to avoid 8MB stack allocation.
+    const vm = try testing.allocator.create(VM);
+    defer testing.allocator.destroy(vm);
+
     // Load kernel ELF into VM.
-    var vm: VM = undefined;
-    loadKernel(&vm, testing.allocator, elf_data) catch |err| {
+    loadKernel(vm, testing.allocator, elf_data) catch |err| {
         std.debug.print("Note: Kernel ELF loading failed: {}\n", .{err});
         return; // Skip test if loading fails
     };
-    
+
     // Assert: VM must be in halted state after loading (postcondition).
     try testing.expect(vm.state == .halted);
-    
+
     // Assert: PC must be set to kernel entry point (postcondition).
     try testing.expect(vm.regs.pc > 0);
     try testing.expect(vm.regs.pc < vm.memory_size);
-    
+
     // Assert: Memory size must be valid (invariant).
     try testing.expect(vm.memory_size > 0);
 }
@@ -92,7 +107,7 @@ test "Kernel Boot: Integration layer initialization" {
     // Objective: Verify integration layer correctly initializes kernel and framebuffer.
     // Methodology: Load kernel, create integration, verify framebuffer is initialized.
     // Why: Integration layer must set up syscall handler and framebuffer before kernel execution.
-    
+
     // Read kernel ELF binary.
     const kernel_path = "zig-out/bin/grain-rv64";
     const elf_data = std.fs.cwd().readFileAlloc(testing.allocator, kernel_path, 10 * 1024 * 1024) catch {
@@ -100,18 +115,21 @@ test "Kernel Boot: Integration layer initialization" {
         return;
     };
     defer testing.allocator.free(elf_data);
-    
+
+    // Heap-allocate VM to avoid 8MB stack allocation.
+    const vm = try testing.allocator.create(VM);
+    defer testing.allocator.destroy(vm);
+
     // Load kernel ELF into VM.
-    var vm: VM = undefined;
-    loadKernel(&vm, testing.allocator, elf_data) catch |err| {
+    loadKernel(vm, testing.allocator, elf_data) catch |err| {
         std.debug.print("Note: Kernel ELF loading failed: {}\n", .{err});
         return;
     };
-    
+
     // Set up integration layer (VM + Kernel).
     const kernel = try create_test_kernel();
     defer testing.allocator.destroy(kernel);
-    var integration = Integration.init_with_kernel(&vm, kernel);
+    var integration = Integration.init_with_kernel(vm, kernel);
     integration.finish_init();
 
     // Assert: Integration must be initialized (postcondition).
@@ -143,17 +161,20 @@ test "Kernel Boot: Execute kernel boot sequence" {
     };
     defer testing.allocator.free(elf_data);
     
+    // Heap-allocate VM to avoid 8MB stack allocation.
+    const vm = try testing.allocator.create(VM);
+    defer testing.allocator.destroy(vm);
+
     // Load kernel ELF into VM.
-    var vm: VM = undefined;
-    loadKernel(&vm, testing.allocator, elf_data) catch |err| {
+    loadKernel(vm, testing.allocator, elf_data) catch |err| {
         std.debug.print("Note: Kernel ELF loading failed: {}\n", .{err});
         return;
     };
-    
+
     // Set up integration layer.
     const kernel = try create_test_kernel();
     defer testing.allocator.destroy(kernel);
-    var integration = Integration.init_with_kernel(&vm, kernel);
+    var integration = Integration.init_with_kernel(vm, kernel);
     integration.finish_init();
 
     // Assert: Integration must be initialized (precondition).
@@ -195,18 +216,20 @@ test "Stress Test: Long-running program execution" {
         0x93, 0x80, 0x10, 0x00, // ADDI x1, x1, 1
         0x6F, 0xFF, 0xDF, 0xFF, // JAL x0, -4
     };
-    
-    var vm: VM = undefined;
-    VM.init(&vm, &loop_program, 0x1000);
-    
+
+    // Heap-allocate VM to avoid 8MB stack allocation.
+    const vm = try testing.allocator.create(VM);
+    defer testing.allocator.destroy(vm);
+    VM.init(vm, &loop_program, 0x1000);
+
     // Assert: VM must be initialized correctly (precondition).
     try testing.expect(vm.state == .halted);
     try testing.expect(vm.regs.pc == 0x1000);
-    
+
     // Set up integration layer.
     const kernel = try create_test_kernel();
     defer testing.allocator.destroy(kernel);
-    var integration = Integration.init_with_kernel(&vm, kernel);
+    var integration = Integration.init_with_kernel(vm, kernel);
     integration.finish_init();
 
     // Execute long-running program (bounded execution - TigerStyle).
@@ -245,22 +268,24 @@ test "Edge Case: Memory bounds validation" {
     // Objective: Verify VM correctly handles out-of-bounds memory access.
     // Methodology: Attempt to access memory beyond VM bounds, verify error handling.
     // Why: Bounds checking prevents memory corruption and security vulnerabilities.
-    
-    var vm: VM = undefined;
-    VM.init(&vm, &[_]u8{0} ** 1024, 0x1000);
-    
+
+    // Heap-allocate VM to avoid 8MB stack allocation.
+    const vm = try testing.allocator.create(VM);
+    defer testing.allocator.destroy(vm);
+    VM.init(vm, &[_]u8{0} ** 1024, 0x1000);
+
     // Assert: VM must be initialized correctly (precondition).
     try testing.expect(vm.state == .halted);
     try testing.expect(vm.memory_size > 0);
-    
+
     // Attempt to read beyond memory bounds.
     const out_of_bounds_addr: u64 = vm.memory_size + 1000;
-    
+
     // Assert: Address must be beyond memory bounds (precondition).
     try testing.expect(out_of_bounds_addr >= vm.memory_size);
-    
+
     const result = vm.read64(out_of_bounds_addr);
-    
+
     // Assert: Out-of-bounds access must return error (postcondition).
     // Why: Bounds checking prevents invalid memory access.
     try testing.expectError(kernel_vm.VMError.invalid_memory_access, result);
@@ -270,23 +295,25 @@ test "Edge Case: State transition validation" {
     // Objective: Verify VM state transitions are correct (halted -> running -> halted/errored).
     // Methodology: Start VM, execute steps, verify state transitions.
     // Why: Correct state transitions are essential for VM correctness.
-    
+
     const minimal_program = [_]u8{
         0x13, 0x00, 0x00, 0x00, // ADDI x0, x0, 0 (NOP)
     };
-    
-    var vm: VM = undefined;
-    VM.init(&vm, &minimal_program, 0x1000);
-    
+
+    // Heap-allocate VM to avoid 8MB stack allocation.
+    const vm = try testing.allocator.create(VM);
+    defer testing.allocator.destroy(vm);
+    VM.init(vm, &minimal_program, 0x1000);
+
     // Assert: VM must start in halted state (precondition).
     try testing.expect(vm.state == .halted);
-    
+
     // Start VM.
     vm.start();
-    
+
     // Assert: VM must transition to running state (postcondition).
     try testing.expect(vm.state == .running);
-    
+
     // Execute one step.
     vm.step() catch {
         // If execution fails, that's unexpected for NOP.
@@ -302,37 +329,39 @@ test "Edge Case: Syscall error handling" {
     // Methodology: Call syscalls with invalid arguments, verify error codes.
     // Why: Error handling prevents invalid operations and provides clear feedback.
 
-    var vm: VM = undefined;
-    VM.init(&vm, &[_]u8{}, 0x80000000);
+    // Heap-allocate VM to avoid 8MB stack allocation.
+    const vm = try testing.allocator.create(VM);
+    defer testing.allocator.destroy(vm);
+    VM.init(vm, &[_]u8{}, 0x80000000);
 
     const kernel = try create_test_kernel();
     defer testing.allocator.destroy(kernel);
-    var integration = Integration.init_with_kernel(&vm, kernel);
+    var integration = Integration.init_with_kernel(vm, kernel);
     integration.finish_init();
-    
+
     // Assert: Integration must be initialized (precondition).
     try testing.expect(integration.initialized);
-    
+
     // Set up registers for invalid syscall (out of bounds framebuffer coordinates).
     // Why: Test error handling for invalid syscall arguments.
     vm.regs.set(17, 71); // a7 = fb_draw_pixel syscall
     vm.regs.set(10, FRAMEBUFFER_WIDTH); // a0 = x (out of bounds)
     vm.regs.set(11, 100); // a1 = y
     vm.regs.set(12, 0xFF0000FF); // a2 = color
-    
+
     // Assert: X coordinate must be out of bounds (precondition).
     try testing.expect(vm.regs.get(10) >= FRAMEBUFFER_WIDTH);
-    
+
     // Execute ECALL.
     vm.execute_ecall() catch |err| {
         // ECALL execution may fail, that's okay.
         // Why: Invalid arguments may cause syscall handler to return error.
         _ = err;
     };
-    
+
     // Get result from a0 register (should be error code).
     const result = vm.regs.get(10);
-    
+
     // Assert: Result must be error code (negative value) (postcondition).
     // Why: Invalid arguments should return error code, not success.
     const result_i64 = @as(i64, @bitCast(result));
@@ -343,29 +372,31 @@ test "Memory Leak Detection: VM state consistency" {
     // Objective: Verify VM maintains consistent state across multiple executions.
     // Methodology: Execute program multiple times, verify state doesn't accumulate errors.
     // Why: State consistency prevents memory leaks and ensures deterministic behavior.
-    
+
     const minimal_program = [_]u8{
         0x13, 0x00, 0x00, 0x00, // ADDI x0, x0, 0 (NOP)
     };
-    
-    var vm: VM = undefined;
-    VM.init(&vm, &minimal_program, 0x1000);
-    
+
+    // Heap-allocate VM to avoid 8MB stack allocation.
+    const vm = try testing.allocator.create(VM);
+    defer testing.allocator.destroy(vm);
+    VM.init(vm, &minimal_program, 0x1000);
+
     // Assert: VM must be initialized correctly (precondition).
     try testing.expect(vm.state == .halted);
-    
+
     // Execute program multiple times (bounded execution - TigerStyle).
     var iteration: u32 = 0;
-    
+
     while (iteration < MEMORY_LEAK_ITERATIONS) : (iteration += 1) {
         // Reset VM state.
         vm.state = .halted;
         vm.regs.pc = 0x1000;
-        
+
         // Assert: VM state must be reset correctly (precondition for each iteration).
         try testing.expect(vm.state == .halted);
         try testing.expect(vm.regs.pc == 0x1000);
-        
+
         // Start and execute.
         vm.start();
         vm.step() catch {
@@ -373,12 +404,12 @@ test "Memory Leak Detection: VM state consistency" {
             // Why: NOP should execute without errors.
             break;
         };
-        
+
         // Assert: VM must be in valid state after each iteration (postcondition).
         // Why: State consistency ensures no memory leaks or state corruption.
         try testing.expect(vm.state == .halted or vm.state == .running);
     }
-    
+
     // Assert: All iterations must have completed successfully (postcondition).
     // Why: All iterations should complete without errors if VM state is consistent.
     try testing.expect(iteration == MEMORY_LEAK_ITERATIONS);
@@ -389,44 +420,46 @@ test "Memory Leak Detection: Framebuffer memory consistency" {
     // Methodology: Clear framebuffer multiple times, verify memory doesn't leak.
     // Why: Framebuffer memory consistency prevents visual artifacts and memory corruption.
 
-    var vm: VM = undefined;
-    VM.init(&vm, &[_]u8{}, 0x80000000);
+    // Heap-allocate VM to avoid 8MB stack allocation.
+    const vm = try testing.allocator.create(VM);
+    defer testing.allocator.destroy(vm);
+    VM.init(vm, &[_]u8{}, 0x80000000);
 
     const kernel = try create_test_kernel();
     defer testing.allocator.destroy(kernel);
-    var integration = Integration.init_with_kernel(&vm, kernel);
+    var integration = Integration.init_with_kernel(vm, kernel);
     integration.finish_init();
-    
+
     // Assert: Integration must be initialized (precondition).
     try testing.expect(integration.initialized);
-    
+
     // Clear framebuffer multiple times (bounded execution - TigerStyle).
     var iteration: u32 = 0;
-    
+
     while (iteration < FRAMEBUFFER_ITERATIONS) : (iteration += 1) {
         // Set up registers for fb_clear syscall.
         vm.regs.set(17, 70); // a7 = fb_clear syscall
         vm.regs.set(10, COLOR_DARK_BG); // a0 = color
-        
+
         // Assert: Color must be valid (precondition).
         _ = COLOR_DARK_BG; // Color constant is valid.
-        
+
         // Execute ECALL.
         vm.execute_ecall() catch |err| {
             // ECALL execution may fail, that's okay.
             // Why: Syscall may return error if framebuffer is not accessible.
             _ = err;
         };
-        
+
         // Verify framebuffer is cleared (check first pixel).
         const fb_memory = vm.get_framebuffer_memory();
         const first_pixel = std.mem.readInt(u32, fb_memory[0..4], .little);
-        
+
         // Assert: Framebuffer must be cleared correctly after each iteration (postcondition).
         // Why: Framebuffer should remain consistent across multiple clear operations.
         try testing.expectEqual(COLOR_DARK_BG, first_pixel);
     }
-    
+
     // Assert: All iterations must have completed successfully (postcondition).
     // Why: All iterations should complete without errors if framebuffer memory is consistent.
     try testing.expect(iteration == FRAMEBUFFER_ITERATIONS);

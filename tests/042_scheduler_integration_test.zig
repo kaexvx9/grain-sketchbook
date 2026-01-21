@@ -15,18 +15,25 @@ const Syscall = basin_kernel.Syscall;
 
 /// Why: Heap-allocate kernel to avoid stack overflow.
 fn create_test_kernel() !*BasinKernel {
-    const kernel = try std.testing.allocator.create(BasinKernel);
+    const kernel = try testing.allocator.create(BasinKernel);
     BasinKernel.init_in_place(kernel);
     return kernel;
 }
 
+/// Why: Heap-allocate VM to avoid stack overflow (8MB).
+fn create_test_vm() !*VM {
+    const vm = try testing.allocator.create(VM);
+    VM.init(vm, &[_]u8{}, 0);
+    return vm;
+}
+
 // Test: run_current_process executes current process.
-// Why: Uses heap-allocated kernel to avoid stack overflow.
+// Why: Uses heap-allocated kernel and VM to avoid stack overflow.
 test "run_current_process executes current process" {
-    var vm: VM = undefined;
-    VM.init(&vm, &[_]u8{}, 0);
+    const vm = try create_test_vm();
+    defer testing.allocator.destroy(vm);
     const kernel = try create_test_kernel();
-    defer std.testing.allocator.destroy(kernel);
+    defer testing.allocator.destroy(kernel);
 
     // Spawn a process.
     const spawn_num = @intFromEnum(Syscall.spawn);
@@ -40,7 +47,7 @@ test "run_current_process executes current process" {
     kernel.scheduler.set_current(process_id, time_slice);
 
     // Create integration.
-    var integration = Integration.init_with_kernel(&vm, kernel);
+    var integration = Integration.init_with_kernel(vm, kernel);
     integration.finish_init();
 
     // Run current process (with small max_steps).
@@ -52,12 +59,12 @@ test "run_current_process executes current process" {
 }
 
 // Test: schedule_and_run_next schedules and runs next process.
-// Why: Uses heap-allocated kernel to avoid stack overflow.
+// Why: Uses heap-allocated kernel and VM to avoid stack overflow.
 test "schedule_and_run_next schedules and runs next process" {
-    var vm: VM = undefined;
-    VM.init(&vm, &[_]u8{}, 0);
+    const vm = try create_test_vm();
+    defer testing.allocator.destroy(vm);
     const kernel = try create_test_kernel();
-    defer std.testing.allocator.destroy(kernel);
+    defer testing.allocator.destroy(kernel);
 
     // Spawn a process.
     const spawn_num = @intFromEnum(Syscall.spawn);
@@ -66,7 +73,7 @@ test "schedule_and_run_next schedules and runs next process" {
     const process_id = result.success;
 
     // Create integration.
-    var integration = Integration.init_with_kernel(&vm, kernel);
+    var integration = Integration.init_with_kernel(vm, kernel);
     integration.finish_init();
 
     // Schedule and run next process.
@@ -78,15 +85,15 @@ test "schedule_and_run_next schedules and runs next process" {
 }
 
 // Test: schedule_and_run_next returns false when no runnable process.
-// Why: Uses heap-allocated kernel to avoid stack overflow.
+// Why: Uses heap-allocated kernel and VM to avoid stack overflow.
 test "schedule_and_run_next returns false when no runnable process" {
-    var vm: VM = undefined;
-    VM.init(&vm, &[_]u8{}, 0);
+    const vm = try create_test_vm();
+    defer testing.allocator.destroy(vm);
     const kernel = try create_test_kernel();
-    defer std.testing.allocator.destroy(kernel);
+    defer testing.allocator.destroy(kernel);
 
     // Create integration (no processes spawned).
-    var integration = Integration.init_with_kernel(&vm, kernel);
+    var integration = Integration.init_with_kernel(vm, kernel);
     integration.finish_init();
 
     // Schedule and run next process (should fail - no processes).
@@ -98,15 +105,15 @@ test "schedule_and_run_next returns false when no runnable process" {
 }
 
 // Test: run_current_process returns false when no current process.
-// Why: Uses heap-allocated kernel to avoid stack overflow.
+// Why: Uses heap-allocated kernel and VM to avoid stack overflow.
 test "run_current_process returns false when no current process" {
-    var vm: VM = undefined;
-    VM.init(&vm, &[_]u8{}, 0);
+    const vm = try create_test_vm();
+    defer testing.allocator.destroy(vm);
     const kernel = try create_test_kernel();
-    defer std.testing.allocator.destroy(kernel);
+    defer testing.allocator.destroy(kernel);
 
     // Create integration (no current process).
-    var integration = Integration.init_with_kernel(&vm, kernel);
+    var integration = Integration.init_with_kernel(vm, kernel);
     integration.finish_init();
 
     // Run current process (should fail - no current process).
@@ -115,4 +122,3 @@ test "run_current_process returns false when no current process" {
     // Assert: Should return false (no process to run).
     try testing.expect(!should_continue);
 }
-
