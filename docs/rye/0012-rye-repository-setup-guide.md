@@ -1,7 +1,7 @@
 # Rye Repository Setup Guide
 
 **Date**: 2026-01-22-062923-pst  
-**Status**: 🆕 **SETUP GUIDE** — Instructions for creating `codeberg.org/rye/rye` repository  
+**Status**: 🆕 **SETUP GUIDE** — Instructions for creating `codeberg.org/ryelang/rye` repository  
 **Base**: Zig 0.15.2 (https://codeberg.org/ziglang/zig/src/tag/0.15.2)
 
 ---
@@ -10,7 +10,7 @@
 
 ### Step 1: Create Repository on Codeberg
 
-1. **Go to**: https://codeberg.org/rye
+1. **Go to**: https://codeberg.org/ryelang
 2. **Create new repository**: `rye`
 3. **Description**: "Rye compiler - Fork of Zig 0.15.2, adapted for RISC-V freestanding, toroidal types, and Rye Style enforcement"
 4. **Visibility**: Public
@@ -35,13 +35,13 @@ git checkout -b rye-0.15.2-base
 git remote rename origin upstream
 
 # Add Rye repository as origin
-git remote add origin https://codeberg.org/rye/rye.git
+git remote add origin https://codeberg.org/ryelang/rye.git
 
 # Verify remotes
 git remote -v
 # Should show:
-# origin    https://codeberg.org/rye/rye.git (fetch)
-# origin    https://codeberg.org/rye/rye.git (push)
+# origin    https://codeberg.org/ryelang/rye.git (fetch)
+# origin    https://codeberg.org/ryelang/rye.git (push)
 # upstream  https://codeberg.org/ziglang/zig.git (fetch)
 # upstream  https://codeberg.org/ziglang/zig.git (push)
 ```
@@ -190,10 +190,10 @@ Rye uses LLVM as its code generation backend (inherited from Zig).
 
 After setup, verify:
 
-- [ ] Repository created at `codeberg.org/rye/rye`
+- [ ] Repository created at `codeberg.org/ryelang/rye`
 - [ ] Zig 0.15.2 tag checked out
 - [ ] Upstream remote points to `ziglang/zig`
-- [ ] Origin remote points to `rye/rye`
+- [ ] Origin remote points to `ryelang/rye`
 - [ ] THIRD_PARTY_LICENSES.md created with Zig attribution
 - [ ] Initial attribution commit created
 - [ ] Version strings updated to chronological format
@@ -213,4 +213,4 @@ After setup, verify:
 ---
 
 **Date**: 2026-01-22-062923-pst  
-**Status**: 🆕 **SETUP GUIDE** — Instructions for creating `codeberg.org/rye/rye` repository
+**Status**: 🆕 **SETUP GUIDE** — Instructions for creating `codeberg.org/ryelang/rye` repository

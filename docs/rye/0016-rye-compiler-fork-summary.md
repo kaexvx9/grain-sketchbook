@@ -2,7 +2,7 @@
 
 **Date**: 2026-01-22-064042-pst  
 **Status**: ✅ **PLANNING COMPLETE** — Ready to proceed with fork  
-**Repository**: `codeberg.org/rye/rye` (to be created)
+**Repository**: `codeberg.org/ryelang/rye` (to be created)
 
 ---
 
@@ -35,7 +35,7 @@
 ### 1. Fork Zig 0.15.2
 
 **Base**: https://codeberg.org/ziglang/zig/src/tag/0.15.2  
-**Repository**: `codeberg.org/rye/rye`  
+**Repository**: `codeberg.org/ryelang/rye`  
 **Attribution**: THIRD_PARTY_LICENSES.md with full Zig MIT license
 
 ### 2. Fix RISC-V Freestanding Bugs
@@ -143,7 +143,7 @@ rye test src/vantage/basin_integration_test.ry  # Test with Rye
 
 ### Immediate (This Week)
 
-1. **Create Repository**: Fork Zig 0.15.2 to `codeberg.org/rye/rye`
+1. **Create Repository**: Fork Zig 0.15.2 to `codeberg.org/ryelang/rye`
 2. **Attribution**: Create THIRD_PARTY_LICENSES.md
 3. **Versioning**: Update to chronological format
 4. **Documentation**: Set up repository structure

@@ -2,7 +2,7 @@
 
 **Date**: 2026-01-22-062923-pst  
 **Status**: 🆕 **PLANNING** — Fork Zig 0.15.2 to create Rye compiler  
-**Repository**: `codeberg.org/rye/rye` (new repository)  
+**Repository**: `codeberg.org/ryelang/rye` (new repository)  
 **Base**: Zig 0.15.2 tag (https://codeberg.org/ziglang/zig/src/tag/0.15.2)
 
 ---
@@ -24,9 +24,9 @@
 
 ## Repository Setup
 
-### New Repository: `codeberg.org/rye/rye`
+### New Repository: `codeberg.org/ryelang/rye`
 
-**Organization**: `rye` (already have organization name)  
+**Organization**: `ryelang` (follows `ziglang/zig` pattern)  
 **Repository**: `rye`  
 **Base**: Fork from `codeberg.org/ziglang/zig` at tag `0.15.2`
 
@@ -40,7 +40,7 @@ git checkout -b rye-0.15.2-base
 
 # Rename remote
 git remote rename origin upstream
-git remote add origin https://codeberg.org/rye/rye.git
+git remote add origin https://codeberg.org/ryelang/rye.git
 
 # Initial commit with attribution
 git commit --allow-empty -m "rye: fork from zig 0.15.2
@@ -258,7 +258,7 @@ Rye adaptations:
 ### Phase 1: Fork and Setup (Week 1)
 
 **Tasks**:
-1. Fork Zig 0.15.2 to `codeberg.org/rye/rye`
+1. Fork Zig 0.15.2 to `codeberg.org/ryelang/rye`
 2. Create THIRD_PARTY_LICENSES.md with Zig attribution
 3. Update versioning to chronological
 4. Rename compiler binary: `zig` → `rye`
@@ -416,7 +416,7 @@ pub fn schedule_next(self: *Scheduler) ?u32 {
 
 ## Repository Structure
 
-### `codeberg.org/rye/rye`
+### `codeberg.org/ryelang/rye`
 
 ```
 rye/
@@ -461,7 +461,7 @@ rye test src/vantage/basin_integration_test.ry  # Test with Rye
 ```
 
 **Migration Steps**:
-1. Fork Zig 0.15.2 → `codeberg.org/rye/rye`
+1. Fork Zig 0.15.2 → `codeberg.org/ryelang/rye`
 2. Fix RISC-V freestanding bugs
 3. Add toroidal/garden types
 4. Enforce Rye Style
@@ -490,7 +490,7 @@ rye test src/vantage/basin_integration_test.ry  # Test with Rye
 
 ### Immediate (This Week)
 
-1. **Create Repository**: Fork Zig 0.15.2 to `codeberg.org/rye/rye`
+1. **Create Repository**: Fork Zig 0.15.2 to `codeberg.org/ryelang/rye`
 2. **Attribution**: Create THIRD_PARTY_LICENSES.md with Zig credit
 3. **Versioning**: Update to chronological versioning
 4. **Planning**: Document RISC-V fix strategy
@@ -524,6 +524,6 @@ rye test src/vantage/basin_integration_test.ry  # Test with Rye
 
 **Date**: 2026-01-22-062923-pst  
 **Status**: 🆕 **PLANNING** — Fork Zig 0.15.2 to create Rye compiler  
-**Repository**: `codeberg.org/rye/rye` (new repository)
+**Repository**: `codeberg.org/ryelang/rye` (new repository)
 
 **Fork Zig. Fix RISC-V. Add Toroidal. Enforce Style. Build Basin.**

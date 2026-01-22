@@ -189,7 +189,7 @@ Eventually the monorepo may move:
 |---------|---------------|
 | teamlibra/ry | grain/grain (OS is primary) |
 | teamlibra/ry | basin/basin (kernel is primary) |
-| teamlibra/ry | rye/rye (language is primary) |
+| teamlibra/ry | ryelang/rye (language is primary) |
 
 Decision criteria:
 - Which component becomes the primary identity?
