@@ -471,7 +471,7 @@ fn test_kernel_elf_loading(allocator: std.mem.Allocator) !void {
         std.debug.print("[kernel_vm_test] Serial output ({} bytes):\n", .{serial_output.total_written});
         std.debug.print("---\n{s}\n---\n", .{serial_output.buffer[0..out_len]});
         
-        // Note: Output starts with newline then 'B' from "Basin Kernel v0.2.0"
+        // Note: Output starts with newline then 'B' from "Basin Kernel 20260121.194401.basin"
         // Or 'G' from "grainscript>" prompt. Either indicates successful boot.
         const first_printable = for (serial_output.buffer[0..out_len]) |c| {
             if (c >= 0x20 and c < 0x7f) break c;

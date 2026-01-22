@@ -3,7 +3,7 @@
 Rye is a systems programming language for Grain OS. It's designed for bare-metal RISC-V64 targets
 with compiler-enforced style constraints.
 
-**Version**: 0.4.0
+**Version**: 20260121.194401.rye
 
 ## Phase 1: Transpiler
 

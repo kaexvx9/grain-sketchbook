@@ -23,7 +23,7 @@ fn print_banner() void {
     uart.println(" | |_) | (_| \\__ \\ | | | |");
     uart.println(" |____/ \\__,_|___/_|_| |_|");
     uart.println("");
-    uart.println("Basin Kernel v0.1.0 (Rye)");
+    uart.println("Basin Kernel 20260121.194401.basin (Rye)");
     uart.println("Copyright (c) 2026 Team Libra");
     uart.println("");
 }
@@ -46,7 +46,7 @@ fn repl_loop() void {
                 uart.println("Basin Kernel on RISC-V64");
             } else if (c == 'v') {
                 uart.println("");
-                uart.println("v0.1.0");
+                uart.println("20260121.194401.basin");
             } else if (c == 'e') {
                 uart.println("");
                 uart.println("Goodbye!");

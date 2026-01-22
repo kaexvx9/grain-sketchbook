@@ -441,7 +441,7 @@ fn do_expr() void {
 }
 
 export fn basin_main() callconv(.c) noreturn {
-    print_str("Basin Kernel v0.4\n");
+    print_str("Basin Kernel 20260121.194401.basin\n");
     print_str("Commands: h=help f=fib e=expr q=quit\n");
     print_str("  expr supports: +, -, *, /, (), variables (x=5, x*2)\n");
 

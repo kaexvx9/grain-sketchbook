@@ -42,7 +42,7 @@ pub const Repl = struct {
     /// Why: Main interactive loop for Grainscript shell.
     pub fn run(self: *Self) void {
         Uart.print("\n");
-        Uart.print("Grainscript REPL v0.1.0\n");
+        Uart.print("Grainscript REPL 20260121.194401.grainscript\n");
         Uart.print("Type 'help' for commands, 'exit' to quit.\n");
         Uart.print("\n");
 
@@ -86,7 +86,7 @@ pub const Repl = struct {
             return;
         }
         if (starts_with(line, "sys")) {
-            Uart.print("Basin Kernel v0.1.0 (RISC-V64)\n");
+            Uart.print("Basin Kernel 20260121.194401.basin (RISC-V64)\n");
             Uart.print("Users: ");
             const count = self.kernel.user_count;
             if (count < 10) {

@@ -40,7 +40,7 @@ fn read_line(line_buf: *[MAX_LINE_LEN]u8) u32 {
 
 /// Why: Entry point for shell process spawned in Basin Kernel.
 export fn main() void {
-    Debug.kprint("Grainscript Shell v0.1.0 (Basin Kernel)\n", .{});
+    Debug.kprint("Grainscript Shell 20260121.194401.grainscript (Basin Kernel)\n", .{});
     Debug.kprint("Type 'help' for commands, 'exit' to exit.\n\n", .{});
     var allocator_buffer: [64 * 1024]u8 = undefined;
     var fixed_allocator = std.heap.FixedBufferAllocator.init(&allocator_buffer);

@@ -191,7 +191,7 @@ fn draw_boot_banner() void {
     fill_rect(50, 50, fb_width - 100, 4, accent_color);
 
     // Print title (simplified - just colored rectangles for now)
-    print_at(70, 80, "Vantage VM v0.1", banner_color);
+    print_at(70, 80, "Vantage VM 20260121.194401.vantage", banner_color);
     print_at(70, 110, "RISC-V64 Emulator on x86_64", banner_color);
 
     // Print memory info

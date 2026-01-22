@@ -282,7 +282,7 @@ pub fn main() void {
     
     // Print welcome message (UCS-2 string)
     const banner = comptime blk: {
-        const msg = "Basin Kernel Bootloader v0.1\r\n";
+        const msg = "Basin Kernel Bootloader 20260121.194401.bootloader\r\n";
         var buf: [msg.len:0]u16 = undefined;
         for (msg, 0..) |c, i| {
             buf[i] = c;
@@ -335,7 +335,7 @@ pub fn efi_main(image_handle: *anyopaque, system_table: *EfiSystemTable) callcon
 
     // Clear screen and print banner
     _ = con_out.clear_screen(con_out);
-    print(con_out, "Basin Kernel Bootloader v0.1\r\n");
+    print(con_out, "Basin Kernel Bootloader 20260121.194401.bootloader\r\n");
     print(con_out, "=============================\r\n\r\n");
 
     // Disable watchdog timer

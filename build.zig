@@ -297,7 +297,7 @@ pub fn build(b: *std.Build) void {
             },
         }),
     });
-    vantage_x86_64_exe.setLinkerScript(b.path("src/kernel/linker_x86_64.ld"));
+    vantage_x86_64_exe.setLinkerScript(b.path("src/vantage/linker_x86_64.ld"));
     // Disable standard library features not available in freestanding
     vantage_x86_64_exe.root_module.red_zone = false;
     vantage_x86_64_exe.root_module.stack_check = false;

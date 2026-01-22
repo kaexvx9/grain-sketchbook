@@ -97,7 +97,7 @@ fn do_quit() noreturn {
 }
 
 export fn basin_main() callconv(.c) noreturn {
-    print_str("Basin Kernel v0.2\n");
+    print_str("Basin Kernel 20260121.194401.basin\n");
     print_str("Commands: h=help f=fib q=quit\n");
 
     var fib_n: u64 = 0;

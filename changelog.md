@@ -1,9 +1,9 @@
 # Changelog
 
-> **Versioning**: Chronological (`YYYYMMDD.HHMM`) per Rich Hickey's "Spec-ulation."
+> **Versioning**: Chronological (`YYYYMMDD.HHMMSS.variant`) per Rich Hickey's "Spec-ulation."
 > Breaking changes are broken—we only accrete. Names are enduring.
 
-## 20260120.0952
+## 20260120.095200.grain
 
 First chronological release. All prior SemVer tags deleted.
 

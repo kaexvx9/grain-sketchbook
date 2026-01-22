@@ -175,7 +175,7 @@ fn repl(allocator: std.mem.Allocator) void {
 
 pub export fn kmain() noreturn {
     uart_print("\n");
-    uart_print("Basin Kernel v0.2.0 (RISC-V64 + Grainscript)\n");
+    uart_print("Basin Kernel 20260121.194401.basin (RISC-V64 + Grainscript)\n");
     uart_print("Copyright (c) 2026 Team Libra\n");
     uart_print("\n");
     uart_print("Type 'help' for commands, 'exit' to halt.\n");
