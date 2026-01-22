@@ -336,6 +336,7 @@ zig build test --test-filter test_name
 
 ### Run Specific Test Files
 
+**Current (Phase 1 - Transpiler)**:
 ```bash
 # Run Basin integration test
 zig test src/vantage/basin_integration_test.zig
@@ -346,6 +347,20 @@ zig test src/vantage/riscv_core_test.zig
 # Run specific test file
 zig test tests/164_end_to_end_integration_test.zig
 ```
+
+**Future (Phase 2 - Native Compiler)**:
+```bash
+# Run Basin integration test with Rye compiler
+rye test src/vantage/basin_integration_test.ry
+
+# Run RISC-V core tests with Rye compiler
+rye test src/vantage/riscv_core_test.ry
+
+# Run specific test file with Rye compiler
+rye test tests/164_end_to_end_integration_test.ry
+```
+
+**Note**: When Rye compiler (Phase 2) is ready, test commands will use `rye test` instead of `zig test`. See `docs/rye/0011-rye-compiler-fork-plan.md` for migration plan.
 
 ### Test Framework x86_64
 
