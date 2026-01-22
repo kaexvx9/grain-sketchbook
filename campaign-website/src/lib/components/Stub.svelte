@@ -1,6 +1,6 @@
 <script>
   // Stub component - makes it obvious when content is placeholder
-  export let message: string = 'This is a placeholder/stub';
+  let { message = 'This is a placeholder/stub' } = $props();
 </script>
 
 <div class="stub">

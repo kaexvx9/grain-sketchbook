@@ -155,8 +155,10 @@ fn parse_identifier(s: []const u8, pos: *u64) ?[]const u8 {
 }
 
 fn do_help() void {
-    print_str("h:help f:fib e:expr q:quit\n");
+    print_str("h:help f:fib e:expr v:vars c:clear q:quit\n");
     print_str("  expr: 2+3*4 or x=5 or x*2\n");
+    print_str("  vars: list all variables\n");
+    print_str("  clear: clear all variables\n");
 }
 
 fn do_fib(n: *u64) void {
@@ -172,6 +174,41 @@ fn do_fib(n: *u64) void {
 fn do_quit() noreturn {
     print_str("Goodbye!\n");
     sbi_shutdown();
+}
+
+fn do_list_vars() void {
+    var found: bool = false;
+    for (&variables) |*v| {
+        if (v.used) {
+            found = true;
+            // Print variable name
+            for (0..v.name_len) |i| {
+                sbi_putchar(v.name[i]);
+            }
+            print_str(" = ");
+            // Print value
+            if (v.value < 0) {
+                sbi_putchar('-');
+                print_num(@intCast(-v.value));
+            } else {
+                print_num(@intCast(v.value));
+            }
+            sbi_putchar('\n');
+        }
+    }
+    if (!found) {
+        print_str("No variables defined\n");
+    }
+}
+
+fn do_clear_vars() void {
+    for (&variables) |*v| {
+        v.used = false;
+        v.name_len = 0;
+        v.value = 0;
+        @memset(&v.name, 0);
+    }
+    print_str("All variables cleared\n");
 }
 
 // Simple expression evaluator (supports +, -, *, /, parentheses)

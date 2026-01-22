@@ -1,10 +1,9 @@
 <script>
   // Explicit props
-  export let title = '';
-  export let className = '';
+  let { title = '', className = '' } = $props();
 </script>
 
-<section class="section" class={className}>
+<section class={`section ${className}`}>
   <div class="container">
     {#if title}
       <h2 class="section-title">{title}</h2>

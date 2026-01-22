@@ -65,9 +65,9 @@
   --shadow-lg: 0 8px 24px rgba(44, 36, 22, 0.2);
 }
 
-/* Dark Mode Palette */
+/* Dark Mode Palette - System Preference */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     /* Dark Mode Accents (brighter for visibility) */
     --color-primary: #ffa726;         /* Brighter sunset orange */
     --color-primary-hover: #ff9800;   /* Even brighter on hover */
@@ -112,6 +112,99 @@
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
     --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
   }
+}
+
+/* Manual Dark Mode Override (when user clicks theme toggle) */
+:root[data-theme="dark"] {
+  /* Dark Mode Accents (brighter for visibility) */
+  --color-primary: #ffa726;         /* Brighter sunset orange */
+  --color-primary-hover: #ff9800;   /* Even brighter on hover */
+  --color-secondary: #a5c94a;       /* Brighter seafoam green */
+  --color-secondary-hover: #9ccc65; /* Lighter green on hover */
+  --color-tertiary: #c4a85a;         /* Brighter sand beige */
+  
+  /* Dark Mode Backgrounds */
+  --color-bg: #2c2416;              /* Dark brown */
+  --color-bg-alt: #3a2e1f;          /* Medium dark brown */
+  --color-bg-surface: #1f1810;      /* Deepest brown for cards */
+  --color-bg-muted: #352a1d;        /* Subtle dark background */
+  --color-bg-accent: #3d2a35;       /* Mauve-tinted dark background */
+  --color-bg-highlight: #4a3440;    /* Purple-rose highlight background */
+  
+  /* Dark Mode Text */
+  --color-text: #faf8f5;            /* Warm off-white */
+  --color-text-secondary: #d4c4b0;   /* Light beige */
+  --color-text-muted: #8a7a6a;      /* Medium beige */
+  --color-text-inverse: #2c2416;    /* Dark brown for light backgrounds */
+  
+  /* Dark Mode Borders */
+  --color-border: #4a3e2f;          /* Medium brown */
+  --color-border-medium: #5a4a3a;   /* Lighter brown */
+  --color-border-accent: var(--color-purple-rose-subtle); /* Mauve border accent */
+  
+  /* Dark Mode: Lighter Purple-Mauve-Rose */
+  --color-purple-rose-light: #d4a5c7;  /* Light mauve-rose */
+  --color-purple-rose-medium: #c895b8; /* Medium mauve */
+  --color-purple-rose-accent: #b885a9; /* Mauve accent */
+  --color-purple-rose-subtle: #a8759a; /* Deeper mauve for borders */
+  --color-purple-rose-pale: #e8c5d9;   /* Pale rose for highlights */
+  
+  /* Semantic Colors - Dark Mode */
+  --color-success: #8bc34a;         /* Bright green */
+  --color-warning: #ff9800;          /* Bright orange */
+  --color-error: #ff6b35;            /* Coral red */
+  --color-info: #66b3cc;             /* Bright blue-green */
+  
+  /* Shadows (lighter for dark mode) */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* Manual Light Mode Override (when user explicitly sets light) */
+:root[data-theme="light"] {
+  /* Light Mode Palette */
+  --color-primary: #fc9206;          /* Sunset orange */
+  --color-primary-hover: #e68205;     /* Darker orange on hover */
+  --color-secondary: #91ab06;         /* Seafoam green */
+  --color-secondary-hover: #7d9505;  /* Darker green on hover */
+  --color-tertiary: #aa903a;         /* Sand beige */
+  
+  /* Light Mode Backgrounds */
+  --color-bg: #faf8f5;                /* Warm off-white */
+  --color-bg-alt: #f5f2ed;           /* Soft beige-tinted white */
+  --color-bg-surface: #ffffff;       /* Pure white for cards */
+  --color-bg-muted: #f0ede6;         /* Subtle background */
+  --color-bg-accent: #e8f4f0;        /* Very light teal-tinted background */
+  --color-bg-highlight: #f0f8f5;     /* Subtle green-blue highlight */
+  
+  /* Light Mode Text */
+  --color-text: #2c2416;             /* Deep brown-black */
+  --color-text-secondary: #5a4a3a;    /* Medium brown */
+  --color-text-muted: #8a7a6a;       /* Light brown */
+  --color-text-inverse: #faf8f5;     /* Off-white for dark backgrounds */
+  
+  /* Light Mode Borders */
+  --color-border: #e8e0d6;           /* Warm beige-gray */
+  --color-border-medium: #d4c4b0;     /* Medium beige */
+  --color-border-accent: var(--color-green-blue-subtle); /* Teal border accent */
+  
+  /* Light Mode: Darker Green-Blues */
+  --color-green-blue-dark: #2d5a4f;   /* Deep teal-green */
+  --color-green-blue-medium: #3d6b5e; /* Medium teal */
+  --color-green-blue-accent: #4a7c6f; /* Teal accent */
+  --color-green-blue-subtle: #5a8a7a; /* Lighter teal for borders */
+  
+  /* Semantic Colors - Light Mode */
+  --color-success: #6b8e23;          /* Olive green */
+  --color-warning: #ff8c00;           /* Burnt orange */
+  --color-error: #d2691e;             /* Chocolate */
+  --color-info: #4a90a4;              /* Blue-green */
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 4px rgba(44, 36, 22, 0.1);
+  --shadow-md: 0 4px 12px rgba(44, 36, 22, 0.15);
+  --shadow-lg: 0 8px 24px rgba(44, 36, 22, 0.2);
 }
 
 * {

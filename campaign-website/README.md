@@ -8,14 +8,23 @@ Campaign website for Keaton Livermore's 2026 California Governor race.
 
 ### Prerequisites
 
-- **Node.js** (v18 or later) - [Download](https://nodejs.org/)
-- **npm** (comes with Node.js)
+- **nvm (Node Version Manager)** - ✅ Installed
+- **Node.js** v24.13.0 (LTS) - ✅ Installed via nvm
+- **npm** v11.6.2 - ✅ Installed with Node.js
+
+**Note**: If opening a new terminal, nvm may need to be loaded:
+```bash
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+```
 
 ### Installation & Running
 
+**All commands from `/home/xy/ry/campaign-website/`:**
+
 ```bash
 # 1. Navigate to project directory
-cd campaign-website
+cd /home/xy/ry/campaign-website
 
 # 2. Install dependencies (first time only)
 npm install
@@ -78,6 +87,7 @@ campaign-website/
 ### ✅ Implemented
 - Basic site structure
 - Color scheme (light/dark mode)
+- **Theme toggle** (`*` button, top-right, cycles Auto→Light→Dark)
 - Core components (Header, Footer, Hero)
 - Platform section
 - About section
@@ -93,6 +103,14 @@ campaign-website/
 - Full content/details (marked with STUB components)
 
 **Note**: Stubs are clearly marked with orange "STUB" badges and italic text.
+
+### 🎨 Vision Page Components
+- Custom SVG illustrations matching campaign vision
+- Permaculture food forest visuals
+- Traditional urbanism community layouts
+- Technology infrastructure networks
+- Regional California icons
+- All using our color scheme (auto light/dark mode)
 
 ## Development Principles
 
@@ -131,17 +149,27 @@ See `/docs/campaign/` (parent directory) for detailed docs:
 ## Troubleshooting
 
 ### Port Already in Use
-If port 5173 is taken, Vite will suggest another port automatically.
+If port 5173 is taken, Vite will suggest another port automatically. Check terminal output.
+
+### "Command not found: npm"
+Load nvm first (if in new terminal):
+```bash
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+```
 
 ### Dependencies Issues
 ```bash
-# Clear cache and reinstall
+cd /home/xy/ry/campaign-website
 rm -rf node_modules package-lock.json
 npm install
 ```
 
 ### Build Errors
-Check that all components are properly imported and paths are correct.
+Check that:
+1. You're in `/home/xy/ry/campaign-website/`
+2. All components are properly imported
+3. File paths are correct
 
 ## License
 

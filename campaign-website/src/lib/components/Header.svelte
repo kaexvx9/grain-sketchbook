@@ -24,6 +24,7 @@
       <ul class="nav-links" class:open={menuOpen}>
         <li><a href="#home">Home</a></li>
         <li><a href="#about">About</a></li>
+        <li><a href="#vision">Vision</a></li>
         <li><a href="#platform">Platform</a></li>
         <li><a href="#get-involved">Get Involved</a></li>
       </ul>

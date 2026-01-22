@@ -9,13 +9,26 @@
 
 ### Prerequisites
 
-1. **Node.js** (version 18 or later)
-   - Check if installed: `node --version`
-   - Download: https://nodejs.org/
-   - Or use nvm: `nvm install 18` (if you have nvm)
+1. **nvm (Node Version Manager)** - Installed ✅
+   - Location: `~/.nvm/`
+   - Already installed and configured
 
-2. **npm** (comes with Node.js)
-   - Check if installed: `npm --version`
+2. **Node.js** - Installed ✅
+   - Version: v24.13.0 (LTS)
+   - Installed via nvm
+   - Check: `node --version`
+
+3. **npm** - Installed ✅
+   - Version: v11.6.2 (comes with Node.js)
+   - Check: `npm --version`
+
+**Note**: If you open a new terminal, you may need to load nvm:
+```bash
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+```
+
+Or it will auto-load from your `~/.zshrc` file.
 
 ### Installation
 
@@ -29,12 +42,15 @@ npm install
 
 This will:
 - Download all required packages (Svelte, Vite, etc.)
-- Create `node_modules/` directory
+- Create `node_modules/` directory in `/home/xy/ry/campaign-website/`
 - Take 1-2 minutes on first run
 
 ### Running Development Server
 
 ```bash
+# Make sure you're in the campaign website directory
+cd /home/xy/ry/campaign-website
+
 # Start the development server
 npm run dev
 ```
@@ -60,17 +76,21 @@ Press `Ctrl+C` in the terminal where the server is running.
 
 ## Other Commands
 
+**All commands should be run from `/home/xy/ry/campaign-website/`**
+
 ### Build for Production
 
 ```bash
+cd /home/xy/ry/campaign-website
 npm run build
 ```
 
-Creates optimized files in `dist/` directory ready for deployment.
+Creates optimized files in `/home/xy/ry/campaign-website/dist/` directory ready for deployment.
 
 ### Preview Production Build
 
 ```bash
+cd /home/xy/ry/campaign-website
 npm run preview
 ```
 
@@ -78,18 +98,27 @@ Starts a local server to preview the production build.
 
 ## Project Structure
 
+**Base Directory**: `/home/xy/ry/campaign-website/`
+
 ```
-campaign-website/
+/home/xy/ry/campaign-website/
 ├── src/
 │   ├── lib/
-│   │   ├── components/     # All Svelte components
-│   │   └── utils/          # Utility functions
-│   ├── App.svelte          # Main app
-│   ├── main.js             # Entry point
-│   └── app.css             # Global styles
-├── index.html              # HTML template
-├── package.json            # Dependencies
-└── vite.config.js          # Build config
+│   │   ├── components/           # All Svelte components
+│   │   │   ├── vision/           # Vision page components with SVGs
+│   │   │   ├── Header.svelte
+│   │   │   ├── Footer.svelte
+│   │   │   ├── Hero.svelte
+│   │   │   └── ...
+│   │   └── utils/                # Utility functions
+│   ├── App.svelte                # Main app
+│   ├── main.js                   # Entry point
+│   └── app.css                   # Global styles & color scheme
+├── index.html                    # HTML template
+├── package.json                  # Dependencies
+├── vite.config.js                # Build config
+├── node_modules/                 # Dependencies (created by npm install)
+└── dist/                         # Production build (created by npm run build)
 ```
 
 ## What You'll See
@@ -119,32 +148,63 @@ All stubs are clearly marked and easy to find/replace.
 
 If port 5173 is taken, Vite will automatically use the next available port (5174, 5175, etc.). Check the terminal output for the actual URL.
 
-### "Command not found: npm"
+### "Command not found: npm" or "Command not found: node"
 
-Node.js/npm is not installed. Install from https://nodejs.org/
+**If in a new terminal session**, load nvm first:
+```bash
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+```
+
+Or restart your terminal (nvm auto-loads from `~/.zshrc`).
+
+Then verify:
+```bash
+node --version  # Should show: v24.13.0
+npm --version   # Should show: 11.6.2
+```
 
 ### "Cannot find module" Errors
 
 Dependencies not installed. Run:
 ```bash
+cd /home/xy/ry/campaign-website
 npm install
 ```
 
 ### Build Errors
 
-Make sure all file paths are correct and components are properly imported.
+Make sure:
+1. You're in the correct directory: `/home/xy/ry/campaign-website/`
+2. All file paths are correct
+3. Components are properly imported
 
 ### Colors Look Wrong
 
-The site uses system dark mode preference. Toggle your OS dark/light mode to see both themes.
+The site uses system dark mode preference by default. Use the `*` button (top-right) to manually toggle themes, or toggle your OS dark/light mode.
 
 ## Next Steps After Running
 
 1. **Explore the site** - See what's implemented
+   - Visit `http://localhost:5173` in your browser
+   - Check all sections: Hero, About, Vision (with SVGs!), Platform, Get Involved
+
 2. **Check the code** - Understand the structure
+   - Main app: `/home/xy/ry/campaign-website/src/App.svelte`
+   - Components: `/home/xy/ry/campaign-website/src/lib/components/`
+   - Vision SVGs: `/home/xy/ry/campaign-website/src/lib/components/vision/`
+
 3. **Replace stubs** - Add real content
+   - Look for orange "STUB" badges
+   - Edit components in `src/lib/components/`
+
 4. **Add social links** - Uncomment and add real URLs
+   - Edit `/home/xy/ry/campaign-website/src/App.svelte`
+   - Find the `socialLinks` object
+
 5. **Customize** - Adjust colors, content, layout
+   - Colors: `/home/xy/ry/campaign-website/src/app.css`
+   - Components: `/home/xy/ry/campaign-website/src/lib/components/`
 
 ## Development Tips
 
@@ -165,10 +225,39 @@ Check performance with browser DevTools → Lighthouse.
 
 ## Getting Help
 
-- Check `/docs/campaign/` for detailed documentation
-- Review component files in `src/lib/components/`
-- See `README.md` in campaign-website directory
+- **Documentation**: `/home/xy/ry/docs/campaign/` for detailed docs
+  - `0007-running-instructions.md` - This file
+  - `0001-website-architecture.md` - Architecture overview
+  - `0004-color-scheme-design.md` - Color palette
+  - `0009-vision-page-design.md` - Vision page with SVGs
+- **Code**: Review component files in `/home/xy/ry/campaign-website/src/lib/components/`
+- **Quick Reference**: `/home/xy/ry/campaign-website/README.md` and `QUICK_START.md`
 
 ---
 
-**Ready to go!** Run `npm install` then `npm run dev` and start building! 🚀
+## Complete Command Reference
+
+**From `/home/xy/ry/campaign-website/` directory:**
+
+```bash
+# First time setup (if nvm not loaded)
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+# Navigate to project
+cd /home/xy/ry/campaign-website
+
+# Install dependencies (first time only)
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+```
+
+**Ready to go!** Run `npm install` then `npm run dev` from `/home/xy/ry/campaign-website/` and start building! 🚀

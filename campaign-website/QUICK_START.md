@@ -2,14 +2,25 @@
 
 ## 🚀 Get Running in 2 Minutes
 
+**From `/home/xy/ry/campaign-website/` directory:**
+
 ```bash
-# 1. Install dependencies (first time only)
+# 1. Navigate to project (if not already there)
+cd /home/xy/ry/campaign-website
+
+# 2. Install dependencies (first time only)
 npm install
 
-# 2. Start development server
+# 3. Start development server
 npm run dev
 
-# 3. Open http://localhost:5173 in your browser
+# 4. Open http://localhost:5173 in your browser
+```
+
+**Note**: If `npm` command not found, load nvm first:
+```bash
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 ```
 
 That's it! The site is now running locally.
@@ -18,6 +29,8 @@ That's it! The site is now running locally.
 
 - ✅ Full site structure with sections
 - ✅ Color scheme (light/dark mode)
+- ✅ **Theme toggle** - Click `*` button (top-right) to cycle themes
+- ✅ **Custom SVG illustrations** - Visual storytelling for campaign vision
 - ✅ All core components
 - ✅ Performance optimizations
 - ✅ Clear stubs for placeholder content
