@@ -30,7 +30,7 @@ cd /home/xy/ry
 zig build basin-rv64
 
 # 2. Run integration test (tests Basin REPL)
-zig test src/vantage/basin_integration_test.zig --mod riscv_core:src/vantage/riscv_core.zig
+zig test src/vantage/basin_integration_test.zig
 ```
 
 **What this does**:
@@ -240,7 +240,7 @@ qemu-system-x86_64 -cdrom vantage.iso -serial stdio
 # Test Basin (fastest)
 cd /home/xy/ry
 zig build basin-rv64
-zig test src/vantage/basin_integration_test.zig --mod riscv_core:src/vantage/riscv_core.zig
+zig test src/vantage/basin_integration_test.zig
 
 # Full boot in QEMU
 cd /home/xy/ry

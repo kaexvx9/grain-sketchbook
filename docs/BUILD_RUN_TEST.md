@@ -17,7 +17,7 @@ cd /home/xy/ry
 zig build basin-rv64
 
 # Run integration test (no QEMU needed)
-zig test src/vantage/basin_integration_test.zig --mod riscv_core:src/vantage/riscv_core.zig
+zig test src/vantage/basin_integration_test.zig
 ```
 
 **Expected**: Test passes, showing Basin REPL is functional.
@@ -338,10 +338,10 @@ zig build test --test-filter test_name
 
 ```bash
 # Run Basin integration test
-zig test src/vantage/basin_integration_test.zig --mod riscv_core:src/vantage/riscv_core.zig
+zig test src/vantage/basin_integration_test.zig
 
 # Run RISC-V core tests
-zig test src/vantage/riscv_core_test.zig --mod riscv_core:src/vantage/riscv_core.zig
+zig test src/vantage/riscv_core_test.zig
 
 # Run specific test file
 zig test tests/164_end_to_end_integration_test.zig

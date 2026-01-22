@@ -104,7 +104,7 @@ cd /home/xy/ry
 zig build basin-rv64
 
 # Run integration test
-zig test src/vantage/basin_integration_test.zig --mod riscv_core:src/vantage/riscv_core.zig
+zig test src/vantage/basin_integration_test.zig
 ```
 
 **What it does**: Loads Basin in test VM, sends commands, verifies output.
@@ -357,7 +357,7 @@ zig build kernel-vm-test  # Run RISC-V core tests (12/12 passing)
 # Test Basin (fastest)
 cd /home/xy/ry
 zig build basin-rv64
-zig test src/vantage/basin_integration_test.zig --mod riscv_core:src/vantage/riscv_core.zig
+zig test src/vantage/basin_integration_test.zig
 
 # Full boot in QEMU
 cd /home/xy/ry

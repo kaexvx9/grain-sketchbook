@@ -24,7 +24,7 @@ cd /home/xy/ry
 zig build basin-rv64
 
 # Run integration test (no QEMU needed)
-zig test src/vantage/basin_integration_test.zig --mod riscv_core:src/vantage/riscv_core.zig
+zig test src/vantage/basin_integration_test.zig
 ```
 
 **For complete build, run, and test instructions, see:**
