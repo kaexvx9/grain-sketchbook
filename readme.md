@@ -9,7 +9,26 @@
 
 **This entire codebase was built using Cursor Ultra ($200/month) in Auto Mode.**
 
-168,000+ lines of Zig/Rye and counting. 500+ source files. **333/333 tests passing**. **78 Rye modules (20,745 lines)**. Kernel + Grainscript 100% converted to Rye. Toroidal Garden Architecture. Unified DAG UI backend (Aurora + Skate + Realidream). Grainscript UI bindings + kernel event loop. **Vantage VM** boots on x86_64 via Limine, emulates RISC-V64 to run Basin kernel. **RVC support** (compressed 16-bit instructions). **Basin kernel REPL** - interactive shell with commands (h=help, f=fib, q=quit). **SBI getchar/putchar** - full console I/O. **End-to-end integration test** loads Basin ELF, sends keyboard input, verifies REPL output. **RISC-V core unit tests** (12/12 passing). Basin Kernel Lite for stack-friendly testing. Heap allocation for VM (8MB) and kernel (4MB+) in tests. A complete RISC-V64 operating system with JIT compiler, networking stack, and scripting language — built by AI agents.
+168,000+ lines of Zig/Rye and counting. 500+ source files. **333/333 tests passing**. **78 Rye modules (20,745 lines)**. Kernel + Grainscript 100% converted to Rye. Toroidal Garden Architecture. Unified DAG UI backend (Aurora + Skate + Realidream). Grainscript UI bindings + kernel event loop. **Vantage VM** boots on x86_64 via Limine, emulates RISC-V64 to run Basin kernel. **RVC support** (compressed 16-bit instructions). **Basin kernel REPL** - interactive shell with commands (h=help, f=fib, e=expr, v=vars, c=clear, q=quit). **SBI getchar/putchar** - full console I/O. **End-to-end integration test** loads Basin ELF, sends keyboard input, verifies REPL output. **RISC-V core unit tests** (12/12 passing). Basin Kernel Lite for stack-friendly testing. Heap allocation for VM (8MB) and kernel (4MB+) in tests. A complete RISC-V64 operating system with JIT compiler, networking stack, and scripting language — built by AI agents.
+
+---
+
+## Quick Start
+
+**Build and test Basin kernel (fastest way to verify everything works):**
+
+```bash
+cd /home/xy/ry
+
+# Build Basin kernel (RISC-V64)
+zig build basin-rv64
+
+# Run integration test (no QEMU needed)
+zig test src/vantage/basin_integration_test.zig --mod riscv_core:src/vantage/riscv_core.zig
+```
+
+**For complete build, run, and test instructions, see:**
+- 📖 **[Build, Run, and Test Guide](docs/BUILD_RUN_TEST.md)** — Complete instructions for building, running, and testing Grain OS
 
 ---
 
