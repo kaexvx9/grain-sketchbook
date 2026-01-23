@@ -1435,6 +1435,19 @@ pub fn build(b: *std.Build) void {
     const run_graindaemon = b.addRunArtifact(graindaemon_cli);
     graindaemon_step.dependOn(&run_graindaemon.step);
 
+    const rye_sync_daemon = b.addExecutable(.{
+        .name = "rye_sync_daemon",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("tools/rye_sync_daemon.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    });
+    b.installArtifact(rye_sync_daemon);
+    const rye_sync_step = b.step("rye-sync", "Run Rye sync daemon");
+    const run_rye_sync = b.addRunArtifact(rye_sync_daemon);
+    rye_sync_step.dependOn(&run_rye_sync.step);
+
     const aurora_preprocessor = b.addExecutable(.{
         .name = "aurora_preprocessor",
         .root_module = b.createModule(.{
