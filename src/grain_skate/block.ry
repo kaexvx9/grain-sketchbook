@@ -44,7 +44,6 @@ pub const Block = struct {
 
         /// Initialize block data.
         /// Why: Required for block creation before content storage and graph operations.
-        // 2025-11-23-114146-pst: Active function
         pub fn init(allocator: std.mem.Allocator, id: u32, title: []const u8, content: []const u8) !BlockData {
 
             // Assert: Title and content must be bounded
@@ -178,6 +177,7 @@ pub const Block = struct {
         }
 
         /// Remove backlink.
+        /// Why: Required for bidirectional link cleanup when source block removes its link.
         pub fn remove_backlink(self: *BlockData, source_block_id: u32) void {
             var i: u32 = 0;
             while (i < self.backlinks_len) : (i += 1) {
@@ -249,7 +249,6 @@ pub const Block = struct {
 
         /// Initialize block storage.
         /// Why: Required for block storage initialization before block creation operations.
-        // 2025-11-23-114146-pst: Active function
         pub fn init(allocator: std.mem.Allocator) !BlockStorage {
 
             // Pre-allocate blocks buffer
@@ -265,6 +264,7 @@ pub const Block = struct {
         }
 
         /// Deinitialize block storage and free memory.
+        /// Why: Required for storage cleanup when storage is destroyed or application exits.
         pub fn deinit(self: *BlockStorage) void {
             // Assert: Allocator must be valid (check by attempting deallocation)
             _ = self.allocator;
@@ -283,7 +283,6 @@ pub const Block = struct {
 
         /// Create new block.
         /// Why: Required for creating new blocks in knowledge graph before linking.
-        // 2025-11-23-114146-pst: Active function
         pub fn create_block(self: *BlockStorage, title: []const u8, content: []const u8) !u32 {
             // Check blocks limit
             if (self.blocks_len >= MAX_BLOCKS) {
@@ -312,7 +311,6 @@ pub const Block = struct {
 
         /// Link two blocks (bidirectional).
         /// Why: Required for creating bidirectional links between blocks in knowledge graph.
-        // 2025-11-23-114146-pst: Active function
         pub fn link_blocks(self: *BlockStorage, source_id: u32, target_id: u32) !void {
             if (self.find_block(source_id)) |source| {
                 if (self.find_block(target_id)) |target| {
