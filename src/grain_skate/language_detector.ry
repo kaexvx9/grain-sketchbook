@@ -141,13 +141,17 @@ pub const LanguageDetector = struct {
         while (line_end < content.len and content[line_end] != '\n') : (line_end += 1) {}
         const shebang_line = content[0..line_end];
         // Check for common interpreters
-        if (std.mem.indexOf(u8, shebang_line, "python") != null or std.mem.indexOf(u8, shebang_line, "python3") != null) {
+        if (std.mem.indexOf(u8, shebang_line, "python") != null or
+            std.mem.indexOf(u8, shebang_line, "python3") != null)
+        {
             return .python;
         }
         if (std.mem.indexOf(u8, shebang_line, "node") != null) {
             return .javascript;
         }
-        if (std.mem.indexOf(u8, shebang_line, "sh") != null or std.mem.indexOf(u8, shebang_line, "bash") != null) {
+        if (std.mem.indexOf(u8, shebang_line, "sh") != null or
+            std.mem.indexOf(u8, shebang_line, "bash") != null)
+        {
             return .shell;
         }
         if (std.mem.indexOf(u8, shebang_line, "zig") != null) {

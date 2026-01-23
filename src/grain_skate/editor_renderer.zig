@@ -8,8 +8,8 @@
 
 const std = @import("std");
 const Editor = @import("editor.zig").Editor;
-const LanguageDetector = @import("language_detector.zig").LanguageDetector;
-const Language = @import("language_detector.zig").Language;
+const LanguageDetector = @import("language_detector.ry").LanguageDetector;
+const Language = @import("language_detector.ry").Language;
 const LanguageKeywords = @import("language_keywords.ry").LanguageKeywords;
 const BracketMatcher = @import("bracket_matching.zig").BracketMatcher;
 const BracketMatch = @import("bracket_matching.zig").BracketMatch;
