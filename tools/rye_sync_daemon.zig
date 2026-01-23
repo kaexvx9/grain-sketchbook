@@ -88,7 +88,8 @@ pub fn main() !void {
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
-    const home = std.os.getenv("HOME") orelse return error.NoHome;
+    const home = try std.process.getEnvVarOwned(allocator, "HOME");
+    defer allocator.free(home);
     const full_external = try std.fmt.allocPrint(
         allocator,
         "{s}/codeberg/ryelang/rye",
