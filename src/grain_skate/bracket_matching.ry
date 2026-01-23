@@ -67,7 +67,7 @@ pub const BracketMatch = struct {
 // 2025-12-03-162613-pst: Active struct
 pub const BracketMatcher = struct {
     /// Get bracket type from character.
-    // 2025-12-03-162613-pst: Active function
+    /// Why: Required for identifying bracket characters before matching operations.
     pub fn get_bracket_type(ch: u8) BracketType {
         return switch (ch) {
             '(' => .paren_open,
@@ -92,7 +92,7 @@ pub const BracketMatcher = struct {
     }
     
     /// Check if bracket is closing bracket.
-    // 2025-12-03-162613-pst: Active function
+    /// Why: Required for determining search direction in bracket matching algorithm.
     pub fn is_close_bracket(bracket_type: BracketType) bool {
         return switch (bracket_type) {
             .paren_close, .bracket_close, .brace_close, .angle_close => true,
