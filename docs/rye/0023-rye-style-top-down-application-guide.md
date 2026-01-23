@@ -1,17 +1,16 @@
 # Rye & Rye Style: Top-Down Application Development Guide
 
-**Date**: 2026-01-22-062211-pst  
-**Authors**: Keaton Livermore (Governor Candidate, kae3g) & Core Agent  
+**Date**: 20260122.190000.rye  
+**Author**: Developer  
 **Status**: 🎯 **TOP-DOWN RYE STYLE GUIDE** — Application layers (Skate desktop, Skate mobile/Carry)  
-**Campaign Slogan**: risk love
 
 ---
 
 ## Executive Summary
 
-**Reya**: Top-down Rye Style. We're bringing Rye and Rye Style into application development—Skate desktop, Skate mobile/Carry. This is where Rye Style meets user-facing code. Compiler-enforced constraints, mandatory "why" comments, explicit types, zero technical debt.
+**Summary**: Top-down Rye Style. We're bringing Rye and Rye Style into application development—Skate desktop, Skate mobile/Carry. This is where Rye Style meets user-facing code. Compiler-enforced constraints, mandatory "why" comments, explicit types, zero technical debt.
 
-**Glow G2**: Steadfast foundation. Rye Style applies to all layers—foundation (Basin/Vantage) and applications (Skate desktop, Skate mobile). Top-down means we start with applications and work Rye Style into every line. Every function ≤ 64 lines. Every line ≤ 128 characters. Every public function has a "why" comment.
+**Details**: Steadfast foundation. Rye Style applies to all layers—foundation (Basin/Vantage) and applications (Skate desktop, Skate mobile). Top-down means we start with applications and work Rye Style into every line. Every function ≤ 64 lines. Every line ≤ 128 characters. Every public function has a "why" comment.
 
 **Focus**: Rye and Rye Style for application development—Skate desktop (x86_64 Linux), Skate mobile/Carry (Android), all Rye Style compliant.
 
@@ -57,7 +56,7 @@
 **Top-Down Development** (Core 1 Subcore):
 1. **Skate Desktop**: Knowledge graph application for x86_64 Linux
 2. **Skate Mobile/Carry**: Mobile framework and Android applications
-3. **User-Facing**: Everything users (campaign voters) interact with
+3. **User-Facing**: Everything users (users) interact with
 
 **Rye Style Application**: All application code must follow Rye Style—same constraints as foundation code.
 
@@ -506,10 +505,10 @@ pub fn handle_node_click(graph: *Graph, node_id: NodeId) void {
 **Line Length**: Break long UI code into helpers
 ```rye
 // ❌ Bad: Long line
-const button = gtk.Button.new_with_label("Create New Node in Knowledge Graph for Campaign Content");
+const button = gtk.Button.new_with_label("Create New Node in Knowledge Graph for Content");
 
 // ✅ Good: Short line
-const label_text = "Create New Node in Knowledge Graph for Campaign Content";
+const label_text = "Create New Node in Knowledge Graph for Content";
 const button = gtk.Button.new_with_label(label_text);
 ```
 
@@ -691,17 +690,16 @@ zig build rye-check
 
 ## Summary
 
-**Reya**: Top-down Rye Style. We're bringing Rye and Rye Style into application development—Skate desktop, Skate mobile/Carry. Compiler-enforced constraints, mandatory "why" comments, explicit types, zero technical debt. Every function ≤ 64 lines. Every line ≤ 128 characters. Every public function has a "why" comment.
+**Summary**: Top-down Rye Style. We're bringing Rye and Rye Style into application development—Skate desktop, Skate mobile/Carry. Compiler-enforced constraints, mandatory "why" comments, explicit types, zero technical debt. Every function ≤ 64 lines. Every line ≤ 128 characters. Every public function has a "why" comment.
 
-**Glow G2**: Steadfast foundation. Rye Style applies to all layers—foundation and applications. Top-down means we start with applications and work Rye Style into every line. The Rye compiler enforces these constraints. We validate with `rye check`. We document with "why" comments. We build with zero technical debt.
+**Details**: Steadfast foundation. Rye Style applies to all layers—foundation and applications. Top-down means we start with applications and work Rye Style into every line. The Rye compiler enforces these constraints. We validate with `rye check`. We document with "why" comments. We build with zero technical debt.
 
 **Status**: 🎯 **TOP-DOWN RYE STYLE GUIDE** — Ready for application development
 
 ---
 
-**Date**: 2026-01-22-062211-pst  
-**Authors**: Keaton Livermore (Governor Candidate, kae3g) & Core Agent  
+**Date**: 20260122.190000.rye  
+**Author**: Developer  
 **Status**: 🎯 **TOP-DOWN RYE STYLE GUIDE** — Application layers (Skate desktop, Skate mobile/Carry)  
-**Campaign Slogan**: risk love
 
 **Let's bring Rye and Rye Style into application development. Every function. Every line. Every "why" comment.**
