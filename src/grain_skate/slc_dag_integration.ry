@@ -65,6 +65,7 @@ pub const SlcDagIntegration = struct {
     }
     
     /// Create DAG node for Nostr profile.
+    /// Why: Required for adding profiles to DAG before relationship operations.
     /// Returns DAG node ID for the profile.
     pub fn create_profile_node(
         self: *SlcDagIntegration,
@@ -134,6 +135,7 @@ pub const SlcDagIntegration = struct {
     }
     
     /// Create DAG node for website page.
+    /// Why: Required for adding pages to DAG before link operations.
     /// Returns DAG node ID for the page.
     pub fn create_website_page_node(
         self: *SlcDagIntegration,
@@ -212,6 +214,7 @@ pub const SlcDagIntegration = struct {
     }
     
     /// Get all profiles that a profile follows.
+    /// Why: Required for displaying following list in profile UI.
     /// Returns array of profile node IDs.
     pub fn get_following_profiles(
         self: *const SlcDagIntegration,
@@ -346,6 +349,7 @@ pub const SlcDagIntegration = struct {
     }
     
     /// Get total number of links for a page (outgoing + incoming).
+    /// Why: Required for page statistics and UI display.
     /// Returns count of total links.
     pub fn get_page_link_count(
         self: *const SlcDagIntegration,
@@ -425,6 +429,7 @@ pub const SlcDagIntegration = struct {
     }
     
     /// Check if website link exists.
+    /// Why: Required for link validation before operations.
     /// Returns true if link exists, false otherwise.
     pub fn has_website_link(
         self: *const SlcDagIntegration,
@@ -525,6 +530,7 @@ pub const SlcDagIntegration = struct {
     }
     
     /// Get pages with no links (orphaned pages).
+    /// Why: Required for identifying unlinked pages in website structure.
     /// Returns count of orphaned pages found.
     pub fn get_orphaned_pages(
         self: *const SlcDagIntegration,
