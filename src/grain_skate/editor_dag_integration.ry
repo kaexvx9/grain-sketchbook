@@ -225,6 +225,7 @@ pub const EditorDagIntegration = struct {
     
     /// Query events by timestamp range (temporal queries).
     /// Returns count of events within the time range.
+    /// Why: Required for temporal queries filtering events by date range.
     /// Caller should use get_processed_events() and filter by timestamp.
     pub fn count_events_by_time_range(
         self: *const EditorDagIntegration,
@@ -321,6 +322,7 @@ pub const EditorDagIntegration = struct {
     }
     
     /// Get pending events count.
+    /// Why: Required for UI status display showing unprocessed event count.
     pub fn get_pending_events_count(self: *const EditorDagIntegration) u32 {
         return self.dag.pending_events_len;
     }
