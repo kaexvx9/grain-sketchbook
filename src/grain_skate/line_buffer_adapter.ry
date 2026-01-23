@@ -188,7 +188,7 @@ pub const LineBufferAdapter = struct {
     }
 
     /// Replace a line in the buffer.
-    // 2025-12-06-054343-pst: Active function
+    /// Why: Required for line modification operations in editor.
     pub fn replace_line(self: *LineBufferAdapter, line_index: u32, new_line: []const u8) !void {
         std.debug.assert(line_index < self.lines_len);
         std.debug.assert(new_line.len <= MAX_LINE_LEN);
