@@ -151,6 +151,7 @@ pub const TemporalGraph = struct {
     }
     
     /// Get current time-travel timestamp (null = present).
+    /// Why: Required for reading current time-travel state in UI and queries.
     pub fn get_timestamp(self: *const TemporalGraph) ?u64 {
         return self.current_timestamp;
     }
