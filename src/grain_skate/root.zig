@@ -3,7 +3,7 @@
 
 pub const Block = @import("block.ry").Block;
 pub const Editor = @import("editor.zig").Editor;
-pub const StorageIntegration = @import("storage_integration.zig").StorageIntegration;
+pub const StorageIntegration = @import("storage_integration.ry").StorageIntegration;
 pub const Social = @import("social.zig").Social;
 pub const SkateWindow = @import("window.zig").SkateWindow;
 pub const ModalEditor = @import("modal_editor.zig").ModalEditor;
