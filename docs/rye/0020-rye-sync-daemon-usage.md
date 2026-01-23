@@ -21,11 +21,15 @@ The Rye Sync Daemon keeps `~/codeberg/ryelang/rye` in sync with `grainstore/code
 ## Building
 
 ```bash
-# Build and install daemon
+# Build daemon directly (avoids other build dependencies)
 cd /home/xy/ry
-zig build install
+zig build-exe tools/rye_sync_daemon.zig
 
-# Binary installed to: zig-out/bin/rye_sync_daemon
+# Binary created at: rye_sync_daemon (in current directory)
+# Or move to: zig-out/bin/rye_sync_daemon
+
+# Alternative: Use build step (if other deps are available)
+zig build rye-sync
 ```
 
 ---
@@ -37,11 +41,18 @@ zig build install
 ```bash
 # Run daemon in background terminal
 cd /home/xy/ry
+
+# If built directly:
+./rye_sync_daemon
+
+# If installed to zig-out/bin:
 ./zig-out/bin/rye_sync_daemon
 
-# Or use build step
+# Or use build step (builds and runs):
 zig build rye-sync
 ```
+
+**Note**: The daemon runs continuously. Press `Ctrl+C` to stop.
 
 ### Systemd Service (Optional)
 
@@ -79,6 +90,12 @@ systemctl --user start rye-sync.service
 **Settings** (in `tools/rye_sync_daemon.zig`):
 - `SYNC_INTERVAL_MS = 2000` (2 seconds)
 - `MAX_RETRIES = 3`
+- `MAX_PATH_LEN = 512` (maximum path length)
+
+**API Notes**:
+- Uses `std.Thread.sleep` for delays (Zig 0.15.2)
+- Uses `std.process.getEnvVarOwned` for environment variables
+- Uses `std.process.Child` for git commands
 
 ---
 
@@ -114,11 +131,13 @@ systemctl --user start rye-sync.service
 1. External repository exists: `ls ~/codeberg/ryelang/rye`
 2. Grainstore directory exists: `ls /home/xy/ry/grainstore/codeberg/ryelang/rye`
 3. Git remote configured: `cd grainstore/codeberg/ryelang/rye && git remote -v`
+4. Daemon is running: Check process with `ps aux | grep rye_sync_daemon`
 
 **Fix**:
 - Ensure external repo is pushed to Codeberg
 - Ensure grainstore directory is cloned from Codeberg
 - Check git authentication (SSH keys)
+- Verify daemon has write permissions to grainstore directory
 
 ### High CPU Usage
 
