@@ -59,7 +59,7 @@ pub const RyeSyncDaemon = struct {
         }
     }
 
-    /// Why: Inner sync logic using git pull.
+    /// Why: Inner sync logic using git pull (excludes .git via .gitignore).
     fn sync_inner(self: *RyeSyncDaemon) !void {
         std.debug.assert(self.running);
 
