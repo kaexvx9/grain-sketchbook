@@ -1,5 +1,5 @@
 const std = @import("std");
-const EditorDagIntegration = @import("editor_dag_integration.zig").EditorDagIntegration;
+const EditorDagIntegration = @import("editor_dag_integration.ry").EditorDagIntegration;
 const Block = @import("block.ry").Block;
 const grain_court = @import("grain_court");
 const grain_core = @import("grain_core");

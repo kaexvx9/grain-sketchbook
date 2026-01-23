@@ -1,6 +1,6 @@
 const std = @import("std");
 const LineBufferAdapter = @import("line_buffer_adapter.ry").LineBufferAdapter;
-const EditorDagIntegration = @import("editor_dag_integration.zig").EditorDagIntegration;
+const EditorDagIntegration = @import("editor_dag_integration.ry").EditorDagIntegration;
 
 /// Grain Skate Editor: Text editor with Vim bindings for block editing.
 /// ~<~ Glow Airbend: explicit editor state, bounded text buffer.

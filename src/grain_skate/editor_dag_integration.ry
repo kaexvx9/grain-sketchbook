@@ -102,6 +102,7 @@ pub const EditorDagIntegration = struct {
     }
     
     /// Map editor operation to DAG event (HashDAG-style).
+    /// Why: Required for converting editor operations to DAG events for deterministic ordering.
     /// Returns event ID for the operation.
     pub fn map_operation_to_event(
         self: *EditorDagIntegration,
@@ -161,6 +162,7 @@ pub const EditorDagIntegration = struct {
     };
     
     /// Process pending events (deterministic ordering).
+    /// Why: Required for applying mapped events to DAG and updating processed event history.
     pub fn process_events(self: *EditorDagIntegration) !void {
         // Assert: Processed events count must be within bounds
         std.debug.assert(self.processed_events_len < MAX_PROCESSED_EVENTS);
@@ -252,6 +254,7 @@ pub const EditorDagIntegration = struct {
     }
     
     /// Query events up to a specific timestamp (time-travel).
+    /// Why: Required for time-travel queries showing graph state at specific timestamps.
     /// Returns all events that occurred before or at the given timestamp.
     pub fn query_events_up_to_timestamp(
         self: *const EditorDagIntegration,
@@ -288,6 +291,7 @@ pub const EditorDagIntegration = struct {
     }
     
     /// Get latest event timestamp (for time slider range).
+    /// Why: Required for time range calculations and UI bounds in temporal graph.
     pub fn get_latest_timestamp(self: *const EditorDagIntegration) ?u64 {
         if (self.processed_events_len == 0) {
             return null;
@@ -305,6 +309,7 @@ pub const EditorDagIntegration = struct {
     }
     
     /// Get last event ID (for undo/redo navigation).
+    /// Why: Required for maintaining event ordering with parent references in DAG.
     pub fn get_last_event_id(self: *const EditorDagIntegration) u64 {
         return self.last_event_id;
     }
@@ -321,6 +326,7 @@ pub const EditorDagIntegration = struct {
     }
     
     /// Add event and update last event ID (for external event creation).
+    /// Why: Required for adding events to DAG while maintaining event ordering.
     /// This allows other modules (like AI insights) to add events and maintain parent references.
     pub fn add_event_and_update_last(
         self: *EditorDagIntegration,
