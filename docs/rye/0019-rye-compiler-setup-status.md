@@ -1,7 +1,7 @@
 # Rye Compiler Setup Status
 
-**Date**: 20260122.065209.rye  
-**Status**: ✅ **EXTERNAL REPO READY** — Setup complete, push in progress  
+**Date**: 20260122.181008.rye  
+**Status**: ✅ **EXTERNAL REPO READY** — Setup complete and pushed  
 **Repository**: `codeberg.org/ryelang/rye`
 
 ---
@@ -14,37 +14,33 @@
 **Status**: ✅ Ready
 
 **Completed Steps**:
-1. ✅ Cloned Zig 0.15.2 from `codeberg.org/ziglang/zig`
-2. ✅ Checked out tag `0.15.2` (commit: `e4cbd752c8c05f131051f8c873cff7823177d7d3`)
-3. ✅ Created branch `rye-0.15.2-base`
-4. ✅ Set up remotes:
+1. ✅ Cloned Zig 0.15.2 source (shallow, tag 0.15.2)
+2. ✅ Removed `.git` folder for fresh repository (smaller size, cleaner history)
+3. ✅ Initialized new git repository
+4. ✅ Created `THIRD_PARTY_LICENSES.md` with Zig attribution
+5. ✅ Created initial commit with chronological versioning (`20260122.181008.rye`)
+6. ✅ Set up remotes:
    - `origin` → `git@codeberg.org:ryelang/rye.git` (SSH)
-   - `upstream` → `https://codeberg.org/ziglang/zig.git`
-5. ✅ Created `THIRD_PARTY_LICENSES.md` with Zig attribution
-6. ✅ Created initial attribution commit
-7. ✅ Created `main` branch from base
+   - `upstream` → `https://codeberg.org/ziglang/zig.git` (reference only)
+7. ✅ Created `main` branch
+8. ✅ Pushed to Codeberg successfully
 
-**Pending Steps** (require authentication):
-- ⏳ Push `rye-0.15.2-base` branch to Codeberg
-- ⏳ Push `main` branch to Codeberg
+**Repository Size**: ~38MB (vs ~500MB+ with full Zig history)
 
-**To Complete**:
-```bash
-cd ~/codeberg/ryelang/rye
-git push -u origin rye-0.15.2-base
-git push -u origin main
-```
+**Repository Structure**:
+- Single `main` branch (no semantic version branches)
+- Initial commit with chronological versioning
+- Clean history (no Zig git history)
 
 ---
 
 ## Grainstore Mirror Setup
 
 **Location**: `grainstore/codeberg/ryelang/rye`  
-**Status**: ⏳ Pending (after push to Codeberg)
+**Status**: ✅ Ready to sync
 
 **Next Steps**:
-1. Push external repository to Codeberg (requires authentication)
-2. Clone into grainstore:
+1. Clone into grainstore (repository is already on Codeberg):
    ```bash
    cd /home/xy/ry/grainstore/codeberg/ryelang
    git clone https://codeberg.org/ryelang/rye.git
@@ -117,16 +113,7 @@ cd ~/codeberg/ryelang/rye
 git remote set-url origin git@codeberg.org:ryelang/rye.git
 ```
 
-### Option 2: Personal Access Token
-
-```bash
-# Create token: https://codeberg.org/user/settings/applications
-# Use token as password when pushing
-
-cd ~/codeberg/ryelang/rye
-git push -u origin rye-0.15.2-base
-# Enter username and token when prompted
-```
+**Note**: SSH is already configured and push was successful.
 
 ---
 
@@ -134,12 +121,12 @@ git push -u origin rye-0.15.2-base
 
 ### External Repository
 
-- [x] Repository cloned from Zig 0.15.2
-- [x] Tag 0.15.2 checked out
-- [x] Remotes configured correctly
+- [x] Repository cloned from Zig 0.15.2 source (shallow)
+- [x] Fresh git repository initialized (no Zig history)
+- [x] Remotes configured correctly (SSH)
 - [x] THIRD_PARTY_LICENSES.md created
-- [x] Initial commit created
-- [ ] Pushed to Codeberg (pending authentication)
+- [x] Initial commit created with chronological versioning
+- [x] Pushed to Codeberg successfully
 
 ### Grainstore Mirror
 
@@ -169,5 +156,5 @@ git push -u origin rye-0.15.2-base
 
 ---
 
-**Date**: 2026-01-22-065209-pst  
-**Status**: ✅ **EXTERNAL REPO READY** — Setup complete, push pending authentication
+**Date**: 20260122.181008.rye  
+**Status**: ✅ **EXTERNAL REPO READY** — Setup complete and pushed
