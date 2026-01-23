@@ -1,5 +1,5 @@
 const std = @import("std");
-const LineBufferAdapter = @import("line_buffer_adapter.zig").LineBufferAdapter;
+const LineBufferAdapter = @import("line_buffer_adapter.ry").LineBufferAdapter;
 const EditorDagIntegration = @import("editor_dag_integration.zig").EditorDagIntegration;
 
 /// Grain Skate Editor: Text editor with Vim bindings for block editing.
