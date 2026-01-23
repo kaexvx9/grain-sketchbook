@@ -79,7 +79,10 @@ pub const LanguageDetector = struct {
         if (std.mem.eql(u8, ext, "c") or std.mem.eql(u8, ext, "C")) {
             return .c;
         }
-        if (std.mem.eql(u8, ext, "cpp") or std.mem.eql(u8, ext, "CPP") or std.mem.eql(u8, ext, "cc") or std.mem.eql(u8, ext, "CC") or std.mem.eql(u8, ext, "cxx") or std.mem.eql(u8, ext, "CXX")) {
+        if (std.mem.eql(u8, ext, "cpp") or std.mem.eql(u8, ext, "CPP") or
+            std.mem.eql(u8, ext, "cc") or std.mem.eql(u8, ext, "CC") or
+            std.mem.eql(u8, ext, "cxx") or std.mem.eql(u8, ext, "CXX"))
+        {
             return .cpp;
         }
         if (std.mem.eql(u8, ext, "py") or std.mem.eql(u8, ext, "PY")) {
@@ -105,7 +108,9 @@ pub const LanguageDetector = struct {
         if (std.mem.eql(u8, ext, "json") or std.mem.eql(u8, ext, "JSON")) {
             return .json;
         }
-        if (std.mem.eql(u8, ext, "yaml") or std.mem.eql(u8, ext, "YAML") or std.mem.eql(u8, ext, "yml") or std.mem.eql(u8, ext, "YML")) {
+        if (std.mem.eql(u8, ext, "yaml") or std.mem.eql(u8, ext, "YAML") or
+            std.mem.eql(u8, ext, "yml") or std.mem.eql(u8, ext, "YML"))
+        {
             return .yaml;
         }
         if (std.mem.eql(u8, ext, "sh") or std.mem.eql(u8, ext, "SH") or
