@@ -1,5 +1,5 @@
 const std = @import("std");
-const EditorDagIntegration = @import("editor_dag_integration.zig").EditorDagIntegration;
+const EditorDagIntegration = @import("editor_dag_integration.ry").EditorDagIntegration;
 
 /// Temporal Knowledge Graph: Time-travel mode for knowledge graph.
 /// ~<~ Glow Airbend: explicit temporal queries, bounded history.
