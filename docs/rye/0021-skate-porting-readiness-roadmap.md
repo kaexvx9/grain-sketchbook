@@ -388,7 +388,7 @@
 - **Toroidal/Garden Types**: `docs/rye/0014-toroidal-garden-stdlib-spec.md`
 - **Rye Style Enforcement**: `docs/rye/0015-rye-style-compiler-enforcement.md`
 - **Skate Specification**: `docs/grain_skate_agent_prompt.md`
-- **Skate Development Plan**: `docs/campaign/2026-01-22-061615-pst_basin_vantage_skate_desktop_mobile_development_plan.md`
+- **Rye Style Conversion Guide**: `docs/rye/0022-rye-style-conversion-vs-compiler-fork.md`
 
 ---
 
