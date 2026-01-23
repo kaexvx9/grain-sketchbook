@@ -7,7 +7,7 @@
 //! 2025-12-03-141818-pst: Active implementation
 
 const std = @import("std");
-const Language = @import("language_detector.zig").Language;
+const Language = @import("language_detector.ry").Language;
 
 // Bounded: Max keywords per language (explicit limit)
 // 2025-12-03-141818-pst: Active constant
