@@ -1,6 +1,6 @@
 # Rye Sync Daemon Usage
 
-**Date**: 20260122.182600.rye  
+**Date**: 20260122.183000.rye  
 **Status**: ✅ **READY** — Daemon compiles and is ready for use  
 **Tool**: `rye_sync_daemon`
 
@@ -12,7 +12,8 @@ The Rye Sync Daemon keeps `~/codeberg/ryelang/rye` in sync with `grainstore/code
 
 **How it works**:
 - Polls every 2 seconds
-- Runs `git pull origin main` in grainstore location
+- Copies files directly from external repo to grainstore
+- Excludes `.git` folder from copy
 - Retries up to 3 times on failure
 - Runs continuously in background
 
@@ -95,7 +96,8 @@ systemctl --user start rye-sync.service
 **API Notes**:
 - Uses `std.Thread.sleep` for delays (Zig 0.15.2)
 - Uses `std.process.getEnvVarOwned` for environment variables
-- Uses `std.process.Child` for git commands
+- Uses `std.fs.Dir.copyFile` for file copying
+- Uses `std.fs.Dir.iterate` for directory traversal
 
 ---
 
@@ -103,12 +105,15 @@ systemctl --user start rye-sync.service
 
 1. **Daemon starts**: Initializes with paths
 2. **Loop begins**: Every 2 seconds:
-   - Changes to grainstore directory
-   - Runs `git pull origin main`
-   - Waits for completion
+   - Opens external repository directory (`~/codeberg/ryelang/rye`)
+   - Recursively copies all files and directories to grainstore
+   - Excludes `.git` folder from copy
+   - Uses `std.fs.Dir.copyFile` for efficient file copying
    - Sleeps 2 seconds
 3. **On failure**: Retries up to 3 times with 500ms delay
 4. **On success**: Continues loop
+
+**Important**: The daemon copies files directly, so the grainstore location does not need to be a git repository. The `.git` folder is explicitly excluded from the copy.
 
 ---
 
@@ -130,14 +135,15 @@ systemctl --user start rye-sync.service
 **Check**:
 1. External repository exists: `ls ~/codeberg/ryelang/rye`
 2. Grainstore directory exists: `ls /home/xy/ry/grainstore/codeberg/ryelang/rye`
-3. Git remote configured: `cd grainstore/codeberg/ryelang/rye && git remote -v`
-4. Daemon is running: Check process with `ps aux | grep rye_sync_daemon`
+3. Daemon is running: Check process with `ps aux | grep rye_sync_daemon`
+4. Files match: `diff -r ~/codeberg/ryelang/rye /home/xy/ry/grainstore/codeberg/ryelang/rye --exclude=".git"`
 
 **Fix**:
-- Ensure external repo is pushed to Codeberg
-- Ensure grainstore directory is cloned from Codeberg
-- Check git authentication (SSH keys)
+- Ensure external repo has files to sync
+- Verify daemon has read permissions to external directory
 - Verify daemon has write permissions to grainstore directory
+- Check that `.git` folder is not blocking (should be excluded automatically)
+- Restart daemon if code was updated
 
 ### High CPU Usage
 
@@ -164,5 +170,14 @@ systemctl --user start rye-sync.service
 
 ---
 
-**Date**: 20260122.182600.rye  
+**Date**: 20260122.183000.rye  
 **Status**: ✅ **READY** — Daemon compiles and is ready for use
+
+---
+
+## Important Notes
+
+- **Rebuild required**: If daemon code changes, rebuild and restart the daemon
+- **No git required**: Grainstore location does not need to be a git repository
+- **`.git` excluded**: The `.git` folder is automatically excluded from sync
+- **File copying**: Uses direct file copy, not git operations
