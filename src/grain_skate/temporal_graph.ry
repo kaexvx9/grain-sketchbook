@@ -50,6 +50,7 @@ pub const TemporalGraph = struct {
     }
     
     /// Set current time-travel timestamp (null = present).
+    /// Why: Required for navigating to specific time points in graph history.
     pub fn set_timestamp(self: *TemporalGraph, timestamp: ?u64) void {
         // Assert: If timestamp is set, it must be within valid range
         if (timestamp) |ts| {
@@ -66,6 +67,7 @@ pub const TemporalGraph = struct {
     }
     
     /// Get time range duration in seconds (latest - earliest).
+    /// Why: Required for time slider scale calculations.
     /// Returns 0 if range is invalid or empty.
     pub fn get_time_range_duration(self: *const TemporalGraph) u64 {
         const range = self.get_time_range();
@@ -165,6 +167,7 @@ pub const TemporalGraph = struct {
     }
     
     /// Query events in a date range (temporal query).
+    /// Why: Required for filtering events by time range in temporal queries.
     /// start_date and end_date are Unix timestamps.
     pub fn query_events_by_date_range(
         self: *const TemporalGraph,
@@ -221,6 +224,7 @@ pub const TemporalGraph = struct {
     }
     
     /// Get blocks modified in date range (using DAG events).
+    /// Why: Required for temporal queries showing block modification history.
     /// Returns count of events in the date range.
     pub fn get_blocks_modified_in_range(
         self: *const TemporalGraph,
