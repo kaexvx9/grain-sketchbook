@@ -7,7 +7,7 @@
 //! 2025-11-24-110000-pst: Active implementation
 
 const std = @import("std");
-const Block = @import("block.zig").Block;
+const Block = @import("block.ry").Block;
 
 // Bounded: Max nodes in graph visualization.
 // 2025-11-24-110000-pst: Active constant

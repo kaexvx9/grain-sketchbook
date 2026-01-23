@@ -1,5 +1,5 @@
 const std = @import("std");
-const Block = @import("block.zig").Block;
+const Block = @import("block.ry").Block;
 const grain_court = @import("grain_court");
 const grain_silo = @import("grain_silo");
 const CourtCompute = grain_court.Compute.CourtCompute;

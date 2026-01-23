@@ -7,7 +7,7 @@
 //! 2025-11-24-111000-pst: Active implementation
 
 const std = @import("std");
-const Block = @import("block.zig").Block;
+const Block = @import("block.ry").Block;
 const Editor = @import("editor.zig").Editor;
 const SkateWindow = @import("window.zig").SkateWindow;
 const ModalEditor = @import("modal_editor.zig").ModalEditor;

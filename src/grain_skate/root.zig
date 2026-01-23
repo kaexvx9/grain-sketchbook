@@ -1,7 +1,7 @@
 // Grain Skate root module
 // Re-exports all Grain Skate components
 
-pub const Block = @import("block.zig").Block;
+pub const Block = @import("block.ry").Block;
 pub const Editor = @import("editor.zig").Editor;
 pub const StorageIntegration = @import("storage_integration.zig").StorageIntegration;
 pub const Social = @import("social.zig").Social;

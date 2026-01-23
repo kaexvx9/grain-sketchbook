@@ -1,5 +1,5 @@
 const std = @import("std");
-const Block = @import("block.zig").Block;
+const Block = @import("block.ry").Block;
 
 /// Grain Skate Social: Link-based replies, transclusion, and export/import.
 /// ~<~ Glow Airbend: explicit social state, bounded reply/transclusion management.

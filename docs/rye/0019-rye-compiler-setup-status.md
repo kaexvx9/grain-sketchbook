@@ -37,19 +37,13 @@
 ## Grainstore Mirror Setup
 
 **Location**: `grainstore/codeberg/ryelang/rye`  
-**Status**: ✅ Ready to sync
+**Status**: ✅ Synced
 
-**Next Steps**:
-1. Clone into grainstore (repository is already on Codeberg):
-   ```bash
-   cd /home/xy/ry/grainstore/codeberg/ryelang
-   git clone https://codeberg.org/ryelang/rye.git
-   ```
-3. Add to `.gitignore` (if not already):
-   ```
-   grainstore/codeberg/ryelang/rye/
-   ```
-4. Update `src/grain_manifest.zig` (optional, for future grainmirror integration)
+**Completed**:
+1. ✅ Cloned into grainstore from Codeberg
+2. ✅ Repository size: ~308MB (vs ~500MB+ with full Zig history)
+3. ✅ Single commit with clean history
+4. ✅ Manifest entry added to `src/grain_manifest.zig`
 
 ---
 
@@ -130,10 +124,10 @@ git remote set-url origin git@codeberg.org:ryelang/rye.git
 
 ### Grainstore Mirror
 
-- [ ] Directory structure created
-- [ ] Repository cloned into grainstore
-- [ ] .gitignore updated
-- [ ] Manifest entry added (optional)
+- [x] Directory structure created
+- [x] Repository cloned into grainstore
+- [x] Synced from Codeberg
+- [x] Manifest entry added
 
 ---
 
