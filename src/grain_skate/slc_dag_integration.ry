@@ -390,6 +390,7 @@ pub const SlcDagIntegration = struct {
     }
     
     /// Get website page node data (raw JSON string).
+    /// Why: Required for retrieving page content for rendering.
     /// Returns node data if page exists, null otherwise.
     pub fn get_page_data(
         self: *const SlcDagIntegration,
