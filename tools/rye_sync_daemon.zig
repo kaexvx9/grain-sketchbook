@@ -59,20 +59,56 @@ pub const RyeSyncDaemon = struct {
         }
     }
 
-    /// Why: Inner sync logic using git pull (excludes .git via .gitignore).
+    /// Why: Inner sync logic copying files (excluding .git).
     fn sync_inner(self: *RyeSyncDaemon) !void {
         std.debug.assert(self.running);
 
-        var git_pull = std.process.Child.init(
-            &.{ "git", "pull", "origin", "main" },
-            self.allocator,
+        try self.copy_directory_recursive(
+            self.external_path,
+            self.grainstore_path,
         );
-        git_pull.cwd = self.grainstore_path;
-        git_pull.stdout_behavior = .Ignore;
-        git_pull.stderr_behavior = .Ignore;
+    }
 
-        try git_pull.spawn();
-        _ = try git_pull.wait();
+    /// Why: Copy directory recursively, excluding .git folder.
+    fn copy_directory_recursive(
+        self: *RyeSyncDaemon,
+        src_path: []const u8,
+        dst_path: []const u8,
+    ) !void {
+        std.debug.assert(self.running);
+        std.debug.assert(src_path.len > 0);
+        std.debug.assert(dst_path.len > 0);
+
+        var src_dir = try std.fs.cwd().openDir(src_path, .{ .iterate = true });
+        defer src_dir.close();
+
+        var dst_dir = try std.fs.cwd().makeOpenPath(dst_path, .{});
+        defer dst_dir.close();
+
+        var iterator = src_dir.iterate();
+        while (try iterator.next()) |entry| {
+            if (std.mem.eql(u8, entry.name, ".git")) continue;
+
+            const src_full = try std.fmt.allocPrint(
+                self.allocator,
+                "{s}/{s}",
+                .{ src_path, entry.name },
+            );
+            defer self.allocator.free(src_full);
+
+            const dst_full = try std.fmt.allocPrint(
+                self.allocator,
+                "{s}/{s}",
+                .{ dst_path, entry.name },
+            );
+            defer self.allocator.free(dst_full);
+
+            switch (entry.kind) {
+                .file => try src_dir.copyFile(entry.name, dst_dir, entry.name, .{}),
+                .directory => try self.copy_directory_recursive(src_full, dst_full),
+                else => {},
+            }
+        }
     }
 
     /// Why: Stop daemon gracefully.
