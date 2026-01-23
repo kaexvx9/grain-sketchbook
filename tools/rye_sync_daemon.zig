@@ -37,7 +37,7 @@ pub const RyeSyncDaemon = struct {
 
         while (self.running) {
             try self.sync_once();
-            std.time.sleep(SYNC_INTERVAL_MS * std.time.ns_per_ms);
+            std.Thread.sleep(SYNC_INTERVAL_MS * std.time.ns_per_ms);
         }
     }
 
@@ -54,7 +54,7 @@ pub const RyeSyncDaemon = struct {
                 if (retry_count == MAX_RETRIES - 1) {
                     return err;
                 }
-                std.time.sleep(500 * std.time.ns_per_ms);
+                std.Thread.sleep(500 * std.time.ns_per_ms);
             }
         }
     }
