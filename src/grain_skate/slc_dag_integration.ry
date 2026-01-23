@@ -298,6 +298,7 @@ pub const SlcDagIntegration = struct {
     }
     
     /// Get all pages that link to a page (backlinks/reverse lookup).
+    /// Why: Required for displaying incoming links in website navigation.
     /// Returns array of page node IDs.
     pub fn get_backlink_pages(
         self: *const SlcDagIntegration,
@@ -480,6 +481,7 @@ pub const SlcDagIntegration = struct {
     }
     
     /// Get all page node IDs.
+    /// Why: Required for listing all pages in UI.
     /// Returns count of pages found.
     pub fn get_all_pages(
         self: *const SlcDagIntegration,
