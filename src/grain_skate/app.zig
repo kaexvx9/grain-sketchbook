@@ -13,7 +13,7 @@ const SkateWindow = @import("window.zig").SkateWindow;
 const ModalEditor = @import("modal_editor.zig").ModalEditor;
 const GraphVisualization = @import("graph_viz.zig").GraphVisualization;
 const Social = @import("social.zig").Social;
-const StorageIntegration = @import("storage_integration.zig").StorageIntegration;
+const StorageIntegration = @import("storage_integration.ry").StorageIntegration;
 const events = @import("platform/events.zig");
 
 // Bounded: Max blocks in application.
