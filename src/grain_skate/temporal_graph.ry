@@ -202,6 +202,7 @@ pub const TemporalGraph = struct {
     }
     
     /// Reset to present (exit time-travel mode).
+    /// Why: Required for returning to current time from time-travel mode.
     pub fn reset_to_present(self: *TemporalGraph) void {
         self.current_timestamp = null;
     }
