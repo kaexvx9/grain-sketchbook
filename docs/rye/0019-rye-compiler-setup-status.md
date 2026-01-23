@@ -1,7 +1,7 @@
 # Rye Compiler Setup Status
 
-**Date**: 2026-01-22-065209-pst  
-**Status**: ✅ **EXTERNAL REPO READY** — Setup complete, push pending authentication  
+**Date**: 20260122.065209.rye  
+**Status**: ✅ **EXTERNAL REPO READY** — Setup complete, push in progress  
 **Repository**: `codeberg.org/ryelang/rye`
 
 ---
@@ -18,7 +18,7 @@
 2. ✅ Checked out tag `0.15.2` (commit: `e4cbd752c8c05f131051f8c873cff7823177d7d3`)
 3. ✅ Created branch `rye-0.15.2-base`
 4. ✅ Set up remotes:
-   - `origin` → `https://codeberg.org/ryelang/rye.git`
+   - `origin` → `git@codeberg.org:ryelang/rye.git` (SSH)
    - `upstream` → `https://codeberg.org/ziglang/zig.git`
 5. ✅ Created `THIRD_PARTY_LICENSES.md` with Zig attribution
 6. ✅ Created initial attribution commit
