@@ -46,3 +46,4 @@ coverage/
 *.iso
 iso_root/
 limine/
+grainstore/codeberg/ryelang/rye/.git
