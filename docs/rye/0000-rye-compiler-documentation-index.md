@@ -93,6 +93,9 @@ This document provides a comprehensive index of all Rye compiler documentation, 
 - **0059**: RISC-V Compiler Development Status Summary - Status summary
 - **0060**: RISC-V Development Session Complete - Session complete
 - **0061**: RISC-V Phase 2 Final Accomplishments - Final accomplishments
+- **0062**: RISC-V Immediate Action Plan - Action plan
+- **0063**: RISC-V Kernel Compilation Test Results - Kernel test results
+- **0064**: RISC-V Compiler Frame Layout Issue - Frame layout issue
 
 ---
 
@@ -177,16 +180,16 @@ This document provides a comprehensive index of all Rye compiler documentation, 
 
 ## Recent Documents (Last 10)
 
-1. **0061**: RISC-V Phase 2 Final Accomplishments (20260122.194500)
-2. **0060**: RISC-V Development Session Complete (20260122.194400)
-3. **0059**: RISC-V Compiler Development Status Summary (20260122.194300)
-4. **0058**: RISC-V Phase 3 Planning Document (20260122.194200)
-5. **0057**: RISC-V Phase 2 Session Summary (20260122.194100)
-6. **0056**: RISC-V Phase 2 Test Verification Results (20260122.194000)
-7. **0055**: RISC-V Phase 2 Achievement Summary (20260122.193700)
-8. **0054**: RISC-V Issue 2 Comprehensive Test Results (20260122.193600)
-9. **0053**: RISC-V Issue 2 Kernel Usage Analysis (20260122.193500)
-10. **0052**: RISC-V Phase 2 Final Status & Roadmap (20260122.193400)
+1. **0064**: RISC-V Compiler Frame Layout Issue (20260122.194800)
+2. **0063**: RISC-V Kernel Compilation Test Results (20260122.194700)
+3. **0062**: RISC-V Immediate Action Plan (20260122.194600)
+4. **0061**: RISC-V Phase 2 Final Accomplishments (20260122.194500)
+5. **0060**: RISC-V Development Session Complete (20260122.194400)
+6. **0059**: RISC-V Compiler Development Status Summary (20260122.194300)
+7. **0058**: RISC-V Phase 3 Planning Document (20260122.194200)
+8. **0057**: RISC-V Phase 2 Session Summary (20260122.194100)
+9. **0056**: RISC-V Phase 2 Test Verification Results (20260122.194000)
+10. **0055**: RISC-V Phase 2 Achievement Summary (20260122.193700)
 
 ---
 
