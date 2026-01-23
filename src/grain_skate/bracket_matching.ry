@@ -118,7 +118,6 @@ pub const BracketMatcher = struct {
     
     /// Find matching bracket at cursor position (iterative, stack-based).
     /// Why: Required for highlighting matching brackets in editor UI.
-    // Returns matching bracket position or no match if not found.
     pub fn find_matching_bracket(
         editor: *const Editor.EditorState,
         cursor_line: u32,
