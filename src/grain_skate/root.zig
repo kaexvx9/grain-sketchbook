@@ -18,5 +18,5 @@ pub const LineBufferAdapter = @import("line_buffer_adapter.ry").LineBufferAdapte
 pub const EditorDagIntegration = @import("editor_dag_integration.ry").EditorDagIntegration;
 pub const TemporalGraph = @import("temporal_graph.ry").TemporalGraph;
 pub const AiInsights = @import("ai_insights.zig").AiInsights;
-pub const SlcDagIntegration = @import("slc_dag_integration.zig").SlcDagIntegration;
+pub const SlcDagIntegration = @import("slc_dag_integration.ry").SlcDagIntegration;
 
