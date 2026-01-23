@@ -275,6 +275,7 @@ pub const EditorDagIntegration = struct {
     }
     
     /// Get earliest event timestamp (for time slider range).
+    /// Why: Required for time range calculations and UI bounds.
     pub fn get_earliest_timestamp(self: *const EditorDagIntegration) ?u64 {
         if (self.processed_events_len == 0) {
             return null;
