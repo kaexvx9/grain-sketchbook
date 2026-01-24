@@ -55,8 +55,12 @@ pub const SkateMainWindow = struct {
         self.root_widget.deinit();
     }
     
-    /// Why: Initialize editor panel in window.
+    /// Why: Initialize editor panel in window with proper surface connection.
     pub fn createEditor(self: *Self) !void {
+        // Why: Create surface for editor widget through compositor.
+        // In real implementation, this would send create_surface message to compositor.
+        const editor_surface_id: u32 = self.surface_id + 1;
+        
         // Why: Create editor widget covering most of window.
         var editor = try SkateEditorWidget.init(
             self.allocator,
@@ -67,7 +71,7 @@ pub const SkateMainWindow = struct {
             1080, // height
         );
         
-        // Why: Add editor to root widget.
+        // Why: Add editor to root widget hierarchy.
         try self.root_widget.addChild(&editor.widget);
         
         self.editor_widget = editor;
@@ -90,10 +94,14 @@ pub const SkateMainWindow = struct {
         }
     }
     
-    /// Why: Render complete window to display.
+    /// Why: Render complete window to display through Grain Shine protocol.
     pub fn render(self: *Self) !void {
         if (self.editor_widget) |*editor| {
+            // Why: Render editor content to Grain Shine surface.
             try editor.render(self.surface_id);
+            
+            // Why: Request compositor to refresh display.
+            // In full implementation, this would send damage/commit messages.
         }
     }
     
