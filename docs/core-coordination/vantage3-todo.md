@@ -1,6 +1,6 @@
 # Vantage 3: To-Do List
 
-**Last Updated**: 2026-01-23-163808-pst  
+**Last Updated**: 2026-01-23-164615-pst  
 **Status**: 📋 **ACTIVE**
 
 ---
@@ -19,14 +19,15 @@
 - **Files**: `src/Compilation.zig`, `src/main.zig`, `src/Zcu.zig`
 - **Completed**: All file extension handling updated, ready for rebuild and testing
 
-#### 2. Wayland Protocol Research
+#### 2. Wayland Protocol Rye Style Evaluation ⚠️ **CRITICAL**
 - **Status**: 🚧 Not Started
-- **Priority**: High (needed for GUI integration)
-- **Estimated Time**: 1 week
+- **Priority**: **CRITICAL** (highest - decision point)
+- **Estimated Time**: 3-4 days
 - **Dependencies**: None
-- **Description**: Study Wayland protocol specification, plan Rye implementation
-- **Why**: Foundation for GUI/OS integration plan
-- **Resources**: Wayland protocol spec (MIT licensed)
+- **Description**: Evaluate Wayland protocol against Rye Style principles. Decision: adapt Wayland or innovate new Rye-native protocol?
+- **Why**: Critical decision point (like Tend garden allocator). Must evaluate Rye Style compliance before committing to implementation.
+- **Resources**: Wayland 1.24.0 spec, Rye Style evaluation framework
+- **Outcome**: Decision to adapt Wayland or innovate new protocol
 
 #### 3. Update Long-Term Plan Documents
 - **Status**: 🚧 In Progress
@@ -42,13 +43,14 @@
 
 ### 🟡 Medium Priority
 
-#### 4. Wayland Protocol Implementation (Basic)
+#### 4. Compositor Protocol Implementation
 - **Status**: 🚧 Not Started
-- **Priority**: Medium
-- **Estimated Time**: 2-3 weeks
-- **Dependencies**: Wayland protocol research, .ry file support
-- **Description**: Implement basic Wayland protocol in Rye
+- **Priority**: High (depends on evaluation outcome)
+- **Estimated Time**: 2-4 weeks (depends on adapt vs innovate)
+- **Dependencies**: Wayland Rye Style evaluation (decision point)
+- **Description**: Implement compositor protocol (Wayland adaptation OR new Rye-native protocol)
 - **Why**: Required for GUI/OS integration
+- **Note**: Implementation approach depends on evaluation outcome
 
 #### 5. Basic Window System Primitives
 - **Status**: 🚧 Not Started
