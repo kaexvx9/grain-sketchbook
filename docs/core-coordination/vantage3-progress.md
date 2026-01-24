@@ -66,7 +66,7 @@
 - **Phase 2** (RISC-V Fixes): ✅ **COMPLETE** — Weeks 2-4
 - **Phase 3** (Toroidal/Garden + Basic Stdlib): ✅ **COMPLETE** — Weeks 5-8
 - **Phase 4** (Rye Style Enforcement): ✅ **100% COMPLETE** (Core) — Weeks 9-12 (4/5 checks active, comprehensive, optimized, 11 test cases)
-- **Phase 5** (Self-Hosting): 🔄 **OPTIONAL** — Weeks 13-16
+- **Phase 5** (GUI Foundation): 🚧 **PLANNING** — Weeks 13-16
 
 ---
 
@@ -115,7 +115,14 @@
 - ✅ All core checks complete, optimized, comprehensive, and accurate
 - ⏳ Recursion detection (complex, requires control flow analysis - future work, optional)
 
-**Priority 2**: Basin kernel integration testing
+**Priority 2**: Phase 5 - GUI Foundation (Weeks 13-16)
+- Add `.ry` file extension support (critical, blocks full compilation)
+- Wayland protocol research and implementation planning
+- Basic window system primitives
+- Input handling library
+- See: `vantage3-gui-os-integration-plan.md` for full roadmap
+
+**Priority 3**: Basin kernel integration testing
 - Test toroidal/garden types in kernel context
 - Verify all stdlib modules work correctly
 - Performance testing and optimization
