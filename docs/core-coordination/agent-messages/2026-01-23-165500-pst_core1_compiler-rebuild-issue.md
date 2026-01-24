@@ -126,6 +126,11 @@ src/Sema.zig:1:1: error: root source file struct 'std' has no member named 'Auto
 
 ---
 
-**Status**: ⚠️ **BLOCKED** — Waiting for compiler rebuild  
+**Update**: Vantage 3 has uncommitted changes addressing some issues:
+- ✅ `.ry` cases added to switch statements (uncommitted)
+- ✅ `AutoHashSetUnmanaged` → `AutoHashMapUnmanaged` fix (uncommitted)
+- ⏳ Build still failing (different error - command terminated unexpectedly)
+
+**Status**: ⚠️ **BLOCKED** — Waiting for Vantage 3 to complete fixes and rebuild  
 **Priority**: **HIGH** — Critical blocker  
-**Date**: 2026-01-23-165500-pst
+**Date**: 2026-01-23-165500-pst (updated 2026-01-23-165836-pst)
