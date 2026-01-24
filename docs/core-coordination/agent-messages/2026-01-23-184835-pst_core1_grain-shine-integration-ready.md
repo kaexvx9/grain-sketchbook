@@ -51,7 +51,7 @@ const shine = @import("../grain_core/shine/protocol.zig");
 
 ## Skate Module Testing Progress
 
-### ✅ **Successfully Compiling** (8/19 confirmed):
+### ✅ **Successfully Compiling** (10/19 confirmed):
 1. `block.ry` ✅
 2. `bracket_matching.ry` ✅
 3. `language_keywords.ry` ✅
@@ -60,12 +60,12 @@ const shine = @import("../grain_core/shine/protocol.zig");
 6. `storage_integration.ry` ✅
 7. `editor_dag_integration.ry` ✅
 8. `ai_insights.ry` ✅
+9. `social.ry` ✅
+10. `graph_viz.ry` ✅
 
-### ⏳ **Currently Testing** (4 modules):
-- `social.ry` - Testing in progress
-- `graph_viz.ry` - Testing in progress
-- `editor.ry` - Testing in progress (large module)
-- `window.ry` - Testing in progress
+### ❌ **Code Quality Issues** (2 modules tested):
+- `editor.ry` - Duplicate function name (`save_replace_to_undo`)
+- `window.ry` - Missing import (`platform/events.zig` not found)
 
 ### ❌ **External Dependency Issues** (4 modules):
 - `line_buffer_adapter.ry` - `../grain_buffer.zig`
