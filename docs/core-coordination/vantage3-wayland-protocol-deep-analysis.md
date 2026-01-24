@@ -203,14 +203,16 @@ Deep analysis of Wayland protocol specification against Rye Style principles, fo
 4. **Compatibility Benefits**: Can work with existing Wayland ecosystem
 5. **Type Safety**: Protocol uses explicit types throughout
 6. **No Recursion**: All operations are iterative
+7. **Similar to Tend Decision**: Like evaluating Linux kernel vs Tend garden, we evaluated Wayland and found it adaptable
 
 **Required Adaptations**:
-1. Add `MAX_STRING_LENGTH: u32 = 65536` (or similar reasonable limit)
-2. Add `MAX_ARRAY_SIZE: u32 = 65536` (or similar reasonable limit)
-3. Add `MAX_FDS_PER_MESSAGE: u32 = 8` (or similar reasonable limit)
+1. Add `MAX_STRING_LENGTH: u32 = 65536` (64KB, reasonable for protocol strings)
+2. Add `MAX_ARRAY_SIZE: u32 = 65536` (64KB, matches message size limit)
+3. Add `MAX_FDS_PER_MESSAGE: u32 = 8` (reasonable limit for file descriptors)
 4. Add explicit bounds checking in message parsing
 5. Handle padding bytes safely (zero them or validate)
 6. Maintain existing `MAX_OBJECTS_PER_CLIENT: u32 = 1024` limit
+7. Add `MAX_MESSAGE_SIZE: u32 = 65535` (enforced by wire format, but make explicit)
 
 **Implementation Strategy**:
 - Extend existing `grain_core/wayland/protocol.zig`
@@ -218,6 +220,11 @@ Deep analysis of Wayland protocol specification against Rye Style principles, fo
 - Use Garden allocator for memory management
 - Keep functions ≤ 64 lines (split complex operations)
 - Add comprehensive assertions
+- Follow Rye Style: explicit types, bounded ops, short functions, why comments
+
+**Comparison with Tend Garden Decision**:
+- **Linux Kernel**: Too complex, unbounded operations, not Rye Style compliant → **Innovated Tend Garden**
+- **Wayland Protocol**: Adaptable, can add bounds, existing code shows feasibility → **Adapt Wayland**
 
 ---
 
