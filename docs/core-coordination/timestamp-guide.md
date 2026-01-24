@@ -78,14 +78,25 @@ date +"%Y-%m-%d-%H%M%S-pst"
 
 ## Examples
 
-### Update Progress File
+### Update Progress File Header
 ```bash
 CURRENT_TS=$(date +"%Y-%m-%d-%H%M%S-pst")
 sed -i "s/\*\*Last Updated\*\*: .*/\*\*Last Updated\*\*: $CURRENT_TS/" \
     docs/core-coordination/vantage3-progress.md
 ```
 
-### Create New Document
+### Create New Document with Filename Prefix
+```bash
+CURRENT_TS=$(date +"%Y-%m-%d-%H%M%S-pst")
+cat > docs/core-coordination/${CURRENT_TS}_document-name.md <<EOF
+# Document Title
+
+**Date**: $CURRENT_TS
+...
+EOF
+```
+
+### Create New Document (No Filename Prefix)
 ```bash
 CURRENT_TS=$(date +"%Y-%m-%d-%H%M%S-pst")
 cat > new-doc.md <<EOF
@@ -96,6 +107,15 @@ cat > new-doc.md <<EOF
 EOF
 ```
 
+### Historical Entries
+Historical timestamps in "Recent Updates" sections should use valid times:
+- Use actual work completion times when known
+- Format: `yyyy-mm-dd-hhmmss-pst` (valid hours: 00-23)
+- Never use invalid hours like 25:00, 26:00, 27:00
+
 ---
 
-**Remember**: Timestamps should always reflect real current time, not placeholders.
+**Remember**: 
+- Headers and filename prefixes: Always use current real time
+- Historical entries: Use valid timestamps (hours 00-23)
+- Versioning: Use Rye Style chronological format (YYYYMMDD.HHMMSS.variant)
