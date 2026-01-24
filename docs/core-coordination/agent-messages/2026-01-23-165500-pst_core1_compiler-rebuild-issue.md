@@ -134,6 +134,10 @@ src/Sema.zig:1:1: error: root source file struct 'std' has no member named 'Auto
   2. `Sema/rye_style.zig:296` - `no field named 'file_scope' in struct 'Zcu.LazySrcLoc'`
 - ⏳ Build still failing (2 compilation errors)
 
-**Status**: ⚠️ **BLOCKED** — Waiting for Vantage 3 to complete fixes and rebuild  
+**Current Errors** (2 remaining):
+1. `Sema.zig:1062` - API change: `node_offset_fn_body` field doesn't exist
+2. `Sema/rye_style.zig:296` - API change: `file_scope` field doesn't exist in `LazySrcLoc`
+
+**Status**: ⚠️ **BLOCKED** — Waiting for Vantage 3 to fix API compatibility issues  
 **Priority**: **HIGH** — Critical blocker  
-**Date**: 2026-01-23-165500-pst (updated 2026-01-23-165836-pst)
+**Date**: 2026-01-23-165500-pst (updated 2026-01-23-165912-pst)
