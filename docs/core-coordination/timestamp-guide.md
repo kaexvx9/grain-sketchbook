@@ -6,10 +6,18 @@
 
 ## Quick Reference
 
-### Generate Timestamp
+### Headers and Filename Prefixes
 ```bash
-# Format: YYYY-MM-DD-HHMMSS-pst
+# Format: yyyy-mm-dd-hhmmss-pst (with dashes, lowercase)
 date +"%Y-%m-%d-%H%M%S-pst"
+# Example: 2026-01-23-160529-pst
+```
+
+### Versioning (Rye Style Chronological)
+```bash
+# Format: YYYYMMDD.HHMMSS.variant (no dashes, dots, uppercase)
+date +"%Y%m%d.%H%M%S"
+# Example: 20260123.160529.basin
 ```
 
 ### Generate Datetime
@@ -46,12 +54,25 @@ date +"%Y-%m-%d-%H%M%S-pst"
 
 ---
 
-## Pattern
+## Patterns
+
+### Headers and Filenames
+**Format**: `yyyy-mm-dd-hhmmss-pst` (with dashes, lowercase)
+- Use for: Document headers, filename prefixes, "Last Updated" fields
+- Command: `date +"%Y-%m-%d-%H%M%S-pst"`
+- Example: `2026-01-23-160529-pst`
 
 **Always generate timestamps dynamically**:
 - Never hardcode timestamps like `2026-01-23-270000-pst` (invalid time)
 - Always use `date +"%Y-%m-%d-%H%M%S-pst"` command
 - Update timestamps when modifying documents
+
+### Versioning (Rye Style)
+**Format**: `YYYYMMDD.HHMMSS.variant` (no dashes, dots, uppercase)
+- Use for: Chronological versioning per Rye Style
+- Command: `date +"%Y%m%d.%H%M%S"` (add variant manually)
+- Example: `20260123.160529.basin`
+- See: `docs/rye_style.md` section on Chronological Versioning
 
 ---
 
