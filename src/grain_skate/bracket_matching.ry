@@ -168,7 +168,7 @@ pub const BracketMatcher = struct {
         
         // Search forward from cursor position
         var line: u32 = start_line;
-        var column: u32 = start_column + 1;
+        const column: u32 = start_column + 1;
         
         while (line < editor.buffer.lines_len) : (line += 1) {
             const line_text = editor.buffer.lines[line];
