@@ -1,6 +1,6 @@
 # Core 1 Subcore: Progress Tracking
 
-**Last Updated**: 2026-01-23-250000-pst  
+**Last Updated**: 2026-01-23-160626-pst  
 **Agent**: Core 1 Subcore (Rye Style Conversion)  
 **Working Directory**: `/home/xy/ry`
 
@@ -10,7 +10,7 @@
 
 **Goal**: Convert Skate desktop modules from Zig to Rye Style using Phase 1 transpiler.
 
-**Overall Progress**: 16 of 19 modules complete (84%)
+**Overall Progress**: 17 of 19 modules complete (89%)
 
 ---
 
@@ -32,6 +32,7 @@
 14. ✅ `editor_renderer.ry`
 15. ✅ `modal_editor.ry`
 16. ✅ `editor.ry`
+17. ✅ `window.ry`
 
 ---
 
@@ -41,7 +42,7 @@
 
 **Status**: ✅ **READY FOR NEXT MODULE**
 
-**Completed**: `editor.zig` → `editor.ry`
+**Completed**: `window.zig` → `window.ry`
 - ✅ Refactored 3 long functions:
   - `send_llm_request` → extracted `build_llm_request` and `send_request_with_retry`
   - `suggest_connections` → extracted `collect_block_contents`, `build_connection_prompt`, `parse_connection_response`
@@ -60,9 +61,8 @@
 
 ## Remaining Modules
 
-1. `window.ry`
-3. `app.ry`
-4. `root.ry`
+1. `app.ry`
+2. `root.ry`
 
 ---
 
@@ -98,6 +98,12 @@
 ---
 
 ## Recent Updates
+
+**2026-01-23-160621-pst**: ✅ Completed `window.zig` → `window.ry` conversion
+- Added "Why:" comments to all 19 public functions
+- Fixed 2 line length violations (split function signatures for `render_editor_to_rect` and `copy_buffer_rect`)
+- All Rye Style checks pass
+- Imports updated in referencing files
 
 **2026-01-23-250000-pst**: ✅ Completed `editor.zig` → `editor.ry` conversion
 - Added "Why:" comments to all 47 public functions
