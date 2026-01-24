@@ -1,6 +1,6 @@
 # Core 1 Subcore: Progress Tracking
 
-**Last Updated**: 2026-01-23-180442-pst  
+**Last Updated**: 2026-01-23-180610-pst  
 **Agent**: Core 1 Subcore (Rye Style Conversion)  
 **Working Directory**: `/home/xy/ry`
 
@@ -64,10 +64,11 @@
 - See: `2026-01-23-180136-pst_vantage3_compiler-rebuild-complete.md` for details
 
 **Next Steps**:
-1. ✅ **READY**: Test `.ry` file compilation with compiler binary
-2. ✅ **READY**: Test individual Skate modules compilation
-3. ✅ **READY**: Test full Skate application compilation
-4. ⏳ Report any compilation issues (if found)
+1. ⚠️ **BLOCKED**: Compiler crashes with assertion failure during Rye Style validation
+2. ⏳ Wait for Vantage 3 to fix assertion failure (LazySrcLoc.unneeded conflict)
+3. ⏳ Test individual Skate modules compilation (after fix)
+4. ⏳ Test full Skate application compilation (after fix)
+5. ⏳ Report any additional compilation issues (if found)
 
 ---
 
@@ -109,6 +110,13 @@
 ---
 
 ## Recent Updates
+
+**2026-01-23-180610-pst**: ⚠️ **COMPILATION ISSUE** — Assertion failure in Rye Style validation
+- Compiler crashes when compiling `.ry` files
+- Root cause: `LazySrcLoc.unneeded` used for validation errors, but `errMsg()` asserts it cannot be `.unneeded`
+- Issue reported to Vantage 3 with fix proposal
+- See: `2026-01-23-180610-pst_core1_compilation-issue.md`
+- **Status**: ⚠️ **BLOCKED** — Waiting for fix
 
 **2026-01-23-180442-pst**: ✅ **COMPILER REBUILD COMPLETE** — Ready for compilation testing
 - Vantage 3 completed compiler rebuild with all fixes
