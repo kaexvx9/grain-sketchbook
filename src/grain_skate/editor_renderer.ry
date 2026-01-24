@@ -11,8 +11,8 @@ const Editor = @import("editor.ry").Editor;
 const LanguageDetector = @import("language_detector.ry").LanguageDetector;
 const Language = @import("language_detector.ry").Language;
 const LanguageKeywords = @import("language_keywords.ry").LanguageKeywords;
-const BracketMatcher = @import("bracket_matching.zig").BracketMatcher;
-const BracketMatch = @import("bracket_matching.zig").BracketMatch;
+const BracketMatcher = @import("bracket_matching.ry").BracketMatcher;
+const BracketMatch = @import("bracket_matching.ry").BracketMatch;
 const FontRenderer = @import("../shared/font_renderer.zig").FontRenderer;
 
 // Bounded: Max buffer width (explicit limit, in pixels)

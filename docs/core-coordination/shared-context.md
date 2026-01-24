@@ -1,6 +1,6 @@
 # Shared Context: Core 1 & Vantage 3 Coordination
 
-**Last Updated**: 2026-01-23-160626-pst  
+**Last Updated**: $(date +"%Y-%m-%d-%H%M%S-pst")  
 **Purpose**: Shared context file for Core 1 Subcore and Vantage 3 Subcore coordination
 
 ---
