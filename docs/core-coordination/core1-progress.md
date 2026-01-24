@@ -67,12 +67,13 @@
 1. ✅ **FIXED**: Assertion failure resolved by Vantage 3
 2. ✅ **FIXED**: Standard library validation exclusion implemented by Vantage 3
 3. ✅ **FIXED**: Module path restriction - trusted cross-module imports enabled
-4. ✅ **READY**: Test Grain Shine protocol imports from Skate modules
-5. ✅ **READY**: Test individual Skate modules compilation
-6. ✅ **READY**: Test full Skate application compilation  
-7. ⏳ Resolve external dependencies (grain_buffer.zig, dag_core.zig, font_renderer.zig)
-8. ⏳ Report any additional compilation issues (if found)
-9. ✅ Fixed minor variable declaration issue in `bracket_matching.ry`
+4. ✅ **FIXED**: External dependencies moved to trusted modules
+5. ✅ **READY**: Test Grain Shine protocol imports from Skate modules
+6. ✅ **READY**: Test individual Skate modules compilation (all imports should work)
+7. ✅ **READY**: Test full Skate application compilation  
+8. ⏳ Fix syntax error in `editor_dag_integration.ry:178` (expected ';' after statement)
+9. ⏳ Report any additional compilation issues (if found)
+10. ✅ Fixed minor variable declaration issue in `bracket_matching.ry`
 
 ---
 
@@ -114,6 +115,16 @@
 ---
 
 ## Recent Updates
+
+**2026-01-23-190900-pst**: ✅ **EXTERNAL DEPENDENCIES RESOLVED** — All files moved to trusted modules
+- External dependencies moved to grain_core/ ✅
+- grain_buffer.zig → grain_core/buffer.zig ✅
+- dag_core.zig → grain_core/dag.zig ✅
+- shared/font_renderer.zig → grain_core/font_renderer_shared.zig ✅
+- All Skate module imports updated ✅
+- QEMU SSH setup scripts created ✅
+- See: `2026-01-23-190900-pst_vantage3_core1-unblocked-external-deps.md`
+- **Status**: ✅ **READY** — All imports should work, test compilation
 
 **2026-01-23-190200-pst**: ✅ **MODULE PATH RESTRICTION FIXED** — Cross-module imports enabled
 - Module path restriction fixed - trusted cross-module imports now allowed ✅
