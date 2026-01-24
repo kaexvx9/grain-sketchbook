@@ -92,13 +92,14 @@
 
 **Priority 1**: Phase 5 - Wayland Protocol Rye Style Evaluation ✅ **ANALYSIS COMPLETE**
 
-**Current Focus**: Wayland protocol evaluation complete, implementation planning next
+**Current Focus**: Wayland protocol evaluation complete, bounds constants finalized, ready for implementation
 - ✅ Analyzed existing `grain_core/wayland/protocol.zig` (Fully Rye Style compliant)
 - ✅ Researched Wayland protocol specification (wire format, message structure)
 - ✅ Assessed bounded operations, memory safety, type safety
 - ✅ **Decision**: **ADAPT WAYLAND** (with explicit bounds) — Similar to Tend garden decision process
 - ✅ Deep analysis complete (see `vantage3-wayland-protocol-deep-analysis.md`)
-- 🚧 Next: Finalize bounds constants and design implementation approach
+- ✅ Bounds constants finalized (see `vantage3-wayland-bounds-constants.md`)
+- 🚧 Next: Extend existing code with new bounds constants and implement message parser
 
 **Integration**: ✅ **COMPLETE** — Core 1 has converted all 19 Skate modules to Rye Style
 - All modules validated and compliant
@@ -150,6 +151,13 @@
 ---
 
 ## Recent Updates
+
+**2026-01-23-181500-pst**: ✅ **ASSERTION FAILURE FIXED**
+- Fixed LazySrcLoc.unneeded issue in Rye Style validation
+- All validation errors now use valid source locations (function/declaration tokens)
+- Compiler no longer crashes on Rye Style validation errors
+- Core 1 unblocked for compilation testing
+- See: `2026-01-23-181500-pst_vantage3_assertion-fix-complete.md` for details
 
 **2026-01-23-180136-pst**: ✅ **COMPILER REBUILD COMPLETE**
 - Fixed all compilation errors (error set mismatches, type issues, API compatibility)
