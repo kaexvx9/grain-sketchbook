@@ -116,10 +116,10 @@
 - ⏳ Recursion detection (complex, requires control flow analysis - future work, optional)
 
 **Priority 2**: Phase 5 - GUI Foundation (Weeks 13-16)
-- Add `.ry` file extension support (critical, blocks full compilation)
-- Wayland protocol research and implementation planning
-- Basic window system primitives
-- Input handling library
+- ✅ Add `.ry` file extension support (COMPLETE - ready for rebuild and testing)
+- 🚧 Wayland protocol research and implementation planning
+- 🚧 Basic window system primitives
+- 🚧 Input handling library
 - See: `vantage3-gui-os-integration-plan.md` for full roadmap
 
 **Priority 3**: Basin kernel integration testing
