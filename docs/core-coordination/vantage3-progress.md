@@ -153,6 +153,13 @@
 
 ## Recent Updates
 
+**2026-01-23-182130-pst**: ✅ **STDLIB VALIDATION FIXED**
+- Fixed Core 1's blocking issue: excluded standard library from Rye Style validation  
+- Added shouldSkipRyeStyleValidation() function to detect stdlib/system files
+- Compiler now skips validation for paths containing '/std/', 'lib/zig/std/', etc.
+- Core 1 unblocked: can now compile .ry files without stdlib validation errors
+- See: `2026-01-23-182130-pst_vantage3_stdlib-validation-fix.md` for details
+
 **2026-01-23-181500-pst**: ✅ **ASSERTION FAILURE FIXED**
 - Fixed LazySrcLoc.unneeded issue in Rye Style validation
 - All validation errors now use valid source locations (function/declaration tokens)
