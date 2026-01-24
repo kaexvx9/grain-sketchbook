@@ -8,7 +8,7 @@
 //! 2025-12-06-054343-pst: Active implementation (Phase 2: Text Buffer Unification)
 
 const std = @import("std");
-const GrainBuffer = @import("../grain_buffer.zig").GrainBuffer;
+const GrainBuffer = @import("../grain_core/buffer.zig").GrainBuffer;
 
 /// Line buffer adapter: Wraps GrainBuffer with line-based API.
 // 2025-12-06-054343-pst: Active struct

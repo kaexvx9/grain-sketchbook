@@ -7,7 +7,7 @@
 //! 2025-12-20-161207-pst: Active implementation
 
 const std = @import("std");
-const DagCore = @import("../dag_core.zig").DagCore;
+const DagCore = @import("../grain_core/dag.zig").DagCore;
 
 // Re-export DagCore types for convenience
 pub const DagCoreAttributes = DagCore.Attributes;

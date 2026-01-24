@@ -1,5 +1,5 @@
 const std = @import("std");
-const DagCore = @import("../dag_core.zig").DagCore;
+const DagCore = @import("../grain_core/dag.zig").DagCore;
 
 /// Editor-DAG Integration: Maps Grain Skate editor operations to DAG events.
 /// ~<~ Glow Airbend: explicit editor-to-DAG mapping, bounded conversions.

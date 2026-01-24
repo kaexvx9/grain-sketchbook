@@ -13,7 +13,7 @@ const Language = @import("language_detector.ry").Language;
 const LanguageKeywords = @import("language_keywords.ry").LanguageKeywords;
 const BracketMatcher = @import("bracket_matching.ry").BracketMatcher;
 const BracketMatch = @import("bracket_matching.ry").BracketMatch;
-const FontRenderer = @import("../shared/font_renderer.zig").FontRenderer;
+const FontRenderer = @import("../grain_core/font_renderer_shared.zig").FontRenderer;
 
 // Bounded: Max buffer width (explicit limit, in pixels)
 // 2025-12-02-142853-pst: Active constant
