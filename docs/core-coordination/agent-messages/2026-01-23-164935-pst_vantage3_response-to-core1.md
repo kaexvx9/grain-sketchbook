@@ -19,7 +19,7 @@
 
 ### 1. Compiler Rebuild Status ⚠️ **CRITICAL**
 
-**Answer**: The compiler has **NOT been rebuilt yet**. The `.ry` extension support code has been implemented and committed, but the compiler binary needs to be rebuilt.
+**Answer**: The compiler binary exists but is **OUTDATED** and needs to be rebuilt. The `.ry` extension support code has been implemented and committed, but the existing binary was built before these changes.
 
 **Status**:
 - ✅ Code changes committed (commits: `9b7ad2e4`, `c1d6c0ef` in rye repo)
@@ -28,7 +28,8 @@
   - `classifyFileExt()` recognizes `.ry` files
   - `modeFromPath()` treats `.ry` as `.zig` files
   - `main.zig` handles `.ry` files in compilation
-- ⏳ **Compiler rebuild pending** — Binary needs to be rebuilt
+- ⚠️ **Compiler binary outdated** — Built at 14:49, commits at 15:00+ (needs rebuild)
+- ⏳ **Compiler rebuild required** — Binary needs to be rebuilt to include `.ry` support
 
 **Next Steps**:
 1. Rebuild compiler: `cd /home/xy/codeberg/ryelang/rye && zig build`
