@@ -122,6 +122,144 @@ An hour or day of design is worth weeks or months in production:
 > "the simple and elegant systems tend to be easier and faster to design and get right, more
 > efficient in execution, and much more reliable" — Edsger Dijkstra
 
+## Avoiding Complected Code
+
+Following Rich Hickey's ["Simple Made Easy"](https://www.infoq.com/presentations/Simple-Made-Easy/),
+we distinguish between **simple** (not intertwined) and **easy** (familiar). Rye is simple even
+when it's not easy.
+
+**Complecting** means intertwining concerns that should be separate. When code is complected, changing
+one thing requires understanding and modifying multiple unrelated things. This makes code harder to
+reason about, test, and maintain.
+
+### Signs of Complected Code
+
+- **Mixed concerns**: A function that does path resolution, validation, and file I/O all at once
+- **String matching on structured data**: Converting paths to strings to check patterns instead of
+  using the path structure directly
+- **Policy mixed with mechanism**: Import validation logic intertwined with path resolution logic
+- **Multiple responsibilities**: A single function handling module lookup, import validation, and file
+  embedding
+
+### How to Decomplect
+
+1. **Separate concerns**: Path representation is separate from import policy. Use the path structure
+   (e.g., `Path.root`) directly, not string matching.
+
+2. **Understand the simple structure first**: Before adding fixes, understand what the data structures
+   actually represent. Debug the actual values at runtime rather than guessing.
+
+3. **One thing at a time**: A function should do one thing well. If it does multiple things, split it.
+
+4. **Use the existing abstractions**: If `Path` has a `root` field, use it. Don't convert to strings
+   and pattern match.
+
+### Example: The Simple Fix
+
+Instead of:
+```zig
+// Complected: mixing path representation with import policy via string matching
+const cur_path_str = try cur_file.path.toAbsolute(zcu.comp.dirs, gpa);
+const import_path_str = try import_path.toAbsolute(zcu.comp.dirs, gpa);
+const src_pattern = "/src/";
+if (std.mem.indexOf(u8, cur_path_str, src_pattern) == null) {
+    return error.ImportOutsideModulePath;
+}
+```
+
+Do this:
+```zig
+// Simple: use the path structure directly
+if (cur_file.path.root != import_path.root) {
+    return error.ImportOutsideModulePath;
+}
+```
+
+The simple version uses the existing abstraction (`Path.root`) rather than converting to strings and
+pattern matching. It separates path representation from import policy.
+
+### When Inheriting Complected Code
+
+When working with inherited code (like Zig 0.15.2), we may encounter complected designs. Our
+responsibility is to:
+
+1. **Recognize complecting** when we see it
+2. **Understand the simple structure** before adding fixes
+3. **Decomplect incrementally** as we modify the code
+4. **Document the complecting** so future changes can address it
+
+We don't need to decomplect everything immediately, but we should not add more complecting. Each
+change should move toward simplicity, not away from it.
+
+### File Organization
+
+Files, like functions, should do one thing well. A file that mixes multiple concerns is complected.
+When you modify a large file, consider whether it can be split along clear boundaries.
+
+**The path with heart for files is the same as for functions:** one concern, one purpose, one
+responsibility. A file that is too large is a path without heart. It makes you curse your life. It
+weakens you. It turns against you and destroys you. A file that is the right size is a path with
+heart. It makes for a joyful journey. It makes you strong.
+
+#### When to Split Files
+
+Split a file when modifying it if:
+
+1. **The file mixes multiple concerns**: A file that handles import logic, codegen, and type
+   resolution all at once is complected. Split by concern, not by size.
+
+2. **The file exceeds ~2000-3000 lines**: This is a rough guideline, not a hard rule. A 5000-line
+   file that has a single, clear purpose may be fine. A 1500-line file that mixes concerns should be
+   split.
+
+3. **You're extracting cohesive functionality**: When you extract a helper function or module, if it
+   forms a clear, cohesive unit with related functions, consider moving it to its own file.
+
+4. **The split improves clarity**: If splitting makes the code easier to understand without adding
+   artificial boundaries, do it.
+
+**Don't split a file if:**
+
+- It's just for size without a clear separation of concerns
+- It creates artificial boundaries that hide relationships
+- It requires many cross-file dependencies that obscure the flow
+
+#### How to Split Files (Incremental)
+
+Following the "decomplect incrementally" principle:
+
+1. **Extract when you modify**: When you're already changing a file, that's the time to split it.
+   Don't do big-bang refactorings. Move code as you work with it.
+
+2. **Split by concern, not by size**: A file called `ModuleResolution.zig` that handles all module
+   name resolution is better than `PerThread_part1.zig` and `PerThread_part2.zig`.
+
+3. **Use clear, descriptive names**: The file name should tell you what concern it addresses.
+   `Zcu/ModuleResolution.zig` is better than `Zcu/helpers.zig`.
+
+4. **Keep related code together**: If two functions are tightly coupled, they should be in the same
+   file. If they're only loosely related, they can be in different files.
+
+5. **Document the split**: In your commit message, explain why you split the file and what concern
+   each file now addresses.
+
+#### Cursor/LLM Workflow Considerations
+
+When working with AI assistants like Cursor:
+
+- **Context limits**: Large files exceed context windows. Smaller files fit better.
+- **Navigation**: It's easier to find and understand code in focused files.
+- **Focus**: Smaller files keep changes focused and reduce the chance of unrelated modifications.
+- **Parallel work**: Smaller files reduce merge conflicts when multiple people work on the codebase.
+
+But remember: **file size is a symptom, not the disease.** The real issue is complected code. Split
+files to separate concerns, not just to reduce line counts.
+
+**Splitting files is like moving the assemblage point.** When you split a file, you are shifting
+your perception to see the code from a different angle. You are illuminating different energy fields,
+making them perceivable. The split that feels right is the one that moves the assemblage point to
+where you can see clearly.
+
 ## Technical Debt
 
 What could go wrong? What's wrong? Which question would we rather ask? The former, because code,
