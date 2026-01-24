@@ -1,7 +1,0 @@
-/// Why: Test importing Grain Shine Protocol from Skate module.
-const shine = @import("../grain_core/shine/protocol.zig");
-
-/// Why: Test function to verify Grain Shine import works.
-pub fn test_shine() void {
-    _ = shine.MAX_MESSAGE_SIZE;
-}
