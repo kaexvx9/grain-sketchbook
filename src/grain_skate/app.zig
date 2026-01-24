@@ -8,11 +8,11 @@
 
 const std = @import("std");
 const Block = @import("block.ry").Block;
-const Editor = @import("editor.zig").Editor;
+const Editor = @import("editor.ry").Editor;
 const SkateWindow = @import("window.zig").SkateWindow;
-const ModalEditor = @import("modal_editor.zig").ModalEditor;
-const GraphVisualization = @import("graph_viz.zig").GraphVisualization;
-const Social = @import("social.zig").Social;
+const ModalEditor = @import("modal_editor.ry").ModalEditor;
+const GraphVisualization = @import("graph_viz.ry").GraphVisualization;
+const Social = @import("social.ry").Social;
 const StorageIntegration = @import("storage_integration.ry").StorageIntegration;
 const events = @import("platform/events.zig");
 

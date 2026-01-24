@@ -7,7 +7,7 @@
 //! 2025-12-03-162613-pst: Active implementation
 
 const std = @import("std");
-const Editor = @import("editor.zig").Editor;
+const Editor = @import("editor.ry").Editor;
 
 // Bounded: Max bracket stack depth (explicit limit)
 // 2025-12-03-162613-pst: Active constant
@@ -35,6 +35,7 @@ pub const BracketMatch = struct {
     column: u32, // Column index of matching bracket (0-indexed)
     
     /// Initialize empty bracket match (no match found).
+    /// Why: Required for returning no-match result when bracket matching fails.
     // 2025-12-03-162613-pst: Active function
     pub fn no_match() BracketMatch {
         return BracketMatch{
@@ -45,6 +46,7 @@ pub const BracketMatch = struct {
     }
     
     /// Initialize bracket match with position.
+    /// Why: Required for creating bracket match results with line and column positions.
     // 2025-12-03-162613-pst: Active function
     pub fn init(line: u32, column: u32) BracketMatch {
         std.debug.assert(line < Editor.MAX_BUFFER_SIZE / Editor.MAX_LINE_LEN); // Precondition
@@ -83,6 +85,7 @@ pub const BracketMatcher = struct {
     }
     
     /// Check if bracket is opening bracket.
+    /// Why: Required for determining search direction in bracket matching algorithm.
     // 2025-12-03-162613-pst: Active function
     pub fn is_open_bracket(bracket_type: BracketType) bool {
         return switch (bracket_type) {
@@ -101,6 +104,7 @@ pub const BracketMatcher = struct {
     }
     
     /// Get matching bracket type (open -> close, close -> open).
+    /// Why: Required for finding corresponding bracket pairs during matching search.
     // 2025-12-03-162613-pst: Active function
     pub fn get_matching_bracket(bracket_type: BracketType) BracketType {
         return switch (bracket_type) {
@@ -117,6 +121,7 @@ pub const BracketMatcher = struct {
     }
     
     /// Find matching bracket at cursor position (iterative, stack-based).
+    /// Why: Required for highlighting matching brackets in editor UI.
     // Returns matching bracket position or no match if not found.
     // 2025-12-03-162613-pst: Active function
     pub fn find_matching_bracket(

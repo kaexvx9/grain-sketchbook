@@ -7,9 +7,9 @@
 //! 2025-11-24-121500-pst: Active implementation
 
 const std = @import("std");
-const GraphVisualization = @import("graph_viz.zig").GraphVisualization;
+const GraphVisualization = @import("graph_viz.ry").GraphVisualization;
 const Block = @import("block.ry").Block;
-const AiInsights = @import("ai_insights.zig").AiInsights;
+const AiInsights = @import("ai_insights.ry").AiInsights;
 const TemporalGraph = @import("temporal_graph.ry").TemporalGraph;
 
 // Bounded: Max buffer width (explicit limit, in pixels)
@@ -111,8 +111,7 @@ pub const GraphRenderer = struct {
     temporal_graph: ?*TemporalGraph, // Optional temporal graph for time-travel filtering
     current_timestamp: ?u64, // Current time-travel timestamp (null = present)
 
-    /// Initialize graph renderer.
-    // 2025-11-24-121500-pst: Active function
+    /// Why: Required for initializing graph renderer with visualization and buffer dimensions.
     pub fn init(graph_viz: *GraphVisualization, buffer_width: u32, buffer_height: u32) GraphRenderer {
         std.debug.assert(buffer_width > 0);
         std.debug.assert(buffer_width <= MAX_BUFFER_WIDTH);
@@ -132,14 +131,12 @@ pub const GraphRenderer = struct {
         };
     }
 
-    /// Set block storage for title lookup.
-    // 2025-11-24-171200-pst: Active function
+    /// Why: Required for setting block storage to enable title lookup for labels.
     pub fn set_block_storage(self: *GraphRenderer, block_storage: *Block.BlockStorage) void {
         self.block_storage = block_storage;
     }
     
-    /// Set AI suggestions for visual indicators.
-    // 2025-12-19-191609-pst: Active function
+    /// Why: Required for setting AI suggestions to display as visual indicators.
     pub fn set_ai_suggestions(
         self: *GraphRenderer,
         suggestions: []const AiInsights.ConnectionSuggestion,
@@ -151,8 +148,7 @@ pub const GraphRenderer = struct {
         self.ai_suggestions_len = @as(u32, @intCast(suggestions.len));
     }
     
-    /// Set temporal graph for time-travel filtering.
-    // 2025-12-20-144235-pst: Active function
+    /// Why: Required for setting temporal graph to enable time-travel filtering.
     pub fn set_temporal_graph(self: *GraphRenderer, temporal_graph: ?*TemporalGraph) void {
         self.temporal_graph = temporal_graph;
         // Sync current timestamp from temporal graph if available
@@ -163,8 +159,7 @@ pub const GraphRenderer = struct {
         }
     }
     
-    /// Set current time-travel timestamp for filtering (null = present).
-    // 2025-12-20-144235-pst: Active function
+    /// Why: Required for setting time-travel timestamp to filter graph by time.
     pub fn set_temporal_timestamp(self: *GraphRenderer, timestamp: ?u64) void {
         // Assert: If timestamp is set, it must be within valid range
         if (timestamp) |ts| {
@@ -187,14 +182,12 @@ pub const GraphRenderer = struct {
         }
     }
     
-    /// Get current time-travel timestamp (null = present).
-    // 2025-12-20-144235-pst: Active function
+    /// Why: Required for getting current time-travel timestamp for filtering state.
     pub fn get_temporal_timestamp(self: *const GraphRenderer) ?u64 {
         return self.current_timestamp;
     }
     
-    /// Check if time-travel mode is active.
-    // 2025-12-20-144235-pst: Active function
+    /// Why: Required for checking if time-travel mode is active for filtering.
     pub fn is_time_travel_mode(self: *const GraphRenderer) bool {
         return self.current_timestamp != null;
     }
@@ -238,8 +231,7 @@ pub const GraphRenderer = struct {
         return block.created_at <= timestamp;
     }
 
-    /// Render graph to RGBA buffer.
-    // 2025-11-24-121500-pst: Active function
+    /// Why: Required for rendering graph visualization to RGBA pixel buffer.
     pub fn render(self: *const GraphRenderer, buffer: []u8) void {
         std.debug.assert(buffer.len >= self.buffer_width * self.buffer_height * 4);
         std.debug.assert(self.graph_viz.zoom > 0.0);
@@ -434,16 +426,43 @@ pub const GraphRenderer = struct {
         }
     }
 
+    /// Update dashed line pattern state.
+    /// Why: Required for managing dash/gap pattern state in dashed line rendering.
+    fn update_dash_pattern(
+        pixel_count: *u32,
+        in_dash: *bool,
+        dash_length: u32,
+        gap_length: u32,
+    ) void {
+        pixel_count.* += 1;
+        if (in_dash.* and pixel_count.* >= dash_length) {
+            in_dash.* = false;
+            pixel_count.* = 0;
+        } else if (!in_dash.* and pixel_count.* >= gap_length) {
+            in_dash.* = true;
+            pixel_count.* = 0;
+        }
+    }
+    
     /// Draw dashed line for AI-suggested edges (iterative).
     // 2025-12-19-191609-pst: Active function
-    fn draw_dashed_line(self: *const GraphRenderer, buffer: []u8, x1: u32, y1: u32, x2: u32, y2: u32, r: u8, g: u8, b: u8, a: u8) void {
-        // Assert: Coordinates must be within bounds
+    fn draw_dashed_line(
+        self: *const GraphRenderer,
+        buffer: []u8,
+        x1: u32,
+        y1: u32,
+        x2: u32,
+        y2: u32,
+        r: u8,
+        g: u8,
+        b: u8,
+        a: u8,
+    ) void {
         std.debug.assert(x1 < self.buffer_width);
         std.debug.assert(y1 < self.buffer_height);
         std.debug.assert(x2 < self.buffer_width);
         std.debug.assert(y2 < self.buffer_height);
         
-        // Dashed line pattern: 5 pixels on, 3 pixels off
         const dash_length: u32 = 5;
         const gap_length: u32 = 3;
         const pattern_length = dash_length + gap_length;
@@ -463,10 +482,13 @@ pub const GraphRenderer = struct {
         var in_dash: bool = true;
         
         while (true) {
-            if (x0 >= 0 and x0 < @as(i32, @intCast(self.buffer_width)) and y0 >= 0 and y0 < @as(i32, @intCast(self.buffer_height))) {
-                // Only draw if we're in the dash part of the pattern
+            const x_valid = x0 >= 0 and x0 < @as(i32, @intCast(self.buffer_width));
+            const y_valid = y0 >= 0 and y0 < @as(i32, @intCast(self.buffer_height));
+            if (x_valid and y_valid) {
                 if (in_dash) {
-                    const idx = (@as(u32, @intCast(y0)) * self.buffer_width + @as(u32, @intCast(x0))) * 4;
+                    const y_u = @as(u32, @intCast(y0));
+                    const x_u = @as(u32, @intCast(x0));
+                    const idx = (y_u * self.buffer_width + x_u) * 4;
                     buffer[idx + 0] = r;
                     buffer[idx + 1] = g;
                     buffer[idx + 2] = b;
@@ -478,15 +500,7 @@ pub const GraphRenderer = struct {
                 break;
             }
             
-            // Update pattern state
-            pixel_count += 1;
-            if (in_dash and pixel_count >= dash_length) {
-                in_dash = false;
-                pixel_count = 0;
-            } else if (!in_dash and pixel_count >= gap_length) {
-                in_dash = true;
-                pixel_count = 0;
-            }
+            update_dash_pattern(&pixel_count, &in_dash, dash_length, gap_length);
             
             const e2 = 2 * err;
             if (e2 > -dy) {
@@ -499,12 +513,23 @@ pub const GraphRenderer = struct {
             }
         }
         
-        std.debug.assert(pixel_count <= pattern_length); // Postcondition
+        std.debug.assert(pixel_count <= pattern_length);
     }
     
     /// Draw line using Bresenham's algorithm (iterative).
     // 2025-11-24-121500-pst: Active function
-    fn draw_line(self: *const GraphRenderer, buffer: []u8, x1: u32, y1: u32, x2: u32, y2: u32, r: u8, g: u8, b: u8, a: u8) void {
+    fn draw_line(
+        self: *const GraphRenderer,
+        buffer: []u8,
+        x1: u32,
+        y1: u32,
+        x2: u32,
+        y2: u32,
+        r: u8,
+        g: u8,
+        b: u8,
+        a: u8,
+    ) void {
         var x0 = @as(i32, @intCast(x1));
         var y0 = @as(i32, @intCast(y1));
         const x1_i = @as(i32, @intCast(x2));
@@ -517,8 +542,12 @@ pub const GraphRenderer = struct {
         var err = dx - dy;
 
         while (true) {
-            if (x0 >= 0 and x0 < @as(i32, @intCast(self.buffer_width)) and y0 >= 0 and y0 < @as(i32, @intCast(self.buffer_height))) {
-                const idx = (@as(u32, @intCast(y0)) * self.buffer_width + @as(u32, @intCast(x0))) * 4;
+            const x_valid = x0 >= 0 and x0 < @as(i32, @intCast(self.buffer_width));
+            const y_valid = y0 >= 0 and y0 < @as(i32, @intCast(self.buffer_height));
+            if (x_valid and y_valid) {
+                const y_u = @as(u32, @intCast(y0));
+                const x_u = @as(u32, @intCast(x0));
+                const idx = (y_u * self.buffer_width + x_u) * 4;
                 buffer[idx + 0] = r;
                 buffer[idx + 1] = g;
                 buffer[idx + 2] = b;
@@ -543,7 +572,17 @@ pub const GraphRenderer = struct {
 
     /// Draw filled circle (iterative).
     // 2025-11-24-121500-pst: Active function
-    fn draw_circle(self: *const GraphRenderer, buffer: []u8, center_x: u32, center_y: u32, radius: u32, r: u8, g: u8, b: u8, a: u8) void {
+    fn draw_circle(
+        self: *const GraphRenderer,
+        buffer: []u8,
+        center_x: u32,
+        center_y: u32,
+        radius: u32,
+        r: u8,
+        g: u8,
+        b: u8,
+        a: u8,
+    ) void {
         if (radius == 0) {
             return;
         }
@@ -560,7 +599,9 @@ pub const GraphRenderer = struct {
                 if (dist_sq <= radius_i * radius_i) {
                     const px = center_x_i + x;
                     const py = center_y_i + y;
-                    if (px >= 0 and px < @as(i32, @intCast(self.buffer_width)) and py >= 0 and py < @as(i32, @intCast(self.buffer_height))) {
+                    const px_valid = px >= 0 and px < @as(i32, @intCast(self.buffer_width));
+                    const py_valid = py >= 0 and py < @as(i32, @intCast(self.buffer_height));
+                    if (px_valid and py_valid) {
                         const idx = (@as(u32, @intCast(py)) * self.buffer_width + @as(u32, @intCast(px))) * 4;
                         buffer[idx + 0] = r;
                         buffer[idx + 1] = g;
@@ -578,8 +619,10 @@ pub const GraphRenderer = struct {
         std.debug.assert(normalized_x >= 0.0);
         std.debug.assert(normalized_x <= 1.0);
         const offset_x = (normalized_x - self.graph_viz.center_x) * self.graph_viz.zoom;
-        const pixel_x = (@as(f32, @floatFromInt(self.buffer_width)) * 0.5) + (offset_x * @as(f32, @floatFromInt(self.buffer_width)));
-        const clamped = std.math.clamp(pixel_x, 0.0, @as(f32, @floatFromInt(self.buffer_width - 1)));
+        const width_f = @as(f32, @floatFromInt(self.buffer_width));
+        const pixel_x = (width_f * 0.5) + (offset_x * width_f);
+        const max_x = @as(f32, @floatFromInt(self.buffer_width - 1));
+        const clamped = std.math.clamp(pixel_x, 0.0, max_x);
         return @as(u32, @intFromFloat(clamped));
     }
 
@@ -589,11 +632,113 @@ pub const GraphRenderer = struct {
         std.debug.assert(normalized_y >= 0.0);
         std.debug.assert(normalized_y <= 1.0);
         const offset_y = (normalized_y - self.graph_viz.center_y) * self.graph_viz.zoom;
-        const pixel_y = (@as(f32, @floatFromInt(self.buffer_height)) * 0.5) + (offset_y * @as(f32, @floatFromInt(self.buffer_height)));
-        const clamped = std.math.clamp(pixel_y, 0.0, @as(f32, @floatFromInt(self.buffer_height - 1)));
+        const height_f = @as(f32, @floatFromInt(self.buffer_height));
+        const pixel_y = (height_f * 0.5) + (offset_y * height_f);
+        const max_y = @as(f32, @floatFromInt(self.buffer_height - 1));
+        const clamped = std.math.clamp(pixel_y, 0.0, max_y);
         return @as(u32, @intFromFloat(clamped));
     }
 
+    /// Get label text from block storage or return number flag.
+    /// Why: Required for extracting label text from block storage.
+    fn get_label_text(
+        self: *const GraphRenderer,
+        block_id: u32,
+        label_text: *[]const u8,
+        label_text_len: *u32,
+    ) bool {
+        var is_number: bool = false;
+        if (self.block_storage) |storage| {
+            if (storage.get_block(block_id)) |block| {
+                if (block.title_len > 0) {
+                    label_text.* = block.title[0..block.title_len];
+                    label_text_len.* = block.title_len;
+                } else {
+                    is_number = true;
+                }
+            } else {
+                is_number = true;
+            }
+        } else {
+            is_number = true;
+        }
+        return is_number;
+    }
+    
+    /// Render number label (block ID).
+    /// Why: Required for rendering numeric labels when block has no title.
+    fn render_number_label(
+        self: *const GraphRenderer,
+        buffer: []u8,
+        block_id: u32,
+        center_x: u32,
+        label_y: u32,
+        text_r: u8,
+        text_g: u8,
+        text_b: u8,
+        text_a: u8,
+        bg_r: u8,
+        bg_g: u8,
+        bg_b: u8,
+        bg_a: u8,
+    ) void {
+        const num_digits = self.count_digits(block_id);
+        const text_width = num_digits * 6;
+        const text_x = if (text_width < center_x) center_x - (text_width / 2) else 0;
+        const bg_width = text_width + 4;
+        const bg_height: u32 = 9;
+        const bg_x = if (bg_width < center_x) center_x - (bg_width / 2) else 0;
+        const bg_y = label_y - 1;
+        self.draw_rect(buffer, bg_x, bg_y, bg_width, bg_height, bg_r, bg_g, bg_b, bg_a);
+        self.draw_number(buffer, block_id, text_x, label_y, text_r, text_g, text_b, text_a);
+    }
+    
+    /// Truncate text with ellipsis if needed.
+    /// Why: Required for truncating long labels to fit display constraints.
+    fn truncate_label_text(
+        label_text: []const u8,
+        label_text_len: u32,
+        truncated_text: *[MAX_LABEL_LEN + 3]u8,
+    ) []const u8 {
+        if (label_text_len > MAX_LABEL_LEN) {
+            const trunc_len = MAX_LABEL_LEN - 3;
+            @memcpy(truncated_text[0..trunc_len], label_text[0..trunc_len]);
+            truncated_text[trunc_len] = '.';
+            truncated_text[trunc_len + 1] = '.';
+            truncated_text[trunc_len + 2] = '.';
+            return truncated_text[0..MAX_LABEL_LEN];
+        } else {
+            return label_text;
+        }
+    }
+    
+    /// Render text label with background.
+    /// Why: Required for rendering text labels with background rectangle.
+    fn render_text_label(
+        self: *const GraphRenderer,
+        buffer: []u8,
+        final_text: []const u8,
+        center_x: u32,
+        label_y: u32,
+        text_r: u8,
+        text_g: u8,
+        text_b: u8,
+        text_a: u8,
+        bg_r: u8,
+        bg_g: u8,
+        bg_b: u8,
+        bg_a: u8,
+    ) void {
+        const text_width = self.calculate_text_width(final_text);
+        const text_x = if (text_width < center_x) center_x - (text_width / 2) else 0;
+        const bg_width = text_width + 4;
+        const bg_height: u32 = 9;
+        const bg_x = if (bg_width < center_x) center_x - (bg_width / 2) else 0;
+        const bg_y = label_y - 1;
+        self.draw_rect(buffer, bg_x, bg_y, bg_width, bg_height, bg_r, bg_g, bg_b, bg_a);
+        self.draw_text(buffer, final_text, text_x, label_y, text_r, text_g, text_b, text_a);
+    }
+    
     /// Render node labels (block titles with background, centered, truncated with ellipsis).
     // 2025-12-04-095210-pst: Active function
     fn render_labels(self: *const GraphRenderer, buffer: []u8) void {
@@ -608,85 +753,52 @@ pub const GraphRenderer = struct {
 
         var n: u32 = 0;
         while (n < self.graph_viz.nodes_len) : (n += 1) {
-            if (!self.graph_viz.nodes[n].visible) {
-                continue;
-            }
-            
-            // Temporal filtering: Skip labels for nodes that don't exist at current timestamp
-            if (!self.block_exists_at_timestamp(self.graph_viz.nodes[n].block_id)) {
-                continue;
-            }
+            if (!self.graph_viz.nodes[n].visible) continue;
+            if (!self.block_exists_at_timestamp(self.graph_viz.nodes[n].block_id)) continue;
 
-            // Transform normalized coordinates to pixel coordinates
             const center_x = self.normalized_to_pixel_x(self.graph_viz.nodes[n].position.x);
             const center_y = self.normalized_to_pixel_y(self.graph_viz.nodes[n].position.y);
             const radius = @as(u32, @intFromFloat(self.graph_viz.nodes[n].radius * self.graph_viz.zoom));
-
-            // Label position: below node (center_y + radius + offset)
             const label_y = center_y + radius + 12;
 
-            // Get label text (title or block ID)
             var label_text: []const u8 = undefined;
             var label_text_len: u32 = 0;
-            var is_number: bool = false;
-            
-            if (self.block_storage) |storage| {
-                if (storage.get_block(self.graph_viz.nodes[n].block_id)) |block| {
-                    if (block.title_len > 0) {
-                        label_text = block.title[0..block.title_len];
-                        label_text_len = block.title_len;
-                    } else {
-                        is_number = true;
-                    }
-                } else {
-                    is_number = true;
-                }
-            } else {
-                is_number = true;
-            }
+            const is_number = self.get_label_text(self.graph_viz.nodes[n].block_id, &label_text, &label_text_len);
 
-            // Handle number labels (block ID)
             if (is_number) {
-                const num_digits = self.count_digits(self.graph_viz.nodes[n].block_id);
-                const text_width = num_digits * 6; // 6 pixels per digit
-                const text_x = if (text_width < center_x) center_x - (text_width / 2) else 0;
-                const bg_width = text_width + 4; // Padding
-                const bg_height: u32 = 9; // 7 pixels + 2 padding
-                const bg_x = if (bg_width < center_x) center_x - (bg_width / 2) else 0;
-                const bg_y = label_y - 1; // 1 pixel padding above
-                self.draw_rect(buffer, bg_x, bg_y, bg_width, bg_height, bg_r, bg_g, bg_b, bg_a);
-                self.draw_number(buffer, self.graph_viz.nodes[n].block_id, text_x, label_y, text_r, text_g, text_b, text_a);
+                self.render_number_label(
+                    buffer,
+                    self.graph_viz.nodes[n].block_id,
+                    center_x,
+                    label_y,
+                    text_r,
+                    text_g,
+                    text_b,
+                    text_a,
+                    bg_r,
+                    bg_g,
+                    bg_b,
+                    bg_a,
+                );
                 continue;
             }
 
-            // Truncate text with ellipsis if needed
             var truncated_text: [MAX_LABEL_LEN + 3]u8 = undefined;
-            var final_text: []const u8 = undefined;
-            
-            if (label_text_len > MAX_LABEL_LEN) {
-                const trunc_len = MAX_LABEL_LEN - 3; // Reserve 3 chars for "..."
-                @memcpy(truncated_text[0..trunc_len], label_text[0..trunc_len]);
-                truncated_text[trunc_len] = '.';
-                truncated_text[trunc_len + 1] = '.';
-                truncated_text[trunc_len + 2] = '.';
-                final_text = truncated_text[0..MAX_LABEL_LEN];
-            } else {
-                final_text = label_text;
-            }
-
-            // Calculate text width for centering
-            const text_width = self.calculate_text_width(final_text);
-            const text_x = if (text_width < center_x) center_x - (text_width / 2) else 0;
-            
-            // Draw background rectangle (centered)
-            const bg_width = text_width + 4; // Padding
-            const bg_height: u32 = 9; // 7 pixels + 2 padding
-            const bg_x = if (bg_width < center_x) center_x - (bg_width / 2) else 0;
-            const bg_y = label_y - 1; // 1 pixel padding above
-            self.draw_rect(buffer, bg_x, bg_y, bg_width, bg_height, bg_r, bg_g, bg_b, bg_a);
-            
-            // Draw text (centered)
-            self.draw_text(buffer, final_text, text_x, label_y, text_r, text_g, text_b, text_a);
+            const final_text = self.truncate_label_text(label_text, label_text_len, &truncated_text);
+            self.render_text_label(
+                buffer,
+                final_text,
+                center_x,
+                label_y,
+                text_r,
+                text_g,
+                text_b,
+                text_a,
+                bg_r,
+                bg_g,
+                bg_b,
+                bg_a,
+            );
         }
     }
 
@@ -821,7 +933,17 @@ pub const GraphRenderer = struct {
 
     /// Draw uppercase letter using simple 5x7 bitmap font.
     // 2025-11-24-171200-pst: Active function
-    fn draw_letter_upper(self: *const GraphRenderer, buffer: []u8, letter: u8, x: u32, y: u32, r: u8, g: u8, b: u8, a: u8) void {
+    fn draw_letter_upper(
+        self: *const GraphRenderer,
+        buffer: []u8,
+        letter: u8,
+        x: u32,
+        y: u32,
+        r: u8,
+        g: u8,
+        b: u8,
+        a: u8,
+    ) void {
         if (letter < 'A' or letter > 'Z') {
             return; // Invalid letter
         }

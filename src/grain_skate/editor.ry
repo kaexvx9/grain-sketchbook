@@ -67,9 +67,14 @@ pub const Editor = struct {
             replace, // Text replaced
         };
 
-        /// Initialize undo operation.
-        // 2025-11-23-114146-pst: Active function
-        pub fn init(allocator: std.mem.Allocator, op_type: OperationType, line_num: u32, column: u32, text: []const u8) !UndoOperation {
+        /// Why: Required for initializing undo operation with operation details and text copy.
+        pub fn init(
+            allocator: std.mem.Allocator,
+            op_type: OperationType,
+            line_num: u32,
+            column: u32,
+            text: []const u8,
+        ) !UndoOperation {
 
             // Allocate text copy
             const text_copy = try allocator.dupe(u8, text);
@@ -85,7 +90,7 @@ pub const Editor = struct {
             };
         }
 
-        /// Deinitialize undo operation and free memory.
+        /// Why: Required for freeing memory allocated for undo operation text.
         pub fn deinit(self: *UndoOperation) void {
             // Assert: Allocator must be valid
             // Assert: Allocator must be valid (check by attempting deallocation)
@@ -120,8 +125,7 @@ pub const Editor = struct {
         dag_integration: ?*EditorDagIntegration, // Optional DAG integration (for event ordering)
         allocator: std.mem.Allocator,
 
-        /// Initialize editor state.
-        // 2025-11-23-122043-pst: Active function
+        /// Why: Required for initializing editor state with allocator and initial content.
         pub fn init(allocator: std.mem.Allocator, initial_content: []const u8) !EditorState {
 
             // Initialize text buffer (using LineBufferAdapter wrapping GrainBuffer)
@@ -157,7 +161,7 @@ pub const Editor = struct {
             };
         }
         
-        /// Initialize editor state with DAG integration.
+        /// Why: Required for initializing editor state with DAG integration enabled.
         pub fn init_with_dag(
             allocator: std.mem.Allocator,
             initial_content: []const u8,
@@ -176,7 +180,7 @@ pub const Editor = struct {
             return editor;
         }
 
-        /// Deinitialize editor state and free memory.
+        /// Why: Required for freeing all memory allocated by editor state including buffer and undo history.
         pub fn deinit(self: *EditorState) void {
             // Assert: Allocator must be valid
             // Assert: Allocator must be valid (check by attempting deallocation)
@@ -207,7 +211,7 @@ pub const Editor = struct {
             self.* = undefined;
         }
 
-        /// Move cursor left (Vim 'h').
+        /// Why: Required for moving cursor left one character (Vim 'h').
         pub fn move_left(self: *EditorState) void {
             if (self.cursor_column > 0) {
                 self.cursor_column -= 1;
@@ -217,7 +221,7 @@ pub const Editor = struct {
             }
         }
 
-        /// Move cursor right (Vim 'l').
+        /// Why: Required for moving cursor right one character (Vim 'l').
         pub fn move_right(self: *EditorState) void {
             const current_line_len = if (self.cursor_line < self.buffer.lines_len)
                 @as(u32, @intCast(self.buffer.lines[self.cursor_line].len))
@@ -232,7 +236,7 @@ pub const Editor = struct {
             }
         }
 
-        /// Move cursor up (Vim 'k').
+        /// Why: Required for moving cursor up one line (Vim 'k').
         pub fn move_up(self: *EditorState) void {
             if (self.cursor_line > 0) {
                 self.cursor_line -= 1;
@@ -243,7 +247,7 @@ pub const Editor = struct {
             }
         }
 
-        /// Move cursor down (Vim 'j').
+        /// Why: Required for moving cursor down one line (Vim 'j').
         pub fn move_down(self: *EditorState) void {
             if (self.cursor_line < self.buffer.lines_len - 1) {
                 self.cursor_line += 1;
@@ -263,8 +267,7 @@ pub const Editor = struct {
                 (ch == '_');
         }
 
-        /// Move to start of next word (Vim 'w').
-        // 2025-12-02-133014-pst: Active function
+        /// Why: Required for moving cursor to start of next word (Vim 'w').
         pub fn move_word_forward(self: *EditorState) void {
             std.debug.assert(self.cursor_line < self.buffer.lines_len);
             const line = self.buffer.lines[self.cursor_line];
@@ -300,8 +303,7 @@ pub const Editor = struct {
             }
         }
 
-        /// Move to start of previous word (Vim 'b').
-        // 2025-12-02-133014-pst: Active function
+        /// Why: Required for moving cursor to start of previous word (Vim 'b').
         pub fn move_word_backward(self: *EditorState) void {
             std.debug.assert(self.cursor_line < self.buffer.lines_len);
             const line = self.buffer.lines[self.cursor_line];
@@ -343,23 +345,20 @@ pub const Editor = struct {
             }
         }
 
-        /// Move to beginning of line (Vim '0').
-        // 2025-12-02-141446-pst: Active function
+        /// Why: Required for moving cursor to beginning of line (Vim '0').
         pub fn move_line_start(self: *EditorState) void {
             std.debug.assert(self.cursor_line < self.buffer.lines_len);
             self.cursor_column = 0;
         }
 
-        /// Move to end of line (Vim '$').
-        // 2025-12-02-141446-pst: Active function
+        /// Why: Required for moving cursor to end of line (Vim '$').
         pub fn move_line_end(self: *EditorState) void {
             std.debug.assert(self.cursor_line < self.buffer.lines_len);
             const line = self.buffer.lines[self.cursor_line];
             self.cursor_column = @as(u32, @intCast(line.len));
         }
 
-        /// Move to first non-whitespace character on line (Vim '^').
-        // 2025-12-02-141446-pst: Active function
+        /// Why: Required for moving cursor to first non-whitespace character (Vim '^').
         pub fn move_line_start_nonblank(self: *EditorState) void {
             std.debug.assert(self.cursor_line < self.buffer.lines_len);
             const line = self.buffer.lines[self.cursor_line];
@@ -370,15 +369,13 @@ pub const Editor = struct {
             self.cursor_column = pos;
         }
 
-        /// Move to beginning of file (Vim 'gg').
-        // 2025-12-02-141446-pst: Active function
+        /// Why: Required for moving cursor to beginning of file (Vim 'gg').
         pub fn move_file_start(self: *EditorState) void {
             self.cursor_line = 0;
             self.cursor_column = 0;
         }
 
-        /// Move to end of file (Vim 'G').
-        // 2025-12-02-141446-pst: Active function
+        /// Why: Required for moving cursor to end of file (Vim 'G').
         pub fn move_file_end(self: *EditorState) void {
             if (self.buffer.lines_len > 0) {
                 self.cursor_line = self.buffer.lines_len - 1;
@@ -390,8 +387,7 @@ pub const Editor = struct {
             }
         }
 
-        /// Move to end of current/next word (Vim 'e').
-        // 2025-12-02-133014-pst: Active function
+        /// Why: Required for moving cursor to end of current/next word (Vim 'e').
         pub fn move_word_end(self: *EditorState) void {
             std.debug.assert(self.cursor_line < self.buffer.lines_len);
             const line = self.buffer.lines[self.cursor_line];
@@ -445,18 +441,17 @@ pub const Editor = struct {
             }
         }
 
-        /// Enter insert mode (Vim 'i').
+        /// Why: Required for entering insert mode for text editing (Vim 'i').
         pub fn enter_insert_mode(self: *EditorState) void {
             self.mode = .insert;
         }
 
-        /// Exit insert mode (Vim ESC).
+        /// Why: Required for exiting insert mode and returning to normal mode (Vim ESC).
         pub fn exit_insert_mode(self: *EditorState) void {
             self.mode = .normal;
         }
 
-        /// Enter visual mode (Vim 'v').
-        // 2025-12-02-121512-pst: Active function
+        /// Why: Required for entering visual mode for text selection (Vim 'v').
         pub fn enter_visual_mode(self: *EditorState) void {
             self.mode = .visual;
             // Set selection anchor to current cursor position
@@ -464,8 +459,7 @@ pub const Editor = struct {
             self.visual_anchor_column = self.cursor_column;
         }
 
-        /// Enter visual line mode (Vim 'V').
-        // 2025-12-02-130235-pst: Active function
+        /// Why: Required for entering visual line mode for line selection (Vim 'V').
         pub fn enter_visual_line_mode(self: *EditorState) void {
             self.mode = .visual_line;
             // Set selection anchor to current line (full line selection)
@@ -473,8 +467,7 @@ pub const Editor = struct {
             self.visual_anchor_column = 0;
         }
 
-        /// Enter visual block mode (Vim Ctrl+v).
-        // 2025-12-02-135701-pst: Active function
+        /// Why: Required for entering visual block mode for column selection (Vim Ctrl+v).
         pub fn enter_visual_block_mode(self: *EditorState) void {
             self.mode = .visual_block;
             // Set selection anchor to current cursor position
@@ -482,22 +475,12 @@ pub const Editor = struct {
             self.visual_anchor_column = self.cursor_column;
         }
 
-        /// Enter visual block mode (Vim Ctrl+v).
-        // 2025-12-02-135701-pst: Active function
-        pub fn enter_visual_block_mode(self: *EditorState) void {
-            self.mode = .visual_block;
-            // Set selection anchor to current cursor position
-            self.visual_anchor_line = self.cursor_line;
-            self.visual_anchor_column = self.cursor_column;
-        }
-
-        /// Exit visual mode (Vim ESC).
-        // 2025-12-02-121512-pst: Active function
+        /// Why: Required for exiting visual mode and returning to normal mode (Vim ESC).
         pub fn exit_visual_mode(self: *EditorState) void {
             self.mode = .normal;
         }
 
-        /// Switch editor mode.
+        /// Why: Required for switching editor mode with proper cleanup of previous mode.
         pub fn switch_mode(self: *EditorState, new_mode: EditorMode) void {
             if (self.mode == .visual or self.mode == .visual_line or self.mode == .visual_block) {
                 self.exit_visual_mode();
@@ -516,30 +499,26 @@ pub const Editor = struct {
             }
         }
 
-        /// Enter search mode (Vim '/').
-        // 2025-12-02-133808-pst: Active function
+        /// Why: Required for entering search mode for forward search (Vim '/').
         pub fn enter_search_mode(self: *EditorState) void {
             self.mode = .search;
             self.search_pattern_len = 0;
             self.search_direction = .forward;
         }
 
-        /// Enter search backward mode (Vim '?').
-        // 2025-12-02-133808-pst: Active function
+        /// Why: Required for entering search mode for backward search (Vim '?').
         pub fn enter_search_backward_mode(self: *EditorState) void {
             self.mode = .search;
             self.search_pattern_len = 0;
             self.search_direction = .backward;
         }
 
-        /// Exit search mode (Vim ESC).
-        // 2025-12-02-133808-pst: Active function
+        /// Why: Required for exiting search mode and returning to normal mode (Vim ESC).
         pub fn exit_search_mode(self: *EditorState) void {
             self.mode = .normal;
         }
 
-        /// Add character to search pattern.
-        // 2025-12-02-133808-pst: Active function
+        /// Why: Required for adding character to search pattern during search mode.
         pub fn add_search_char(self: *EditorState, ch: u8) void {
             if (self.search_pattern_len < MAX_SEARCH_PATTERN - 1) {
                 self.search_pattern[self.search_pattern_len] = ch;
@@ -547,22 +526,19 @@ pub const Editor = struct {
             }
         }
 
-        /// Remove last character from search pattern (backspace).
-        // 2025-12-02-133808-pst: Active function
+        /// Why: Required for removing last character from search pattern (backspace).
         pub fn remove_search_char(self: *EditorState) void {
             if (self.search_pattern_len > 0) {
                 self.search_pattern_len -= 1;
             }
         }
 
-        /// Get current search pattern.
-        // 2025-12-02-133808-pst: Active function
+        /// Why: Required for retrieving current search pattern for display.
         pub fn get_search_pattern(self: *const EditorState) []const u8 {
             return self.search_pattern[0..self.search_pattern_len];
         }
 
-        /// Find next occurrence of search pattern.
-        // 2025-12-02-133808-pst: Active function
+        /// Why: Required for finding next occurrence of search pattern (Vim 'n').
         pub fn find_next(self: *EditorState) bool {
             if (self.search_pattern_len == 0) {
                 return false;
@@ -571,8 +547,7 @@ pub const Editor = struct {
             return self.find_pattern_forward(pattern);
         }
 
-        /// Find previous occurrence of search pattern.
-        // 2025-12-02-133808-pst: Active function
+        /// Why: Required for finding previous occurrence of search pattern (Vim 'N').
         pub fn find_previous(self: *EditorState) bool {
             if (self.search_pattern_len == 0) {
                 return false;
@@ -637,74 +612,72 @@ pub const Editor = struct {
 
         /// Find pattern backward from cursor (helper).
         // 2025-12-02-133808-pst: Active function
+        /// Check if pattern matches at position in line.
+        /// Why: Required for checking pattern match at specific position.
+        fn check_pattern_match(line_text: []const u8, line_len: u32, pattern: []const u8, col: u32) bool {
+            if (col > line_len - pattern.len) {
+                return false;
+            }
+            var i: u32 = 0;
+            while (i < pattern.len) : (i += 1) {
+                if (col + i >= line_len or line_text[col + i] != pattern[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        
+        /// Search line backward for pattern.
+        /// Why: Required for searching a single line backward for pattern match.
+        fn search_line_backward(
+            self: *EditorState,
+            line: u32,
+            pattern: []const u8,
+            search_end: u32,
+        ) ?struct { line: u32, col: u32 } {
+            const line_text = self.buffer.lines[line];
+            const line_len = @as(u32, @intCast(line_text.len));
+            var col: u32 = if (search_end >= pattern.len) search_end - pattern.len else 0;
+            while (true) : (col -= 1) {
+                if (check_pattern_match(line_text, line_len, pattern, col)) {
+                    return .{ .line = line, .col = col };
+                }
+                if (col == 0) {
+                    break;
+                }
+            }
+            return null;
+        }
+        
         fn find_pattern_backward(self: *EditorState, pattern: []const u8) bool {
             var start_line = self.cursor_line;
             var start_col = if (self.cursor_column > 0) self.cursor_column - 1 else 0;
-            // Search backward from current position
             var line: u32 = start_line;
             while (true) : (line -= 1) {
-                const line_text = self.buffer.lines[line];
-                const line_len = @as(u32, @intCast(line_text.len));
-                const search_end = if (line == start_line) start_col + 1 else line_len;
-                var col: u32 = if (search_end >= pattern.len) search_end - pattern.len else 0;
-                while (true) : (col -= 1) {
-                    if (col > line_len - pattern.len) {
-                        break;
-                    }
-                    var match: bool = true;
-                    var i: u32 = 0;
-                    while (i < pattern.len) : (i += 1) {
-                        if (col + i >= line_len or line_text[col + i] != pattern[i]) {
-                            match = false;
-                            break;
-                        }
-                    }
-                    if (match) {
-                        self.cursor_line = line;
-                        self.cursor_column = col;
-                        return true;
-                    }
-                    if (col == 0) {
-                        break;
-                    }
+                const search_end = if (line == start_line) start_col + 1 else @as(u32, @intCast(self.buffer.lines[line].len));
+                if (search_line_backward(self, line, pattern, search_end)) |match| {
+                    self.cursor_line = match.line;
+                    self.cursor_column = match.col;
+                    return true;
                 }
                 if (line == 0) {
                     break;
                 }
             }
-            // Wrap to end
             var wrap_line: u32 = self.buffer.lines_len - 1;
             while (wrap_line > start_line) : (wrap_line -= 1) {
-                const line_text = self.buffer.lines[wrap_line];
-                const line_len = @as(u32, @intCast(line_text.len));
-                var col: u32 = if (line_len >= pattern.len) line_len - pattern.len else 0;
-                while (true) : (col -= 1) {
-                    if (col > line_len - pattern.len) {
-                        break;
-                    }
-                    var match: bool = true;
-                    var i: u32 = 0;
-                    while (i < pattern.len) : (i += 1) {
-                        if (col + i >= line_len or line_text[col + i] != pattern[i]) {
-                            match = false;
-                            break;
-                        }
-                    }
-                    if (match) {
-                        self.cursor_line = wrap_line;
-                        self.cursor_column = col;
-                        return true;
-                    }
-                    if (col == 0) {
-                        break;
-                    }
+                const line_len = @as(u32, @intCast(self.buffer.lines[wrap_line].len));
+                const search_end = line_len;
+                if (search_line_backward(self, wrap_line, pattern, search_end)) |match| {
+                    self.cursor_line = match.line;
+                    self.cursor_column = match.col;
+                    return true;
                 }
             }
             return false;
         }
 
-        /// Replace first occurrence of pattern with replacement on current line.
-        // 2025-12-02-140535-pst: Active function
+        /// Why: Required for replacing first occurrence of pattern on current line (s/pattern/replacement/).
         pub fn replace_on_line(self: *EditorState, pattern: []const u8, replacement: []const u8) !bool {
             if (self.cursor_line >= self.buffer.lines_len) {
                 return false;
@@ -763,76 +736,76 @@ pub const Editor = struct {
             return false;
         }
 
-        /// Replace all occurrences of pattern with replacement on current line.
-        // 2025-12-02-140535-pst: Active function
+        /// Why: Required for replacing all occurrences of pattern on current line (s/pattern/replacement/g).
+        /// Build new line with all pattern replacements.
+        /// Why: Required for building new line buffer with all pattern replacements applied.
+        fn build_replaced_line(
+            line_text: []const u8,
+            line_len: u32,
+            pattern: []const u8,
+            replacement: []const u8,
+        ) !struct { buf: [MAX_LINE_LEN]u8, len: u32, count: u32 } {
+            var new_line_buf: [MAX_LINE_LEN]u8 = undefined;
+            var new_line_len: u32 = 0;
+            var count: u32 = 0;
+            var col: u32 = 0;
+            while (col < line_len) {
+                if (col <= line_len - pattern.len and check_pattern_match(line_text, line_len, pattern, col)) {
+                    if (new_line_len + replacement.len > MAX_LINE_LEN) {
+                        return error.LineTooLong;
+                    }
+                    @memcpy(new_line_buf[new_line_len..][0..replacement.len], replacement);
+                    new_line_len += @as(u32, @intCast(replacement.len));
+                    col += pattern.len;
+                    count += 1;
+                } else {
+                    if (new_line_len >= MAX_LINE_LEN) {
+                        return error.LineTooLong;
+                    }
+                    new_line_buf[new_line_len] = line_text[col];
+                    new_line_len += 1;
+                    col += 1;
+                }
+            }
+            return .{ .buf = new_line_buf, .len = new_line_len, .count = count };
+        }
+        
+        /// Save replace operation to undo history.
+        /// Why: Required for saving replace operation to undo history.
+        fn save_replace_to_undo(self: *EditorState, line_text: []const u8, line_len: u32) void {
+            if (self.undo_history_len < MAX_UNDO_HISTORY) {
+                const undo_op = &self.undo_history[self.undo_history_len];
+                undo_op.* = .{
+                    .operation = .replace,
+                    .line_num = self.cursor_line,
+                    .column = 0,
+                    .text = line_text.ptr,
+                    .text_len = line_len,
+                };
+                self.undo_history_len += 1;
+            }
+        }
+        
+        /// Why: Required for replacing all occurrences of pattern on current line (s/pattern/replacement/g).
         pub fn replace_all_on_line(self: *EditorState, pattern: []const u8, replacement: []const u8) !u32 {
             if (self.cursor_line >= self.buffer.lines_len) {
                 return 0;
             }
-            var count: u32 = 0;
-            var line_text = self.buffer.lines[self.cursor_line];
-            var line_len = @as(u32, @intCast(line_text.len));
-            // Build new line with replacements
-            var new_line_buf: [MAX_LINE_LEN]u8 = undefined;
-            var new_line_len: u32 = 0;
-            var col: u32 = 0;
-            while (col < line_len) {
-                // Check if pattern matches at current position
-                if (col <= line_len - pattern.len) {
-                    var match: bool = true;
-                    var i: u32 = 0;
-                    while (i < pattern.len) : (i += 1) {
-                        if (line_text[col + i] != pattern[i]) {
-                            match = false;
-                            break;
-                        }
-                    }
-                    if (match) {
-                        // Add replacement
-                        if (new_line_len + replacement.len > MAX_LINE_LEN) {
-                            return error.LineTooLong;
-                        }
-                        @memcpy(new_line_buf[new_line_len..][0..replacement.len], replacement);
-                        new_line_len += @as(u32, @intCast(replacement.len));
-                        col += pattern.len;
-                        count += 1;
-                        continue;
-                    }
-                }
-                // Add current character
-                if (new_line_len >= MAX_LINE_LEN) {
-                    return error.LineTooLong;
-                }
-                new_line_buf[new_line_len] = line_text[col];
-                new_line_len += 1;
-                col += 1;
-            }
-            if (count > 0) {
-                // Create new line
-                const new_line = try self.allocator.alloc(u8, new_line_len);
+            const line_text = self.buffer.lines[self.cursor_line];
+            const line_len = @as(u32, @intCast(line_text.len));
+            const result = try build_replaced_line(line_text, line_len, pattern, replacement);
+            if (result.count > 0) {
+                const new_line = try self.allocator.alloc(u8, result.len);
                 errdefer self.allocator.free(new_line);
-                @memcpy(new_line, new_line_buf[0..new_line_len]);
-                // Save to undo history
-                if (self.undo_history_len < MAX_UNDO_HISTORY) {
-                    const undo_op = &self.undo_history[self.undo_history_len];
-                    undo_op.* = .{
-                        .operation = .replace,
-                        .line_num = self.cursor_line,
-                        .column = 0,
-                        .text = line_text.ptr,
-                        .text_len = line_len,
-                    };
-                    self.undo_history_len += 1;
-                }
-                // Replace line
+                @memcpy(new_line, result.buf[0..result.len]);
+                save_replace_to_undo(self, line_text, line_len);
                 try self.buffer.replace_line(self.cursor_line, new_line);
                 self.allocator.free(new_line);
             }
-            return count;
+            return result.count;
         }
 
-        /// Replace all occurrences of pattern with replacement in entire buffer.
-        // 2025-12-02-140535-pst: Active function
+        /// Why: Required for replacing all occurrences of pattern in entire buffer.
         pub fn replace_all_in_buffer(self: *EditorState, pattern: []const u8, replacement: []const u8) !u32 {
             var total_count: u32 = 0;
             var line: u32 = 0;
@@ -849,8 +822,7 @@ pub const Editor = struct {
             return total_count;
         }
 
-        /// Get visual selection bounds (normalized: start <= end).
-        // 2025-12-02-121512-pst: Active function
+        /// Why: Required for getting visual selection bounds normalized for processing.
         pub fn get_visual_selection(self: *const EditorState) struct {
             start_line: u32,
             start_column: u32,
@@ -899,8 +871,7 @@ pub const Editor = struct {
             }
         }
 
-        /// Yank selected text in visual mode.
-        // 2025-12-02-121512-pst: Active function
+        /// Why: Required for yanking (copying) selected text in visual mode to yank buffer.
         pub fn yank_selection(self: *EditorState) !void {
             std.debug.assert(self.mode == .visual or self.mode == .visual_line);
             const selection = self.get_visual_selection();
@@ -1001,8 +972,7 @@ pub const Editor = struct {
             return pos;
         }
 
-        /// Delete selected text in visual mode.
-        // 2025-12-02-124119-pst: Active function
+        /// Why: Required for deleting selected text in visual mode.
         pub fn delete_selection(self: *EditorState) !void {
             std.debug.assert(self.mode == .visual or self.mode == .visual_line);
             const selection = self.get_visual_selection();
@@ -1219,108 +1189,112 @@ pub const Editor = struct {
             return text;
         }
 
-        /// Insert character at cursor (insert mode).
-        // 2025-12-02-112844-pst: Active function
+        /// Create new line with character inserted at cursor.
+        /// Why: Required for creating new line buffer with character inserted.
+        fn create_line_with_insert(
+            current_line: []const u8,
+            line_len: u32,
+            cursor_column: u32,
+            ch: u8,
+            allocator: std.mem.Allocator,
+        ) ![]u8 {
+            const new_line_len = line_len + 1;
+            const new_line = try allocator.alloc(u8, new_line_len);
+            errdefer allocator.free(new_line);
+            if (cursor_column > 0) {
+                @memcpy(new_line[0..cursor_column], current_line[0..cursor_column]);
+            }
+            new_line[cursor_column] = ch;
+            if (cursor_column < line_len) {
+                @memcpy(new_line[cursor_column + 1..], current_line[cursor_column..]);
+            }
+            return new_line;
+        }
+        
+        /// Save insert operation to undo history and clear redo.
+        /// Why: Required for saving insert operation and clearing redo history.
+        fn save_insert_to_undo(self: *EditorState, ch: u8) !void {
+            if (self.undo_history_len < MAX_UNDO_HISTORY) {
+                const undo_op = try UndoOperation.init(
+                    self.allocator,
+                    .insert,
+                    self.cursor_line,
+                    self.cursor_column,
+                    &[_]u8{ch},
+                );
+                self.undo_history[self.undo_history_len] = undo_op;
+                self.undo_history_len += 1;
+                var i: u32 = 0;
+                while (i < self.redo_history_len) : (i += 1) {
+                    self.redo_history[i].deinit();
+                }
+                self.redo_history_len = 0;
+            }
+        }
+        
+        /// Record DAG event for insert operation.
+        /// Why: Required for recording insert operation in DAG if enabled.
+        fn record_dag_insert(self: *EditorState, ch: u8) void {
+            if (self.dag_integration) |dag| {
+                _ = dag.map_operation_to_event(
+                    .insert,
+                    self.cursor_line,
+                    self.cursor_column,
+                    "",
+                    &[_]u8{ch},
+                ) catch |_| {};
+            }
+        }
+        
+        /// Why: Required for inserting character at cursor position in insert mode.
         pub fn insert_char(self: *EditorState, ch: u8) !void {
-            // Assert: Must be in insert mode
             std.debug.assert(self.mode == .insert);
             std.debug.assert(self.cursor_line < self.buffer.lines_len);
-            // Get current line
             const current_line = self.buffer.lines[self.cursor_line];
             const line_len = @as(u32, @intCast(current_line.len));
             std.debug.assert(self.cursor_column <= line_len);
-            // Check line length limit
             if (line_len >= MAX_LINE_LEN) {
                 return error.LineTooLong;
             }
-            // Create new line with character inserted
-            const new_line_len = line_len + 1;
-            const new_line = try self.allocator.alloc(u8, new_line_len);
-            errdefer self.allocator.free(new_line);
-            // Copy before cursor
-            if (self.cursor_column > 0) {
-                @memcpy(new_line[0..self.cursor_column], current_line[0..self.cursor_column]);
-            }
-            // Insert character
-            new_line[self.cursor_column] = ch;
-            // Copy after cursor
-            if (self.cursor_column < line_len) {
-                @memcpy(
-                    new_line[self.cursor_column + 1..],
-                    current_line[self.cursor_column..],
-                );
-            }
-            // Save to undo history
-            if (self.undo_history_len < MAX_UNDO_HISTORY) {
-                const undo_op = try UndoOperation.init(
-                    self.allocator,
-                    .insert,
-                    self.cursor_line,
-                    self.cursor_column,
-                    &[_]u8{ch},
-                );
-                self.undo_history[self.undo_history_len] = undo_op;
-                self.undo_history_len += 1;
-                // Clear redo history on new edit
-                var i: u32 = 0;
-                while (i < self.redo_history_len) : (i += 1) {
-                    self.redo_history[i].deinit();
-                }
-                self.redo_history_len = 0;
-            }
-            // Record DAG event (if DAG integration enabled)
-            if (self.dag_integration) |dag| {
-                _ = dag.map_operation_to_event(
-                    .insert,
-                    self.cursor_line,
-                    self.cursor_column,
-                    "",
-                    &[_]u8{ch},
-                ) catch |err| {
-                    // DAG event recording failed, but continue with operation
-                    _ = err;
-                };
-            }
-            // Replace line in buffer
+            const new_line = try create_line_with_insert(
+                current_line,
+                line_len,
+                self.cursor_column,
+                ch,
+                self.allocator,
+            );
+            try save_insert_to_undo(self, ch);
+            record_dag_insert(self, ch);
             try self.buffer.replace_line(self.cursor_line, new_line);
-            // Move cursor right
             self.cursor_column += 1;
         }
 
-        /// Delete character at cursor (Vim 'x').
-        // 2025-12-02-112844-pst: Active function
-        pub fn delete_char(self: *EditorState) !void {
-            // Assert: Must be in normal mode
-            std.debug.assert(self.mode == .normal);
-            std.debug.assert(self.cursor_line < self.buffer.lines_len);
-            // Get current line
-            const current_line = self.buffer.lines[self.cursor_line];
-            const line_len = @as(u32, @intCast(current_line.len));
-            // Check if there's a character to delete
-            if (self.cursor_column >= line_len) {
-                return; // Nothing to delete
-            }
-            // Get character being deleted for undo
-            const deleted_char = current_line[self.cursor_column];
-            // Create new line without deleted character
+        /// Create new line with character deleted at cursor.
+        /// Why: Required for creating new line buffer with character deleted.
+        fn create_line_with_delete(
+            current_line: []const u8,
+            line_len: u32,
+            cursor_column: u32,
+            allocator: std.mem.Allocator,
+        ) ![]const u8 {
             const new_line_len = if (line_len > 0) line_len - 1 else 0;
-            const new_line = if (new_line_len > 0) blk: {
-                const new_line_buf = try self.allocator.alloc(u8, new_line_len);
-                errdefer self.allocator.free(new_line_buf);
-                // Copy before cursor
-                if (self.cursor_column > 0) {
-                    @memcpy(new_line_buf[0..self.cursor_column], current_line[0..self.cursor_column]);
-                }
-                // Copy after cursor (skip deleted character)
-                if (self.cursor_column + 1 < line_len) {
-                    @memcpy(
-                        new_line_buf[self.cursor_column..],
-                        current_line[self.cursor_column + 1..],
-                    );
-                }
-                break :blk new_line_buf;
-            } else "";
-            // Save to undo history
+            if (new_line_len == 0) {
+                return "";
+            }
+            const new_line_buf = try allocator.alloc(u8, new_line_len);
+            errdefer allocator.free(new_line_buf);
+            if (cursor_column > 0) {
+                @memcpy(new_line_buf[0..cursor_column], current_line[0..cursor_column]);
+            }
+            if (cursor_column + 1 < line_len) {
+                @memcpy(new_line_buf[cursor_column..], current_line[cursor_column + 1..]);
+            }
+            return new_line_buf;
+        }
+        
+        /// Save delete operation to undo history and clear redo.
+        /// Why: Required for saving delete operation and clearing redo history.
+        fn save_delete_to_undo(self: *EditorState, deleted_char: u8) !void {
             if (self.undo_history_len < MAX_UNDO_HISTORY) {
                 const undo_op = try UndoOperation.init(
                     self.allocator,
@@ -1331,14 +1305,17 @@ pub const Editor = struct {
                 );
                 self.undo_history[self.undo_history_len] = undo_op;
                 self.undo_history_len += 1;
-                // Clear redo history on new edit
                 var i: u32 = 0;
                 while (i < self.redo_history_len) : (i += 1) {
                     self.redo_history[i].deinit();
                 }
                 self.redo_history_len = 0;
             }
-            // Record DAG event (if DAG integration enabled)
+        }
+        
+        /// Record DAG event for delete operation.
+        /// Why: Required for recording delete operation in DAG if enabled.
+        fn record_dag_delete(self: *EditorState, deleted_char: u8) void {
             if (self.dag_integration) |dag| {
                 _ = dag.map_operation_to_event(
                     .delete,
@@ -1346,22 +1323,36 @@ pub const Editor = struct {
                     self.cursor_column,
                     &[_]u8{deleted_char},
                     "",
-                ) catch |err| {
-                    // DAG event recording failed, but continue with operation
-                    _ = err;
-                };
+                ) catch |_| {};
             }
-            // Replace line in buffer
-            if (new_line_len > 0) {
+        }
+        
+        /// Why: Required for deleting character at cursor position in normal mode (Vim 'x').
+        pub fn delete_char(self: *EditorState) !void {
+            std.debug.assert(self.mode == .normal);
+            std.debug.assert(self.cursor_line < self.buffer.lines_len);
+            const current_line = self.buffer.lines[self.cursor_line];
+            const line_len = @as(u32, @intCast(current_line.len));
+            if (self.cursor_column >= line_len) {
+                return;
+            }
+            const deleted_char = current_line[self.cursor_column];
+            const new_line = try create_line_with_delete(
+                current_line,
+                line_len,
+                self.cursor_column,
+                self.allocator,
+            );
+            try save_delete_to_undo(self, deleted_char);
+            record_dag_delete(self, deleted_char);
+            if (new_line.len > 0) {
                 try self.buffer.replace_line(self.cursor_line, new_line);
             } else {
                 try self.buffer.replace_line(self.cursor_line, "");
             }
-            // Cursor stays at same position (character deleted)
         }
 
-        /// Undo last operation.
-        // 2025-12-02-114747-pst: Active function
+        /// Why: Required for undoing last editing operation (Vim 'u').
         pub fn undo(self: *EditorState) !void {
             // Check if there's anything to undo
             if (self.undo_history_len == 0) {
@@ -1465,8 +1456,7 @@ pub const Editor = struct {
             self.cursor_column = undo_op.column + text_len;
         }
 
-        /// Redo last undone operation.
-        // 2025-12-02-114747-pst: Active function
+        /// Why: Required for redoing last undone operation (Vim Ctrl+r).
         pub fn redo(self: *EditorState) !void {
             // Check if there's anything to redo
             if (self.redo_history_len == 0) {
@@ -1658,8 +1648,7 @@ pub const Editor = struct {
             self.cursor_column = redo_op.column;
         }
 
-        /// Yank (copy) current line to yank buffer.
-        // 2025-12-02-115753-pst: Active function
+        /// Why: Required for yanking (copying) current line to yank buffer (Vim 'yy').
         pub fn yank_line(self: *EditorState) !void {
             std.debug.assert(self.cursor_line < self.buffer.lines_len);
             const line = self.buffer.lines[self.cursor_line];
@@ -1678,8 +1667,7 @@ pub const Editor = struct {
             self.yank_buffer_len = line_len;
         }
 
-        /// Paste yank buffer at cursor (normal mode).
-        // 2025-12-02-115753-pst: Active function
+        /// Why: Required for pasting yank buffer at cursor position in normal mode (Vim 'p').
         pub fn paste(self: *EditorState) !void {
             std.debug.assert(self.mode == .normal);
             if (self.yank_buffer == null or self.yank_buffer_len == 0) {
@@ -1726,8 +1714,7 @@ pub const Editor = struct {
             self.cursor_column = paste_pos + self.yank_buffer_len;
         }
 
-        /// Paste yank buffer replacing selection (visual mode).
-        // 2025-12-02-124933-pst: Active function
+        /// Why: Required for pasting yank buffer replacing selection in visual mode.
         pub fn paste_selection(self: *EditorState) !void {
             std.debug.assert(self.mode == .visual or self.mode == .visual_line);
             if (self.yank_buffer == null or self.yank_buffer_len == 0) {
@@ -2025,8 +2012,7 @@ pub const Editor = struct {
             };
         }
 
-        /// Delete current line (Vim 'dd').
-        // 2025-12-02-115753-pst: Active function
+        /// Why: Required for deleting current line in normal mode (Vim 'dd').
         pub fn delete_line(self: *EditorState) !void {
             std.debug.assert(self.mode == .normal);
             std.debug.assert(self.cursor_line < self.buffer.lines_len);

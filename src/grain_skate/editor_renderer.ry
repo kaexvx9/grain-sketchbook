@@ -7,7 +7,7 @@
 //! 2025-12-05-172208-pst: Active implementation (migrated to shared font renderer)
 
 const std = @import("std");
-const Editor = @import("editor.zig").Editor;
+const Editor = @import("editor.ry").Editor;
 const LanguageDetector = @import("language_detector.ry").LanguageDetector;
 const Language = @import("language_detector.ry").Language;
 const LanguageKeywords = @import("language_keywords.ry").LanguageKeywords;
@@ -73,8 +73,7 @@ pub const EditorRenderer = struct {
     syntax_highlighting_enabled: bool, // Whether syntax highlighting is enabled
     detected_language: Language, // Detected programming language (for language-specific highlighting)
 
-    /// Initialize editor renderer.
-    // 2025-12-05-172208-pst: Active function (migrated to shared font renderer)
+    /// Why: Required for initializing editor renderer with editor state and buffer dimensions.
     pub fn init(editor: *Editor.EditorState, buffer_width: u32, buffer_height: u32) EditorRenderer {
         std.debug.assert(buffer_width > 0);
         std.debug.assert(buffer_width <= MAX_BUFFER_WIDTH);
@@ -102,8 +101,7 @@ pub const EditorRenderer = struct {
         };
     }
 
-    /// Update viewport to keep cursor visible.
-    // 2025-12-02-142853-pst: Active function
+    /// Why: Required for updating viewport to keep cursor visible during editing.
     pub fn update_viewport(self: *EditorRenderer) void {
         const visible_lines = self.get_visible_line_count();
         const visible_cols = self.get_visible_column_count();
@@ -167,8 +165,7 @@ pub const EditorRenderer = struct {
         return column_width;
     }
 
-    /// Render editor to RGBA buffer.
-    // 2025-12-02-142853-pst: Active function
+    /// Why: Required for rendering editor content to RGBA pixel buffer for display.
     pub fn render(self: *EditorRenderer, buffer: []u8) void {
         std.debug.assert(buffer.len >= self.buffer_width * self.buffer_height * 4);
         // Check and clear expired error messages
@@ -295,7 +292,14 @@ pub const EditorRenderer = struct {
 
     /// Render text with syntax highlighting.
     // 2025-12-02-180222-pst: Active function
-    fn render_text_with_syntax(self: *const EditorRenderer, buffer: []u8, text: []const u8, x: u32, y: u32, line_start_col: u32) void {
+    fn render_text_with_syntax(
+        self: *const EditorRenderer,
+        buffer: []u8,
+        text: []const u8,
+        x: u32,
+        y: u32,
+        line_start_col: u32,
+    ) void {
         // Default text color
         const default_r = @as(u8, @truncate((COLOR_TEXT >> 16) & 0xFF));
         const default_g = @as(u8, @truncate((COLOR_TEXT >> 8) & 0xFF));
@@ -713,7 +717,16 @@ pub const EditorRenderer = struct {
             return LanguageKeywords.is_keyword(self.detected_language, word);
         }
         // Fall back to generic keywords (Zig-focused but language-agnostic)
-        const keywords = [_][]const u8{ "if", "else", "while", "for", "fn", "var", "const", "return", "break", "continue", "pub", "priv", "struct", "enum", "union", "error", "try", "catch", "defer", "switch", "case", "default", "true", "false", "null", "undefined", "void", "bool", "u8", "u16", "u32", "u64", "i8", "i16", "i32", "i64", "f32", "f64", "usize", "isize", "comptime", "inline", "noinline", "export", "extern", "packed", "align", "test", "async", "await", "suspend", "resume" };
+        const keywords = [_][]const u8{
+            "if", "else", "while", "for", "fn", "var", "const", "return",
+            "break", "continue", "pub", "priv", "struct", "enum", "union",
+            "error", "try", "catch", "defer", "switch", "case", "default",
+            "true", "false", "null", "undefined", "void", "bool",
+            "u8", "u16", "u32", "u64", "i8", "i16", "i32", "i64",
+            "f32", "f64", "usize", "isize", "comptime", "inline", "noinline",
+            "export", "extern", "packed", "align", "test",
+            "async", "await", "suspend", "resume",
+        };
         for (keywords) |keyword| {
             if (word.len == keyword.len and std.mem.eql(u8, word, keyword)) {
                 return true;

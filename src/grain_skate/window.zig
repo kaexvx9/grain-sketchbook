@@ -1,10 +1,10 @@
 const std = @import("std");
 const MacWindow = @import("macos_window");
-const Editor = @import("editor.zig").Editor;
+const Editor = @import("editor.ry").Editor;
 const Block = @import("block.ry").Block;
-const GraphVisualization = @import("graph_viz.zig").GraphVisualization;
-const GraphRenderer = @import("graph_renderer.zig").GraphRenderer;
-const EditorRenderer = @import("editor_renderer.zig").EditorRenderer;
+const GraphVisualization = @import("graph_viz.ry").GraphVisualization;
+const GraphRenderer = @import("graph_renderer.ry").GraphRenderer;
+const EditorRenderer = @import("editor_renderer.ry").EditorRenderer;
 const events = @import("platform/events.zig");
 
 /// Grain Skate Window: Native macOS window management for knowledge graph application.

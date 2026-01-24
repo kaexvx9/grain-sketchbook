@@ -1,0 +1,150 @@
+# Core 1 Subcore: Progress Tracking
+
+**Last Updated**: 2026-01-23-250000-pst  
+**Agent**: Core 1 Subcore (Rye Style Conversion)  
+**Working Directory**: `/home/xy/ry`
+
+---
+
+## Current Status
+
+**Goal**: Convert Skate desktop modules from Zig to Rye Style using Phase 1 transpiler.
+
+**Overall Progress**: 16 of 19 modules complete (84%)
+
+---
+
+## Completed Modules ✅
+
+1. ✅ `block.ry`
+2. ✅ `bracket_matching.ry`
+3. ✅ `language_keywords.ry`
+4. ✅ `language_detector.ry`
+5. ✅ `line_buffer_adapter.ry`
+6. ✅ `temporal_graph.ry`
+7. ✅ `storage_integration.ry`
+8. ✅ `editor_dag_integration.ry`
+9. ✅ `slc_dag_integration.ry`
+10. ✅ `ai_insights.ry`
+11. ✅ `social.ry`
+12. ✅ `graph_viz.ry`
+13. ✅ `graph_renderer.ry`
+14. ✅ `editor_renderer.ry`
+15. ✅ `modal_editor.ry`
+16. ✅ `editor.ry`
+
+---
+
+## Current Work
+
+**Module**: Next module to convert
+
+**Status**: ✅ **READY FOR NEXT MODULE**
+
+**Completed**: `editor.zig` → `editor.ry`
+- ✅ Refactored 3 long functions:
+  - `send_llm_request` → extracted `build_llm_request` and `send_request_with_retry`
+  - `suggest_connections` → extracted `collect_block_contents`, `build_connection_prompt`, `parse_connection_response`
+  - `summarize_subgraph` → extracted `build_summary_prompt` (reused `collect_block_contents`)
+- ✅ All functions ≤ 64 lines
+- ✅ All "why" comments present
+- ✅ All line length violations fixed
+- ✅ `rye check` passes
+- ✅ File renamed to `.ry`
+- ✅ Imports updated in `root.ry` and `graph_renderer.zig`
+
+**Next Steps**:
+1. Continue with next module: `social.zig` → `social.ry`
+
+---
+
+## Remaining Modules
+
+1. `window.ry`
+3. `app.ry`
+4. `root.ry`
+
+---
+
+## Process for Each Module
+
+1. Read current `.zig` file
+2. Run `rye check` to identify violations
+3. Add `/// Why:` comments to all public functions
+4. Fix long lines (break into multiple lines ≤ 128 chars)
+5. Refactor functions > 64 lines (extract helper functions)
+6. Re-run `rye check` until clean
+7. Rename `.zig` → `.ry`
+8. Update all imports in other files (`.zig` → `.ry`)
+9. Commit with detailed message
+
+---
+
+## Coordination Notes
+
+**Vantage 3 Status**: Phase 2 (76% complete), Phase 3 foundation (complete)  
+**Integration Point**: Week 9+ when Phase 3 stdlib is complete  
+**Shared Context**: See `docs/core-coordination/shared-context.md`
+
+---
+
+## Recent Updates
+
+**2026-01-23-250000-pst**: ✅ Completed `editor.zig` → `editor.ry` conversion
+- Added "Why:" comments to all 47 public functions
+- Fixed 1 line length violation (split function signature)
+- Refactored 4 functions exceeding 64 lines:
+  - `find_pattern_backward` (65 lines → ~30 lines, extracted 2 helper functions)
+  - `replace_all_on_line` (65 lines → ~20 lines, extracted 2 helper functions)
+  - `insert_char` (65 lines → ~20 lines, extracted 3 helper functions)
+  - `delete_char` (70 lines → ~20 lines, extracted 3 helper functions)
+- All Rye Style checks pass
+- Imports updated in 7 files (`app.zig`, `root.zig`, `modal_editor.ry`, `window.zig`, `editor_renderer.ry`, `bracket_matching.zig`, `bracket_matching.ry`)
+
+**2026-01-23-240000-pst**: ✅ Completed `modal_editor.zig` → `modal_editor.ry` conversion
+- Added "Why:" comments to all 5 public functions
+- Refactored `handle_normal_mode` (137 lines → ~30 lines, extracted 4 helper functions)
+- Refactored `parse_substitute_command` (67 lines → ~20 lines, extracted 3 helper functions)
+- All Rye Style checks pass
+- Imports updated in `root.zig` and `app.zig`
+
+**2026-01-23-230000-pst**: ✅ Completed `editor_renderer.zig` → `editor_renderer.ry` conversion
+- Added "Why:" comments to all 3 public functions
+- Fixed 2 line length violations (split function signature and keywords array)
+- All Rye Style checks pass
+- Imports updated in `root.zig` and `window.zig`
+
+**2026-01-23-220000-pst**: ✅ Completed `graph_renderer.zig` → `graph_renderer.ry` conversion
+- Added "Why:" comments to all 9 public functions
+- Fixed 9 line length violations (split function signatures and long expressions)
+- Refactored `draw_dashed_line` (65 lines → ~60 lines, extracted pattern update helper)
+- Refactored `render_labels` (93 lines → ~40 lines, extracted 4 helper functions)
+- All Rye Style checks pass
+- Imports updated in `root.zig` and `window.zig`
+
+**2026-01-23-210000-pst**: ✅ Completed `graph_viz.zig` → `graph_viz.ry` conversion
+- Added "Why:" comments to all 9 public functions
+- Fixed line length violation (line 313, split function signature)
+- All Rye Style checks pass
+- Imports updated in `app.zig`, `root.zig`, `graph_renderer.zig`, and `window.zig`
+
+**2026-01-23-180000-pst**: ✅ Completed `social.zig` → `social.ry` conversion
+- Added "Why:" comments to all public functions
+- Fixed line length violation (line 197)
+- Refactored `export_block_markdown` (70 lines → ~30 lines)
+- Refactored `import_block_json` (182 lines → ~30 lines)
+- Extracted helper functions for JSON parsing
+- All Rye Style checks pass
+- Imports updated in `root.zig` and `app.zig`
+
+**2026-01-23-170000-pst**: ✅ Completed `ai_insights.zig` → `ai_insights.ry` conversion
+- Refactored 3 functions exceeding 64-line limit
+- Extracted helper functions for better modularity
+- All Rye Style checks pass
+- Imports updated in dependent files
+
+**2026-01-23-160000-pst**: Two-agent coordination pattern setup initiated
+
+---
+
+**Status**: ✅ **ACTIVE** — Core 1 Subcore working on Rye Style conversion

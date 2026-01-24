@@ -61,8 +61,7 @@ pub const Social = struct {
         // Bounded: Max transclusions (explicit limit)
         pub const MAX_TRANSCLUSIONS: u32 = 10_000;
 
-        /// Initialize social manager.
-        // 2025-11-23-122043-pst: Active function
+        /// Why: Required for creating social manager with pre-allocated buffers for replies and transclusions.
         pub fn init(allocator: std.mem.Allocator, block_storage: *Block.BlockStorage) !SocialManager {
             // Pre-allocate replies buffer
             const replies = try allocator.alloc(Reply, MAX_REPLIES);
@@ -82,15 +81,14 @@ pub const Social = struct {
             };
         }
 
-        /// Deinitialize social manager and free memory.
+        /// Why: Required for memory cleanup when social manager is destroyed.
         pub fn deinit(self: *SocialManager) void {
             self.allocator.free(self.replies);
             self.allocator.free(self.transclusions);
             self.* = undefined;
         }
 
-        /// Create reply relationship between blocks.
-        // 2025-11-23-122043-pst: Active function
+        /// Why: Required for establishing reply relationships in knowledge graph threads.
         pub fn create_reply(self: *SocialManager, reply_block_id: u32, parent_block_id: u32) !void {
             // Assert: Blocks must exist
             std.debug.assert(self.block_storage.get_block(reply_block_id) != null);
@@ -167,8 +165,7 @@ pub const Social = struct {
             return depth;
         }
 
-        /// Get reply thread for a block (all replies in thread).
-        // 2025-11-23-122043-pst: Active function
+        /// Why: Required for retrieving all replies in a thread for display.
         pub fn get_reply_thread(self: *SocialManager, block_id: u32, thread: []u32) !u32 {
             // Assert: Thread buffer must be large enough
             std.debug.assert(thread.len >= MAX_REPLY_DEPTH);
@@ -192,9 +189,14 @@ pub const Social = struct {
             return thread_len;
         }
 
-        /// Create transclusion relationship.
-        // 2025-11-23-122043-pst: Active function
-        pub fn create_transclusion(self: *SocialManager, source_block_id: u32, target_block_id: u32, offset: u32, length: u32) !void {
+        /// Why: Required for establishing transclusion relationships between blocks.
+        pub fn create_transclusion(
+            self: *SocialManager,
+            source_block_id: u32,
+            target_block_id: u32,
+            offset: u32,
+            length: u32,
+        ) !void {
             // Assert: Blocks must exist
             std.debug.assert(self.block_storage.get_block(source_block_id) != null);
             std.debug.assert(self.block_storage.get_block(target_block_id) != null);
@@ -265,8 +267,7 @@ pub const Social = struct {
             return depth;
         }
 
-        /// Get transcluded content for a block (with transclusions expanded).
-        // 2025-11-23-122043-pst: Active function
+        /// Why: Required for retrieving block content with all transclusions expanded.
         pub fn get_transcluded_content(self: *SocialManager, block_id: u32, output: []u8) !u32 {
             // Get block
             const block = self.block_storage.get_block(block_id) orelse return error.BlockNotFound;
@@ -320,8 +321,7 @@ pub const Social = struct {
         social_manager: *SocialManager,
         allocator: std.mem.Allocator,
 
-        /// Export block to JSON format.
-        // 2025-11-23-124357-pst: Active function
+        /// Why: Required for exporting blocks to JSON format for data exchange.
         pub fn export_block_json(self: *ExportManager, block_id: u32, output: []u8) !u32 {
             const block = self.block_storage.get_block(block_id) orelse return error.BlockNotFound;
 
@@ -483,277 +483,314 @@ pub const Social = struct {
             return output_len;
         }
 
-        /// Export block to Markdown format.
-        // 2025-11-23-124357-pst: Active function
+        /// Export title as Markdown heading.
+        /// Why: Required for formatting block title as Markdown heading.
+        fn export_markdown_title(
+            self: *ExportManager,
+            block: *const Block.Block,
+            output: []u8,
+            output_len: *u32,
+        ) !void {
+            _ = self;
+            if (block.title_len == 0) return;
+            
+            const heading = "# ";
+            if (output_len.* + heading.len > output.len) return error.OutputTooSmall;
+            @memcpy(output[output_len.*..][0..heading.len], heading);
+            output_len.* += @as(u32, @intCast(heading.len));
+            
+            if (output_len.* + block.title_len > output.len) return error.OutputTooSmall;
+            @memcpy(output[output_len.*..][0..block.title_len], block.title);
+            output_len.* += block.title_len;
+            
+            const newline = "\n\n";
+            if (output_len.* + newline.len > output.len) return error.OutputTooSmall;
+            @memcpy(output[output_len.*..][0..newline.len], newline);
+            output_len.* += @as(u32, @intCast(newline.len));
+        }
+        
+        /// Export links as Markdown links section.
+        /// Why: Required for formatting block links as Markdown links.
+        fn export_markdown_links(
+            self: *ExportManager,
+            block: *const Block.Block,
+            output: []u8,
+            output_len: *u32,
+        ) !void {
+            if (block.links_len == 0) return;
+            
+            const links_header = "\n\n## Links\n\n";
+            if (output_len.* + links_header.len > output.len) return error.OutputTooSmall;
+            @memcpy(output[output_len.*..][0..links_header.len], links_header);
+            output_len.* += @as(u32, @intCast(links_header.len));
+            
+            var i: u32 = 0;
+            while (i < block.links_len) : (i += 1) {
+                const link_block = self.block_storage.get_block(block.links[i]);
+                const link_md = if (link_block) |linked|
+                    try std.fmt.bufPrint(
+                        output[output_len.*..],
+                        "- [{}](block:{})\n",
+                        .{ linked.title, block.links[i] }
+                    )
+                else
+                    try std.fmt.bufPrint(
+                        output[output_len.*..],
+                        "- [Block {}](block:{})\n",
+                        .{ block.links[i], block.links[i] }
+                    );
+                if (output_len.* + link_md.len > output.len) return error.OutputTooSmall;
+                output_len.* += @as(u32, @intCast(link_md.len));
+            }
+        }
+        
+        /// Export metadata as frontmatter.
+        /// Why: Required for formatting block metadata as YAML frontmatter.
+        fn export_markdown_frontmatter(
+            self: *ExportManager,
+            block: *const Block.Block,
+            output: []u8,
+            output_len: *u32,
+        ) !void {
+            _ = self;
+            const frontmatter = try std.fmt.bufPrint(
+                output[output_len.*..],
+                "\n\n---\nid: {}\ncreated_at: {}\nupdated_at: {}\n---\n",
+                .{ block.id, block.created_at, block.updated_at }
+            );
+            if (output_len.* + frontmatter.len > output.len) return error.OutputTooSmall;
+            output_len.* += @as(u32, @intCast(frontmatter.len));
+        }
+        
+        /// Why: Required for exporting blocks to Markdown format for documentation.
         pub fn export_block_markdown(self: *ExportManager, block_id: u32, output: []u8) !u32 {
             const block = self.block_storage.get_block(block_id) orelse return error.BlockNotFound;
-
+            
             var output_len: u32 = 0;
-
-            // Title as heading
-            if (block.title_len > 0) {
-                const heading = "# ";
-                if (output_len + heading.len > output.len) return error.OutputTooSmall;
-                @memcpy(output[output_len..][0..heading.len], heading);
-                output_len += @as(u32, @intCast(heading.len));
-
-                if (output_len + block.title_len > output.len) return error.OutputTooSmall;
-                @memcpy(output[output_len..][0..block.title_len], block.title);
-                output_len += block.title_len;
-
-                const newline = "\n\n";
-                if (output_len + newline.len > output.len) return error.OutputTooSmall;
-                @memcpy(output[output_len..][0..newline.len], newline);
-                output_len += @as(u32, @intCast(newline.len));
-            }
-
-            // Content
+            try self.export_markdown_title(block, output, &output_len);
+            
             if (block.content_len > 0) {
                 if (output_len + block.content_len > output.len) return error.OutputTooSmall;
                 @memcpy(output[output_len..][0..block.content_len], block.content);
                 output_len += block.content_len;
             }
-
-            // Export links as Markdown links
-            if (block.links_len > 0) {
-                const links_header = "\n\n## Links\n\n";
-                if (output_len + links_header.len > output.len) return error.OutputTooSmall;
-                @memcpy(output[output_len..][0..links_header.len], links_header);
-                output_len += @as(u32, @intCast(links_header.len));
-
-                var i: u32 = 0;
-                while (i < block.links_len) : (i += 1) {
-                    const link_block = self.block_storage.get_block(block.links[i]);
-                    if (link_block) |linked| {
-                        const link_md = try std.fmt.bufPrint(
-                            output[output_len..],
-                            "- [{}](block:{})\n",
-                            .{ linked.title, block.links[i] }
-                        );
-                        if (output_len + link_md.len > output.len) return error.OutputTooSmall;
-                        output_len += @as(u32, @intCast(link_md.len));
-                    } else {
-                        const link_md = try std.fmt.bufPrint(
-                            output[output_len..],
-                            "- [Block {}](block:{})\n",
-                            .{ block.links[i], block.links[i] }
-                        );
-                        if (output_len + link_md.len > output.len) return error.OutputTooSmall;
-                        output_len += @as(u32, @intCast(link_md.len));
-                    }
-                }
-            }
-
-            // Export metadata as frontmatter
-            const frontmatter = try std.fmt.bufPrint(
-                output[output_len..],
-                "\n\n---\nid: {}\ncreated_at: {}\nupdated_at: {}\n---\n",
-                .{ block.id, block.created_at, block.updated_at }
-            );
-            if (output_len + frontmatter.len > output.len) return error.OutputTooSmall;
-            output_len += @as(u32, @intCast(frontmatter.len));
-
+            
+            try self.export_markdown_links(block, output, &output_len);
+            try self.export_markdown_frontmatter(block, output, &output_len);
+            
             return output_len;
         }
 
-        /// Import block from JSON format.
-        // 2025-11-23-124357-pst: Active function
+        /// Skip whitespace in JSON data.
+        /// Why: Required for parsing JSON by skipping whitespace characters.
+        fn skip_json_whitespace(self: *ExportManager, json_data: []const u8, pos: *u32) void {
+            _ = self;
+            while (pos.* < json_data.len and std.ascii.isWhitespace(json_data[pos.*])) {
+                pos.* += 1;
+            }
+        }
+        
+        /// Parse JSON field name.
+        /// Why: Required for extracting field names from JSON objects.
+        fn parse_json_field_name(self: *ExportManager, json_data: []const u8, pos: *u32) ![]const u8 {
+            _ = self;
+            if (pos.* >= json_data.len or json_data[pos.*] != '"') {
+                return error.InvalidJson;
+            }
+            pos.* += 1;
+            
+            const field_name_start = pos.*;
+            while (pos.* < json_data.len and json_data[pos.*] != '"') {
+                pos.* += 1;
+            }
+            if (pos.* >= json_data.len) {
+                return error.InvalidJson;
+            }
+            const field_name = json_data[field_name_start..pos.*];
+            pos.* += 1;
+            return field_name;
+        }
+        
+        /// Parse JSON number value.
+        /// Why: Required for extracting numeric values from JSON.
+        fn parse_json_number_u32(self: *ExportManager, json_data: []const u8, pos: *u32) !u32 {
+            _ = self;
+            const num_start = pos.*;
+            while (pos.* < json_data.len and std.ascii.isDigit(json_data[pos.*])) {
+                pos.* += 1;
+            }
+            const num_str = json_data[num_start..pos.*];
+            return std.fmt.parseInt(u32, num_str, 10);
+        }
+        
+        /// Parse JSON number value (u64).
+        /// Why: Required for extracting u64 numeric values from JSON.
+        fn parse_json_number_u64(self: *ExportManager, json_data: []const u8, pos: *u32) !u64 {
+            _ = self;
+            const num_start = pos.*;
+            while (pos.* < json_data.len and std.ascii.isDigit(json_data[pos.*])) {
+                pos.* += 1;
+            }
+            const num_str = json_data[num_start..pos.*];
+            return std.fmt.parseInt(u64, num_str, 10);
+        }
+        
+        /// Parse JSON string value.
+        /// Why: Required for extracting string values from JSON.
+        fn parse_json_string(self: *ExportManager, json_data: []const u8, pos: *u32) ![]const u8 {
+            _ = self;
+            if (pos.* >= json_data.len or json_data[pos.*] != '"') {
+                return error.InvalidJson;
+            }
+            pos.* += 1;
+            
+            const str_start = pos.*;
+            while (pos.* < json_data.len and json_data[pos.*] != '"') {
+                if (json_data[pos.*] == '\\' and pos.* + 1 < json_data.len) {
+                    pos.* += 2;
+                } else {
+                    pos.* += 1;
+                }
+            }
+            if (pos.* >= json_data.len) {
+                return error.InvalidJson;
+            }
+            const str_value = json_data[str_start..pos.*];
+            pos.* += 1;
+            return str_value;
+        }
+        
+        /// Parse JSON links array.
+        /// Why: Required for extracting links array from JSON block data.
+        fn parse_json_links_array(
+            self: *ExportManager,
+            json_data: []const u8,
+            pos: *u32,
+            links: *[Block.MAX_LINKS_PER_BLOCK]u32,
+            links_len: *u32,
+        ) !void {
+            if (pos.* >= json_data.len or json_data[pos.*] != '[') {
+                return error.InvalidJson;
+            }
+            pos.* += 1;
+            
+            var first_link = true;
+            while (pos.* < json_data.len) {
+                self.skip_json_whitespace(json_data, pos);
+                if (json_data[pos.*] == ']') {
+                    pos.* += 1;
+                    break;
+                }
+                if (!first_link) {
+                    if (json_data[pos.*] != ',') {
+                        return error.InvalidJson;
+                    }
+                    pos.* += 1;
+                }
+                first_link = false;
+                
+                const link_id = try self.parse_json_number_u32(json_data, pos);
+                if (links_len.* >= Block.MAX_LINKS_PER_BLOCK) {
+                    return error.TooManyLinks;
+                }
+                links[links_len.*] = link_id;
+                links_len.* += 1;
+            }
+        }
+        
+        /// Parse JSON object fields iteratively.
+        /// Why: Required for extracting all fields from JSON object.
+        fn parse_json_object_fields(
+            self: *ExportManager,
+            json_data: []const u8,
+            pos: *u32,
+            id: *?u32,
+            title: *?[]const u8,
+            content: *?[]const u8,
+            created_at: *?u64,
+            updated_at: *?u64,
+            links: *[Block.MAX_LINKS_PER_BLOCK]u32,
+            links_len: *u32,
+        ) !void {
+            var first_field = true;
+            while (pos.* < json_data.len) {
+                self.skip_json_whitespace(json_data, pos);
+                if (json_data[pos.*] == '}') {
+                    pos.* += 1;
+                    break;
+                }
+                if (!first_field) {
+                    if (pos.* >= json_data.len or json_data[pos.*] != ',') {
+                        return error.InvalidJson;
+                    }
+                    pos.* += 1;
+                }
+                first_field = false;
+                self.skip_json_whitespace(json_data, pos);
+                
+                const field_name = try self.parse_json_field_name(json_data, pos);
+                self.skip_json_whitespace(json_data, pos);
+                if (pos.* >= json_data.len or json_data[pos.*] != ':') {
+                    return error.InvalidJson;
+                }
+                pos.* += 1;
+                self.skip_json_whitespace(json_data, pos);
+                
+                if (std.mem.eql(u8, field_name, "id")) {
+                    id.* = try self.parse_json_number_u32(json_data, pos);
+                } else if (std.mem.eql(u8, field_name, "title")) {
+                    title.* = try self.parse_json_string(json_data, pos);
+                } else if (std.mem.eql(u8, field_name, "content")) {
+                    content.* = try self.parse_json_string(json_data, pos);
+                } else if (std.mem.eql(u8, field_name, "created_at")) {
+                    created_at.* = try self.parse_json_number_u64(json_data, pos);
+                } else if (std.mem.eql(u8, field_name, "updated_at")) {
+                    updated_at.* = try self.parse_json_number_u64(json_data, pos);
+                } else if (std.mem.eql(u8, field_name, "links")) {
+                    try self.parse_json_links_array(json_data, pos, links, links_len);
+                }
+            }
+        }
+        
+        /// Why: Required for importing blocks from JSON format for data exchange.
         pub fn import_block_json(self: *ExportManager, json_data: []const u8) !u32 {
-            // Simple JSON parser (iterative, no recursion)
-            // Parse: {"id":123,"title":"...","content":"...","created_at":...,"updated_at":...,"links":[...]}
-
             var pos: u32 = 0;
             var id: ?u32 = null;
             var title: ?[]const u8 = null;
             var content: ?[]const u8 = null;
             var created_at: ?u64 = null;
             var updated_at: ?u64 = null;
-            // Bounded: Max links per block (use fixed array instead of ArrayList)
             var links: [Block.MAX_LINKS_PER_BLOCK]u32 = undefined;
             var links_len: u32 = 0;
-
-            // Skip whitespace
-            while (pos < json_data.len and std.ascii.isWhitespace(json_data[pos])) {
-                pos += 1;
-            }
-
-            // Expect '{'
+            
+            self.skip_json_whitespace(json_data, &pos);
             if (pos >= json_data.len or json_data[pos] != '{') {
                 return error.InvalidJson;
             }
             pos += 1;
-
-            // Parse fields iteratively
-            var first_field = true;
-            while (pos < json_data.len) {
-                // Skip whitespace
-                while (pos < json_data.len and std.ascii.isWhitespace(json_data[pos])) {
-                    pos += 1;
-                }
-
-                // Check for closing brace
-                if (json_data[pos] == '}') {
-                    pos += 1;
-                    break;
-                }
-
-                // Expect comma (except first field)
-                if (!first_field) {
-                    if (pos >= json_data.len or json_data[pos] != ',') {
-                        return error.InvalidJson;
-                    }
-                    pos += 1;
-                }
-                first_field = false;
-
-                // Skip whitespace
-                while (pos < json_data.len and std.ascii.isWhitespace(json_data[pos])) {
-                    pos += 1;
-                }
-
-                // Parse field name
-                if (pos >= json_data.len or json_data[pos] != '"') {
-                    return error.InvalidJson;
-                }
-                pos += 1;
-
-                const field_name_start = pos;
-                while (pos < json_data.len and json_data[pos] != '"') {
-                    pos += 1;
-                }
-                if (pos >= json_data.len) {
-                    return error.InvalidJson;
-                }
-                const field_name = json_data[field_name_start..pos];
-                pos += 1;
-
-                // Skip whitespace and ':'
-                while (pos < json_data.len and std.ascii.isWhitespace(json_data[pos])) {
-                    pos += 1;
-                }
-                if (pos >= json_data.len or json_data[pos] != ':') {
-                    return error.InvalidJson;
-                }
-                pos += 1;
-                while (pos < json_data.len and std.ascii.isWhitespace(json_data[pos])) {
-                    pos += 1;
-                }
-
-                // Parse field value based on field name
-                if (std.mem.eql(u8, field_name, "id")) {
-                    // Parse number
-                    const num_start = pos;
-                    while (pos < json_data.len and std.ascii.isDigit(json_data[pos])) {
-                        pos += 1;
-                    }
-                    const num_str = json_data[num_start..pos];
-                    id = try std.fmt.parseInt(u32, num_str, 10);
-                } else if (std.mem.eql(u8, field_name, "title")) {
-                    // Parse string
-                    if (pos >= json_data.len or json_data[pos] != '"') {
-                        return error.InvalidJson;
-                    }
-                    pos += 1;
-                    const str_start = pos;
-                    while (pos < json_data.len and json_data[pos] != '"') {
-                        if (json_data[pos] == '\\' and pos + 1 < json_data.len) {
-                            pos += 2; // Skip escape sequence
-                        } else {
-                            pos += 1;
-                        }
-                    }
-                    if (pos >= json_data.len) {
-                        return error.InvalidJson;
-                    }
-                    title = json_data[str_start..pos];
-                    pos += 1;
-                } else if (std.mem.eql(u8, field_name, "content")) {
-                    // Parse string
-                    if (pos >= json_data.len or json_data[pos] != '"') {
-                        return error.InvalidJson;
-                    }
-                    pos += 1;
-                    const str_start = pos;
-                    while (pos < json_data.len and json_data[pos] != '"') {
-                        if (json_data[pos] == '\\' and pos + 1 < json_data.len) {
-                            pos += 2; // Skip escape sequence
-                        } else {
-                            pos += 1;
-                        }
-                    }
-                    if (pos >= json_data.len) {
-                        return error.InvalidJson;
-                    }
-                    content = json_data[str_start..pos];
-                    pos += 1;
-                } else if (std.mem.eql(u8, field_name, "created_at")) {
-                    const num_start = pos;
-                    while (pos < json_data.len and std.ascii.isDigit(json_data[pos])) {
-                        pos += 1;
-                    }
-                    const num_str = json_data[num_start..pos];
-                    created_at = try std.fmt.parseInt(u64, num_str, 10);
-                } else if (std.mem.eql(u8, field_name, "updated_at")) {
-                    const num_start = pos;
-                    while (pos < json_data.len and std.ascii.isDigit(json_data[pos])) {
-                        pos += 1;
-                    }
-                    const num_str = json_data[num_start..pos];
-                    updated_at = try std.fmt.parseInt(u64, num_str, 10);
-                } else if (std.mem.eql(u8, field_name, "links")) {
-                    // Parse array
-                    if (pos >= json_data.len or json_data[pos] != '[') {
-                        return error.InvalidJson;
-                    }
-                    pos += 1;
-
-                    var first_link = true;
-                    while (pos < json_data.len) {
-                        while (pos < json_data.len and std.ascii.isWhitespace(json_data[pos])) {
-                            pos += 1;
-                        }
-                        if (json_data[pos] == ']') {
-                            pos += 1;
-                            break;
-                        }
-                        if (!first_link) {
-                            if (json_data[pos] != ',') {
-                                return error.InvalidJson;
-                            }
-                            pos += 1;
-                        }
-                        first_link = false;
-
-                        const link_start = pos;
-                        while (pos < json_data.len and std.ascii.isDigit(json_data[pos])) {
-                            pos += 1;
-                        }
-                        const link_str = json_data[link_start..pos];
-                        const link_id = try std.fmt.parseInt(u32, link_str, 10);
-                        if (links_len >= Block.MAX_LINKS_PER_BLOCK) {
-                            return error.TooManyLinks;
-                        }
-                        links[links_len] = link_id;
-                        links_len += 1;
-                    }
-                }
-            }
-
-            // Create block from parsed data
+            
+            try self.parse_json_object_fields(
+                json_data,
+                &pos,
+                &id,
+                &title,
+                &content,
+                &created_at,
+                &updated_at,
+                &links,
+                &links_len,
+            );
+            
             _ = id orelse return error.MissingField;
             const block_title = title orelse "";
             const block_content = content orelse "";
-
             const new_block_id = try self.block_storage.create_block(block_title, block_content);
-
-            // Restore links (if any)
+            
             var i: u32 = 0;
             while (i < links_len) : (i += 1) {
-                // Note: Linked blocks must exist for this to work
-                // In a full implementation, we'd create missing blocks or handle errors
                 try self.block_storage.link_blocks(new_block_id, links[i]);
             }
-
+            
             return new_block_id;
         }
     };

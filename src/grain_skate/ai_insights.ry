@@ -52,6 +52,7 @@ pub const AiInsights = struct {
     };
     
     /// Initialize AI insights (without LLM provider).
+    /// Why: Required for creating AI insights before LLM provider configuration.
     pub fn init(
         allocator: std.mem.Allocator,
         dag_integration: *EditorDagIntegration,
@@ -74,6 +75,7 @@ pub const AiInsights = struct {
     }
     
     /// Initialize AI insights with LLM provider (for AI-powered features).
+    /// Why: Required for enabling AI-powered features with LLM provider.
     /// Uses Court Agent's multi-provider LLM abstraction.
     pub fn init_with_llm_provider(
         allocator: std.mem.Allocator,
@@ -133,6 +135,7 @@ pub const AiInsights = struct {
     }
     
     /// Deinitialize AI insights (cleanup provider pool if present).
+    /// Why: Required for memory cleanup when AI insights is destroyed.
     pub fn deinit(self: *AiInsights) void {
         // Note: Provider cleanup handled by allocator (e.g., arena allocator)
         // Provider pool and provider instances are heap-allocated and will be
@@ -192,6 +195,94 @@ pub const AiInsights = struct {
         return zon_result;
     }
     
+    /// Build LLM request struct with model and prompt copied.
+    /// Why: Required for preparing request data before sending to provider pool.
+    fn build_llm_request(
+        self: *AiInsights,
+        provider_type: LlmProvider.ProviderType,
+        model: []const u8,
+        combined_prompt: []const u8,
+        max_tokens: u32,
+        temperature: f32,
+        use_zon: bool,
+        zon_data: ?[]u8,
+    ) LlmProvider.LlmRequest {
+        var request = LlmProvider.LlmRequest{
+            .request_id = 0,
+            .provider_type = provider_type,
+            .model = undefined,
+            .model_len = 0,
+            .prompt = undefined,
+            .prompt_len = 0,
+            .max_tokens = max_tokens,
+            .temperature = temperature,
+            .created_at = @as(u64, @intCast(std.time.timestamp())),
+            .use_zon_format = use_zon,
+            .zon_data = zon_data,
+            .timeout_ms = LlmProvider.DEFAULT_LLM_TIMEOUT_MS,
+        };
+        
+        // Copy model name
+        const model_len = @min(model.len, 128);
+        var i: u32 = 0;
+        while (i < 128) : (i += 1) {
+            request.model[i] = 0;
+        }
+        i = 0;
+        while (i < model_len) : (i += 1) {
+            request.model[i] = model[i];
+        }
+        request.model_len = model_len;
+        
+        // Copy prompt
+        const prompt_len = @min(@as(u64, @intCast(combined_prompt.len)), LlmProvider.MAX_REQUEST_SIZE);
+        i = 0;
+        while (i < LlmProvider.MAX_REQUEST_SIZE) : (i += 1) {
+            request.prompt[i] = 0;
+        }
+        i = 0;
+        while (i < prompt_len) : (i += 1) {
+            request.prompt[i] = combined_prompt[i];
+        }
+        request.prompt_len = @intCast(prompt_len);
+        
+        return request;
+    }
+    
+    /// Send LLM request with retry logic and exponential backoff.
+    /// Why: Required for handling transient network errors with automatic retries.
+    fn send_request_with_retry(
+        self: *AiInsights,
+        pool: *ProviderPool,
+        request: *LlmProvider.LlmRequest,
+    ) ![]const u8 {
+        const max_retries: u32 = 3;
+        var retry_count: u32 = 0;
+        var last_error: ?LlmProvider.LlmProviderError = null;
+        
+        while (retry_count < max_retries) : (retry_count += 1) {
+            const response = pool.send_request_with_fallback(request, self.allocator) catch |err| {
+                last_error = err;
+                
+                if (LlmProvider.is_llm_error_retryable(err)) {
+                    if (retry_count < max_retries - 1) {
+                        const delay_ms = (@as(u64, 1) << @as(u6, @intCast(retry_count))) * 1000;
+                        std.time.sleep(delay_ms * 1_000_000);
+                        continue;
+                    }
+                }
+                
+                return err;
+            };
+            
+            const content = response.content[0..response.content_len];
+            const content_copy = try self.allocator.dupe(u8, content);
+            return content_copy;
+        }
+        
+        return last_error orelse LlmProvider.LlmProviderError.NetworkError;
+    }
+    
     /// Send LLM request using Court's provider pool.
     /// Converts system/user messages to a single prompt and sends via provider pool.
     /// Optionally includes ZON-formatted block data if provider supports ZON.
@@ -213,124 +304,44 @@ pub const AiInsights = struct {
         std.debug.assert(system_prompt.len + user_prompt.len <= LlmProvider.MAX_REQUEST_SIZE);
         
         const pool = &self.provider_pool.?;
-        
-        // Get provider type for ZON support checking
         const provider_type = self.provider_type orelse .openai;
         const supports_zon = LlmProvider.provider_supports_zon(provider_type);
         
         // Encode blocks to ZON format if provider supports ZON and block IDs provided
         var zon_data: ?[]u8 = null;
-        
         if (supports_zon and zon_block_ids) |block_ids| {
             zon_data = try self.encode_blocks_to_zon(block_ids) catch null;
         }
+        defer if (zon_data) |zd| self.allocator.free(zd);
         
         // Build combined prompt (system + user)
         var combined_prompt = std.ArrayList(u8).init(self.allocator);
         defer combined_prompt.deinit();
-        
         try combined_prompt.writer().print("{s}\n\n{s}", .{ system_prompt, user_prompt });
-        
-        // Assert: Combined prompt within bounds
         std.debug.assert(combined_prompt.items.len <= LlmProvider.MAX_REQUEST_SIZE);
         
-        // Create LLM request with timeout (60s default for LLM operations)
-        var request = LlmProvider.LlmRequest{
-            .request_id = 0, // Will be set by provider
-            .provider_type = provider_type,
-            .model = undefined,
-            .model_len = 0,
-            .prompt = undefined,
-            .prompt_len = 0,
-            .max_tokens = max_tokens,
-            .temperature = temperature,
-            .created_at = @as(u64, @intCast(std.time.timestamp())),
-            .use_zon_format = supports_zon and zon_data != null,
-            .zon_data = if (zon_data) |zd| zd else null,
-            .timeout_ms = LlmProvider.DEFAULT_LLM_TIMEOUT_MS, // 60 seconds default
-        };
+        // Build request and send with retry
+        var request = self.build_llm_request(
+            provider_type,
+            model,
+            combined_prompt.items,
+            max_tokens,
+            temperature,
+            supports_zon and zon_data != null,
+            zon_data,
+        );
         
-        // Copy model name
-        const model_len = @min(model.len, 128);
-        var i: u32 = 0;
-        while (i < 128) : (i += 1) {
-            request.model[i] = 0;
-        }
-        i = 0;
-        while (i < model_len) : (i += 1) {
-            request.model[i] = model[i];
-        }
-        request.model_len = model_len;
-        
-        // Copy prompt
-        const prompt_len = @min(@as(u64, @intCast(combined_prompt.items.len)), LlmProvider.MAX_REQUEST_SIZE);
-        i = 0;
-        while (i < LlmProvider.MAX_REQUEST_SIZE) : (i += 1) {
-            request.prompt[i] = 0;
-        }
-        i = 0;
-        while (i < prompt_len) : (i += 1) {
-            request.prompt[i] = combined_prompt.items[i];
-        }
-        request.prompt_len = @intCast(prompt_len);
-        
-        // Send request via provider pool with retry logic for retryable errors
-        const max_retries: u32 = 3;
-        var retry_count: u32 = 0;
-        var last_error: ?LlmProvider.LlmProviderError = null;
-        
-        // Free zon_data after request completes (it's only used synchronously)
-        defer if (zon_data) |zd| self.allocator.free(zd);
-        
-        while (retry_count < max_retries) : (retry_count += 1) {
-            const response = pool.send_request_with_fallback(&request, self.allocator) catch |err| {
-                last_error = err;
-                
-                // Check if error is retryable
-                if (LlmProvider.is_llm_error_retryable(err)) {
-                    // Exponential backoff: 1s, 2s, 4s
-                    if (retry_count < max_retries - 1) {
-                        const delay_ms = (@as(u64, 1) << @as(u6, @intCast(retry_count))) * 1000;
-                        std.time.sleep(delay_ms * 1_000_000); // Convert to nanoseconds
-                        continue;
-                    }
-                }
-                
-                // Non-retryable error or max retries exceeded
-                return err;
-            };
-            
-            // Success: Extract response content
-            const content = response.content[0..response.content_len];
-            const content_copy = try self.allocator.dupe(u8, content);
-            
-            return content_copy;
-        }
-        
-        // Max retries exceeded
-        return last_error orelse LlmProvider.LlmProviderError.NetworkError;
+        return self.send_request_with_retry(pool, &request);
     }
     
-    /// Analyze blocks and suggest connections (semantic similarity).
-    /// Returns array of connection suggestions.
-    pub fn suggest_connections(
+    /// Collect block contents for analysis.
+    /// Why: Required for extracting block content before sending to LLM.
+    fn collect_block_contents(
         self: *AiInsights,
         block_ids: []const u64,
-    ) ![]const ConnectionSuggestion {
-        // Assert: Block count must be within bounds
-        std.debug.assert(block_ids.len <= MAX_BLOCKS_PER_BATCH);
-        
-        // Assert: Block count must be at least 2 for connections
-        std.debug.assert(block_ids.len >= 2);
-        
-        // If provider pool not available, return empty suggestions
-        if (self.provider_pool == null) {
-            return &[_]ConnectionSuggestion{};
-        }
-        
-        // Get block contents
+    ) !std.ArrayList([]const u8) {
         var block_contents = std.ArrayList([]const u8).init(self.allocator);
-        defer {
+        errdefer {
             for (block_contents.items) |content| {
                 self.allocator.free(content);
             }
@@ -339,47 +350,47 @@ pub const AiInsights = struct {
         
         for (block_ids) |block_id| {
             const block = self.block_storage.get_block(@as(u32, @intCast(block_id))) orelse continue;
-            
-            // Skip blocks with empty content
             if (block.content_len == 0) continue;
-            
             const content = try self.allocator.dupe(u8, block.content[0..block.content_len]);
             try block_contents.append(content);
         }
         
-        // Assert: At least 2 blocks with content required for connections
-        std.debug.assert(block_contents.items.len >= 2);
-        
-        // Build prompt for LLM
+        return block_contents;
+    }
+    
+    /// Build prompt for connection suggestion analysis.
+    /// Why: Required for formatting block data into LLM prompt.
+    fn build_connection_prompt(
+        self: *AiInsights,
+        block_ids: []const u64,
+        block_contents: []const []const u8,
+    ) ![]const u8 {
         var prompt = std.ArrayList(u8).init(self.allocator);
-        defer prompt.deinit();
+        errdefer prompt.deinit();
         
         const writer = prompt.writer();
-        try writer.writeAll("Analyze these knowledge graph blocks and suggest connections between them based on semantic similarity. For each suggested connection, provide: block1_id, block2_id, confidence (0.0-1.0), and reason.\n\n");
+        try writer.writeAll(
+            "Analyze these knowledge graph blocks and suggest connections " ++
+            "based on semantic similarity. For each suggested connection, " ++
+            "provide: block1_id, block2_id, confidence (0.0-1.0), and reason.\n\n",
+        );
         
         for (block_ids, 0..) |block_id, i| {
-            if (i < block_contents.items.len) {
-                try writer.print("Block {d}:\n{s}\n\n", .{ block_id, block_contents.items[i] });
+            if (i < block_contents.len) {
+                try writer.print("Block {d}:\n{s}\n\n", .{ block_id, block_contents[i] });
             }
         }
         
         try writer.writeAll("Format: block1_id,block2_id,confidence,reason (one per line)");
-        
-        const prompt_str = try prompt.toOwnedSlice();
-        defer self.allocator.free(prompt_str);
-        
-        // Get AI response via Court provider (include block IDs for ZON encoding)
-        const response = try self.send_llm_request(
-            "You are a knowledge graph analysis assistant. Analyze blocks and suggest semantic connections.",
-            prompt_str,
-            "gpt-4o", // Default model, can be configurable
-            2000, // Max tokens
-            0.7, // Temperature
-            block_ids, // Include block IDs for ZON encoding if supported
-        );
-        defer self.allocator.free(response);
-        
-        // Parse response (simple CSV-like format)
+        return try prompt.toOwnedSlice();
+    }
+    
+    /// Parse connection suggestion response from LLM.
+    /// Why: Required for converting LLM response into structured suggestions.
+    fn parse_connection_response(
+        self: *AiInsights,
+        response: []const u8,
+    ) ![]const ConnectionSuggestion {
         var suggestions = std.ArrayList(ConnectionSuggestion).init(self.allocator);
         errdefer {
             for (suggestions.items) |*suggestion| {
@@ -388,19 +399,12 @@ pub const AiInsights = struct {
             suggestions.deinit();
         }
         
-        // Parse lines (simple implementation)
         var lines = std.mem.split(u8, response, "\n");
         var line_count: u32 = 0;
         while (lines.next()) |line| : (line_count += 1) {
             if (line.len == 0) continue;
-            
-            // Assert: Line count must be within bounds
             std.debug.assert(line_count < MAX_BLOCKS_PER_BATCH * MAX_BLOCKS_PER_BATCH);
-            
-            // Check if suggestions array is full
-            if (suggestions.items.len >= MAX_AI_SUGGESTIONS) {
-                break;
-            }
+            if (suggestions.items.len >= MAX_AI_SUGGESTIONS) break;
             
             var fields = std.mem.split(u8, line, ",");
             const from_id_str = fields.next() orelse continue;
@@ -408,21 +412,17 @@ pub const AiInsights = struct {
             const conf_str = fields.next() orelse continue;
             const reason_str = fields.rest();
             
-            // Validate reason string length
-            if (reason_str.len > 1000) continue; // Max 1000 chars per reason
+            if (reason_str.len > 1000) continue;
             
             const from_id = std.fmt.parseInt(u64, from_id_str, 10) catch continue;
             const to_id = std.fmt.parseInt(u64, to_id_str, 10) catch continue;
             
-            // Validate block IDs are within reasonable bounds
             if (from_id == 0 or to_id == 0) continue;
-            if (from_id == to_id) continue; // Skip self-connections
+            if (from_id == to_id) continue;
             
-            // Validate blocks exist
             const from_block = self.block_storage.get_block(@as(u32, @intCast(from_id))) orelse continue;
             _ = self.block_storage.get_block(@as(u32, @intCast(to_id))) orelse continue;
             
-            // Skip if link already exists
             var link_exists = false;
             var i: u32 = 0;
             while (i < from_block.links_len) : (i += 1) {
@@ -433,13 +433,11 @@ pub const AiInsights = struct {
             }
             if (link_exists) continue;
             
-            // Parse confidence and clamp to valid range
             var confidence = std.fmt.parseFloat(f32, conf_str) catch 0.5;
             if (confidence < 0.0) confidence = 0.0;
             if (confidence > 1.0) confidence = 1.0;
             
             const reason = try self.allocator.dupe(u8, reason_str);
-            
             try suggestions.append(ConnectionSuggestion{
                 .from_block_id = from_id,
                 .to_block_id = to_id,
@@ -452,7 +450,48 @@ pub const AiInsights = struct {
         return try suggestions.toOwnedSlice();
     }
     
+    /// Analyze blocks and suggest connections (semantic similarity).
+    /// Why: Required for AI-powered connection suggestions in knowledge graph.
+    /// Returns array of connection suggestions.
+    pub fn suggest_connections(
+        self: *AiInsights,
+        block_ids: []const u64,
+    ) ![]const ConnectionSuggestion {
+        std.debug.assert(block_ids.len <= MAX_BLOCKS_PER_BATCH);
+        std.debug.assert(block_ids.len >= 2);
+        
+        if (self.provider_pool == null) {
+            return &[_]ConnectionSuggestion{};
+        }
+        
+        var block_contents = try self.collect_block_contents(block_ids);
+        defer {
+            for (block_contents.items) |content| {
+                self.allocator.free(content);
+            }
+            block_contents.deinit();
+        }
+        
+        std.debug.assert(block_contents.items.len >= 2);
+        
+        const prompt_str = try self.build_connection_prompt(block_ids, block_contents.items);
+        defer self.allocator.free(prompt_str);
+        
+        const response = try self.send_llm_request(
+            "You are a knowledge graph analysis assistant. Analyze blocks and suggest semantic connections.",
+            prompt_str,
+            "gpt-4o",
+            2000,
+            0.7,
+            block_ids,
+        );
+        defer self.allocator.free(response);
+        
+        return self.parse_connection_response(response);
+    }
+    
     /// Detect knowledge gaps (missing links between related blocks).
+    /// Why: Required for identifying missing connections in knowledge graph.
     /// Returns array of block ID pairs that should be linked.
     pub fn detect_knowledge_gaps(
         self: *AiInsights,
@@ -498,7 +537,11 @@ pub const AiInsights = struct {
         defer prompt.deinit();
         
         const writer = prompt.writer();
-        try writer.writeAll("Analyze these knowledge graph blocks and identify missing connections (knowledge gaps). For each gap, provide: block1_id,block2_id (one per line).\n\n");
+        try writer.writeAll(
+            "Analyze these knowledge graph blocks and identify missing " ++
+            "connections (knowledge gaps). For each gap, provide: " ++
+            "block1_id,block2_id (one per line).\n\n",
+        );
         
         for (block_ids, 0..) |block_id, i| {
             if (i < block_contents.items.len) {
@@ -574,6 +617,7 @@ pub const AiInsights = struct {
     }
     
     /// Generate block title from content (auto-titling).
+    /// Why: Required for AI-powered title generation for knowledge graph blocks.
     /// Returns suggested title for the block.
     pub fn suggest_title(
         self: *AiInsights,
@@ -598,7 +642,11 @@ pub const AiInsights = struct {
         defer prompt.deinit();
         
         const writer = prompt.writer();
-        try writer.print("Generate a concise title (max 50 characters) for this knowledge graph block:\n\n{s}\n\nTitle only, no explanation.", .{block.content[0..block.content_len]});
+        try writer.print(
+            "Generate a concise title (max 50 characters) for this " ++
+            "knowledge graph block:\n\n{s}\n\nTitle only, no explanation.",
+            .{block.content[0..block.content_len]},
+        );
         
         const prompt_str = try prompt.toOwnedSlice();
         defer self.allocator.free(prompt_str);
@@ -639,22 +687,42 @@ pub const AiInsights = struct {
         };
     }
     
+    /// Build prompt for subgraph summarization.
+    /// Why: Required for formatting block data into summarization prompt.
+    fn build_summary_prompt(
+        self: *AiInsights,
+        block_ids: []const u64,
+        block_contents: []const []const u8,
+    ) ![]const u8 {
+        var prompt = std.ArrayList(u8).init(self.allocator);
+        errdefer prompt.deinit();
+        
+        const writer = prompt.writer();
+        try writer.writeAll("Summarize this knowledge graph subgraph in 2-3 sentences:\n\n");
+        
+        for (block_ids, 0..) |block_id, i| {
+            if (i < block_contents.len) {
+                try writer.print("Block {d}:\n{s}\n\n", .{ block_id, block_contents[i] });
+            }
+        }
+        
+        return try prompt.toOwnedSlice();
+    }
+    
     /// Summarize subgraph (AI-generated summary).
+    /// Why: Required for AI-powered subgraph summarization in knowledge graph.
     /// Returns summary text for the subgraph.
     pub fn summarize_subgraph(
         self: *AiInsights,
         block_ids: []const u64,
     ) !?[]const u8 {
-        // Assert: Block count must be within bounds
         std.debug.assert(block_ids.len <= MAX_BLOCKS_PER_BATCH);
         
-        // If provider pool not available, return null
         if (self.provider_pool == null) {
             return null;
         }
         
-        // Get block contents
-        var block_contents = std.ArrayList([]const u8).init(self.allocator);
+        var block_contents = try self.collect_block_contents(block_ids);
         defer {
             for (block_contents.items) |content| {
                 self.allocator.free(content);
@@ -662,57 +730,30 @@ pub const AiInsights = struct {
             block_contents.deinit();
         }
         
-        for (block_ids) |block_id| {
-            // Assert: Block ID must be valid
-            std.debug.assert(block_id > 0);
-            
-            const block = self.block_storage.get_block(@as(u32, @intCast(block_id))) orelse continue;
-            const content = try self.allocator.dupe(u8, block.content[0..block.content_len]);
-            try block_contents.append(content);
-        }
-        
-        // Assert: At least one block content retrieved
         std.debug.assert(block_contents.items.len > 0);
         
-        // Build prompt for LLM
-        var prompt = std.ArrayList(u8).init(self.allocator);
-        defer prompt.deinit();
-        
-        const writer = prompt.writer();
-        try writer.writeAll("Summarize this knowledge graph subgraph in 2-3 sentences:\n\n");
-        
-        for (block_ids, 0..) |block_id, i| {
-            if (i < block_contents.items.len) {
-                try writer.print("Block {d}:\n{s}\n\n", .{ block_id, block_contents.items[i] });
-            }
-        }
-        
-        const prompt_str = try prompt.toOwnedSlice();
+        const prompt_str = try self.build_summary_prompt(block_ids, block_contents.items);
         defer self.allocator.free(prompt_str);
         
-        // Get AI response via Court provider (include block IDs for ZON encoding)
         const response = try self.send_llm_request(
             "You are a knowledge graph assistant. Provide concise summaries of subgraphs.",
             prompt_str,
-            "gpt-4o", // Default model
-            500, // Max tokens (summaries are short)
-            0.7, // Temperature
-            block_ids, // Include block IDs for ZON encoding if supported
+            "gpt-4o",
+            500,
+            0.7,
+            block_ids,
         );
         
-        // Validate response is not empty
         if (response.len == 0) {
             return null;
         }
         
-        // Assert: Response length is reasonable (max 10KB)
         std.debug.assert(response.len <= 10_000);
-        
-        // Return summary (caller owns the memory)
         return response;
     }
     
     /// Store AI suggestion as DAG event (for deterministic replay).
+    /// Why: Required for recording AI suggestions in DAG for replay and audit.
     pub fn store_suggestion_as_dag_event(
         self: *AiInsights,
         suggestion_type: SuggestionType,

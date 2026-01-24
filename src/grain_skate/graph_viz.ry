@@ -61,8 +61,7 @@ pub const GraphVisualization = struct {
     selected_block_id: ?u32, // Currently selected block
     allocator: std.mem.Allocator,
 
-    /// Initialize graph visualization.
-    // 2025-11-24-110000-pst: Active function
+    /// Why: Required for initializing graph visualization with default state.
     pub fn init(allocator: std.mem.Allocator) GraphVisualization {
         var viz = GraphVisualization{
             .nodes = undefined,
@@ -97,8 +96,7 @@ pub const GraphVisualization = struct {
         return viz;
     }
 
-    /// Add block to graph.
-    // 2025-11-24-110000-pst: Active function
+    /// Why: Required for adding blocks to graph visualization.
     pub fn add_block(self: *GraphVisualization, block_id: u32) void {
         std.debug.assert(block_id > 0);
         std.debug.assert(self.nodes_len < MAX_NODES);
@@ -119,8 +117,7 @@ pub const GraphVisualization = struct {
         std.debug.assert(self.nodes_len <= MAX_NODES);
     }
 
-    /// Add link to graph.
-    // 2025-11-24-110000-pst: Active function
+    /// Why: Required for adding links between blocks in graph visualization.
     pub fn add_link(self: *GraphVisualization, from_id: u32, to_id: u32) void {
         std.debug.assert(from_id > 0);
         std.debug.assert(to_id > 0);
@@ -135,8 +132,7 @@ pub const GraphVisualization = struct {
         std.debug.assert(self.edges_len <= MAX_EDGES);
     }
 
-    /// Calculate force-directed layout (iterative, no recursion).
-    // 2025-11-24-110000-pst: Active function
+    /// Why: Required for calculating force-directed graph layout for visual representation.
     pub fn calculate_layout(self: *GraphVisualization, iterations: u32) void {
         std.debug.assert(iterations > 0);
         std.debug.assert(iterations <= MAX_ITERATIONS);
@@ -258,8 +254,7 @@ pub const GraphVisualization = struct {
         return null;
     }
 
-    /// Select block in graph.
-    // 2025-11-24-110000-pst: Active function
+    /// Why: Required for selecting blocks in graph visualization.
     pub fn select_block(self: *GraphVisualization, block_id: u32) void {
         std.debug.assert(block_id > 0);
         // Deselect all
@@ -274,8 +269,7 @@ pub const GraphVisualization = struct {
         }
     }
 
-    /// Pan view (move center).
-    // 2025-11-24-110000-pst: Active function
+    /// Why: Required for panning the graph view to navigate the visualization.
     pub fn pan(self: *GraphVisualization, dx: f32, dy: f32) void {
         self.center_x += dx;
         self.center_y += dy;
@@ -294,8 +288,7 @@ pub const GraphVisualization = struct {
         }
     }
 
-    /// Zoom view.
-    // 2025-11-24-110000-pst: Active function
+    /// Why: Required for zooming the graph view to adjust visualization scale.
     pub fn zoom_view(self: *GraphVisualization, delta: f32) void {
         self.zoom += delta;
         // Clamp zoom
@@ -308,9 +301,14 @@ pub const GraphVisualization = struct {
         std.debug.assert(self.zoom > 0.0);
     }
 
-    /// Find node at pixel coordinates (hit testing).
-    // 2025-11-24-172500-pst: Active function
-    pub fn find_node_at_pixel(self: *const GraphVisualization, pixel_x: u32, pixel_y: u32, buffer_width: u32, buffer_height: u32) ?u32 {
+    /// Why: Required for hit testing to find nodes at pixel coordinates.
+    pub fn find_node_at_pixel(
+        self: *const GraphVisualization,
+        pixel_x: u32,
+        pixel_y: u32,
+        buffer_width: u32,
+        buffer_height: u32,
+    ) ?u32 {
         std.debug.assert(pixel_x < buffer_width);
         std.debug.assert(pixel_y < buffer_height);
         std.debug.assert(buffer_width > 0);

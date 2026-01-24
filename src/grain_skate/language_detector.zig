@@ -41,7 +41,7 @@ pub const Language = enum(u8) {
 // 2025-12-03-141818-pst: Active struct
 pub const LanguageDetector = struct {
     /// Detect language from filename (extension-based).
-    // 2025-12-03-141818-pst: Active function
+    /// Why: Required for syntax highlighting by identifying language from file extension.
     pub fn detect_from_filename(filename: []const u8) Language {
         // Assert: Filename must be bounded
         std.debug.assert(filename.len <= MAX_FILENAME_LEN);
@@ -97,7 +97,9 @@ pub const LanguageDetector = struct {
         if (std.mem.eql(u8, ext, "java") or std.mem.eql(u8, ext, "JAVA")) {
             return .java;
         }
-        if (std.mem.eql(u8, ext, "md") or std.mem.eql(u8, ext, "MD") or std.mem.eql(u8, ext, "markdown") or std.mem.eql(u8, ext, "MARKDOWN")) {
+        if (std.mem.eql(u8, ext, "md") or std.mem.eql(u8, ext, "MD") or
+            std.mem.eql(u8, ext, "markdown") or std.mem.eql(u8, ext, "MARKDOWN"))
+        {
             return .markdown;
         }
         if (std.mem.eql(u8, ext, "json") or std.mem.eql(u8, ext, "JSON")) {
@@ -106,10 +108,14 @@ pub const LanguageDetector = struct {
         if (std.mem.eql(u8, ext, "yaml") or std.mem.eql(u8, ext, "YAML") or std.mem.eql(u8, ext, "yml") or std.mem.eql(u8, ext, "YML")) {
             return .yaml;
         }
-        if (std.mem.eql(u8, ext, "sh") or std.mem.eql(u8, ext, "SH") or std.mem.eql(u8, ext, "bash") or std.mem.eql(u8, ext, "BASH")) {
+        if (std.mem.eql(u8, ext, "sh") or std.mem.eql(u8, ext, "SH") or
+            std.mem.eql(u8, ext, "bash") or std.mem.eql(u8, ext, "BASH"))
+        {
             return .shell;
         }
-        if (std.mem.eql(u8, ext, "html") or std.mem.eql(u8, ext, "HTML") or std.mem.eql(u8, ext, "htm") or std.mem.eql(u8, ext, "HTM")) {
+        if (std.mem.eql(u8, ext, "html") or std.mem.eql(u8, ext, "HTML") or
+            std.mem.eql(u8, ext, "htm") or std.mem.eql(u8, ext, "HTM"))
+        {
             return .html;
         }
         if (std.mem.eql(u8, ext, "css") or std.mem.eql(u8, ext, "CSS")) {
@@ -119,7 +125,7 @@ pub const LanguageDetector = struct {
     }
 
     /// Detect language from shebang line (first line of file).
-    // 2025-12-03-141818-pst: Active function
+    /// Why: Required for syntax highlighting when file extension is unavailable.
     pub fn detect_from_shebang(content: []const u8) Language {
         // Assert: Content must be bounded
         std.debug.assert(content.len <= MAX_SHEBANG_LEN);
@@ -151,7 +157,7 @@ pub const LanguageDetector = struct {
     }
 
     /// Detect language from filename and content (combined detection).
-    // 2025-12-03-141818-pst: Active function
+    /// Why: Required for reliable language detection using both filename and shebang.
     pub fn detect(filename: []const u8, content: []const u8) Language {
         // Try filename first (more reliable)
         const lang_from_filename = detect_from_filename(filename);
