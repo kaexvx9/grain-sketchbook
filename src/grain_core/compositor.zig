@@ -1,11 +1,11 @@
-//! Grain OS Compositor: Wayland compositor for desktop environment.
+//! Grain OS Compositor: Shine display compositor for desktop environment.
 //!
 //! Why: Manage windows, surfaces, and input for Grain OS desktop.
-//! Architecture: Wayland protocol, kernel framebuffer rendering.
+//! Architecture: Grain Shine protocol, kernel framebuffer rendering.
 //! GrainStyle: grain_case, u32/u64, bounded allocations, assertions.
 
 const std = @import("std");
-const wayland = @import("wayland/protocol.zig");
+const shine = @import("shine/protocol.zig");
 const basin_kernel = @import("basin_kernel");
 const tiling = @import("tiling.zig");
 const framebuffer_renderer = @import("framebuffer_renderer.zig");
@@ -123,7 +123,7 @@ pub const ResizeHandle = enum(u8) {
 // Window state: represents a window in the compositor.
 pub const Window = struct {
     id: u32,
-    surface_id: wayland.ObjectId,
+    surface_id: shine.ObjectId,
     x: i32,
     y: i32,
     width: u32,
@@ -141,7 +141,7 @@ pub const Window = struct {
 
     pub fn init(
         id: u32,
-        surface_id: wayland.ObjectId,
+        surface_id: shine.ObjectId,
         x: i32,
         y: i32,
         width: u32,
@@ -214,10 +214,10 @@ pub const Compositor = struct {
     windows: [MAX_WINDOWS]Window,
     windows_len: u32,
     next_window_id: u32,
-    next_object_id: wayland.ObjectId,
-    registry: wayland.Registry,
-    output: wayland.Output,
-    seat: wayland.Seat,
+    next_object_id: shine.ObjectId,
+    registry: shine.Registry,
+    output: shine.Output,
+    seat: shine.Seat,
     framebuffer_base: u64,
     tiling_tree: tiling.TilingTree,
     renderer: framebuffer_renderer.FramebufferRenderer,
@@ -312,9 +312,9 @@ pub const Compositor = struct {
             .windows_len = 0,
             .next_window_id = 1,
             .next_object_id = 1,
-            .registry = wayland.Registry.init(1),
-            .output = wayland.Output.init(2, 1024, 768, 1024, 768),
-            .seat = wayland.Seat.init(3),
+            .registry = shine.Registry.init(1),
+            .output = shine.Output.init(2, 1024, 768, 1024, 768),
+            .seat = shine.Seat.init(3),
             .framebuffer_base = 0x90000000,
             .tiling_tree = tiling.TilingTree.init(),
             .renderer = framebuffer_renderer.FramebufferRenderer.init(),
