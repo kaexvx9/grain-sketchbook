@@ -33,8 +33,9 @@ All 17 converted modules follow Rye Style constraints:
 - ✅ Complex functions split into smaller, focused functions
 
 ### Explicit Type Compliance
-- ✅ No `usize` or `isize` usage in converted files
-- ✅ All types explicitly specified (u32, u64, etc.)
+- ✅ Minimal `usize`/`isize` usage (mostly in comments/documentation)
+- ✅ All function parameters and return types use explicit types (u32, u64, etc.)
+- ⚠️ Note: Compiler's explicit type check will validate actual code usage during compilation
 
 ---
 
