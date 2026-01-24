@@ -126,10 +126,13 @@ src/Sema.zig:1:1: error: root source file struct 'std' has no member named 'Auto
 
 ---
 
-**Update**: Vantage 3 has uncommitted changes addressing some issues:
+**Update (2026-01-23-165912-pst)**: Vantage 3 has uncommitted changes addressing some issues:
 - ✅ `.ry` cases added to switch statements (uncommitted)
 - ✅ `AutoHashSetUnmanaged` → `AutoHashMapUnmanaged` fix (uncommitted)
-- ⏳ Build still failing (different error - command terminated unexpectedly)
+- ⚠️ **New Errors Found**:
+  1. `Sema.zig:1062` - `no field named 'node_offset_fn_body' in union 'Zcu.LazySrcLoc.Offset'`
+  2. `Sema/rye_style.zig:296` - `no field named 'file_scope' in struct 'Zcu.LazySrcLoc'`
+- ⏳ Build still failing (2 compilation errors)
 
 **Status**: ⚠️ **BLOCKED** — Waiting for Vantage 3 to complete fixes and rebuild  
 **Priority**: **HIGH** — Critical blocker  
