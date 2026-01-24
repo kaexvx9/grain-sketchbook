@@ -14,26 +14,37 @@ Research plan for implementing Wayland protocol support in Rye. Wayland is MIT l
 ## Research Objectives
 
 ### Primary Goals
-1. **Understand Wayland Protocol Architecture**
+1. **Evaluate Wayland Protocol Against Rye Style**
+   - **CRITICAL**: Assess Rye Style compliance (like Tend garden allocator decision)
+   - Bounded operations analysis
+   - Memory safety evaluation
+   - Type safety assessment
+   - Complexity analysis
+   - **Decision**: Adapt Wayland or innovate new protocol?
+
+2. **Understand Wayland Protocol Architecture** (if adapting)
    - Protocol specification structure
    - Client-server communication model
    - Protocol wire format
    - Message passing mechanism
 
-2. **Identify Implementation Requirements**
-   - Core protocol components needed
-   - Required Wayland interfaces
-   - Compositor vs client requirements
-   - Extension protocols
+3. **Design Rye-Native Protocol** (if innovating)
+   - Bounded operations by design
+   - Type-safe protocol
+   - Memory-safe implementation
+   - Simple, clear APIs
+   - Rye Style compliant from ground up
 
-3. **Plan Rye Implementation Strategy**
-   - Protocol code generation approach
+4. **Plan Implementation Strategy**
+   - Protocol code generation approach (if adapting)
+   - Rye-native protocol design (if innovating)
    - Rye-specific implementation patterns
    - Integration with Rye Style constraints
    - Memory management (Garden/Toroidal)
 
-4. **Document Findings**
-   - Protocol architecture summary
+5. **Document Findings**
+   - Rye Style compliance evaluation
+   - Decision rationale (adapt vs innovate)
    - Implementation approach
    - Required libraries/components
    - Timeline estimates
@@ -42,26 +53,45 @@ Research plan for implementing Wayland protocol support in Rye. Wayland is MIT l
 
 ## Research Areas
 
-### 1. Wayland Protocol Specification
-**Priority**: High  
-**Time**: 2-3 days
+### 1. Wayland Protocol Rye Style Evaluation ⚠️ **CRITICAL**
+**Priority**: **CRITICAL** (Highest)  
+**Time**: 3-4 days
 
 **Topics**:
-- Protocol XML specification format
-- Interface definitions
-- Request/event message types
-- Argument types and marshaling
-- Protocol versioning
-- **Wayland 1.24.0 changes and features**
+- **Bounded Operations Analysis**
+  - Message size limits?
+  - Object count limits?
+  - Buffer size limits?
+  - Event queue limits?
+- **Memory Safety Evaluation**
+  - Object ID validation?
+  - Buffer overflow protection?
+  - Use-after-free prevention?
+  - Error handling completeness?
+- **Type Safety Assessment**
+  - Explicit types throughout?
+  - No usize/isize usage?
+  - Strong typing?
+- **Complexity Analysis**
+  - Protocol complexity?
+  - Implementation complexity?
+  - Can it be simplified?
+- **Recursion Check**
+  - Does implementation use recursion?
+  - Can it be made iterative?
+- **Function Length Assessment**
+  - Can implementation meet 64-line limit?
+  - What refactoring would be needed?
 
 **Resources**:
 - **Wayland 1.24.0 Release** (latest stable)
 - Wayland protocol specification (official)
 - Protocol XML files (from 1.24.0 release)
-- Wayland documentation
-- Release notes and changelog
+- Existing implementations (libwayland)
+- Rye Style compliance framework
+- **Reference**: Tend garden allocator decision process
 
-**Deliverable**: Protocol architecture understanding (based on 1.24.0)
+**Deliverable**: **Rye Style compliance evaluation and decision** (adapt Wayland or innovate new protocol)
 
 ---
 
@@ -145,22 +175,44 @@ Research plan for implementing Wayland protocol support in Rye. Wayland is MIT l
 
 ## Key Questions to Answer
 
-1. **Protocol Architecture**
+### ⚠️ CRITICAL: Rye Style Compliance
+1. **Can Wayland be made Rye Style compliant?**
+   - Are operations bounded?
+   - Is memory safety guaranteed?
+   - Can functions be kept ≤ 64 lines?
+   - Is recursion avoidable?
+   - **Decision**: Adapt Wayland or innovate new protocol?
+
+2. **What are the trade-offs?**
+   - Compatibility vs Rye Style compliance
+   - Adaptation effort vs innovation effort
+   - Safety vs performance
+   - Complexity vs simplicity
+
+3. **What would a Rye-native protocol look like?**
+   - Bounded operations by design
+   - Type-safe throughout
+   - Memory-safe with Garden/Toroidal
+   - Simple, clear APIs
+   - Rye Style compliant from ground up
+
+### Implementation Questions (if adapting)
+4. **Protocol Architecture**
    - How does Wayland protocol work?
    - What are the core interfaces?
    - How are messages serialized?
 
-2. **Implementation Approach**
+5. **Implementation Approach**
    - Generate code from XML or write manually?
    - Use existing library or implement from scratch?
    - How to handle protocol versioning?
 
-3. **Rye Integration**
+6. **Rye Integration**
    - How to make it Rye Style compliant?
    - How to use Garden/Toroidal for memory?
    - How to support RISC-V64 freestanding?
 
-4. **Compositor Requirements**
+7. **Compositor Requirements**
    - What interfaces are needed for compositor?
    - What interfaces are needed for clients?
    - What extensions are required?
