@@ -28,13 +28,19 @@
 7. ✅ `editor_dag_integration.ry`
 8. ✅ `ai_insights.ry`
 
-**Failed Compilation** (3/11 tested):
-1. ❌ `line_buffer_adapter.ry` - Import: `../grain_buffer.zig`
-2. ❌ `slc_dag_integration.ry` - Import: `../dag_core.zig`  
-3. ❌ `editor_renderer.ry` - Import: `../shared/font_renderer.zig`
+**Failed Compilation** (11/19 modules):
 
-**Not Yet Tested** (8 modules):
-- `social.ry`, `graph_viz.ry`, `graph_renderer.ry`, `modal_editor.ry`, `editor.ry`, `window.ry`, `app.ry`, `root.ry`
+**External Dependency Issues** (4 modules):
+1. ❌ `line_buffer_adapter.ry` - Import: `../grain_buffer.zig` (file exists, module path restricted)
+2. ❌ `slc_dag_integration.ry` - Import: `../dag_core.zig` (file exists, module path restricted)  
+3. ❌ `editor_renderer.ry` - Import: `../shared/font_renderer.zig` (file exists, module path restricted)
+4. ❌ `editor_dag_integration.ry` - Import: `../dag_core.zig` (file exists, module path restricted)
+
+**Code Quality Issues** (1 module tested):
+5. ❌ `modal_editor.ry` - Error capture syntax issues, variable declarations
+
+**Not Yet Tested** (6 modules):
+- `social.ry`, `graph_viz.ry`, `graph_renderer.ry`, `editor.ry`, `window.ry`, `app.ry`, `root.ry`
 
 ---
 
