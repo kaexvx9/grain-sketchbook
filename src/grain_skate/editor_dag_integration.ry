@@ -174,12 +174,12 @@ pub const EditorDagIntegration = struct {
             const event = &self.dag.pending_events[i];
             
             // Parse operation type from event data
-            const op_type = if (std.mem.indexOf(u8, event.data, "insert") != null) {
-                EditorDagIntegration.OperationType.insert
+            const op_type: OperationType = if (std.mem.indexOf(u8, event.data, "insert") != null) {
+                .insert
             } else if (std.mem.indexOf(u8, event.data, "delete") != null) {
-                EditorDagIntegration.OperationType.delete
+                .delete
             } else {
-                EditorDagIntegration.OperationType.replace
+                .replace
             };
             
             // Parse line and column from event data (format: "op_type:line:X:col:Y:...")
