@@ -36,8 +36,7 @@ pub const SkateWindow = struct {
     split_pane_enabled: bool, // Whether split pane mode is enabled
     split_position: u32, // Split position in pixels (0 = left edge, width = right edge)
 
-    /// Initialize Grain Skate window.
-    // 2025-11-23-170000-pst: Active function
+    /// Why: Required for initializing Grain Skate window with allocator, title, and dimensions.
     pub fn init(allocator: std.mem.Allocator, title: []const u8, width: u32, height: u32) !SkateWindow {
         // Assert: Title must be bounded
         std.debug.assert(title.len <= MAX_TITLE_LEN);
@@ -62,8 +61,7 @@ pub const SkateWindow = struct {
         };
     }
 
-    /// Deinitialize Grain Skate window.
-    // 2025-11-23-170000-pst: Active function
+    /// Why: Required for freeing all resources allocated by window including renderers and editor.
     pub fn deinit(self: *SkateWindow) void {
         // Clean up graph renderer if present
         if (self.graph_renderer) |renderer| {
@@ -86,14 +84,12 @@ pub const SkateWindow = struct {
         self.* = undefined;
     }
 
-    /// Show window.
-    // 2025-11-23-170000-pst: Active function
+    /// Why: Required for displaying the window on screen.
     pub fn show(self: *SkateWindow) void {
         self.window.show();
     }
 
-    /// Set current block for editing.
-    // 2025-11-23-170000-pst: Active function
+    /// Why: Required for setting current block and initializing editor for block editing.
     pub fn set_current_block(self: *SkateWindow, block: *Block.BlockData) !void {
         // Assert: Block must be valid
         std.debug.assert(block.id > 0);
@@ -130,8 +126,7 @@ pub const SkateWindow = struct {
         self.current_block_id = block.id;
     }
 
-    /// Close editor and return to graph view.
-    // 2025-12-02-160942-pst: Active function
+    /// Why: Required for closing editor and returning to graph visualization view.
     pub fn close_editor(self: *SkateWindow) void {
         // Clean up editor renderer
         if (self.editor_renderer) |renderer| {
@@ -148,26 +143,22 @@ pub const SkateWindow = struct {
         self.current_block_id = null;
     }
 
-    /// Get current block ID.
-    // 2025-11-23-170000-pst: Active function
+    /// Why: Required for retrieving current block ID being edited.
     pub fn get_current_block_id(self: *const SkateWindow) ?u32 {
         return self.current_block_id;
     }
 
-    /// Get editor state.
-    // 2025-11-23-170000-pst: Active function
+    /// Why: Required for retrieving editor state for external access.
     pub fn get_editor(self: *const SkateWindow) ?*Editor.EditorState {
         return self.editor;
     }
 
-    /// Get editor renderer.
-    // 2025-12-02-164404-pst: Active function
+    /// Why: Required for retrieving editor renderer for rendering operations.
     pub fn get_editor_renderer(self: *SkateWindow) ?*EditorRenderer {
         return self.editor_renderer;
     }
 
-    /// Set graph visualization for rendering.
-    // 2025-11-24-163500-pst: Active function
+    /// Why: Required for setting graph visualization and initializing graph renderer.
     pub fn set_graph_viz(self: *SkateWindow, graph_viz: *GraphVisualization) !void {
         std.debug.assert(graph_viz.zoom > 0.0);
         // Clean up existing renderer if present
@@ -183,8 +174,7 @@ pub const SkateWindow = struct {
         self.graph_renderer = renderer;
     }
 
-    /// Handle window resize event (update renderer and layout).
-    // 2025-11-24-181000-pst: Active function
+    /// Why: Required for handling window resize events and updating renderers and layout.
     pub fn handle_resize(self: *SkateWindow, new_width: u32, new_height: u32) !void {
         std.debug.assert(new_width > 0 and new_width <= MAX_WIDTH);
         std.debug.assert(new_height > 0 and new_height <= MAX_HEIGHT);
@@ -216,16 +206,14 @@ pub const SkateWindow = struct {
         }
     }
 
-    /// Set block storage for title rendering.
-    // 2025-11-24-171200-pst: Active function
+    /// Why: Required for setting block storage for title rendering in window.
     pub fn set_block_storage(self: *SkateWindow, block_storage: *Block.BlockStorage) void {
         if (self.graph_renderer) |renderer| {
             renderer.set_block_storage(block_storage);
         }
     }
 
-    /// Render graph to window buffer.
-    // 2025-11-24-163500-pst: Active function
+    /// Why: Required for rendering graph visualization to window buffer.
     pub fn render_graph(self: *SkateWindow) void {
         if (self.graph_renderer) |renderer| {
             const buffer = self.window.getBuffer();
@@ -250,8 +238,7 @@ pub const SkateWindow = struct {
         }
     }
 
-    /// Render editor to window buffer.
-    // 2025-12-02-142853-pst: Active function
+    /// Why: Required for rendering editor to window buffer with command buffer display.
     pub fn render_editor(self: *SkateWindow, command_buffer: []const u8) void {
         if (self.editor_renderer) |renderer| {
             // Set command buffer for command mode display
@@ -263,7 +250,15 @@ pub const SkateWindow = struct {
 
     /// Render editor to sub-rectangle of buffer (for split pane).
     // 2025-12-02-173853-pst: Active function
-    fn render_editor_to_rect(self: *SkateWindow, buffer: []u8, command_buffer: []const u8, x: u32, y: u32, width: u32, height: u32) void {
+    fn render_editor_to_rect(
+        self: *SkateWindow,
+        buffer: []u8,
+        command_buffer: []const u8,
+        x: u32,
+        y: u32,
+        width: u32,
+        height: u32,
+    ) void {
         if (self.editor_renderer) |renderer| {
             // Create temporary renderer with pane dimensions
             const editor = renderer.editor;
@@ -282,7 +277,19 @@ pub const SkateWindow = struct {
 
     /// Copy rectangle from source buffer to destination buffer.
     // 2025-12-02-173853-pst: Active function
-    fn copy_buffer_rect(self: *SkateWindow, src_buffer: []u8, dst_buffer: []u8, src_x: u32, src_y: u32, src_width: u32, src_height: u32, dst_x: u32, dst_y: u32, dst_width: u32, dst_height: u32) void {
+    fn copy_buffer_rect(
+        self: *SkateWindow,
+        src_buffer: []u8,
+        dst_buffer: []u8,
+        src_x: u32,
+        src_y: u32,
+        src_width: u32,
+        src_height: u32,
+        dst_x: u32,
+        dst_y: u32,
+        dst_width: u32,
+        dst_height: u32,
+    ) void {
         const window_width = self.window.width;
         const window_height = self.window.height;
         // Calculate copy dimensions (min of source and destination)
@@ -298,8 +305,7 @@ pub const SkateWindow = struct {
         }
     }
 
-    /// Present window (render graph/editor and display).
-    // 2025-11-24-163500-pst: Active function
+    /// Why: Required for presenting window by rendering graph/editor and displaying buffer.
     pub fn present(self: *SkateWindow) !void {
         const buffer = self.window.getBuffer();
         // Clear buffer with background color
@@ -361,8 +367,7 @@ pub const SkateWindow = struct {
         try self.window.present();
     }
 
-    /// Handle mouse click event (find node at click position).
-    // 2025-11-24-172500-pst: Active function
+    /// Why: Required for handling mouse click events and finding node at click position.
     pub fn handle_mouse_click(self: *SkateWindow, x: f64, y: f64) ?u32 {
         if (self.graph_renderer == null) {
             return null;
@@ -387,8 +392,7 @@ pub const SkateWindow = struct {
         return graph_viz.find_node_at_pixel(buffer_x, buffer_y, buffer_width, buffer_height);
     }
 
-    /// Handle keyboard event (route to modal editor if editor is active).
-    // 2025-12-02-151416-pst: Active function
+    /// Why: Required for handling keyboard events and routing to modal editor if active.
     pub fn handle_keyboard_event(self: *SkateWindow, event: events.KeyboardEvent) bool {
         // Don't intercept Ctrl+Alt (for OS window management)
         if (event.modifiers.control and event.modifiers.option) {
@@ -404,8 +408,7 @@ pub const SkateWindow = struct {
         return false;
     }
 
-    /// Enable or disable split pane mode.
-    // 2025-12-02-173853-pst: Active function
+    /// Why: Required for enabling or disabling split pane mode for dual view.
     pub fn set_split_pane(self: *SkateWindow, enabled: bool) void {
         self.split_pane_enabled = enabled;
         // Update default split position if enabling
@@ -414,8 +417,7 @@ pub const SkateWindow = struct {
         }
     }
 
-    /// Set split position (in pixels from left edge).
-    // 2025-12-02-173853-pst: Active function
+    /// Why: Required for setting split position in pixels from left edge for split pane layout.
     pub fn set_split_position(self: *SkateWindow, position: u32) void {
         // Clamp split position to valid range (leave at least 100px for each pane)
         const min_pos: u32 = 100;
@@ -423,8 +425,7 @@ pub const SkateWindow = struct {
         self.split_position = std.math.clamp(position, min_pos, max_pos);
     }
 
-    /// Get split pane enabled state.
-    // 2025-12-02-173853-pst: Active function
+    /// Why: Required for checking if split pane mode is currently enabled.
     pub fn is_split_pane_enabled(self: *const SkateWindow) bool {
         return self.split_pane_enabled;
     }
