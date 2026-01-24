@@ -200,6 +200,8 @@ Research plan for implementing Wayland protocol support in Rye. Wayland is MIT l
 - libwayland (MIT licensed, can reference)
 - Wayland compositors (reference only)
 - Client libraries (reference only)
+- Existing Zig Wayland code: `/home/xy/codeberg/kae3g/zig-wayland/`
+- Existing Grain Core Wayland: `/home/xy/ry/src/grain_core/wayland/protocol.zig`
 
 ### Tools
 - wayland-scanner (protocol code generator)
