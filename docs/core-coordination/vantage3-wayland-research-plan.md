@@ -52,13 +52,16 @@ Research plan for implementing Wayland protocol support in Rye. Wayland is MIT l
 - Request/event message types
 - Argument types and marshaling
 - Protocol versioning
+- **Wayland 1.24.0 changes and features**
 
 **Resources**:
+- **Wayland 1.24.0 Release** (latest stable)
 - Wayland protocol specification (official)
-- Protocol XML files
+- Protocol XML files (from 1.24.0 release)
 - Wayland documentation
+- Release notes and changelog
 
-**Deliverable**: Protocol architecture understanding
+**Deliverable**: Protocol architecture understanding (based on 1.24.0)
 
 ---
 
@@ -192,6 +195,9 @@ Research plan for implementing Wayland protocol support in Rye. Wayland is MIT l
 ## Resources
 
 ### Official Documentation
+- **Wayland 1.24.0 Release** (Latest): https://gitlab.freedesktop.org/wayland/wayland/-/releases/1.24.0
+- **Release Announcement**: https://lore.freedesktop.org/wayland-devel/plU5smxin5VXbiedTGtL7CNHe0t2mHtgQlQ3-xwREmSSNYaClAcZpEBV8L7JvMT8JHwdD_a_uSFkDUaP45CAWyL545iZh5gInAdToX6hgt4=@emersion.fr/T/#u
+- **Download**: https://gitlab.freedesktop.org/wayland/wayland/-/releases/1.24.0/downloads/wayland-1.24.0.tar.xz
 - Wayland protocol specification
 - Wayland protocol XML files
 - Wayland documentation
@@ -209,6 +215,7 @@ Research plan for implementing Wayland protocol support in Rye. Wayland is MIT l
 ### Tools
 - wayland-scanner (protocol code generator)
 - Protocol XML files
+- **Wayland 1.24.0 Source**: Can download for reference (MIT licensed)
 
 ---
 
