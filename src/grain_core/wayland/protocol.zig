@@ -15,6 +15,18 @@ pub const MAX_CLIENTS: u32 = 64;
 pub const MAX_SURFACE_WIDTH: u32 = 8192;
 pub const MAX_SURFACE_HEIGHT: u32 = 8192;
 
+// Bounded: Max message size in bytes (wire format limit: 16-bit size field).
+pub const MAX_MESSAGE_SIZE: u32 = 65535;
+
+// Bounded: Max string length in bytes (64KB, reasonable for protocol strings).
+pub const MAX_STRING_LENGTH: u32 = 65536;
+
+// Bounded: Max array size in bytes (64KB, matches message size limit).
+pub const MAX_ARRAY_SIZE: u32 = 65536;
+
+// Bounded: Max file descriptors per message (reasonable limit).
+pub const MAX_FDS_PER_MESSAGE: u32 = 8;
+
 // Wayland object ID type (32-bit unsigned integer).
 pub const ObjectId = u32;
 
