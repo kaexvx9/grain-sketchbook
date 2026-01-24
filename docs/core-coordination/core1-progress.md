@@ -1,6 +1,6 @@
 # Core 1 Subcore: Progress Tracking
 
-**Last Updated**: 2026-01-23-161902-pst  
+**Last Updated**: 2026-01-23-163600-pst  
 **Agent**: Core 1 Subcore (Rye Style Conversion)  
 **Working Directory**: `/home/xy/ry`
 
@@ -55,6 +55,12 @@
 - ✅ `rye check` passes
 - ✅ File renamed to `.ry`
 - ✅ Imports updated in `root.ry` and `graph_renderer.zig`
+
+**Critical Dependency**: ⚠️ **`.ry` FILE EXTENSION SUPPORT REQUIRED**
+- All 19 modules are `.ry` files
+- Cannot compile without `.ry` extension support in Rye compiler
+- **BLOCKER**: Waiting for Vantage 3 Phase 5 Priority 2 implementation
+- See: Vantage 3 Phase 5 - GUI Foundation planning
 
 **Next Steps**:
 1. Continue with next module: `social.zig` → `social.ry`
