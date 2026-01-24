@@ -31,6 +31,45 @@ pub const MAX_FDS_PER_MESSAGE: u32 = 8;
 // Shine object ID type (32-bit unsigned integer).
 pub const ObjectId = u32;
 
+// Shine message header structure (wire format).
+pub const MessageHeader = struct {
+    object_id: ObjectId,
+    opcode: u16,
+    size: u16,
+    
+    /// Why: Parse message header from raw bytes with bounds checking.
+    /// Validates header format and size constraints.
+    pub fn parse(data: []const u8) !MessageHeader {
+        std.debug.assert(data.len >= 8); // Header is 8 bytes minimum
+        if (data.len < 8) return error.InvalidMessage;
+        
+        const object_id = std.mem.readInt(u32, data[0..4], .little);
+        const size_and_opcode = std.mem.readInt(u32, data[4..8], .little);
+        
+        const size: u16 = @intCast((size_and_opcode >> 16) & 0xFFFF);
+        const opcode: u16 = @intCast(size_and_opcode & 0xFFFF);
+        
+        // Why: Validate message size against bounds.
+        if (size > MAX_MESSAGE_SIZE) return error.MessageTooLarge;
+        if (size < 8) return error.MessageTooSmall;
+        
+        return MessageHeader{
+            .object_id = object_id,
+            .opcode = opcode,
+            .size = size,
+        };
+    }
+    
+    /// Why: Validate message header constraints.
+    pub fn validate(self: MessageHeader) !void {
+        std.debug.assert(self.size >= 8);
+        std.debug.assert(self.size <= MAX_MESSAGE_SIZE);
+        if (self.size < 8) return error.MessageTooSmall;
+        if (self.size > MAX_MESSAGE_SIZE) return error.MessageTooLarge;
+        if (self.object_id == 0) return error.InvalidObjectId;
+    }
+};
+
 // Shine interface name (bounded string).
 pub const InterfaceName = struct {
     data: [64]u8,
@@ -94,7 +133,7 @@ pub const Surface = struct {
         std.debug.assert(height > 0);
         std.debug.assert(height <= MAX_SURFACE_HEIGHT);
         const surface = Surface{
-            .object = Object.init(id, InterfaceName.init("wl_surface"), 4),
+            .object = Object.init(id, InterfaceName.init("shine_surface"), 4),
             .width = width,
             .height = height,
             .buffer = null,
@@ -124,7 +163,7 @@ pub const Output = struct {
         std.debug.assert(width > 0);
         std.debug.assert(height > 0);
         const output = Output{
-            .object = Object.init(id, InterfaceName.init("wl_output"), 4),
+            .object = Object.init(id, InterfaceName.init("shine_output"), 4),
             .width = width,
             .height = height,
             .physical_width = physical_width,
@@ -146,7 +185,7 @@ pub const Seat = struct {
     pub fn init(id: ObjectId) Seat {
         std.debug.assert(id > 0);
         const seat = Seat{
-            .object = Object.init(id, InterfaceName.init("wl_seat"), 7),
+            .object = Object.init(id, InterfaceName.init("shine_seat"), 7),
             .has_keyboard = true,
             .has_pointer = true,
             .has_touch = false,
@@ -165,7 +204,7 @@ pub const Registry = struct {
     pub fn init(id: ObjectId) Registry {
         std.debug.assert(id > 0);
         var registry = Registry{
-            .object = Object.init(id, InterfaceName.init("wl_registry"), 1),
+            .object = Object.init(id, InterfaceName.init("shine_registry"), 1),
             .objects = undefined,
             .objects_len = 0,
         };
