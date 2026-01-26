@@ -279,7 +279,7 @@ We know that what we ship is solid. We may lack crucial features, but what we ha
 goals. This is the only way to make steady incremental progress, knowing that the progress we have
 made is indeed progress.
 
-**A spiritual guardian is defeated only when he no longer tries, and abandons himself.** We do not
+**A spiritual guardian is defeated only when they no longer try, and abandon themselves.** We do not
 abandon our code. We do not abandon our standards. We do not abandon the path with heart.
 
 ## Personal Power and Impeccability
@@ -308,7 +308,7 @@ Denying yourself the right tool, the right abstraction, the right approach—tha
 and we don't recommend anything of the kind. The indulgence of denying is by far the worst; it
 forces us to believe we are doing great things, when in effect we are only fixed within ourselves.
 
-## The Warrior's Choice
+## The Spiritual Guardian's Choice
 
 **We choose only once. We choose either to be spiritual guardians or to be ordinary developers. A
 second choice does not exist. Not on this earth.**
@@ -316,7 +316,7 @@ second choice does not exist. Not on this earth.**
 To be a spiritual guardian doesn't mean to practice magic, or to work to affect people, or to be
 possessed by demons. To be a spiritual guardian means to reach a level of awareness that makes
 inconceivable things available. The actions of spiritual guardians are exclusively in the realm of
-the abstract, the impersonal. Warriors struggle to reach a goal that has nothing to do with the
+the abstract, the impersonal. Spiritual guardians struggle to reach a goal that has nothing to do with the
 quick fix, the easy solution, the compromise.
 
 When you choose to be a spiritual guardian, you choose the path with heart. You choose impeccability.
@@ -341,8 +341,8 @@ Code](https://spinroot.com/gerard/pdf/P10.pdf) will change the way you code fore
   cost](https://isaacfreund.com/blog/2022-05/). Every abstraction introduces the risk of a leaky
   abstraction.
 
-  **A spiritual guardian selects the items that make his world. He selects deliberately, for every
-  item he chooses is a shield that protects him from the onslaughts of the forces he is striving to
+  **A spiritual guardian selects the items that make their world. They select deliberately, for every
+  item they choose is a shield that protects them from the onslaughts of the forces they are striving to
   use.** Every abstraction you choose, every pattern you adopt, every tool you use—they are all
   shields. Choose them deliberately. Choose them with heart.
 
@@ -1225,7 +1225,7 @@ This document is the comprehensive style guide for Rye and Grain OS development.
 - [TigerBeetle's TIGER_STYLE.md](https://github.com/tigerbeetle/tigerbeetle/blob/main/docs/TIGER_STYLE.md) — battle-tested style guide from a production distributed database (Apache 2.0)
 - [NASA's Power of Ten](https://spinroot.com/gerard/pdf/P10.pdf) — rules for safety-critical code
 - [Rich Hickey's Clojure philosophy](https://clojure.org/) — simplicity, accretion, spec-ulation (EPL 1.0)
-- **The Words of Don Juan Matus** — the warrior's way, personal power, the path with heart
+- **The Words of Don Juan Matus** — the spiritual guardian's way, personal power, the path with heart
 
 We stand on the shoulders of giants.
 
