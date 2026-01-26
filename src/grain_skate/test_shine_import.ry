@@ -1,0 +1,5 @@
+/// Why: Test Grain Shine import from Skate module.
+const shine = @import("../grain_core/shine/protocol.zig");
+pub fn test() void {
+    _ = shine.MAX_MESSAGE_SIZE;
+}
