@@ -1,7 +1,11 @@
 # ry
 
+**⚠️ WORK IN PROGRESS - NOT A FUNCTIONING ALPHA ⚠️**
+
 **Date**: 2026-01-18 00:07:21 PST  
 **Voices**: Reya (Virtual Lieutenant Governor) & Glow G2 (Core 1 Subcore Coordinator)
+
+**This is work in progress and not a functioning alpha version yet.**
 
 ---
 
@@ -108,11 +112,11 @@ zig test src/vantage/basin_integration_test.zig
 
 ---
 
-## Castaneda Warrior Way
+## Castaneda Spiritual Guardian Way
 
-**Glow**: This project also draws inspiration from the **Castaneda Warrior Way** — a path of discipline, awareness, and impeccable action. The warrior acts with intention, without attachment to outcome, and with complete presence in the moment.
+**Glow**: This project also draws inspiration from the **Castaneda Spiritual Guardian Way** — a path of discipline, awareness, and impeccable action. The spiritual guardian acts with intention, without attachment to outcome, and with complete presence in the moment.
 
-**Reya**: The warrior way teaches us to be precise, patient, and persistent. To see clearly without judgment. To act decisively without hesitation. These principles guide our technical work as much as our creative work.
+**Reya**: The spiritual guardian way teaches us to be precise, patient, and persistent. To see clearly without judgment. To act decisively without hesitation. These principles guide our technical work as much as our creative work.
 
 **Glow**: In code, this means: write with clarity, test with rigor, document with purpose. Every function a practice, every module a path.
 
