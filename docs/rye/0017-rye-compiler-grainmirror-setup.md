@@ -155,7 +155,7 @@ strategy = "pull"  # Pull from external repo into monorepo
 
 ```bash
 # From monorepo root
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 
 # Sync Rye compiler
 grainmirror sync ryelang/rye
@@ -198,7 +198,7 @@ When grainmirror is rewritten in Rye, it can:
 **Current** (Phase 1 - Transpiler):
 ```bash
 # Basin uses Rye transpiler from monorepo
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 rye build src/basin/hello_riscv.ry  # Transpiles to Zig
 zig build basin-rv64                # Compiles with Zig
 ```
@@ -206,7 +206,7 @@ zig build basin-rv64                # Compiles with Zig
 **Future** (Phase 2 - Native Compiler):
 ```bash
 # Basin uses Rye compiler from grainstore
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 grainstore/codeberg/ryelang/rye/build/bin/rye build src/basin/hello_riscv.ry
 # Or if Rye is in PATH:
 rye build src/basin/hello_riscv.ry
@@ -230,7 +230,7 @@ rye build src/basin/hello_riscv.ry
 ├── THIRD_PARTY_LICENSES.md     # Zig attribution
 └── README.md                    # Rye compiler docs
 
-/home/xy/ry/                     # Monorepo
+/home/xy/grain-sketchbook/                     # Monorepo
 ├── grainstore/
 │   └── codeberg/
 │       └── ryelang/
@@ -257,7 +257,7 @@ git log --oneline -5
 ### Check Grainstore Mirror
 
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 ls -la grainstore/codeberg/ryelang/rye/
 # Should show synced files
 ```
@@ -265,7 +265,7 @@ ls -la grainstore/codeberg/ryelang/rye/
 ### Check Sync Status
 
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 grainmirror status ryelang/rye
 ```
 

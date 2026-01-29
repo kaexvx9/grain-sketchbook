@@ -44,7 +44,7 @@ const known_stdlib_files = &[_][]const u8{
 
 ## Verification Test
 
-**Command**: `cd /home/xy/ry && /home/xy/codeberg/ryelang/rye/zig-out/bin/zig build-lib src/grain_skate/block.ry`
+**Command**: `cd /home/xy/grain-sketchbook && /home/xy/codeberg/ryelang/rye/zig-out/bin/zig build-lib src/grain_skate/block.ry`
 
 **Expected Result**: 
 - ✅ No stdlib validation errors
@@ -57,7 +57,7 @@ const known_stdlib_files = &[_][]const u8{
 
 ### Individual Module Testing
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 
 # Test each module individually
 /home/xy/codeberg/ryelang/rye/zig-out/bin/zig build-lib src/grain_skate/block.ry

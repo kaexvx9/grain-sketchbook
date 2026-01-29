@@ -22,7 +22,7 @@
 - ✅ All changes committed and pushed
 
 **Ready for Vantage 3 compiler validation**:
-- ✅ Modules located at: `/home/xy/ry/src/grain_skate/*.ry`
+- ✅ Modules located at: `/home/xy/grain-sketchbook/src/grain_skate/*.ry`
 - ✅ Validation command: `./rye/zig-out/bin/rye check src/grain_skate/*.ry`
 - ✅ Expected result: All checks pass (already validated by Core 1)
 

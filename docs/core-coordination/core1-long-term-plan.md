@@ -2,7 +2,7 @@
 
 **Last Updated**: 2026-01-23-163819-pst  
 **Agent**: Core 1 Subcore (Rye Style Conversion & Integration)  
-**Working Directory**: `/home/xy/ry`
+**Working Directory**: `/home/xy/grain-sketchbook`
 
 ---
 

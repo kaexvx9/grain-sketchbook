@@ -65,7 +65,7 @@ src/grain_skate/root.ry
 
 **Validation command**:
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 ./rye/zig-out/bin/rye check src/grain_skate/*.ry
 ```
 
@@ -77,7 +77,7 @@ cd /home/xy/ry
 
 **Test compilation**:
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 # Test compiling individual modules or the full Skate application
 # Verify that Phase 4 Rye Style enforcement catches any violations
 ```

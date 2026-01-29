@@ -14,8 +14,8 @@
 **Core Principle**: "Good artists copy, but great artists steal" — semantic overlap analysis enables creative cross-pollination between variants.
 
 **Example Variants**:
-- **Grain OS** (`teamcarry11/xy-mathematics`): Aquarius energy, grain/growth metaphor
-- **Clutch OS** (`teambrick06/yz`): Virgo Gemini Cancer energy, brick-and-mortar/clutch metaphor
+- **Grain OS** (`keatonlivermore/grain-sketchbook`): Aquarius energy, grain/growth metaphor
+- **Clutch OS** (`keatonlivermore/grain-sketchbook`): Virgo Gemini Cancer energy, brick-and-mortar/clutch metaphor
 
 ---
 
@@ -121,7 +121,7 @@ pub const LlmProvider = struct { ... };
    - Documentation template system
 
 3. Create first variant: Clutch OS
-   - `teambrick06/yz` repository setup
+   - `keatonlivermore/grain-sketchbook` repository setup
    - Clutch OS aesthetic configuration
    - Virgo Gemini Cancer energy alignment
    - Initial semantic mappings
@@ -206,7 +206,7 @@ pub const LlmProvider = struct { ... };
 
 ## Example: Grain OS vs Clutch OS
 
-### Grain OS (teamcarry11/xy-mathematics)
+### Grain OS (keatonlivermore/grain-sketchbook)
 
 **Aesthetic**: Growth, cultivation, organic development  
 **Energy**: Aquarius (justice, fairness, infrastructure)  
@@ -220,7 +220,7 @@ pub const LlmProvider = struct { ... };
 
 **Philosophy**: Service-oriented, growth-focused, organic evolution
 
-### Clutch OS (teambrick06/yz)
+### Clutch OS (keatonlivermore/grain-sketchbook)
 
 **Aesthetic**: Mechanical, enabling, framework-based  
 **Energy**: Virgo Gemini Cancer (practical, communicative, nurturing)  
@@ -442,7 +442,7 @@ Semantic analysis can be token-intensive. Court 11's token efficiency tools enab
 
 1. **Design Review**: Review this design with Core 1 Subcore and Free 12 Agent
 2. **Implementation Start**: Begin Phase 1 (Foundation)
-3. **Clutch OS Setup**: Create `teambrick06/yz` repository and initial configuration
+3. **Clutch OS Setup**: Create `keatonlivermore/grain-sketchbook` repository and initial configuration
 4. **Court 11 Integration**: Extend Court 11 LLM infrastructure for semantic analysis
 5. **Documentation**: Create variant-specific documentation templates
 

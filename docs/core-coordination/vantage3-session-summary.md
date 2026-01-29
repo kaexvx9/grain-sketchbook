@@ -183,7 +183,7 @@
 - Phase 4 integration committed
 - Ready for continued development
 
-**Documentation**: `/home/xy/ry/docs/core-coordination/`
+**Documentation**: `/home/xy/grain-sketchbook/docs/core-coordination/`
 - Progress tracking updated
 - Implementation plans documented
 - Integration notes created

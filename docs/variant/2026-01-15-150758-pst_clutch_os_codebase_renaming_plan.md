@@ -1,7 +1,7 @@
 # Clutch OS Codebase Renaming Plan
 
 **Date**: 2026-01-15-150758-pst  
-**Variant**: Clutch OS (teambrick06/yz)  
+**Variant**: Clutch OS (keatonlivermore/grain-sketchbook)  
 **System**: Clutch Synonym (adapted from Grain Synonym spec)  
 **Status**: 🆕 **PLAN** — Comprehensive renaming strategy
 
@@ -19,7 +19,7 @@ This plan outlines the systematic renaming of codebase elements from Grain OS na
 
 ### 1.1 Core Principle
 
-**Clutch Synonym Approach**: In Clutch OS's own codebase (`teambrick06/yz`), we use Clutch OS aesthetic names directly in code, not just in documentation. This is a variant-specific implementation choice.
+**Clutch Synonym Approach**: In Clutch OS's own codebase (`keatonlivermore/grain-sketchbook`), we use Clutch OS aesthetic names directly in code, not just in documentation. This is a variant-specific implementation choice.
 
 **Semantic Mappings**:
 - `Basin` (kernel) → `Harbor` (mechanical/industrial destination)

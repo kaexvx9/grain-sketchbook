@@ -20,11 +20,11 @@ export NVM_DIR="$HOME/.nvm"
 
 ### Installation & Running
 
-**All commands from `/home/xy/ry/campaign-website/`:**
+**All commands from `/home/xy/grain-sketchbook/campaign-website/`:**
 
 ```bash
 # 1. Navigate to project directory
-cd /home/xy/ry/campaign-website
+cd /home/xy/grain-sketchbook/campaign-website
 
 # 2. Install dependencies (first time only)
 npm install
@@ -160,14 +160,14 @@ export NVM_DIR="$HOME/.nvm"
 
 ### Dependencies Issues
 ```bash
-cd /home/xy/ry/campaign-website
+cd /home/xy/grain-sketchbook/campaign-website
 rm -rf node_modules package-lock.json
 npm install
 ```
 
 ### Build Errors
 Check that:
-1. You're in `/home/xy/ry/campaign-website/`
+1. You're in `/home/xy/grain-sketchbook/campaign-website/`
 2. All components are properly imported
 3. File paths are correct
 

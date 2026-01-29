@@ -11,7 +11,7 @@
 **Fastest way to verify everything works:**
 
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 
 # Build Basin kernel (RISC-V64)
 zig build basin-rv64
@@ -71,7 +71,7 @@ brew install xorriso
 
 ```bash
 # Clone repository (if not already done)
-git clone https://codeberg.org/teamlibra/ry.git
+git clone https://codeberg.org/keatonlivermore/grain-sketchbook.git
 cd ry
 
 # Verify Zig is in PATH
@@ -166,7 +166,7 @@ zig build test                # Run all tests
 **Best for**: Quick verification, CI/CD, development
 
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 
 # 1. Build Basin kernel
 zig build basin-rv64
@@ -192,7 +192,7 @@ zig test src/vantage/basin_integration_test.zig --mod riscv_core:src/vantage/ris
 #### Step 1: Build Components
 
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 
 # Build both components
 zig build basin-rv64      # Basin kernel (RISC-V64)

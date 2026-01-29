@@ -29,7 +29,7 @@
 
 ## Verification Test
 
-**Command**: `cd /home/xy/ry && /home/xy/codeberg/ryelang/rye/zig-out/bin/zig build-lib src/grain_skate/block.ry`  
+**Command**: `cd /home/xy/grain-sketchbook && /home/xy/codeberg/ryelang/rye/zig-out/bin/zig build-lib src/grain_skate/block.ry`  
 **Result**: ✅ **SUCCESS** — No assertion failures, no stdlib validation errors
 
 ---
@@ -38,7 +38,7 @@
 
 ### Individual Module Testing
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 
 # Test all 19 modules
 /home/xy/codeberg/ryelang/rye/zig-out/bin/zig build-lib src/grain_skate/block.ry

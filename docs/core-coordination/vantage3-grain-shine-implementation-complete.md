@@ -17,7 +17,7 @@
 ## Phase 5A: Core Protocol Extension ✅
 
 ### Files Implemented
-- `/home/xy/ry/src/grain_core/shine/protocol.zig` (enhanced)
+- `/home/xy/grain-sketchbook/src/grain_core/shine/protocol.zig` (enhanced)
   - `MessageHeader` struct with bounds-checked parsing
   - `ArgumentParser` with bounded string/array parsing  
   - `DisplayInterface` with sync/get_registry requests
@@ -34,17 +34,17 @@
 ## Phase 5B: Protocol Interfaces ✅
 
 ### Files Implemented
-- `/home/xy/ry/src/grain_core/shine/registry.zig`
+- `/home/xy/grain-sketchbook/src/grain_core/shine/registry.zig`
   - `RegistryInterface` with bind requests and global events
   - `Registry` implementation with bounded globals (MAX: 256)
   - Global interface management and serialization
 
-- `/home/xy/ry/src/grain_core/shine/compositor.zig`
+- `/home/xy/grain-sketchbook/src/grain_core/shine/compositor.zig`
   - `CompositorInterface` with create_surface/create_region
   - `SurfaceInterface` with attach, damage, frame, transform operations
   - `Surface` implementation with bounded callbacks (MAX: 64) and damage (MAX: 32)
 
-- `/home/xy/ry/src/grain_core/shine/output.zig`
+- `/home/xy/grain-sketchbook/src/grain_core/shine/output.zig`
   - `OutputInterface` with geometry, mode, scale events
   - `Output` implementation with bounded modes (MAX: 32)
   - Display mode management and validation
@@ -60,12 +60,12 @@
 ## Phase 5C: Basic Compositor Functionality ✅
 
 ### Files Implemented  
-- `/home/xy/ry/src/grain_core/shine/client.zig`
+- `/home/xy/grain-sketchbook/src/grain_core/shine/client.zig`
   - `Client` implementation with object lifecycle management
   - Bounded objects per client (MAX: 1024), surfaces per client (MAX: 128)
   - State management (connecting -> connected -> disconnecting)
 
-- `/home/xy/ry/src/grain_core/shine/compositor_core.zig`
+- `/home/xy/grain-sketchbook/src/grain_core/shine/compositor_core.zig`
   - `CompositorCore` main compositor implementation
   - Message dispatch system for all object types
   - Client connection management (MAX: 64 clients)

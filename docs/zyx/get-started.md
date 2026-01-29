@@ -77,7 +77,7 @@ export PATH="$HOME/zig:$PATH"
 ### Step 2: Clone Repository
 
 ```bash
-git clone https://github.com/teamcarry11/xy-mathematics.git
+git clone https://codeberg.org/keatonlivermore/grain-sketchbook.git
 cd xy-mathematics
 ```
 

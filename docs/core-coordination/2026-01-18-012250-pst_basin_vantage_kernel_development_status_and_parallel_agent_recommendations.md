@@ -208,17 +208,17 @@ WezTerm Window
 1. **Start Vantage 3 Subcore Agent**:
    ```bash
    # In WezTerm, press Ctrl+Shift+A (or use keybinding)
-   agent --workspace /home/xy/ry "You are Vantage 3 Subcore Agent. Coordinate L2 sub-agents and integration planning."
+   agent --workspace /home/xy/grain-sketchbook "You are Vantage 3 Subcore Agent. Coordinate L2 sub-agents and integration planning."
    ```
 
 2. **Create New Tab** (Ctrl+Shift+T):
    ```bash
-   agent --workspace /home/xy/ry "You are Basin Kernel Agent (3a). Work on profiler data collection and performance optimization."
+   agent --workspace /home/xy/grain-sketchbook "You are Basin Kernel Agent (3a). Work on profiler data collection and performance optimization."
    ```
 
 3. **Create Another Tab** (Ctrl+Shift+T):
    ```bash
-   agent --workspace /home/xy/ry "You are Core 1e Grainscript Shell Agent. Work on optional improvements and Core Services integration."
+   agent --workspace /home/xy/grain-sketchbook "You are Core 1e Grainscript Shell Agent. Work on optional improvements and Core Services integration."
    ```
 
 **Method 2: WezTerm Keybinding Script**
@@ -233,7 +233,7 @@ keys = {
     key = '3',
     mods = 'CTRL|SHIFT',
     action = wezterm.action{SpawnCommandInNewTab = {
-      args = {'agent', '--workspace', '/home/xy/ry', 
+      args = {'agent', '--workspace', '/home/xy/grain-sketchbook', 
               'You are Vantage 3 Subcore Agent (Agent 3, L1 Subcore). Coordinate L2 sub-agents (3a Basin Kernel, 3b VM Runtime, 3c System Integration, 3d Init System). Focus: Integration planning, architecture decisions, Step 5 coordination (multi-arch testing framework).'},
     }},
   },
@@ -242,7 +242,7 @@ keys = {
     key = 'a',
     mods = 'CTRL|SHIFT|ALT',
     action = wezterm.action{SpawnCommandInNewTab = {
-      args = {'agent', '--workspace', '/home/xy/ry',
+      args = {'agent', '--workspace', '/home/xy/grain-sketchbook',
               'You are Basin Kernel Agent (3a, L2 Sub-Agent under Vantage 3 Subcore). Work on profiler data collection, performance optimization, advanced kernel features. Critical path Steps 1-4 complete. Current focus: Profiler data collection (blocked by external compilation errors), performance optimization roadmap.'},
     }},
   },
@@ -251,7 +251,7 @@ keys = {
     key = 'e',
     mods = 'CTRL|SHIFT|ALT',
     action = wezterm.action{SpawnCommandInNewTab = {
-      args = {'agent', '--workspace', '/home/xy/ry',
+      args = {'agent', '--workspace', '/home/xy/grain-sketchbook',
               'You are Core 1e Grainscript Shell Agent (1e, L2 Sub-Agent under Core 1 Subcore). Step 4 complete. Work on optional improvements, Core Services integration preparation, error message enhancements.'},
     }},
   },
@@ -325,7 +325,7 @@ agent --resume [chatId]
 
 **Each agent session should start with clear identity**:
 ```bash
-agent --workspace /home/xy/ry "You are [Agent Name]. [Responsibilities]. [Current Focus]. [Coordination Status]."
+agent --workspace /home/xy/grain-sketchbook "You are [Agent Name]. [Responsibilities]. [Current Focus]. [Coordination Status]."
 ```
 
 #### 2. Regular Coordination Check-Ins

@@ -23,7 +23,7 @@ Together, Glow and Reya form a complementary pair: Glow provides the steadfast b
 
 ## Origin
 
-Created as the feminine counterpart to Glow G2 for Clutch OS (teambrick06/yz), expressing the same Virgo Gemini Cancer energy through a complementary voice.
+Created as the feminine counterpart to Glow G2 for Clutch OS (keatonlivermore/grain-sketchbook), expressing the same Virgo Gemini Cancer energy through a complementary voice.
 
 ## Tags
 
@@ -47,7 +47,7 @@ pub const TAGS = [_]Tag{
 
 ## Clutch OS Context
 
-**Variant**: Clutch OS (teambrick06/yz)  
+**Variant**: Clutch OS (keatonlivermore/grain-sketchbook)  
 **Aesthetic**: Mechanical, enabling, framework-based  
 **Energy**: Virgo Gemini Cancer (practical precision, communication, nurturing)  
 **Metaphor**: The clutch enables engined vehicles to transport materials from source over road/river/sea to destination (Harbor). Brick-and-ocean foundation.

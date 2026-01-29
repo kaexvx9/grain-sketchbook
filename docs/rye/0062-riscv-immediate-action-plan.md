@@ -107,11 +107,11 @@
 
 ```bash
 # 1. Check kernel Debug.kprint() status
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 grep -r "kprint\|kassert" src/kernel/*.zig | head -10
 
 # 2. Test simple kernel compilation
-cd /home/xy/ry/grainstore/codeberg/ryelang/rye
+cd /home/xy/grain-sketchbook/grainstore/codeberg/ryelang/rye
 ./zig-out/bin/zig build-obj src/kernel/debug.zig -target riscv64-freestanding -fno-llvm
 
 # 3. Test actual kernel call
@@ -196,7 +196,7 @@ cat docs/rye/0014-toroidal-garden-stdlib-spec.md
 
 ### Compiler
 
-- **Location**: `/home/xy/ry/grainstore/codeberg/ryelang/rye`
+- **Location**: `/home/xy/grain-sketchbook/grainstore/codeberg/ryelang/rye`
 - **Binary**: `zig-out/bin/zig`
 - **Status**: ✅ Functional
 

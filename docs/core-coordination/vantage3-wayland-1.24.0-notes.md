@@ -55,7 +55,7 @@
 ## Integration with Existing Code
 
 ### Existing Wayland Code
-- **Location**: `/home/xy/ry/src/grain_core/wayland/protocol.zig`
+- **Location**: `/home/xy/grain-sketchbook/src/grain_core/wayland/protocol.zig`
 - **Status**: 183 lines, Rye Style compliant
 - **Structures**: Object, Surface, Output, Seat, Registry
 - **Approach**: Extend existing code with 1.24.0 protocol features

@@ -99,7 +99,7 @@
 1. **`499c9006`**: Fix global variable address calculation (LUI → AUIPC)
 2. **`d9d4e462`**: Optimize zero comparisons for bitwise conditionals
 
-### Monorepo (`teamlibra/ry`)
+### Monorepo (`keatonlivermore/grain-sketchbook`)
 
 1. **`4f5c8d2`**: Document global variable fix implementation
 2. **`3280fd2`**: Document anytype/comptime analysis and bitwise branch fix

@@ -229,7 +229,7 @@
 - `a0b216eb`: Make V optional for freestanding, simplify tests
 - `76d1ca68`: Make V and ZBB optional for freestanding targets
 
-### Monorepo (`teamlibra/ry`)
+### Monorepo (`keatonlivermore/grain-sketchbook`)
 
 - `3c0e350`: Document test constraints and verification results
 

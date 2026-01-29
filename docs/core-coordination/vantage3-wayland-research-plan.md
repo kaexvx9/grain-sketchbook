@@ -259,7 +259,7 @@ Research plan for implementing Wayland protocol support in Rye. Wayland is MIT l
 - Wayland compositors (reference only)
 - Client libraries (reference only)
 - Existing Zig Wayland code: `/home/xy/codeberg/kae3g/zig-wayland/`
-- **Existing Grain Core Wayland**: `/home/xy/ry/src/grain_core/wayland/protocol.zig` (183 lines)
+- **Existing Grain Core Wayland**: `/home/xy/grain-sketchbook/src/grain_core/wayland/protocol.zig` (183 lines)
   - ✅ Already Rye Style compliant (grain_case, u32/u64, bounded allocations)
   - ✅ Core structures: Object, Surface, Output, Seat, Registry
   - ✅ Can be extended and adapted for Rye compiler integration

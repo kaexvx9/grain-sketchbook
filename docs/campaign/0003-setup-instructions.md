@@ -18,7 +18,7 @@
 
 ```bash
 # Navigate to project
-cd /home/xy/ry/campaign-website
+cd /home/xy/grain-sketchbook/campaign-website
 
 # Install dependencies
 npm install

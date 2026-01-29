@@ -236,7 +236,7 @@ Debug.kprint()
 - `82b4a7f`: Add revised issue 2 test cases using regular functions
 - `[pending]`: Add indirect call and vtable dispatch test cases
 
-### Monorepo (`teamlibra/ry`)
+### Monorepo (`keatonlivermore/grain-sketchbook`)
 
 - `5af62f1`: Document format string analysis findings
 - `e832481`: Document runtime codegen analysis

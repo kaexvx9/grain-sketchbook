@@ -68,7 +68,7 @@
 
 ```bash
 # Build Rye compiler
-cd /home/xy/ry/rye
+cd /home/xy/grain-sketchbook/rye
 zig build
 
 # Verify installation
@@ -576,7 +576,7 @@ pub fn find_shortest_path(
 
 ### Rye Compiler
 
-**Location**: `/home/xy/ry/rye/`
+**Location**: `/home/xy/grain-sketchbook/rye/`
 
 **Commands**:
 - `rye check`: Validate Rye Style compliance
@@ -586,7 +586,7 @@ pub fn find_shortest_path(
 
 **Usage**:
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 ./rye/zig-out/bin/rye check src/grain_skate/*.ry
 ./rye/zig-out/bin/rye stats src/grain_skate/
 ```

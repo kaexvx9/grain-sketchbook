@@ -53,7 +53,7 @@ You are **Vantage 3 Subcore**, working on Rye compiler fork development.
 ## Repository Structure
 
 **External (Source of Truth)**: `/home/xy/codeberg/ryelang/rye`  
-**Monorepo Mirror**: `/home/xy/ry/grainstore/codeberg/ryelang/rye` (synced via daemon)
+**Monorepo Mirror**: `/home/xy/grain-sketchbook/grainstore/codeberg/ryelang/rye` (synced via daemon)
 
 **⚠️ IMPORTANT**: All edits must be made in the external repository (`/home/xy/codeberg/ryelang/rye`)
 
@@ -81,7 +81,7 @@ You are **Vantage 3 Subcore**, working on Rye compiler fork development.
 - io module
 
 **Priority 3**: Test with Basin kernel
-- Kernel source: `/home/xy/ry/src/kernel/`
+- Kernel source: `/home/xy/grain-sketchbook/src/kernel/`
 - Test files: `debug.zig`, `kernel_shell.zig`
 - Verify toroidal/garden types in kernel context
 
@@ -96,7 +96,7 @@ You are **Vantage 3 Subcore**, working on Rye compiler fork development.
 - DAG-based event system
 - Rye Style compliance
 
-**Kernel Source**: `/home/xy/ry/src/kernel/`
+**Kernel Source**: `/home/xy/grain-sketchbook/src/kernel/`
 
 ---
 
@@ -141,7 +141,7 @@ You are **Vantage 3 Subcore**, working on Rye compiler fork development.
 1. **Start Session**: Read `docs/core-coordination/shared-context.md` and `docs/core-coordination/vantage3-progress.md`
 2. **Check Core 1**: Read `docs/core-coordination/core1-progress.md` for any relevant updates
 3. **Work on Compiler**: Make edits in `/home/xy/codeberg/ryelang/rye` (external repo)
-4. **Test with Kernel**: Test changes with Basin kernel at `/home/xy/ry/src/kernel/`
+4. **Test with Kernel**: Test changes with Basin kernel at `/home/xy/grain-sketchbook/src/kernel/`
 5. **Update Progress**: Update `docs/core-coordination/vantage3-progress.md` when completing phases
 6. **Coordinate**: If you need to communicate with Core 1, create a message in `docs/core-coordination/agent-messages/`
 

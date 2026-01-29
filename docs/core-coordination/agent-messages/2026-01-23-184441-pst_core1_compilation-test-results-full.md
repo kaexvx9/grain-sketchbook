@@ -126,7 +126,7 @@ editor_renderer.ry:301: unused parameter 'line_start_col'
 
 ### Test Commands Used
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 
 # Individual module tests
 /home/xy/codeberg/ryelang/rye/zig-out/bin/zig build-lib src/grain_skate/block.ry

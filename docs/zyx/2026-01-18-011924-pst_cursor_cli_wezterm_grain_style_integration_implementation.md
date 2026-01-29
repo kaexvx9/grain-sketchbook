@@ -80,7 +80,7 @@ Complete Grain Style linter module for terminal and editor integration:
 - `Ctrl+Shift+F`: Open `nnn` file manager in new tab
 - `Ctrl+Shift+V`: Open `vim` editor in new tab
 - `Ctrl+Shift+K`: Open `kakoune` editor in new tab
-- `Ctrl+Shift+A`: Start Cursor CLI agent (`agent --workspace /home/xy/ry`) in new tab
+- `Ctrl+Shift+A`: Start Cursor CLI agent (`agent --workspace /home/xy/grain-sketchbook`) in new tab
 - `Ctrl+Shift+L`: Run Grain Style linter (`grain_lint lint`) in new tab
 
 **Full Path**: `/home/xy/.config/wezterm/wezterm.lua`

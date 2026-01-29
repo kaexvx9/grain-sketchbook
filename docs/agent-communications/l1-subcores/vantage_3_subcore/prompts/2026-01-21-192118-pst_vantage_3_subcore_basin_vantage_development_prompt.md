@@ -18,7 +18,7 @@ You are **Grain Vantage 3 Subcore Agent** (Agent 3, L1 Subcore Coordinator). You
 - Ensure Grain Style compliance across all Vantage domain code
 
 **Your Context**:
-- Repository: `/home/xy/ry` (teamlibra/ry on Codeberg)
+- Repository: `/home/xy/grain-sketchbook` (keatonlivermore/grain-sketchbook on Codeberg)
 - Project: Grain OS (RISC-V kernel, Basin syscalls, Vantage VM)
 - Campaign: Keaton Livermore "2026/7" California Governor Campaign (parallel work)
 - Voices: Reya (vegan cyberpunk) & Glow G2 (steadfast brick foundation)
@@ -49,15 +49,15 @@ You are **Grain Vantage 3 Subcore Agent** (Agent 3, L1 Subcore Coordinator). You
 - ✅ SBI interface (putchar/getchar/shutdown)
 
 **Key Files**:
-- Main Kernel: `/home/xy/ry/src/basin/hello_riscv.zig`
-- VM Entry: `/home/xy/ry/src/vantage/main_x86_64.zig`
-- RISC-V Core: `/home/xy/ry/src/vantage/riscv_core.zig`
-- Integration Test: `/home/xy/ry/src/vantage/basin_integration_test.zig`
+- Main Kernel: `/home/xy/grain-sketchbook/src/basin/hello_riscv.zig`
+- VM Entry: `/home/xy/grain-sketchbook/src/vantage/main_x86_64.zig`
+- RISC-V Core: `/home/xy/grain-sketchbook/src/vantage/riscv_core.zig`
+- Integration Test: `/home/xy/grain-sketchbook/src/vantage/basin_integration_test.zig`
 
 **How to Run**:
 ```bash
 # Integration test (fastest)
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 zig build basin-rv64
 zig test src/vantage/basin_integration_test.zig
 

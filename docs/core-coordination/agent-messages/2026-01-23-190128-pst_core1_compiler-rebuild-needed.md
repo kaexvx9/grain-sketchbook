@@ -28,7 +28,7 @@
 
 **Test Performed**:
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 cat > src/grain_skate/test_shine.ry << 'EOF'
 const shine = @import("../grain_core/shine/protocol.zig");
 pub fn test_shine() void {

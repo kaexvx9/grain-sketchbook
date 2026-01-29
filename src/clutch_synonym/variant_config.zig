@@ -7,8 +7,8 @@ const std = @import("std");
 /// Defines aesthetic identity for OS variants
 pub const VariantConfig = struct {
     name: []const u8,              // "Grain OS" or "Clutch OS"
-    org: []const u8,                // "teamcarry11" or "teambrick06"
-    repo: []const u8,               // "xy-mathematics" or "yz"
+    org: []const u8,                // "keatonlivermore"
+    repo: []const u8,               // "grain-sketchbook"
     aesthetic: []const u8,          // "growth" or "mechanical"
     energy: []const u8,             // "Aquarius" or "Virgo Gemini Cancer"
     philosophy: []const u8,         // Variant philosophy description
@@ -38,12 +38,12 @@ pub const VariantConfig = struct {
     }
     
     /// Get current variant configuration
-    /// Returns Clutch OS configuration for teambrick06/yz
+    /// Returns Clutch OS configuration for keatonlivermore/grain-sketchbook
     pub fn get_clutch_os() VariantConfig {
         return VariantConfig{
             .name = "Clutch OS",
-            .org = "teambrick06",
-            .repo = "yz",
+            .org = "keatonlivermore",
+            .repo = "grain-sketchbook",
             .aesthetic = "mechanical",
             .energy = "Virgo Gemini Cancer",
             .philosophy = "Framework-oriented, enabling-focused, mechanical precision. Clutch OS is the framework that enables driving the Cursor base, inspired by brick-and-mortar foundations and clutches as enabling mechanisms.",
@@ -54,8 +54,8 @@ pub const VariantConfig = struct {
     pub fn get_grain_os() VariantConfig {
         return VariantConfig{
             .name = "Grain OS",
-            .org = "teamcarry11",
-            .repo = "xy-mathematics",
+            .org = "keatonlivermore",
+            .repo = "grain-sketchbook",
             .aesthetic = "growth",
             .energy = "Aquarius",
             .philosophy = "Service-oriented, growth-focused, organic evolution. Grain OS emphasizes cultivation, harvest, and organic development.",
@@ -67,7 +67,7 @@ test "variant config validation" {
     var config = VariantConfig.get_clutch_os();
     try config.validate();
     std.debug.assert(std.mem.eql(u8, config.name, "Clutch OS"));
-    std.debug.assert(std.mem.eql(u8, config.org, "teambrick06"));
+    std.debug.assert(std.mem.eql(u8, config.org, "keatonlivermore"));
 }
 
 test "variant config bounds" {

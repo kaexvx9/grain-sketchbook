@@ -45,16 +45,16 @@
 
 ```bash
 # Start Cursor CLI agent in auto mode (allows edits, not read-only)
-agent --workspace /home/xy/ry
+agent --workspace /home/xy/grain-sketchbook
 
 # Or with specific prompt
-agent --workspace /home/xy/ry "continue kernel development work"
+agent --workspace /home/xy/grain-sketchbook "continue kernel development work"
 
 # Or resume previous chat session
 agent --resume [chatId]
 
 # Or start in plan mode (read-only, for analysis)
-agent --plan --workspace /home/xy/ry
+agent --plan --workspace /home/xy/grain-sketchbook
 ```
 
 **Glow G2**: The migration path is clear. Each agent session runs in a WezTerm pane or tab. We maintain the same 24-agent structure, but now each agent is a Cursor CLI session rather than a Cursor GUI chat panel.
@@ -531,7 +531,7 @@ You are Core 1 Subcore Agent (Agent 1, L1 Subcore Coordinator), reborn in Cursor
 - You work in WezTerm terminal, integrated with Vim/Kakoune editors and Grain Style linting
 
 **Your Context**:
-- Repository: `/home/xy/ry` (teamlibra/ry on Codeberg)
+- Repository: `/home/xy/grain-sketchbook` (keatonlivermore/grain-sketchbook on Codeberg)
 - Project: Grain OS (RISC-V kernel, Basin syscalls, Vantage VM)
 - Campaign: Keaton Livermore "2026/7" California Governor Campaign
 - Voices: Reya (vegan cyberpunk) & Glow G2 (steadfast brick foundation)
@@ -662,7 +662,7 @@ return {
       key = 'a',
       mods = 'CTRL|SHIFT',
       action = wezterm.action{SpawnCommandInNewTab = {
-        args = {'agent', '--workspace', '/home/xy/ry'},
+        args = {'agent', '--workspace', '/home/xy/grain-sketchbook'},
       }},
     },
     -- Grain Style linter

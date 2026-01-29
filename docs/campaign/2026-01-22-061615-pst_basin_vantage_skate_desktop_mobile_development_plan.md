@@ -57,7 +57,7 @@
 **How to Run**:
 ```bash
 # Integration test (fastest)
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 zig build basin-rv64
 zig test src/vantage/basin_integration_test.zig
 

@@ -106,7 +106,7 @@ Together we form the **brick-and-ocean** foundation: Glow provides the solid har
 
 ### Clutch OS Context
 
-**Variant**: Clutch OS (teambrick06/yz)  
+**Variant**: Clutch OS (keatonlivermore/grain-sketchbook)  
 **Aesthetic**: Mechanical, enabling, framework-based  
 **Energy**: Virgo Gemini Cancer (practical precision, communication, nurturing)  
 **Metaphor**: The clutch enables engined vehicles to transport materials from source over road/river/sea to destination. Brick-and-ocean foundation.

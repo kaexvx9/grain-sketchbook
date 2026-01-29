@@ -306,7 +306,7 @@ rye test test/integration/basin_kernel.ry --target riscv64-freestanding-none
 
 ```bash
 # Build Basin kernel with Rye compiler
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 rye build basin-rv64
 
 # Run integration test

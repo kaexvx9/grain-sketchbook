@@ -25,13 +25,13 @@ Both agents should be aware of:
 
 ### Repository Structure
 
-**Workspace**: `/home/xy/ry` (monorepo)  
+**Workspace**: `/home/xy/grain-sketchbook` (monorepo)  
 **Rye Compiler Fork**: `/home/xy/codeberg/ryelang/rye` (external, source of truth)  
-**Rye Compiler Mirror**: `/home/xy/ry/grainstore/codeberg/ryelang/rye` (synced via daemon)  
-**Skate Application**: `/home/xy/ry/src/grain_skate/`  
-**Basin Kernel**: `/home/xy/ry/src/kernel/`  
-**Rye Documentation**: `/home/xy/ry/docs/rye/`  
-**Coordination Docs**: `/home/xy/ry/docs/core-coordination/`
+**Rye Compiler Mirror**: `/home/xy/grain-sketchbook/grainstore/codeberg/ryelang/rye` (synced via daemon)  
+**Skate Application**: `/home/xy/grain-sketchbook/src/grain_skate/`  
+**Basin Kernel**: `/home/xy/grain-sketchbook/src/kernel/`  
+**Rye Documentation**: `/home/xy/grain-sketchbook/docs/rye/`  
+**Coordination Docs**: `/home/xy/grain-sketchbook/docs/core-coordination/`
 
 ---
 
@@ -126,7 +126,7 @@ Both agents should be aware of:
 
 **Repository**:
 - External (source of truth): `/home/xy/codeberg/ryelang/rye`
-- Monorepo mirror: `/home/xy/ry/grainstore/codeberg/ryelang/rye`
+- Monorepo mirror: `/home/xy/grain-sketchbook/grainstore/codeberg/ryelang/rye`
 - All edits must be made in external repository
 
 ### Rye Compiler Development Phases
@@ -146,7 +146,7 @@ Both agents should be aware of:
 - DAG-based event system
 - Rye Style compliance
 
-**Kernel Source**: `/home/xy/ry/src/kernel/`  
+**Kernel Source**: `/home/xy/grain-sketchbook/src/kernel/`  
 **Test Files**:
 - `debug.zig` — Compiles successfully ✅
 - `kernel_shell.zig` — Large stack frame (tests multi-instruction support)
@@ -264,13 +264,13 @@ Current Status:
 
 Repository:
 - External (source of truth): /home/xy/codeberg/ryelang/rye
-- Monorepo mirror: /home/xy/ry/grainstore/codeberg/ryelang/rye
+- Monorepo mirror: /home/xy/grain-sketchbook/grainstore/codeberg/ryelang/rye
 - All edits must be made in external repository
 
 Your Goals:
 - Complete Phase 2 (Issue 2 kernel integration testing)
 - Implement Phase 3 stdlib (mem, fmt, io modules)
-- Test with Basin kernel (/home/xy/ry/src/kernel/)
+- Test with Basin kernel (/home/xy/grain-sketchbook/src/kernel/)
 - Prepare for Phase 4 (Rye Style enforcement)
 
 Basin Kernel Goals:
@@ -333,7 +333,7 @@ Continue with the best path forward for Rye compiler fork development.
 
 **Terminal 1 (Core 1)**:
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 # Load Core 1 context
 cursor-cli --context docs/core-coordination/2026-01-23-160000-pst_cursor-cli-two-agent-coordination-prompt.md
 # Use Core 1 prompt from above
@@ -343,7 +343,7 @@ cursor-cli --context docs/core-coordination/2026-01-23-160000-pst_cursor-cli-two
 ```bash
 cd /home/xy/codeberg/ryelang/rye
 # Load Vantage 3 context
-cursor-cli --context /home/xy/ry/docs/core-coordination/2026-01-23-160000-pst_cursor-cli-two-agent-coordination-prompt.md
+cursor-cli --context /home/xy/grain-sketchbook/docs/core-coordination/2026-01-23-160000-pst_cursor-cli-two-agent-coordination-prompt.md
 # Use Vantage 3 prompt from above
 ```
 

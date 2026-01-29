@@ -228,7 +228,7 @@ git checkout v0.6.1  # Checkout specific release for study
 ```bash
 # Mirror into grainstore for study (not committed to main repo)
 # Pattern: grainstore/github/ravynsoft/ravynos
-cd /Users/bhagavan851c05a/github/teamcarry11/xy-mathematics
+cd /Users/bhagavan851c05a/github/keatonlivermore/grain-sketchbook
 cp -r ~/github/ravynsoft/ravynos grainstore/github/ravynsoft/
 ```
 

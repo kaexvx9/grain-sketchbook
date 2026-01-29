@@ -10,7 +10,7 @@ echo "=========================================="
 echo ""
 
 # Change to working directory
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 
 echo "📁 Working Directory: $(pwd)"
 echo ""

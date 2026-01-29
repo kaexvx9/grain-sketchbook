@@ -1219,7 +1219,7 @@ std.debug.print("Order confirmed: {}\n", .{receipt2.order_id});
 **Author**: Keaton Dunsford-Livermore  
 **Email**: kj3x39@gmail.com  
 **GitHub**: [@kae3g](https://github.com/kae3g)  
-**Project**: Grain OS (teamcarry11/xy-mathematics)
+**Project**: Grain OS (keatonlivermore/grain-sketchbook)
 
 **Syndica Contact**:
 - **Email**: support@syndica.io

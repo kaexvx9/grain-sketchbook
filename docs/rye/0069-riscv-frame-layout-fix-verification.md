@@ -90,12 +90,12 @@ grep "max_i12" src/arch/riscv64/CodeGen.zig
 
 **Command**:
 ```bash
-cd /home/xy/ry/grainstore/codeberg/ryelang/rye
-./zig-out/bin/zig build-obj /home/xy/ry/src/kernel/debug.zig \
+cd /home/xy/grain-sketchbook/grainstore/codeberg/ryelang/rye
+./zig-out/bin/zig build-obj /home/xy/grain-sketchbook/src/kernel/debug.zig \
     -target riscv64-freestanding \
     -fno-llvm \
     -O Debug \
-    -I /home/xy/ry/src
+    -I /home/xy/grain-sketchbook/src
 ```
 
 **Expected**: Compiles successfully
@@ -104,11 +104,11 @@ cd /home/xy/ry/grainstore/codeberg/ryelang/rye
 
 **Command**:
 ```bash
-./zig-out/bin/zig build-obj /home/xy/ry/src/kernel/kernel_shell.zig \
+./zig-out/bin/zig build-obj /home/xy/grain-sketchbook/src/kernel/kernel_shell.zig \
     -target riscv64-freestanding \
     -fno-llvm \
     -O Debug \
-    -I /home/xy/ry/src
+    -I /home/xy/grain-sketchbook/src
 ```
 
 **Expected**: Clear error message (not panic)

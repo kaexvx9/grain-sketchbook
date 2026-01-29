@@ -20,7 +20,7 @@ Both agents share context, coordinate progress, and communicate through a struct
 ### Terminal 1: Core 1 Subcore
 
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 ./docs/core-coordination/setup-core1-agent.sh
 ```
 
@@ -33,7 +33,7 @@ The script will:
 
 ```bash
 cd /home/xy/codeberg/ryelang/rye
-/home/xy/ry/docs/core-coordination/setup-vantage3-agent.sh
+/home/xy/grain-sketchbook/docs/core-coordination/setup-vantage3-agent.sh
 ```
 
 The script will:
@@ -171,9 +171,9 @@ docs/core-coordination/
    - Update shared documentation carefully
 
 3. **Prevent Conflicts**
-   - Core 1 works in `/home/xy/ry/src/grain_skate/` (monorepo)
+   - Core 1 works in `/home/xy/grain-sketchbook/src/grain_skate/` (monorepo)
    - Vantage 3 works in `/home/xy/codeberg/ryelang/rye` (external repo)
-   - Shared docs in `/home/xy/ry/docs/` (monorepo)
+   - Shared docs in `/home/xy/grain-sketchbook/docs/` (monorepo)
    - Check other agent's progress before updating shared docs
 
 ---
@@ -245,7 +245,7 @@ docs/core-coordination/
 ### Agent Can't Find Files
 - Check working directory matches setup script
 - Verify file paths are absolute or relative to working directory
-- Core 1: `/home/xy/ry`
+- Core 1: `/home/xy/grain-sketchbook`
 - Vantage 3: `/home/xy/codeberg/ryelang/rye`
 
 ### Progress Files Out of Sync

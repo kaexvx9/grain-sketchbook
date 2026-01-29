@@ -25,7 +25,7 @@ qemu-system-riscv64 --version
 
 ### Generate SSH Keys
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 ./tools/qemu-ssh-setup.sh
 ```
 
@@ -47,7 +47,7 @@ cd /home/xy/ry
 
 **Command**:
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 ./tools/qemu-riscv-setup.sh
 ```
 
@@ -66,7 +66,7 @@ cd /home/xy/ry
 
 **Command**:
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 ./tools/qemu-riscv-setup.sh --gui
 ```
 

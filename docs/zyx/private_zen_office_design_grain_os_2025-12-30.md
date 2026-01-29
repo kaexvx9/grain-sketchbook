@@ -878,7 +878,7 @@ zen-office-design/
 - **Sustainable Wood**: Local sawmills, sustainable forestry certified suppliers
 - **Linear Actuators**: Progressive Automations, Firgelli, Amazon
 - **Motor Controllers**: ESP32, Raspberry Pi Pico, open-source controllers
-- **Grain OS**: github.com/teamcarry11/xy-mathematics
+- **Grain OS**: codeberg.org/keatonlivermore/grain-sketchbook
 
 ---
 

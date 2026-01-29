@@ -23,7 +23,7 @@
 
 ## Vantage 3 Subcore Progress Summary
 
-**Source**: `/home/xy/ry/docs/core-coordination/2026-01-23-143000-pst_rye-compiler-phase2-phase3-progress-update.md`
+**Source**: `/home/xy/grain-sketchbook/docs/core-coordination/2026-01-23-143000-pst_rye-compiler-phase2-phase3-progress-update.md`
 
 ### Phase 2: RISC-V Freestanding Fixes — 76% Complete ✅
 
@@ -281,7 +281,7 @@
 
 ## References
 
-- **Progress Update**: `/home/xy/ry/docs/core-coordination/2026-01-23-143000-pst_rye-compiler-phase2-phase3-progress-update.md`
+- **Progress Update**: `/home/xy/grain-sketchbook/docs/core-coordination/2026-01-23-143000-pst_rye-compiler-phase2-phase3-progress-update.md`
 - **Rye Compiler Fork Plan**: `docs/rye/0011-rye-compiler-fork-plan.md`
 - **Skate Porting Roadmap**: `docs/rye/0021-skate-porting-readiness-roadmap.md`
 - **Rye Style Conversion Clarification**: `docs/rye/0022-rye-style-conversion-vs-compiler-fork.md`

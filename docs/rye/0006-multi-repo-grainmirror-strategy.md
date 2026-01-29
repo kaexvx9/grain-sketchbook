@@ -2,7 +2,7 @@
 
 **Date**: 2026-01-20
 **Status**: Planning
-**Monorepo**: codeberg.org/teamlibra/ry
+**Monorepo**: codeberg.org/keatonlivermore/grain-sketchbook
 
 ---
 
@@ -16,7 +16,7 @@ This document outlines the strategy for managing multiple component repositories
 
 | Repo | URL | Purpose | Status |
 |------|-----|---------|--------|
-| **ry** | codeberg.org/teamlibra/ry | Monorepo (current home) | Active |
+| **ry** | codeberg.org/keatonlivermore/grain-sketchbook | Monorepo (current home) | Active |
 | **grain** | codeberg.org/grain | Grain OS core | Acquired |
 | **basin** | codeberg.org/basin | Basin kernel | Acquired |
 | **tend** | codeberg.org/tend | Tend philosophy/allocator | Acquired |
@@ -34,7 +34,7 @@ This document outlines the strategy for managing multiple component repositories
 ### Directory Structure
 
 ```
-teamlibra/ry/
+keatonlivermore/grain-sketchbook/
 ├── src/                    # Main source (owned by ry)
 ├── vendor/
 │   ├── grain/              # Mirror of grain/grain
@@ -72,7 +72,7 @@ frequency = "on-demand"     # Manual sync via grainmirror sync
 
 ### Option A: Monorepo-First (Current)
 
-1. All development happens in `teamlibra/ry`
+1. All development happens in `keatonlivermore/grain-sketchbook`
 2. Periodically extract components to their repos
 3. Component repos are read-only mirrors
 
@@ -103,7 +103,7 @@ External contributor
         │                     │
         │ PR                  │ grainmirror sync
         ▼                     ▼
-   Issue/Review          teamlibra/ry
+   Issue/Review          keatonlivermore/grain-sketchbook
         │                     │
         │                     │ grainmirror push
         ▼                     ▼
@@ -129,7 +129,7 @@ Each component repo has its own issue tracker:
 
 ### Monorepo Issues
 
-`teamlibra/ry` tracks:
+`keatonlivermore/grain-sketchbook` tracks:
 - Cross-component integration
 - Build system issues
 - Release coordination
@@ -187,16 +187,16 @@ Eventually the monorepo may move:
 
 | Current | Future Option |
 |---------|---------------|
-| teamlibra/ry | grain/grain (OS is primary) |
-| teamlibra/ry | basin/basin (kernel is primary) |
-| teamlibra/ry | ryelang/rye (language is primary) |
+| keatonlivermore/grain-sketchbook | grain/grain (OS is primary) |
+| keatonlivermore/grain-sketchbook | basin/basin (kernel is primary) |
+| keatonlivermore/grain-sketchbook | ryelang/rye (language is primary) |
 
 Decision criteria:
 - Which component becomes the primary identity?
 - Where do users expect to find the project?
 - Which community grows largest?
 
-**For now**: Keep `teamlibra/ry` as monorepo home.
+**For now**: Keep `keatonlivermore/grain-sketchbook` as monorepo home.
 
 ---
 

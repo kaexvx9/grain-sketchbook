@@ -54,7 +54,7 @@
 2. **`d9d4e462`**: Optimize zero comparisons for bitwise conditionals
 3. **`7f60090b`**: Add riscv64 freestanding test cases for issues 1 and 3
 
-### Monorepo (`teamlibra/ry`)
+### Monorepo (`keatonlivermore/grain-sketchbook`)
 
 1. **`4f5c8d2`**: Document global variable fix implementation
 2. **`3280fd2`**: Document anytype/comptime analysis and bitwise branch fix

@@ -68,7 +68,7 @@
 ### Terminal 1: Core 1 Subcore
 
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 ./docs/core-coordination/setup-core1-agent.sh
 ```
 
@@ -81,7 +81,7 @@ The script will display:
 
 ```bash
 cd /home/xy/codeberg/ryelang/rye
-/home/xy/ry/docs/core-coordination/setup-vantage3-agent.sh
+/home/xy/grain-sketchbook/docs/core-coordination/setup-vantage3-agent.sh
 ```
 
 The script will display:
@@ -146,14 +146,14 @@ docs/core-coordination/
 
 1. **Launch Terminal 1** (Core 1)
    ```bash
-   cd /home/xy/ry
+   cd /home/xy/grain-sketchbook
    ./docs/core-coordination/setup-core1-agent.sh
    ```
 
 2. **Launch Terminal 2** (Vantage 3)
    ```bash
    cd /home/xy/codeberg/ryelang/rye
-   /home/xy/ry/docs/core-coordination/setup-vantage3-agent.sh
+   /home/xy/grain-sketchbook/docs/core-coordination/setup-vantage3-agent.sh
    ```
 
 3. **Start Working**

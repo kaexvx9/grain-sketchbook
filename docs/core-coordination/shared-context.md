@@ -35,19 +35,19 @@
 - DAG-based event system
 - Rye Style compliance
 
-**Kernel Source**: `/home/xy/ry/src/kernel/`
+**Kernel Source**: `/home/xy/grain-sketchbook/src/kernel/`
 
 ---
 
 ## Repository Structure
 
-**Workspace**: `/home/xy/ry` (monorepo)  
+**Workspace**: `/home/xy/grain-sketchbook` (monorepo)  
 **Rye Compiler Fork**: `/home/xy/codeberg/ryelang/rye` (external, source of truth)  
-**Rye Compiler Mirror**: `/home/xy/ry/grainstore/codeberg/ryelang/rye` (synced via daemon)  
-**Skate Application**: `/home/xy/ry/src/grain_skate/`  
-**Basin Kernel**: `/home/xy/ry/src/kernel/`  
-**Rye Documentation**: `/home/xy/ry/docs/rye/`  
-**Coordination Docs**: `/home/xy/ry/docs/core-coordination/`
+**Rye Compiler Mirror**: `/home/xy/grain-sketchbook/grainstore/codeberg/ryelang/rye` (synced via daemon)  
+**Skate Application**: `/home/xy/grain-sketchbook/src/grain_skate/`  
+**Basin Kernel**: `/home/xy/grain-sketchbook/src/kernel/`  
+**Rye Documentation**: `/home/xy/grain-sketchbook/docs/rye/`  
+**Coordination Docs**: `/home/xy/grain-sketchbook/docs/core-coordination/`
 
 ---
 
@@ -118,9 +118,9 @@
 - Both agents read each other's progress files
 
 ### Conflict Prevention
-- Core 1 works in `/home/xy/ry/src/grain_skate/` (monorepo)
+- Core 1 works in `/home/xy/grain-sketchbook/src/grain_skate/` (monorepo)
 - Vantage 3 works in `/home/xy/codeberg/ryelang/rye` (external repo)
-- Shared documentation in `/home/xy/ry/docs/` (monorepo)
+- Shared documentation in `/home/xy/grain-sketchbook/docs/` (monorepo)
 - When updating shared docs, check the other agent's progress file first
 
 ### Coordination Messages

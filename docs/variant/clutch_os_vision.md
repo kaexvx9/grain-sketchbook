@@ -40,4 +40,4 @@
 
 ---
 
-**Clutch OS Variant**: This is a variant of Grain OS (teamcarry11/xy-mathematics) with distinct aesthetic identity. The technical codebase is shared, but the semantic meaning and philosophical foundation differ. See `docs/core-coordination/2026-01-15-121503-pst_grain_synonym_variant_system_specification.md` for complete variant system documentation.
+**Clutch OS Variant**: This is a variant of Grain OS (keatonlivermore/grain-sketchbook) with distinct aesthetic identity. The technical codebase is shared, but the semantic meaning and philosophical foundation differ. See `docs/core-coordination/2026-01-15-121503-pst_grain_synonym_variant_system_specification.md` for complete variant system documentation.

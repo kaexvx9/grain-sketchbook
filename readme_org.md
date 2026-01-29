@@ -33,4 +33,4 @@
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**Clutch OS Variant**: This repository is a variant of Grain OS (teamcarry11/xy-mathematics) with distinct aesthetic identity inspired by Virgo Gemini Cancer energy. The technical codebase is shared, but the semantic meaning and philosophical foundation differ.
+**Clutch OS Variant**: This repository is a variant of Grain OS (keatonlivermore/grain-sketchbook) with distinct aesthetic identity inspired by Virgo Gemini Cancer energy. The technical codebase is shared, but the semantic meaning and philosophical foundation differ.

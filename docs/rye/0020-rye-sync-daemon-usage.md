@@ -23,7 +23,7 @@ The Rye Sync Daemon keeps `~/codeberg/ryelang/rye` in sync with `grainstore/code
 
 ```bash
 # Build daemon directly (avoids other build dependencies)
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 zig build-exe tools/rye_sync_daemon.zig
 
 # Binary created at: rye_sync_daemon (in current directory)
@@ -41,7 +41,7 @@ zig build rye-sync
 
 ```bash
 # Run daemon in background terminal
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 
 # If built directly:
 ./rye_sync_daemon
@@ -66,7 +66,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/home/xy/ry/zig-out/bin/rye_sync_daemon
+ExecStart=/home/xy/grain-sketchbook/zig-out/bin/rye_sync_daemon
 Restart=always
 RestartSec=5
 
@@ -86,7 +86,7 @@ systemctl --user start rye-sync.service
 
 **Paths** (hardcoded, can be made configurable):
 - **External**: `~/codeberg/ryelang/rye`
-- **Grainstore**: `/home/xy/ry/grainstore/codeberg/ryelang/rye`
+- **Grainstore**: `/home/xy/grain-sketchbook/grainstore/codeberg/ryelang/rye`
 
 **Settings** (in `tools/rye_sync_daemon.zig`):
 - `SYNC_INTERVAL_MS = 2000` (2 seconds)
@@ -134,9 +134,9 @@ systemctl --user start rye-sync.service
 
 **Check**:
 1. External repository exists: `ls ~/codeberg/ryelang/rye`
-2. Grainstore directory exists: `ls /home/xy/ry/grainstore/codeberg/ryelang/rye`
+2. Grainstore directory exists: `ls /home/xy/grain-sketchbook/grainstore/codeberg/ryelang/rye`
 3. Daemon is running: Check process with `ps aux | grep rye_sync_daemon`
-4. Files match: `diff -r ~/codeberg/ryelang/rye /home/xy/ry/grainstore/codeberg/ryelang/rye --exclude=".git"`
+4. Files match: `diff -r ~/codeberg/ryelang/rye /home/xy/grain-sketchbook/grainstore/codeberg/ryelang/rye --exclude=".git"`
 
 **Fix**:
 - Ensure external repo has files to sync

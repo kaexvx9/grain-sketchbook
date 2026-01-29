@@ -90,7 +90,7 @@ thread 921256 panic: reached unreachable code
 
 **Command**:
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 /home/xy/codeberg/ryelang/rye/zig-out/bin/zig build-lib src/grain_skate/block.ry
 ```
 

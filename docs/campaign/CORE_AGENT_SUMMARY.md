@@ -11,7 +11,7 @@
 **Primary Goal**: Get the campaign website running successfully and debug any errors that appear.
 
 **Immediate Task**: 
-- Run the Svelte campaign website from `/home/xy/ry/campaign-website/`
+- Run the Svelte campaign website from `/home/xy/grain-sketchbook/campaign-website/`
 - Identify and fix any errors preventing the site from running
 - User wants to submit screenshots of errors (easier in Cursor GUI than CLI)
 
@@ -61,21 +61,21 @@ A **fast, responsive Svelte 5 campaign website** for Keaton Livermore's 2026 Cal
 ## 🗂️ Key Files & Paths
 
 ### Project Root
-- **Base Directory**: `/home/xy/ry/campaign-website/`
-- **Documentation**: `/home/xy/ry/docs/campaign/`
+- **Base Directory**: `/home/xy/grain-sketchbook/campaign-website/`
+- **Documentation**: `/home/xy/grain-sketchbook/docs/campaign/`
 
 ### Main Application Files
-- **Entry Point**: `/home/xy/ry/campaign-website/src/main.js`
-- **Main App**: `/home/xy/ry/campaign-website/src/App.svelte`
-- **Global Styles**: `/home/xy/ry/campaign-website/src/app.css` (contains full color scheme)
-- **HTML Template**: `/home/xy/ry/campaign-website/index.html`
+- **Entry Point**: `/home/xy/grain-sketchbook/campaign-website/src/main.js`
+- **Main App**: `/home/xy/grain-sketchbook/campaign-website/src/App.svelte`
+- **Global Styles**: `/home/xy/grain-sketchbook/campaign-website/src/app.css` (contains full color scheme)
+- **HTML Template**: `/home/xy/grain-sketchbook/campaign-website/index.html`
 
 ### Components
-- **Header**: `/home/xy/ry/campaign-website/src/lib/components/Header.svelte`
-- **Footer**: `/home/xy/ry/campaign-website/src/lib/components/Footer.svelte`
-- **Hero**: `/home/xy/ry/campaign-website/src/lib/components/Hero.svelte`
-- **Theme Toggle**: `/home/xy/ry/campaign-website/src/lib/components/ThemeToggle.svelte`
-- **Vision Components**: `/home/xy/ry/campaign-website/src/lib/components/vision/`
+- **Header**: `/home/xy/grain-sketchbook/campaign-website/src/lib/components/Header.svelte`
+- **Footer**: `/home/xy/grain-sketchbook/campaign-website/src/lib/components/Footer.svelte`
+- **Hero**: `/home/xy/grain-sketchbook/campaign-website/src/lib/components/Hero.svelte`
+- **Theme Toggle**: `/home/xy/grain-sketchbook/campaign-website/src/lib/components/ThemeToggle.svelte`
+- **Vision Components**: `/home/xy/grain-sketchbook/campaign-website/src/lib/components/vision/`
   - `VisionHero.svelte`
   - `PermacultureSection.svelte`
   - `TraditionalUrbanismSection.svelte`
@@ -84,16 +84,16 @@ A **fast, responsive Svelte 5 campaign website** for Keaton Livermore's 2026 Cal
   - `RegionalSection.svelte`
 
 ### Configuration
-- **Package Config**: `/home/xy/ry/campaign-website/package.json`
-- **Vite Config**: `/home/xy/ry/campaign-website/vite.config.js`
-- **Svelte Config**: `/home/xy/ry/campaign-website/svelte.config.js`
+- **Package Config**: `/home/xy/grain-sketchbook/campaign-website/package.json`
+- **Vite Config**: `/home/xy/grain-sketchbook/campaign-website/vite.config.js`
+- **Svelte Config**: `/home/xy/grain-sketchbook/campaign-website/svelte.config.js`
 
 ### Documentation
-- **Running Instructions**: `/home/xy/ry/docs/campaign/0007-running-instructions.md`
-- **Complete Setup Guide**: `/home/xy/ry/docs/campaign/COMPLETE_SETUP_GUIDE.md`
-- **Architecture**: `/home/xy/ry/docs/campaign/0001-website-architecture.md`
-- **Color Scheme**: `/home/xy/ry/docs/campaign/0004-color-scheme-design.md`
-- **Vision Design**: `/home/xy/ry/docs/campaign/0009-vision-page-design.md`
+- **Running Instructions**: `/home/xy/grain-sketchbook/docs/campaign/0007-running-instructions.md`
+- **Complete Setup Guide**: `/home/xy/grain-sketchbook/docs/campaign/COMPLETE_SETUP_GUIDE.md`
+- **Architecture**: `/home/xy/grain-sketchbook/docs/campaign/0001-website-architecture.md`
+- **Color Scheme**: `/home/xy/grain-sketchbook/docs/campaign/0004-color-scheme-design.md`
+- **Vision Design**: `/home/xy/grain-sketchbook/docs/campaign/0009-vision-page-design.md`
 
 ---
 
@@ -117,11 +117,11 @@ A **fast, responsive Svelte 5 campaign website** for Keaton Livermore's 2026 Cal
 
 ## 🚀 How to Run
 
-### Commands (from `/home/xy/ry/campaign-website/`)
+### Commands (from `/home/xy/grain-sketchbook/campaign-website/`)
 
 ```bash
 # 1. Navigate to project
-cd /home/xy/ry/campaign-website
+cd /home/xy/grain-sketchbook/campaign-website
 
 # 2. If npm not found, load nvm first:
 export NVM_DIR="$HOME/.nvm"
@@ -146,7 +146,7 @@ npm run dev
 - Verify: `npm --version` (should show 11.6.2)
 
 ### If dependencies missing:
-- Run `npm install` from `/home/xy/ry/campaign-website/`
+- Run `npm install` from `/home/xy/grain-sketchbook/campaign-website/`
 - Check `node_modules/` exists
 
 ### If build errors:
@@ -169,7 +169,7 @@ npm run dev
 3. **Color Scheme**: Designed light/dark mode palette based on campaign avatar image
 4. **Component Development**: Built Header, Footer, Hero, ThemeToggle, and placeholder sections
 5. **Vision Integration**: Adapted campaign vision document into 6 SVG-illustrated components
-6. **Documentation**: Created comprehensive docs in `/home/xy/ry/docs/campaign/`
+6. **Documentation**: Created comprehensive docs in `/home/xy/grain-sketchbook/docs/campaign/`
 7. **npm Installation**: Just installed nvm and latest Node.js/npm for Ubuntu 24.04 LTS
 8. **Current**: Ready to run, user seeing errors, needs debugging help
 
@@ -212,7 +212,7 @@ npm run dev
 
 ## 📚 Reference Documents
 
-All documentation is in `/home/xy/ry/docs/campaign/`:
+All documentation is in `/home/xy/grain-sketchbook/docs/campaign/`:
 - `0001-website-architecture.md` - Architecture overview
 - `0002-svelte-component-design.md` - Component design patterns
 - `0004-color-scheme-design.md` - Color palette details

@@ -236,7 +236,7 @@ To add new checks:
 ## Contact & Resources
 
 **Repository**: `/home/xy/codeberg/ryelang/rye`  
-**Documentation**: `/home/xy/ry/docs/core-coordination/`
+**Documentation**: `/home/xy/grain-sketchbook/docs/core-coordination/`
 
 **Key Documents**:
 - `vantage3-progress.md` — Progress tracking

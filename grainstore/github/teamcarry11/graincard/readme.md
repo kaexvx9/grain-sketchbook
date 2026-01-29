@@ -162,7 +162,7 @@ beautiful, right?
 - **teamcarry11/grainorder** - permutation-based file naming (unique IDs)
 - **teamcarry11/graintime** - astronomical timestamps for version control
 - **teamcarry11/grainmirror** - external repository mirroring
-- **teamcarry11/xy-mathematics** - grain os development
+- **keatonlivermore/grain-sketchbook** - grain os development
 
 ---
 
@@ -326,7 +326,7 @@ may your graincards spin the wheel of wisdom...
 **org repo**: https://github.com/teamcarry11/graincard  
 **grainbranch**: `12025-10-28--1130-PDT--moon-uttaradha-asc-arie23-sun-12h--teamcarry11`  
 **symlink**: `grainstore/github/teamcarry11/graincard/` (in xy-mathematics monorepo)  
-**main monorepo**: https://github.com/teamcarry11/xy-mathematics
+**main monorepo**: https://codeberg.org/keatonlivermore/grain-sketchbook
 
 **related zig modules**:
 - grainorder: https://github.com/teamcarry11/grainorder

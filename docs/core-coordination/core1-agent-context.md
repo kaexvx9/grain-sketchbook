@@ -1,7 +1,7 @@
 # Core 1 Subcore: Agent Context
 
 **Agent**: Core 1 Subcore (Rye Style Conversion)  
-**Working Directory**: `/home/xy/ry`  
+**Working Directory**: `/home/xy/grain-sketchbook`  
 **Purpose**: Top-down conversion of Skate modules to Rye Style
 
 ---
@@ -85,9 +85,9 @@ You are **Core 1 Subcore**, working on Rye Style conversion of Skate desktop mod
 
 ## Key Files & Directories
 
-**Skate Source**: `/home/xy/ry/src/grain_skate/`  
-**Current Work**: `/home/xy/ry/src/grain_skate/ai_insights.zig`  
-**Rye Checker**: `/home/xy/ry/rye/zig-out/bin/rye check`
+**Skate Source**: `/home/xy/grain-sketchbook/src/grain_skate/`  
+**Current Work**: `/home/xy/grain-sketchbook/src/grain_skate/ai_insights.zig`  
+**Rye Checker**: `/home/xy/grain-sketchbook/rye/zig-out/bin/rye check`
 
 **Documentation**:
 - Rye Style Guide: `docs/rye_style.md`

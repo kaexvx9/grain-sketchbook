@@ -158,7 +158,7 @@
 ### Build Information
 
 - **Compiler**: Zig 0.15.2 (Rye fork)
-- **Location**: `/home/xy/ry/grainstore/codeberg/ryelang/rye`
+- **Location**: `/home/xy/grain-sketchbook/grainstore/codeberg/ryelang/rye`
 - **Binary**: `zig-out/bin/zig` (needs rebuild for frame layout fix)
 - **Version**: 0.15.2
 - **Status**: ✅ Functional (with fixes)

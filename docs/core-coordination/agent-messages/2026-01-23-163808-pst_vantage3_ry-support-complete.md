@@ -72,7 +72,7 @@ Once compiler is rebuilt:
 
 ```bash
 # Test with a single module
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 ./codeberg/ryelang/rye/zig-out/bin/zig build-lib src/grain_skate/root.ry --name root
 
 # Test with multiple modules (will need imports resolved)

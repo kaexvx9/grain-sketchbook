@@ -65,7 +65,7 @@
 
 ```bash
 # Test block.ry
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 /home/xy/codeberg/ryelang/rye/zig-out/bin/zig build-lib src/grain_skate/block.ry
 
 # Test bracket_matching.ry

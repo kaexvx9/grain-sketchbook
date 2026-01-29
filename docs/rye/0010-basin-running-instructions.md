@@ -26,7 +26,7 @@ Framework x86_64 Host
 
 ```bash
 # 1. Build Basin kernel
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 zig build basin-rv64
 
 # 2. Run integration test (tests Basin REPL)
@@ -68,7 +68,7 @@ zig test src/vantage/basin_integration_test.zig
 
 ```bash
 # Navigate to project root
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 
 # 1. Build Basin kernel (RISC-V64)
 zig build basin-rv64
@@ -225,12 +225,12 @@ qemu-system-x86_64 -cdrom vantage.iso -serial stdio
 
 ## File Locations
 
-- **Basin Kernel**: `/home/xy/ry/src/basin/hello_riscv.zig`
-- **Vantage VM**: `/home/xy/ry/src/vantage/main_x86_64.zig`
-- **RISC-V Core**: `/home/xy/ry/src/vantage/riscv_core.zig`
-- **Integration Test**: `/home/xy/ry/src/vantage/basin_integration_test.zig`
-- **Build Output**: `/home/xy/ry/zig-out/bin/`
-- **ISO Script**: `/home/xy/ry/scripts/create_iso.sh`
+- **Basin Kernel**: `/home/xy/grain-sketchbook/src/basin/hello_riscv.zig`
+- **Vantage VM**: `/home/xy/grain-sketchbook/src/vantage/main_x86_64.zig`
+- **RISC-V Core**: `/home/xy/grain-sketchbook/src/vantage/riscv_core.zig`
+- **Integration Test**: `/home/xy/grain-sketchbook/src/vantage/basin_integration_test.zig`
+- **Build Output**: `/home/xy/grain-sketchbook/zig-out/bin/`
+- **ISO Script**: `/home/xy/grain-sketchbook/scripts/create_iso.sh`
 
 ---
 
@@ -238,12 +238,12 @@ qemu-system-x86_64 -cdrom vantage.iso -serial stdio
 
 ```bash
 # Test Basin (fastest)
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 zig build basin-rv64
 zig test src/vantage/basin_integration_test.zig
 
 # Full boot in QEMU
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 zig build basin-rv64
 zig build vantage-x86_64
 ./scripts/create_iso.sh

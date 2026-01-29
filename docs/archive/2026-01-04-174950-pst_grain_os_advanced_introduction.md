@@ -170,7 +170,7 @@ We maintain two complementary repository strategies: **hot** (Codeberg) for acti
 ### Hot Repository: Codeberg
 
 **Purpose**: Active development, continuous integration, collaborative work  
-**Platform**: https://codeberg.org/teamcarry11/xy-mathematics  
+**Platform**: https://codeberg.org/keatonlivermore/grain-sketchbook  
 **Characteristics**:
 - **Dynamic**: Code changes frequently, commits pushed regularly
 - **Collaborative**: Multiple agents working in parallel, pull requests, code review
@@ -231,7 +231,7 @@ Grain OS code is **triple-licensed** for maximum freedom and compatibility:
 
 ## Contact and Community
 
-**Twitter**: [@kae3g_](https://twitter.com/kae3g_) — Follow for updates, announcements, and project insights. The SHA3-512 hash in this document's header (checksum of file content excluding the hash line itself) serves as proof of synergy between Twitter (@kae3g_) and Codeberg (teamcarry11/xy-mathematics) accounts—post this hash on Twitter to verify account ownership and repository authenticity.
+**Twitter**: [@kae3g_](https://twitter.com/kae3g_) — Follow for updates, announcements, and project insights. The SHA3-512 hash in this document's header (checksum of file content excluding the hash line itself) serves as proof of synergy between Twitter (@kae3g_) and Codeberg (keatonlivermore/grain-sketchbook) accounts—post this hash on Twitter to verify account ownership and repository authenticity.
 
 **GitHub**: [@kae3g](https://github.com/kae3g)  
 **Email**: kj3x39@gmail.com  

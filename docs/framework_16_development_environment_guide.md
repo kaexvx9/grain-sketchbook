@@ -301,7 +301,7 @@ zig build -Doptimize=ReleaseSmall
 **Clone Repository**:
 ```bash
 # Clone xy-mathematics repository
-git clone https://codeberg.org/teamcarry11/xy-mathematics.git
+git clone https://codeberg.org/keatonlivermore/grain-sketchbook.git
 cd xy-mathematics
 
 # Verify build works

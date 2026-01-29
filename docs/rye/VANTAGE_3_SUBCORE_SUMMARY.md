@@ -58,36 +58,36 @@
 ## 🗂️ Key Files & Paths
 
 ### Basin Kernel
-- **Main Kernel**: `/home/xy/ry/src/basin/hello_riscv.zig`
+- **Main Kernel**: `/home/xy/grain-sketchbook/src/basin/hello_riscv.zig`
   - REPL implementation
   - Expression evaluator with variables
   - Variable storage and management
   - SBI interface (putchar/getchar/shutdown)
 
 ### Vantage VM
-- **VM Entry**: `/home/xy/ry/src/vantage/main_x86_64.zig`
+- **VM Entry**: `/home/xy/grain-sketchbook/src/vantage/main_x86_64.zig`
   - Limine boot protocol integration
   - Framebuffer initialization
   - Basin ELF loader
-- **RISC-V Core**: `/home/xy/ry/src/vantage/riscv_core.zig`
+- **RISC-V Core**: `/home/xy/grain-sketchbook/src/vantage/riscv_core.zig`
   - Full RV64I + RVC + M extension
   - SBI console I/O handlers
   - Input buffer (256-byte ring buffer)
   - 12/12 unit tests passing
 
 ### Testing
-- **Integration Test**: `/home/xy/ry/src/vantage/basin_integration_test.zig`
+- **Integration Test**: `/home/xy/grain-sketchbook/src/vantage/basin_integration_test.zig`
   - Loads Basin ELF
   - Tests REPL commands
   - Captures console output
 
 ### Documentation
-- **Integration Docs**: `/home/xy/ry/docs/rye/0009-vantage-basin-integration.md`
-- **Running Instructions**: `/home/xy/ry/docs/rye/0010-basin-running-instructions.md` ⭐
+- **Integration Docs**: `/home/xy/grain-sketchbook/docs/rye/0009-vantage-basin-integration.md`
+- **Running Instructions**: `/home/xy/grain-sketchbook/docs/rye/0010-basin-running-instructions.md` ⭐
 
 ### Build Outputs
-- **Basin Binary**: `/home/xy/ry/zig-out/bin/basin-rv64` (10K)
-- **Vantage Binary**: `/home/xy/ry/zig-out/bin/vantage` (21K)
+- **Basin Binary**: `/home/xy/grain-sketchbook/zig-out/bin/basin-rv64` (10K)
+- **Vantage Binary**: `/home/xy/grain-sketchbook/zig-out/bin/vantage` (21K)
 
 ---
 
@@ -98,7 +98,7 @@
 **Best for**: Quick verification that Basin works
 
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 
 # Build Basin kernel
 zig build basin-rv64
@@ -126,7 +126,7 @@ sudo apt install ovmf
 
 **Build and Run**:
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 
 # 1. Build both components
 zig build basin-rv64      # Basin kernel (RISC-V64)
@@ -294,9 +294,9 @@ zig build kernel-vm-test  # Run RISC-V core tests (12/12 passing)
 
 ## 📚 Documentation
 
-- **Integration Overview**: `/home/xy/ry/docs/rye/0009-vantage-basin-integration.md`
-- **Running Instructions**: `/home/xy/ry/docs/rye/0010-basin-running-instructions.md` ⭐
-- **This Summary**: `/home/xy/ry/docs/rye/VANTAGE_3_SUBCORE_SUMMARY.md`
+- **Integration Overview**: `/home/xy/grain-sketchbook/docs/rye/0009-vantage-basin-integration.md`
+- **Running Instructions**: `/home/xy/grain-sketchbook/docs/rye/0010-basin-running-instructions.md` ⭐
+- **This Summary**: `/home/xy/grain-sketchbook/docs/rye/VANTAGE_3_SUBCORE_SUMMARY.md`
 
 ---
 
@@ -355,12 +355,12 @@ zig build kernel-vm-test  # Run RISC-V core tests (12/12 passing)
 
 ```bash
 # Test Basin (fastest)
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 zig build basin-rv64
 zig test src/vantage/basin_integration_test.zig
 
 # Full boot in QEMU
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 zig build basin-rv64
 zig build vantage-x86_64
 ./scripts/create_iso.sh

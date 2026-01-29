@@ -1,8 +1,8 @@
 # Clutch OS Aesthetic Identity
 
 **Date**: 2026-01-15-121503-pst  
-**Variant**: Clutch OS (teambrick06/yz)  
-**Source**: Grain OS (teamcarry11/xy-mathematics)
+**Variant**: Clutch OS (keatonlivermore/grain-sketchbook)  
+**Source**: Grain OS (keatonlivermore/grain-sketchbook)
 
 ---
 

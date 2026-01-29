@@ -3,8 +3,8 @@
 **Date**: 2026-01-15-121503-pst  
 **Document Type**: RFC / Proposal  
 **Status**: 🆕 **SPECIFICATION** — Design and Implementation Proposal  
-**Variant**: Clutch OS (teambrick06/yz)  
-**Source**: Grain OS (teamcarry11/xy-mathematics)
+**Variant**: Clutch OS (keatonlivermore/grain-sketchbook)  
+**Source**: Grain OS (keatonlivermore/grain-sketchbook)
 
 ---
 
@@ -196,7 +196,7 @@ pub const VariantConfig = struct {
 
 ### 4.4 Example Variants
 
-#### Grain OS (teamcarry11/xy-mathematics)
+#### Grain OS (keatonlivermore/grain-sketchbook)
 
 **Aesthetic**: Growth, cultivation, organic development  
 **Energy**: Aquarius (justice, fairness, infrastructure)  
@@ -210,7 +210,7 @@ pub const VariantConfig = struct {
 
 **Philosophy**: Service-oriented, growth-focused, organic evolution
 
-#### Clutch OS (teambrick06/yz)
+#### Clutch OS (keatonlivermore/grain-sketchbook)
 
 **Aesthetic**: Mechanical, enabling, framework-based  
 **Energy**: Virgo Gemini Cancer (practical, communicative, nurturing)  
@@ -462,9 +462,9 @@ pub const VariantConfig = struct {
 
 ### 11.2 Community Resources
 
-**Grain OS Community**: teamcarry11/xy-mathematics
+**Grain OS Community**: keatonlivermore/grain-sketchbook
 
-**Clutch OS Community**: teambrick06/yz (new)
+**Clutch OS Community**: keatonlivermore/grain-sketchbook (new)
 
 **Cross-Variant Collaboration**: AI-assisted semantic analysis for idea exchange
 

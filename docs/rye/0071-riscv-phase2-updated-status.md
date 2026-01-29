@@ -111,7 +111,7 @@ error: stack frame size {d} bytes exceeds maximum 2047 bytes for single instruct
 ### Build Information
 
 - **Compiler**: Zig 0.15.2 (Rye fork)
-- **Location**: `/home/xy/ry/grainstore/codeberg/ryelang/rye`
+- **Location**: `/home/xy/grain-sketchbook/grainstore/codeberg/ryelang/rye`
 - **Binary**: `zig-out/bin/zig` (454 MB, built)
 - **Version**: 0.15.2
 - **Status**: ✅ Functional

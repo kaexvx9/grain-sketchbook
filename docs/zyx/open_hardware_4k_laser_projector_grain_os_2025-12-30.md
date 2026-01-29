@@ -861,7 +861,7 @@ open-hardware-4k-projector/
 - **RISC-V SBCs**: starfivetech.com (VisionFive 2)
 - **3D Design**: freecad.org, openscad.org
 - **Open Hardware**: oshwa.org (Open Source Hardware Association)
-- **Grain OS**: github.com/teamcarry11/xy-mathematics
+- **Grain OS**: codeberg.org/keatonlivermore/grain-sketchbook
 
 ---
 

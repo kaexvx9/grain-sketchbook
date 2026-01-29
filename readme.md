@@ -1,4 +1,6 @@
-# ry
+# grain-sketchbook
+
+**Canonical repository:** [keatonlivermore/grain-sketchbook](https://codeberg.org/keatonlivermore/grain-sketchbook) on Codeberg. This is the sketchbook monorepo for Grain OS / Clutch OS (RISC-V kernel, Grainscript, Skate, Aurora, and related tooling).
 
 **⚠️ WORK IN PROGRESS - NOT A FUNCTIONING ALPHA ⚠️**
 
@@ -22,7 +24,7 @@
 **Build and test Basin kernel (fastest way to verify everything works):**
 
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 
 # Build Basin kernel (RISC-V64)
 zig build basin-rv64

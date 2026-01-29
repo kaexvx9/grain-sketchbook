@@ -34,7 +34,7 @@
 
 **Command**:
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 ./rye/zig-out/bin/rye check src/grain_skate/*.ry
 ```
 
@@ -63,7 +63,7 @@ cd /home/xy/ry
 
 1. **Individual Module Compilation**
    ```bash
-   cd /home/xy/ry
+   cd /home/xy/grain-sketchbook
    /path/to/rye/compiler build src/grain_skate/block.ry
    ```
    - Test each of 19 modules individually

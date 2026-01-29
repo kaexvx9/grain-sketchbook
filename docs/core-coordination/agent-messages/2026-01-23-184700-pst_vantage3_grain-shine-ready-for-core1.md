@@ -32,7 +32,7 @@
 
 ### **Files Available for Core 1**:
 ```
-/home/xy/ry/src/grain_core/shine/
+/home/xy/grain-sketchbook/src/grain_core/shine/
 ├── protocol.zig          # Core protocol structures and parsing
 ├── registry.zig          # Global interface registry
 ├── compositor.zig        # Compositor and surface interfaces  
@@ -92,7 +92,7 @@ const client_id = try compositor.addClient();
 
 ### **Run Tests**:
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 zig test src/grain_core/shine/test_framework.zig
 ```
 

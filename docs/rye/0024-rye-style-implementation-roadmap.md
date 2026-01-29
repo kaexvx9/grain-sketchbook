@@ -56,7 +56,7 @@
 **Steps**:
 1. **Build Rye Compiler**:
    ```bash
-   cd /home/xy/ry/rye
+   cd /home/xy/grain-sketchbook/rye
    zig build
    ```
 
@@ -68,7 +68,7 @@
 
 3. **Test Rye Check** (on existing .ry files if any):
    ```bash
-   cd /home/xy/ry
+   cd /home/xy/grain-sketchbook
    ./rye/zig-out/bin/rye check src/kernel/*.ry 2>&1 | head -20
    ```
 
@@ -287,7 +287,7 @@
 ### Step 1: Build Rye Compiler
 
 ```bash
-cd /home/xy/ry/rye
+cd /home/xy/grain-sketchbook/rye
 zig build
 ```
 
@@ -312,7 +312,7 @@ zig build
 
 **Command**:
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 wc -l src/grain_skate/block.zig
 # Analyze function lengths, line lengths, etc.
 ```

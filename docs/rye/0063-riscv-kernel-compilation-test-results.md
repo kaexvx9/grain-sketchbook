@@ -104,18 +104,18 @@
 
 ```bash
 # Test debug.zig
-cd /home/xy/ry/grainstore/codeberg/ryelang/rye
-./zig-out/bin/zig build-obj /home/xy/ry/src/kernel/debug.zig \
+cd /home/xy/grain-sketchbook/grainstore/codeberg/ryelang/rye
+./zig-out/bin/zig build-obj /home/xy/grain-sketchbook/src/kernel/debug.zig \
     -target riscv64-freestanding \
     -fno-llvm \
     -O Debug
 
 # Test kernel_shell.zig
-./zig-out/bin/zig build-obj /home/xy/ry/src/kernel/kernel_shell.zig \
+./zig-out/bin/zig build-obj /home/xy/grain-sketchbook/src/kernel/kernel_shell.zig \
     -target riscv64-freestanding \
     -fno-llvm \
     -O Debug \
-    -I /home/xy/ry/src
+    -I /home/xy/grain-sketchbook/src
 ```
 
 ### Runtime Test (Future)

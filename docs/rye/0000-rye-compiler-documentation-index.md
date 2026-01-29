@@ -216,7 +216,7 @@ This document provides a comprehensive index of all Rye compiler documentation, 
 ### Compiler Status
 
 - **Version**: Zig 0.15.2 (Rye fork)
-- **Location**: `/home/xy/ry/grainstore/codeberg/ryelang/rye`
+- **Location**: `/home/xy/grain-sketchbook/grainstore/codeberg/ryelang/rye`
 - **Binary**: `zig-out/bin/zig`
 - **Status**: ✅ Functional
 

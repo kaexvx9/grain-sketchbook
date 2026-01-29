@@ -12,7 +12,7 @@
 
 ```
 thread 828704 panic: integer does not fit in destination type
-/home/xy/ry/grainstore/codeberg/ryelang/rye/src/arch/riscv64/CodeGen.zig:1864:25
+/home/xy/grain-sketchbook/grainstore/codeberg/ryelang/rye/src/arch/riscv64/CodeGen.zig:1864:25
         .stack_adjust = @intCast(acc_frame_size),
 ```
 

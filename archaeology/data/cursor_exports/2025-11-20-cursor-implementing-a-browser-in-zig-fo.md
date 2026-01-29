@@ -101755,7 +101755,7 @@ Run `zig build tahoe` to test. The console will show the background pixel values
 
 **User**
 
-hey let's save our progress and push add all to main and then create a new hard copy of this entire `xy` monorepo called `~/xy-mathematics` where we clone the experimental fork I just made with the organization username `teamcarry11` so it's https://github.com/teamcarry11/xy-mathematics  and the `~/xy-mathematics/` path directory should be symlinked to `~/github/teamcarry11/xy-mathematics/` 
+hey let's save our progress and push add all to main and then create a new hard copy of this entire `xy` monorepo called `~/xy-mathematics` where we clone the experimental fork I just made with the organization username `teamcarry11` so it's https://codeberg.org/keatonlivermore/grain-sketchbook  and the `~/xy-mathematics/` path directory should be symlinked to `~/github/keatonlivermore/grain-sketchbook/` 
 
 let's make a minimal lowercase monospace codeblock readme for the `xy-mathematics` repo, with a 1-character monospace ascii border, making a 75x100-char graincard , with 73 char max content availabiliy, but more like ~50 to allow for hard- centered text alignment within the 75x100 codeblock monospace graincard (the outside of the 75x100 graincard should be ``` codeblocked itself, so total lines: 77 with total chars in first and last lines: 3 + newline-char) 
 
@@ -121589,7 +121589,7 @@ See `docs/browser_prompt.md` for complete specification.
 | see docs/tasks.md for roadmap                                           |
 | see docs/cursor_prompt.md for dev guide                                 |
 |                                                                          |
-| symlink:  ~/xy-mathematics -> ~/github/teamcarry11/xy-mathematics      |
+| symlink:  ~/xy-mathematics -> ~/github/keatonlivermore/grain-sketchbook      |
 |                                                                          |
 | "code that grows. grain that lasts."                                     |
 +-------------------------------------------------------------------------+

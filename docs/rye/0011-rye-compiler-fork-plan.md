@@ -229,7 +229,7 @@ rye test src/vantage/basin_integration_test.ry
 - LLVM (Apache 2.0 with LLVM exceptions) - Backend
 - Other dependencies as needed
 
-**Format** (similar to `teamlibra/ry/THIRD_PARTY_LICENSES.md`):
+**Format** (similar to `keatonlivermore/grain-sketchbook/THIRD_PARTY_LICENSES.md`):
 ```markdown
 # Third-Party Licenses
 

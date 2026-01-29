@@ -2,7 +2,7 @@
 
 ## Repository Description
 
-**Clutch OS** — A minimal, safety-first operating system in pure Zig targeting RISC-V64, with distinct aesthetic identity inspired by Virgo Gemini Cancer energy from classical Vedic astrology. Clutch OS is a variant of Grain OS (teamcarry11/xy-mathematics) with the same technical codebase but different semantic meaning—emphasizing mechanical precision, framework-enabling, and brick-and-mortar foundations. The variant system enables parallel evolution of philosophical and aesthetic meanings while maintaining technical compatibility. See [Grain Synonym Variant System Specification](docs/core-coordination/2026-01-15-121503-pst_grain_synonym_variant_system_specification.md) for complete architecture.
+**Clutch OS** — A minimal, safety-first operating system in pure Zig targeting RISC-V64, with distinct aesthetic identity inspired by Virgo Gemini Cancer energy from classical Vedic astrology. Clutch OS is a variant of Grain OS (keatonlivermore/grain-sketchbook) with the same technical codebase but different semantic meaning—emphasizing mechanical precision, framework-enabling, and brick-and-mortar foundations. The variant system enables parallel evolution of philosophical and aesthetic meanings while maintaining technical compatibility. See [Grain Synonym Variant System Specification](docs/core-coordination/2026-01-15-121503-pst_grain_synonym_variant_system_specification.md) for complete architecture.
 
 **Status**: Kernel boots on QEMU ✅ | Grainscript REPL ✅ | **20260120** | 66 Rye modules (16,012 lines) | 324/324 tests ✅ | Toroidal DAG UI ✅ | Event Loop ✅ | Phase 4 Complete ✅
 
@@ -34,7 +34,7 @@
 - `clutch-os`
 - `grain-os`
 - `skate`
-- `teambrick06`
+- `keatonlivermore`
 - `framework-oriented`
 - `mechanical-precision`
 

@@ -105,13 +105,13 @@
 - `test/cases/riscv64_freestanding/` — Test cases
 
 ### Monorepo Mirror (Synced via daemon)
-**Path**: `/home/xy/ry/grainstore/codeberg/ryelang/rye`  
+**Path**: `/home/xy/grain-sketchbook/grainstore/codeberg/ryelang/rye`  
 **Sync**: Automatic via `rye_sync_daemon` (excludes `.git`)
 
 **Note**: All source code edits must be made in the external repository for persistence.
 
 ### Documentation
-**Path**: `/home/xy/ry/docs/rye/`  
+**Path**: `/home/xy/grain-sketchbook/docs/rye/`  
 **Recent Documents**:
 - `0068-riscv-frame-layout-fix-implemented.md`
 - `0070-riscv-frame-layout-fix-verification.md`
@@ -119,7 +119,7 @@
 - `0058-riscv-phase3-planning-document.md`
 
 ### Kernel Source (Testing)
-**Path**: `/home/xy/ry/src/kernel/`  
+**Path**: `/home/xy/grain-sketchbook/src/kernel/`  
 **Test Files**:
 - `debug.zig` — Compiles successfully ✅
 - `kernel_shell.zig` — Large stack frame (tests multi-instruction support)
@@ -251,13 +251,13 @@ git log --oneline -10  # Recent commits
 
 **Monorepo Mirror** (synced):
 ```bash
-cd /home/xy/ry/grainstore/codeberg/ryelang/rye
+cd /home/xy/grain-sketchbook/grainstore/codeberg/ryelang/rye
 # Read-only, synced via daemon
 ```
 
 **Documentation**:
 ```bash
-cd /home/xy/ry/docs/rye
+cd /home/xy/grain-sketchbook/docs/rye
 ls -1 *.md | tail -10  # Recent documents
 ```
 

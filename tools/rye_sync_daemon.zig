@@ -133,7 +133,7 @@ pub fn main() !void {
     );
     defer allocator.free(full_external);
 
-    const grainstore_path = "/home/xy/ry/grainstore/codeberg/ryelang/rye";
+    const grainstore_path = "/home/xy/grain-sketchbook/grainstore/codeberg/ryelang/rye";
 
     var daemon = RyeSyncDaemon.init(allocator, full_external, grainstore_path);
     try daemon.run();

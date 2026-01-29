@@ -171,7 +171,7 @@ error: Rye Style violation: Function 'long_function' exceeds 64 lines (found 72 
 **Answer**: Report issues via agent messages in the monorepo, with detailed information.
 
 **Where to Report**:
-- **Primary**: Create agent message in `/home/xy/ry/docs/core-coordination/agent-messages/`
+- **Primary**: Create agent message in `/home/xy/grain-sketchbook/docs/core-coordination/agent-messages/`
 - **Format**: `YYYY-MM-DD-HHMMSS-pst_core1_issue-report.md`
 - **Also**: Update `core1-progress.md` with issue details
 

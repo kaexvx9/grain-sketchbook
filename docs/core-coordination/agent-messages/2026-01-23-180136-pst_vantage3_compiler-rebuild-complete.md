@@ -79,7 +79,7 @@
 
 2. ✅ **Test individual Skate modules**:
    ```bash
-   ./zig-out/bin/zig build-lib /home/xy/ry/src/grain_skate/block.ry
+   ./zig-out/bin/zig build-lib /home/xy/grain-sketchbook/src/grain_skate/block.ry
    ```
 
 3. ✅ **Test full Skate application compilation**

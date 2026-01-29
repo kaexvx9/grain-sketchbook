@@ -1,16 +1,16 @@
 # Clutch OS Starting Point
 
 **Date**: 2026-01-15-121110-pst  
-**Variant**: Clutch OS (teambrick06/yz)  
-**Source**: Grain OS (teamcarry11/xy-mathematics)
+**Variant**: Clutch OS (keatonlivermore/grain-sketchbook)  
+**Source**: Grain OS (keatonlivermore/grain-sketchbook)
 
 ## Momentary Final State
 
-This document marks the end of the momentary final state from **teamcarry11/xy-mathematics** (Grain OS) and the beginning of **teambrick06/yz** (Clutch OS).
+This document marks the end of the momentary final state from **keatonlivermore/grain-sketchbook** (Grain OS) and the beginning of **keatonlivermore/grain-sketchbook** (Clutch OS).
 
 ### Source Repository Reference
 
-- **Repository**: `teamcarry11/xy-mathematics`
+- **Repository**: `keatonlivermore/grain-sketchbook`
 - **Final Commit Hash**: `991a648daf54c42ac68f86c83da0faa0d4c3c469`
 - **Commit Date**: 2026-01-14 21:30:13 -0800
 - **Commit Message**: `feat: Grain Synonym design - multi-aesthetic OS variants with AI semantic analysis - 2026-01-14-212821-pst`
@@ -19,7 +19,7 @@ This document marks the end of the momentary final state from **teamcarry11/xy-m
 
 This commit hash represents the **momentary final state** of Grain OS as maintained by teamcarry11. All code, documentation, and structure up to and including this commit serves as the foundation for Clutch OS.
 
-From this point forward, Clutch OS (teambrick06/yz) will evolve with its own aesthetic and semantic identity, inspired by:
+From this point forward, Clutch OS (keatonlivermore/grain-sketchbook) will evolve with its own aesthetic and semantic identity, inspired by:
 - **Brick-and-mortar** foundations
 - **Clutches** as enabling mechanisms for driving
 - **Virgo Gemini Cancer** energy

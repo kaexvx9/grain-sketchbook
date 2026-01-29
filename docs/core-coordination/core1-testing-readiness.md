@@ -16,7 +16,7 @@
 
 **All 19 modules validated with `rye check`**:
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 ./rye/zig-out/bin/rye check src/grain_skate/*.ry
 ```
 
@@ -95,19 +95,19 @@ cd /home/xy/ry
 
 ### Individual Module Test
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 /path/to/rye/compiler build src/grain_skate/block.ry
 ```
 
 ### All Modules Test
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 /path/to/rye/compiler build src/grain_skate/root.ry
 ```
 
 ### Full Application Test
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 /path/to/rye/compiler build src/grain_skate/app.ry
 ```
 

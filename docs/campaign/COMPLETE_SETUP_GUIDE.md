@@ -15,20 +15,20 @@
 
 ## 📍 Important Paths
 
-- **Project Directory**: `/home/xy/ry/campaign-website/`
-- **Documentation**: `/home/xy/ry/docs/campaign/`
-- **Main App**: `/home/xy/ry/campaign-website/src/App.svelte`
-- **Components**: `/home/xy/ry/campaign-website/src/lib/components/`
-- **Vision SVGs**: `/home/xy/ry/campaign-website/src/lib/components/vision/`
-- **Styles**: `/home/xy/ry/campaign-website/src/app.css`
+- **Project Directory**: `/home/xy/grain-sketchbook/campaign-website/`
+- **Documentation**: `/home/xy/grain-sketchbook/docs/campaign/`
+- **Main App**: `/home/xy/grain-sketchbook/campaign-website/src/App.svelte`
+- **Components**: `/home/xy/grain-sketchbook/campaign-website/src/lib/components/`
+- **Vision SVGs**: `/home/xy/grain-sketchbook/campaign-website/src/lib/components/vision/`
+- **Styles**: `/home/xy/grain-sketchbook/campaign-website/src/app.css`
 
 ## 🚀 Quick Start (3 Commands)
 
-**Run these commands from `/home/xy/ry/campaign-website/`:**
+**Run these commands from `/home/xy/grain-sketchbook/campaign-website/`:**
 
 ```bash
 # 1. Navigate to project (if not already there)
-cd /home/xy/ry/campaign-website
+cd /home/xy/grain-sketchbook/campaign-website
 
 # 2. Install dependencies (first time only)
 npm install
@@ -51,11 +51,11 @@ export NVM_DIR="$HOME/.nvm"
 
 Or restart terminal (nvm auto-loads from `~/.zshrc`).
 
-### All Commands (from `/home/xy/ry/campaign-website/`)
+### All Commands (from `/home/xy/grain-sketchbook/campaign-website/`)
 
 ```bash
 # Navigate to project
-cd /home/xy/ry/campaign-website
+cd /home/xy/grain-sketchbook/campaign-website
 
 # Install dependencies (first time only)
 npm install
@@ -73,7 +73,7 @@ npm run preview
 ## 📁 Project Structure
 
 ```
-/home/xy/ry/campaign-website/
+/home/xy/grain-sketchbook/campaign-website/
 ├── src/
 │   ├── lib/
 │   │   ├── components/
@@ -103,7 +103,7 @@ npm run preview
 
 ## 📚 Documentation Files
 
-All in `/home/xy/ry/docs/campaign/`:
+All in `/home/xy/grain-sketchbook/docs/campaign/`:
 
 - **`0007-running-instructions.md`** ⭐ - Complete running instructions (this guide)
 - `0001-website-architecture.md` - Overall architecture
@@ -162,14 +162,14 @@ Vite will automatically use next available port. Check terminal output.
 ### Dependencies Issues
 
 ```bash
-cd /home/xy/ry/campaign-website
+cd /home/xy/grain-sketchbook/campaign-website
 rm -rf node_modules package-lock.json
 npm install
 ```
 
 ### Build Errors
 
-1. Make sure you're in `/home/xy/ry/campaign-website/`
+1. Make sure you're in `/home/xy/grain-sketchbook/campaign-website/`
 2. Check all file paths are correct
 3. Verify components are properly imported
 
@@ -185,7 +185,7 @@ npm install
 
 ## 🎯 Next Steps
 
-1. **Run the site**: `cd /home/xy/ry/campaign-website && npm install && npm run dev`
+1. **Run the site**: `cd /home/xy/grain-sketchbook/campaign-website && npm install && npm run dev`
 2. **Explore**: Visit http://localhost:5173
 3. **Edit content**: Replace stubs in `src/lib/components/`
 4. **Add social links**: Edit `src/App.svelte` (uncomment socialLinks)
@@ -195,4 +195,4 @@ npm install
 
 **Ready to go!** 🚀
 
-**Full instructions**: `/home/xy/ry/docs/campaign/0007-running-instructions.md`
+**Full instructions**: `/home/xy/grain-sketchbook/docs/campaign/0007-running-instructions.md`

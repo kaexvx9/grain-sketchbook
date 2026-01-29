@@ -18,7 +18,7 @@
 ## Grain Shine Protocol Assessment
 
 ### ✅ **Implementation Verified**
-- **Location**: `/home/xy/ry/src/grain_core/shine/` (8 modules)
+- **Location**: `/home/xy/grain-sketchbook/src/grain_core/shine/` (8 modules)
 - **Compilation**: ✅ Protocol compiles successfully
 - **Quality**: Full Rye Style compliance confirmed
 - **Features**: Complete display protocol with comprehensive testing

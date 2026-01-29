@@ -161,7 +161,7 @@
 - `82b4a7f`: Add revised issue 2 test cases using regular functions
 - `e76bfdc8`: Add indirect call and vtable dispatch test cases
 
-### Monorepo (`teamlibra/ry`)
+### Monorepo (`keatonlivermore/grain-sketchbook`)
 
 - `3c0e350`: Document test constraints and verification results
 - `076de23`: Document phase 2 state and issue 2 test constraints

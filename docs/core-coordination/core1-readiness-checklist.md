@@ -85,7 +85,7 @@
 
 ## Files Ready for Integration
 
-**Location**: `/home/xy/ry/src/grain_skate/`
+**Location**: `/home/xy/grain-sketchbook/src/grain_skate/`
 
 **All modules**: 19 `.ry` files ready for Rye compiler
 

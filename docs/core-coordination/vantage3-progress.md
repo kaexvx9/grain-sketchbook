@@ -13,7 +13,7 @@
 **Overall Progress**: ✅ **MISSION EXPANDED** — All core phases complete + Phase 5 Grain Shine Protocol implementation complete. Integration with Core 1 complete (19/19 modules converted).
 
 **Repository**: `/home/xy/codeberg/ryelang/rye` (external, source of truth)  
-**Mirror**: `/home/xy/ry/grainstore/codeberg/ryelang/rye` (synced via daemon)
+**Mirror**: `/home/xy/grain-sketchbook/grainstore/codeberg/ryelang/rye` (synced via daemon)
 
 ---
 
@@ -72,7 +72,7 @@
 
 ## Basin Kernel Testing
 
-**Kernel Source**: `/home/xy/ry/src/kernel/`
+**Kernel Source**: `/home/xy/grain-sketchbook/src/kernel/`
 
 **Test Files**:
 - `debug.zig` — Compiles successfully ✅

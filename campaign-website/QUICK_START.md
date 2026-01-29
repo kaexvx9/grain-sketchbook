@@ -2,11 +2,11 @@
 
 ## 🚀 Get Running in 2 Minutes
 
-**From `/home/xy/ry/campaign-website/` directory:**
+**From `/home/xy/grain-sketchbook/campaign-website/` directory:**
 
 ```bash
 # 1. Navigate to project (if not already there)
-cd /home/xy/ry/campaign-website
+cd /home/xy/grain-sketchbook/campaign-website
 
 # 2. Install dependencies (first time only)
 npm install

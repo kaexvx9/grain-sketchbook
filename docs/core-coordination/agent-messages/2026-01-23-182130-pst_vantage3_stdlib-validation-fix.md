@@ -59,7 +59,7 @@
 
 ### Test Commands to Retry
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 /home/xy/codeberg/ryelang/rye/zig-out/bin/zig build-lib src/grain_skate/block.ry
 /home/xy/codeberg/ryelang/rye/zig-out/bin/zig build-lib src/grain_skate/bracket_matching.ry
 # ... etc for all modules

@@ -87,7 +87,7 @@ if (!is_trusted_import) {
 
 ### Test Grain Shine Import
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 
 # Create test file importing Grain Shine
 cat > /tmp/test_shine_import.ry << 'EOF'
@@ -107,7 +107,7 @@ EOF
 ### Test Skate Module Importing Grain Shine
 ```bash
 # Test actual Skate module importing Grain Shine
-cd /home/xy/ry/src/grain_skate
+cd /home/xy/grain-sketchbook/src/grain_skate
 
 # Add import to one of your modules (e.g., editor.ry)
 # const shine = @import("../grain_core/shine/protocol.zig");

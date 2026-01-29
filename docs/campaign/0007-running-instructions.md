@@ -34,7 +34,7 @@ Or it will auto-load from your `~/.zshrc` file.
 
 ```bash
 # Navigate to the campaign website directory
-cd /home/xy/ry/campaign-website
+cd /home/xy/grain-sketchbook/campaign-website
 
 # Install dependencies (first time only)
 npm install
@@ -42,14 +42,14 @@ npm install
 
 This will:
 - Download all required packages (Svelte, Vite, etc.)
-- Create `node_modules/` directory in `/home/xy/ry/campaign-website/`
+- Create `node_modules/` directory in `/home/xy/grain-sketchbook/campaign-website/`
 - Take 1-2 minutes on first run
 
 ### Running Development Server
 
 ```bash
 # Make sure you're in the campaign website directory
-cd /home/xy/ry/campaign-website
+cd /home/xy/grain-sketchbook/campaign-website
 
 # Start the development server
 npm run dev
@@ -76,21 +76,21 @@ Press `Ctrl+C` in the terminal where the server is running.
 
 ## Other Commands
 
-**All commands should be run from `/home/xy/ry/campaign-website/`**
+**All commands should be run from `/home/xy/grain-sketchbook/campaign-website/`**
 
 ### Build for Production
 
 ```bash
-cd /home/xy/ry/campaign-website
+cd /home/xy/grain-sketchbook/campaign-website
 npm run build
 ```
 
-Creates optimized files in `/home/xy/ry/campaign-website/dist/` directory ready for deployment.
+Creates optimized files in `/home/xy/grain-sketchbook/campaign-website/dist/` directory ready for deployment.
 
 ### Preview Production Build
 
 ```bash
-cd /home/xy/ry/campaign-website
+cd /home/xy/grain-sketchbook/campaign-website
 npm run preview
 ```
 
@@ -98,10 +98,10 @@ Starts a local server to preview the production build.
 
 ## Project Structure
 
-**Base Directory**: `/home/xy/ry/campaign-website/`
+**Base Directory**: `/home/xy/grain-sketchbook/campaign-website/`
 
 ```
-/home/xy/ry/campaign-website/
+/home/xy/grain-sketchbook/campaign-website/
 ├── src/
 │   ├── lib/
 │   │   ├── components/           # All Svelte components
@@ -168,14 +168,14 @@ npm --version   # Should show: 11.6.2
 
 Dependencies not installed. Run:
 ```bash
-cd /home/xy/ry/campaign-website
+cd /home/xy/grain-sketchbook/campaign-website
 npm install
 ```
 
 ### Build Errors
 
 Make sure:
-1. You're in the correct directory: `/home/xy/ry/campaign-website/`
+1. You're in the correct directory: `/home/xy/grain-sketchbook/campaign-website/`
 2. All file paths are correct
 3. Components are properly imported
 
@@ -190,21 +190,21 @@ The site uses system dark mode preference by default. Use the `*` button (top-ri
    - Check all sections: Hero, About, Vision (with SVGs!), Platform, Get Involved
 
 2. **Check the code** - Understand the structure
-   - Main app: `/home/xy/ry/campaign-website/src/App.svelte`
-   - Components: `/home/xy/ry/campaign-website/src/lib/components/`
-   - Vision SVGs: `/home/xy/ry/campaign-website/src/lib/components/vision/`
+   - Main app: `/home/xy/grain-sketchbook/campaign-website/src/App.svelte`
+   - Components: `/home/xy/grain-sketchbook/campaign-website/src/lib/components/`
+   - Vision SVGs: `/home/xy/grain-sketchbook/campaign-website/src/lib/components/vision/`
 
 3. **Replace stubs** - Add real content
    - Look for orange "STUB" badges
    - Edit components in `src/lib/components/`
 
 4. **Add social links** - Uncomment and add real URLs
-   - Edit `/home/xy/ry/campaign-website/src/App.svelte`
+   - Edit `/home/xy/grain-sketchbook/campaign-website/src/App.svelte`
    - Find the `socialLinks` object
 
 5. **Customize** - Adjust colors, content, layout
-   - Colors: `/home/xy/ry/campaign-website/src/app.css`
-   - Components: `/home/xy/ry/campaign-website/src/lib/components/`
+   - Colors: `/home/xy/grain-sketchbook/campaign-website/src/app.css`
+   - Components: `/home/xy/grain-sketchbook/campaign-website/src/lib/components/`
 
 ## Development Tips
 
@@ -225,19 +225,19 @@ Check performance with browser DevTools → Lighthouse.
 
 ## Getting Help
 
-- **Documentation**: `/home/xy/ry/docs/campaign/` for detailed docs
+- **Documentation**: `/home/xy/grain-sketchbook/docs/campaign/` for detailed docs
   - `0007-running-instructions.md` - This file
   - `0001-website-architecture.md` - Architecture overview
   - `0004-color-scheme-design.md` - Color palette
   - `0009-vision-page-design.md` - Vision page with SVGs
-- **Code**: Review component files in `/home/xy/ry/campaign-website/src/lib/components/`
-- **Quick Reference**: `/home/xy/ry/campaign-website/README.md` and `QUICK_START.md`
+- **Code**: Review component files in `/home/xy/grain-sketchbook/campaign-website/src/lib/components/`
+- **Quick Reference**: `/home/xy/grain-sketchbook/campaign-website/README.md` and `QUICK_START.md`
 
 ---
 
 ## Complete Command Reference
 
-**From `/home/xy/ry/campaign-website/` directory:**
+**From `/home/xy/grain-sketchbook/campaign-website/` directory:**
 
 ```bash
 # First time setup (if nvm not loaded)
@@ -245,7 +245,7 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
 # Navigate to project
-cd /home/xy/ry/campaign-website
+cd /home/xy/grain-sketchbook/campaign-website
 
 # Install dependencies (first time only)
 npm install
@@ -260,4 +260,4 @@ npm run build
 npm run preview
 ```
 
-**Ready to go!** Run `npm install` then `npm run dev` from `/home/xy/ry/campaign-website/` and start building! 🚀
+**Ready to go!** Run `npm install` then `npm run dev` from `/home/xy/grain-sketchbook/campaign-website/` and start building! 🚀

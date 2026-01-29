@@ -60,7 +60,7 @@ Contributors needed:
   - Cursor CLI Ultra (https://cursor.com)
   - Cerebras WSE (https://cerebras.ai) — spatial RAM, deterministic inference
 
-Grain Style: https://codeberg.org/teamlibra/ry/src/branch/main/docs/grain_style.md
+Grain Style: https://codeberg.org/keatonlivermore/grain-sketchbook/src/branch/main/docs/grain_style.md
 
 Happy to discuss Cursor Auto Mode, Zig for OS dev, or Cerebras spatial compute.
 ```

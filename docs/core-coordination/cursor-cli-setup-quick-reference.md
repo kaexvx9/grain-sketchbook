@@ -7,7 +7,7 @@
 
 ## Terminal 1: Core 1 Subcore (Rye Style Conversion)
 
-**Working Directory**: `/home/xy/ry`
+**Working Directory**: `/home/xy/grain-sketchbook`
 
 **Prompt**:
 ```
@@ -47,7 +47,7 @@ Current: Issue 2 kernel testing, Phase 3 stdlib (mem, fmt, io)
 
 Goal: Complete Phase 2/3, test with Basin kernel
 - Repository: /home/xy/codeberg/ryelang/rye (source of truth)
-- Basin kernel: /home/xy/ry/src/kernel/
+- Basin kernel: /home/xy/grain-sketchbook/src/kernel/
 - Docs: docs/rye/0011-rye-compiler-fork-plan.md
 
 Coordination: Core 1 converting Skate to Rye Style (top-down)
@@ -94,7 +94,7 @@ Continue Rye compiler fork development.
 
 **Terminal 1 (Core 1)**:
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 ./docs/core-coordination/setup-core1-agent.sh
 # Script will display prompt and context
 ```
@@ -102,7 +102,7 @@ cd /home/xy/ry
 **Terminal 2 (Vantage 3)**:
 ```bash
 cd /home/xy/codeberg/ryelang/rye
-/home/xy/ry/docs/core-coordination/setup-vantage3-agent.sh
+/home/xy/grain-sketchbook/docs/core-coordination/setup-vantage3-agent.sh
 # Script will display prompt and context
 ```
 

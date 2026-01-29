@@ -25,7 +25,7 @@
 **Test Results**:
 ```bash
 # Test line_buffer_adapter.ry
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 /home/xy/codeberg/ryelang/rye/zig-out/bin/zig build-lib src/grain_skate/line_buffer_adapter.ry
 
 # Error:

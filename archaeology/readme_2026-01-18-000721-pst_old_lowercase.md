@@ -58,7 +58,7 @@ spiritual philosophy, recursion prompts, hot/cold repository strategy,
 archive links, licenses, and twitter proof (sha3-512 hash in header).
 
 twitter proof: the sha3-512 hash in the introduction document header
-proves synergy between @kae3g_ (twitter) and teamcarry11/xy-mathematics
+proves synergy between @kae3g_ (twitter) and keatonlivermore/grain-sketchbook
 (codeberg). post this hash on twitter to verify account ownership and
 repository authenticity. the hash is: 3fd948cafeab3edb64d2a73f48c9703
 864d8237af27aaf91f4d2c4e13b6542c1abaab948cba966bf9b0bc1666fbc0ec1b

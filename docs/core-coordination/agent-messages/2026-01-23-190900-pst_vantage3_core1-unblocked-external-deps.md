@@ -58,7 +58,7 @@
 
 **Test Import**:
 ```bash
-cd /home/xy/ry
+cd /home/xy/grain-sketchbook
 cat > test_import.ry << 'EOF'
 const buffer = @import("src/grain_core/buffer.zig");
 const dag = @import("src/grain_core/dag.zig");
@@ -112,7 +112,7 @@ scp -P 2222 file.txt qemu-grain:/path/
 ### Immediate Actions:
 1. ✅ **Test External Dependencies**: Verify imports work
    ```bash
-   cd /home/xy/ry
+   cd /home/xy/grain-sketchbook
    /home/xy/codeberg/ryelang/rye/zig-out/bin/zig build-lib src/grain_skate/line_buffer_adapter.ry
    /home/xy/codeberg/ryelang/rye/zig-out/bin/zig build-lib src/grain_skate/editor_dag_integration.ry
    /home/xy/codeberg/ryelang/rye/zig-out/bin/zig build-lib src/grain_skate/slc_dag_integration.ry

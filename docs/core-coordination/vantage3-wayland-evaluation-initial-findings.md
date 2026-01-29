@@ -15,7 +15,7 @@ Initial evaluation of Wayland protocol against Rye Style principles, starting wi
 
 ### grain_core/wayland/protocol.zig
 
-**File**: `/home/xy/ry/src/grain_core/wayland/protocol.zig`  
+**File**: `/home/xy/grain-sketchbook/src/grain_core/wayland/protocol.zig`  
 **Lines**: 183  
 **Status**: Already Rye Style compliant
 
