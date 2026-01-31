@@ -1,0 +1,20 @@
+# Cursor Rules: Grain Sketchbook
+
+**Purpose:** Sketchbook for Grain / California campaign ideas, policy sketches, and research.  
+**Philosophy:** Simple, Lovable, Complete (SLC); path with heart.
+
+---
+
+## Timestamped Documents and Summaries
+
+**When creating new documents or summaries**, use a filename prefix:
+
+`YYYY-MM-DD-HHMMSS-pst-short-description.md`
+
+**Generating the timestamp:** Pacific time. From the shell:
+
+```bash
+TZ=America/Los_Angeles date +%Y-%m-%d-%H%M%S
+```
+
+Example: `2026-01-23-143022` → filename `2026-01-23-143022-pst-policy-sketch.md`. Use `-pst` or `-pdt` in the filename per Pacific timezone. Full naming and versioning: California Campaign Style Guide (california repo) — Naming Conventions and Generating timestamps.
