@@ -96,6 +96,9 @@ That **yes** is the first milestone. The rest lines up **downstream** in the cur
 
 *Rio · 2026-04-20-131109-pdt · grain-sketchbook*
 
+**Suite index:** `2026-04-20-README-rio-milestone-suite-unified.md`
+
 **Siblings (same river, other currents):**  
 `2026-04-20-125209-pdt_radiant-rio-software-pbc-zero-to-one-strategy.md` ·  
-`2026-04-20-130709-pdt_radiant-rio-premium-services-for-angels-services-as-the-new-software.md`
+`2026-04-20-130709-pdt_radiant-rio-premium-services-for-angels-services-as-the-new-software.md` ·  
+`2026-04-20-133809-pdt_radiant-rio-social-defi-milestone-walk-as-web-app-concept.md`

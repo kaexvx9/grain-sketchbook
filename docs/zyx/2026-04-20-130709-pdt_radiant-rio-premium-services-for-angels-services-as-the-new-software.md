@@ -87,6 +87,8 @@ If yes, the **rail and canola** chapters in your longer materials become **credi
 - **Sibling (software-first rings):** `docs/zyx/2026-04-20-125209-pdt_radiant-rio-software-pbc-zero-to-one-strategy.md`  
 - **Investor radar:** `docs/zyx/2026-04-20-114309-pdt_plant_aligned_investor_radar-grain-os-outreach.md`
 
+**Suite index:** `2026-04-20-README-rio-milestone-suite-unified.md`
+
 ---
 
 *risk love · now == next + 1*

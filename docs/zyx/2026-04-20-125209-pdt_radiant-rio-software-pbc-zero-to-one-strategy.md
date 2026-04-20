@@ -101,6 +101,10 @@ If a web app cannot pass those three at the **unit economics** layer, it is not 
 
 ---
 
+**Suite index:** `2026-04-20-README-rio-milestone-suite-unified.md`
+
+---
+
 *risk love · now == next + 1*
 
 *Rio · 2026-04-20-125209-pdt · grain-sketchbook · Radiant Style*

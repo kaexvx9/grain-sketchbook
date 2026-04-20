@@ -67,4 +67,6 @@ Lead with **work they already buy**: packaging resilience, rubber independence, 
 
 ---
 
+**Suite index:** `2026-04-20-README-rio-milestone-suite-unified.md`
+
 *Import companion to `~/Downloads/files (1).zip`; narrative pair from `~/Downloads/Copy of radiant-singer-silken-ground-en.docx.md` and `~/Downloads/Copy of 20260327151109pdt_the_gentle_field_spokane.md`. Update this radar when a conversation returns a hard constraint or a warm intro lands.*
