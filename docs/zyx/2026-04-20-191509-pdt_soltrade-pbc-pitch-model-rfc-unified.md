@@ -6,7 +6,7 @@
 **Time stamp:** 2026-04-20-191509-pdt  
 **License:** CC BY-SA 4.0  
 
-**Purpose:** One reference-grade place for capital, commerce, and construction: the **outer ring** is what angels hear first; the **middle ring** is how the company earns and returns; the **inner core** is how the software behaves—RFC-shaped so engineers, counsel, and partners can cite the same paragraphs. **Parts I and II stay in plain English** on purpose; **Part III carries the precise seams** when you are ready to build.
+**Purpose:** One reference-grade place for capital, commerce, and construction: the **outer ring** is what angels hear first; the **middle ring** is how the company earns and returns; the **inner core** is how the software behaves—RFC-shaped so engineers, counsel, and partners can cite the same paragraphs. **Parts I and II stay in plain English** on purpose; **Part III carries the precise seams** when you are ready to build. **Appendices A–B** tuck a **pocket** integrity rubric (seven questions + one trap door) for **merge** night and **pitch** morning.
 
 **Suite context:** This document synthesizes the April 20, 2026 grain-sketchbook thread—walk (`131109`), software PBC arc (`125209`), services lane (`130709`), investor radar (`114309`), app concept (`133809`), engineering sketch (`180909`), cost prompt (`182409`), ninety-day database lane (`191009`). **Suite index:** `2026-04-20-README-rio-milestone-suite-unified.md`.
 
@@ -293,6 +293,7 @@ These numbers assume a pilot-scale on-call: roughly one named human who can exec
 - `2026-04-20-133809-pdt_radiant-rio-social-defi-milestone-walk-as-web-app-concept.md`  
 - `2026-04-20-191009-pdt_radiant-rio-database-stack-ninety-day-lane.md`  
 - `2026-04-20-182409-pdt_prompt-essay-serverless-db-cost-vs-agentic-self-host.md`  
+- `grain_os_spiritual_philosophical_foundation_2025-12-21-183510-pst.md` — Bhakti + Berdyaev spine echoed below  
 
 ## III.17 Changelog
 
@@ -301,6 +302,31 @@ These numbers assume a pilot-scale on-call: roughly one named human who can exec
 | 2026-04-20 | Initial unified draft (191509-pdt). |
 | 2026-04-20 | Radiant pass: Parts I–II in plain English; hammock + Grain-style note; bridge before Part III. |
 | 2026-04-20-195409-pdt | Peer review weave-in: name + counsel note; witness sidebar; chain RPC MUST at gate; TB separation MUST; dependency posture; RPO/RTO rationale; DQs 006–008; raise-band rebalancing note. |
+| 2026-04-20 | Appendix A–B: seven-question integrity hand + eighth reversal (spiritual foundation echo). |
+
+---
+
+# Appendix A — Seven questions (read aloud before merge or pitch)
+
+These compress the Grain OS spiritual foundation into Soltrade-shaped questions—Bhakti (service, offering, community) and Berdyaev (freedom, grace, creativity, patience with the gap). They are not a substitute for that document; they are a pocket rubric when the deck is open and the night is late.
+
+1. **Service.** Does this release serve a named stranger’s next hour—or mainly our cleverness?  
+2. **Offering.** Would we sign this function as care and attention, not only as tests green?  
+3. **Scope with breath.** Are we shipping small and whole without clutching the wider dream on the same night?  
+4. **Sacred circle.** Does this honor users, witnesses, contributors, and the maintainers whose tools we ride?  
+5. **Freedom.** Can a buyer, donor, or successor still leave, export, or repair without our permission theatre?  
+6. **Grace named.** Did we say thank you somewhere visible—Postgres, TigerBeetle, Zig, the sketchbook hands—for gifts we did not earn?  
+7. **Gap as room.** Is the distance between Grain OS dreamed and this quarter’s ship held as creative space, not shame?
+
+*If every answer is yes, merge. If one is no, hammock first.*
+
+---
+
+## Appendix B — The eighth question (the trap door)
+
+If an angel offered cash to delete one line of scope so the team could sleep this week—which line would we thank them for cutting, and why is that line still here?
+
+The eighth question exists because love sometimes sounds like no. It keeps NG1 honest: we are not building an autopilot myth on tired bones.
 
 ---
 
