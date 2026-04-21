@@ -44,6 +44,7 @@ Read **1 → 2** when you need **clarity**. Add **3** when you need **cash from 
 | File | What it gives you |
 |------|-------------------|
 | `2026-04-20-191509-pdt_soltrade-pbc-pitch-model-rfc-unified.md` | **One cover doc:** angel pitch (outer), business model (middle), technical RFC (inner) for the startup placeholder name **Soltrade PBC**. |
+| `2026-04-20-201109-pdt_soltrade-pbc-pitch-model-rfc-readable-edition.md` | **Readable twin:** same three rings, **8th-grade–college** English, restated **I.0**, fewer negations in prose; **RFC** forbidden keyword spelled out in `191509`. |
 
 ---
 
