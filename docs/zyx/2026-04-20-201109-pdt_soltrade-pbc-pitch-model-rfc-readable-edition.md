@@ -11,6 +11,8 @@
 
 **Suite index:** `2026-04-20-README-rio-milestone-suite-unified.md` · **Dense twin:** `2026-04-20-191509-pdt_soltrade-pbc-pitch-model-rfc-unified.md`
 
+**Litetrade readable twin:** `2026-04-20-201109-pdt_litetrade-pbc-pitch-model-rfc-readable-edition.md` — alternate placeholder; **this** file remains the **Soltrade** URL anchor.
+
 ---
 
 ## Quick glossary (read once, skim later)

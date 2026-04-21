@@ -10,6 +10,8 @@
 
 **Suite context:** This document synthesizes the April 20, 2026 grain-sketchbook thread—walk (`131109`), software PBC arc (`125209`), services lane (`130709`), investor radar (`114309`), app concept (`133809`), engineering sketch (`180909`), cost prompt (`182409`), ninety-day database lane (`191009`). **Suite index:** `2026-04-20-README-rio-milestone-suite-unified.md`.
 
+**Alternate placeholder (same suite, new filename):** `2026-04-20-191509-pdt_litetrade-pbc-pitch-model-rfc-unified.md` — **Litetrade** wording fork; **this** path stays the original **Soltrade** URL anchor.
+
 **Grain style + hammock:** Names stay **honest and explicit** (`grain_case` where code meets paper). **Hammock time** means loading the problem, letting it rest overnight, then choosing the smallest **whole** slice—**speed without a loaded mind is motion, not direction** (Rich Hickey’s hammock talk, in one plain sentence).
 
 ---
