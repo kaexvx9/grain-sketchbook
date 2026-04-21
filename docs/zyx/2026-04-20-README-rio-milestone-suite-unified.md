@@ -29,7 +29,7 @@ Symlinks you may use: `~/github/kaexvx9/grain-sketchbook` and `~/codeberg/kaexvx
 | 5 | `2026-04-20-133809-pdt_radiant-rio-social-defi-milestone-walk-as-web-app-concept.md` | **Build concept:** “walk turned into a room”—social + open-finance app; vanilla JS, Zig, Postgres, Solana (Alpenglow-era), TigerBeetle when the till must sing. |
 | 6 | `2026-04-20-180909-pdt_engineering-consensus-sketch-zig-postgres-tigerbeetle-vanilla-spa.md` | **Engineering sketch:** meeting consensus—Zig shapes, Postgres + TB sketches, vanilla hash SPA routing, one stack trace. |
 
-Read **1 → 2** when you need **clarity**. Add **3** when you need **cash from services**. Add **4** when you open a **partner** file. Add **5** when you open an **editor**. Add **6** when you open a **terminal or schema** beside the essay. Open the **Soltrade PBC** capstone when you need **one** file for **capital**, **commerce**, and **construction** together.
+Read **1 → 2** when you need **clarity**. Add **3** when you need **cash from services**. Add **4** when you open a **partner** file. Add **5** when you open an **editor**. Add **6** when you open a **terminal or schema** beside the essay. Open a **PBC capstone** (**Soltrade** or **Litetrade** filenames below) when you need **one** file for **capital**, **commerce**, and **construction** together.
 
 ### Same sprint — cost, database lane, model archive
 
@@ -39,12 +39,19 @@ Read **1 → 2** when you need **clarity**. Add **3** when you need **cash from 
 | `2026-04-20-190009-pdt_archive-claude-opus-database-stack-decision-formatted.md` | **Opus archive:** formatted model output for the stack decision. |
 | `2026-04-20-191009-pdt_radiant-rio-database-stack-ninety-day-lane.md` | **Ninety-day lane:** Rio pass after Opus—(iii) default, constellation for (i)(ii)(iv). |
 
-### Capstone — Soltrade PBC (placeholder) unified spec
+### Capstone — PBC pitch + RFC (**Soltrade** filenames = original links)
 
 | File | What it gives you |
 |------|-------------------|
-| `2026-04-20-191509-pdt_soltrade-pbc-pitch-model-rfc-unified.md` | **One cover doc:** angel pitch (outer), business model (middle), technical RFC (inner) for the startup placeholder name **Soltrade PBC**. |
-| `2026-04-20-201109-pdt_soltrade-pbc-pitch-model-rfc-readable-edition.md` | **Readable twin:** same three rings, **8th-grade–college** English, restated **I.0**, fewer negations in prose; **RFC** forbidden keyword spelled out in `191509`. |
+| `2026-04-20-191509-pdt_soltrade-pbc-pitch-model-rfc-unified.md` | **Dense cover doc** under placeholder **Soltrade PBC**—pitch, model, RFC (first-published anchor). |
+| `2026-04-20-201109-pdt_soltrade-pbc-pitch-model-rfc-readable-edition.md` | **Readable twin** (**Soltrade** filenames): same three rings, **8th-grade–college** English; RFC “forbidden” keyword explained via dense `191509` **soltrade** file. |
+
+### Capstone — same plan (**Litetrade** filenames = parallel links)
+
+| File | What it gives you |
+|------|-------------------|
+| `2026-04-20-191509-pdt_litetrade-pbc-pitch-model-rfc-unified.md` | **Dense cover doc** under placeholder **Litetrade PBC**—byte-for-byte sibling of **soltrade** dense file with alternate public name. |
+| `2026-04-20-201109-pdt_litetrade-pbc-pitch-model-rfc-readable-edition.md` | **Readable twin** (**Litetrade** filenames): sibling of **soltrade** readable edition. Each **litetrade** file states **name lineage** back to **soltrade** paths. |
 
 ---
 
