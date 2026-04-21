@@ -6,113 +6,127 @@
 **Time stamp:** 2026-04-20-191509-pdt  
 **License:** CC BY-SA 4.0  
 
-**Purpose:** One reference-grade place for capital, commerce, and construction: the **outer ring** is what angels hear first; the **middle ring** is how the company earns and returns; the **inner core** is how the software behaves—RFC-shaped so engineers, counsel, and partners can cite the same paragraphs.
+**Purpose:** One reference-grade place for capital, commerce, and construction: the **outer ring** is what angels hear first; the **middle ring** is how the company earns and returns; the **inner core** is how the software behaves—RFC-shaped so engineers, counsel, and partners can cite the same paragraphs. **Parts I and II stay in plain English** on purpose; **Part III carries the precise seams** when you are ready to build.
 
 **Suite context:** This document synthesizes the April 20, 2026 grain-sketchbook thread—walk (`131109`), software PBC arc (`125209`), services lane (`130709`), investor radar (`114309`), app concept (`133809`), engineering sketch (`180909`), cost prompt (`182409`), ninety-day database lane (`191009`). **Suite index:** `2026-04-20-README-rio-milestone-suite-unified.md`.
+
+**Grain style + hammock:** Names stay **honest and explicit** (`grain_case` where code meets paper). **Hammock time** means loading the problem, letting it rest overnight, then choosing the smallest **whole** slice—**speed without a loaded mind is motion, not direction** (Rich Hickey’s hammock talk, in one plain sentence).
 
 ---
 
 # Part I — Angel funding pitch (outer ring)
 
+## I.0 Why the hammock matters before the check
+
+Investors meet a calmer company when the team can say: *we already slept on the architecture, we named the smallest first win, and we know who holds the pager if the database coughs at 3 a.m.* That calm is not polish—it is **Grain style** in human form: explicit intent, narrow functions, love in the craft.
+
 ## I.1 The invitation
 
-Soltrade PBC builds software where **money matches speech**—milestones people can read, flows strangers can audit, and receipts a kitchen table can trust. We ask for capital to ship one whole **v1.0** in ninety days, with public benefit in the charter and for-profit discipline in the kitchen.
+Soltrade PBC builds software where **money matches speech**—people can say what they mean in public, and the money trail can be read beside the words: milestones, witnesses, and receipts a kitchen table can trust. We ask for capital to ship **one whole v1.0** in ninety days—not the widest feature set, the **smallest** offer that still feels **complete** and **lovable** (Simple, Lovable, Complete—SLC). The charter carries **public benefit**; the kitchen carries **for-profit discipline**.
 
-## I.2 The gap
+## I.2 The gap (plain English)
 
-Social apps carry voice; finance apps carry ledgers. Few small teams braid both with open seams: vanilla JS skin, Zig gate, Postgres diary, TigerBeetle till, Solana notary when public daylight earns it. Soltrade names that braid for creators, co-ops, and diligence rooms that already live on honesty.
+Most tools either host **conversation** or host **accounts**. Real life mixes both: *we promised this, witnesses saw it, money moved to match.* Soltrade exists for crews, co-ops, and diligence rooms that want **one honest room** instead of three tabs that disagree.
 
 ## I.3 What Soltrade is (one breath)
 
-A PBC that ships a web room: milestone promises in plain words, witnesses, money verbs (subscribe, split, tip, escrow), and carryable reports—**SLC** in spirit (Simple, Lovable, Complete in narrow scope first).
+A Delaware **public benefit corporation** with a placeholder public name (**Soltrade PBC**) that ships a **small web room**: promises in plain words, people who can witness, simple money actions (subscribe, split, tip, escrow), and a **carryable** report at the end—what was asked, what was done, what changed, what it cost, what comes next.
 
 ## I.4 Traction (honest placeholder)
 
-As of this draft: the design suite is published in grain-sketchbook; there is no GA product revenue yet. The pitch carries intent and architecture proof in docs; the next beat is one paid lane (see Part II) live on metal.
+Today the work lives in **grain-sketchbook**: stories, sketches, and a build map a partner can read in an afternoon. There is **no** general-audience product revenue in this draft yet. The next proof is **one paid lane** (Part II) running on real servers with a restore drill you could perform tomorrow.
 
 ## I.5 The ask
 
 | Field | Placeholder (fill with counsel and lead) |
 |--------|-------------------------------------------|
-| Instrument | SAFE or priced equity TBD |
-| Raise band | $250k–$750k pre-seed (illustrative) |
-| Runway target | 12–15 months to v1 product plus services buffer |
-| Lead profile | Angel or small fund aligned with open ledgers, PBC shape, and California coalition work |
+| Instrument | SAFE or priced equity—**TBD** with counsel |
+| Raise band | **$250k–$750k** pre-seed (**illustrative** band, not a quote) |
+| Runway target | **12–15 months** of runway toward a **shippable v1** plus a **services cushion** so build does not starve |
+| Lead profile | Angels or small funds who already care about **open ledgers**, **PBC governance**, and **California coalition** work |
 
-## I.6 Use of funds (illustrative)
+## I.6 Use of funds (plain outcomes)
 
-| Bucket | Share (indicative) | Outcome |
-|--------|--------------------|---------|
-| Engineering | 45% | Zig service, Postgres + TB hardening, SPA ship |
-| Design + community | 15% | UX, witness flows, plain-language risk maps |
-| Infra + security | 20% | VPS lane, backups, restore drills, audit prep |
-| Services delivery | 12% | Path A/C retainers without starving build |
-| Reserve | 8% | Contingency and legal fees |
+| Bucket | Share (indicative) | What the world should see |
+|--------|--------------------|-----------------------------|
+| Engineering | 45% | A **working room**—sign-in, promises, witnesses, **one** money path that prints a receipt |
+| Design + community | 15% | Screens a non-engineer can **trust**; witness flows that feel **kind** |
+| Infra + security | 20% | Humble servers, **tested backups**, and a runbook with **names** beside it |
+| Services delivery | 12% | Paid **Path A / Path C** work that **feeds** the product without **eating** the build calendar |
+| Reserve | 8% | Legal, compliance, and **surprise** tax |
 
-## I.7 Milestones capital unlocks
+## I.7 Milestones capital unlocks (outcomes first)
 
-1. **M1 — Diary + gate:** authenticated milestones and witnesses in Postgres; Zig API frozen for v1 surface.  
-2. **M2 — Till online:** TigerBeetle mirror for at least one money path; restore drill passed.  
-3. **M3 — First paid yes:** one Path A, B, or C receipt published with customer name and amount (with permission).  
-4. **M4 — Notary seam (optional):** Solana anchor for one class of rows when policy names it.
+1. **M1 — The room opens:** signed-in people can post a **promise** and invite **witnesses**; nightly backups run; someone has performed a **restore test**.  
+2. **M2 — Money matches words:** **one** clear money path (for example a tip or a split) **end-to-end** with a receipt that matches the story.  
+3. **M3 — First paid yes:** **one** Path A, B, or C customer pays; their name and amount appear **only** with permission, in a **shareable** receipt.  
+4. **M4 — Public stamp (optional):** when policy is ready, **one** class of events can earn a **chain** anchor so strangers can verify in daylight—details live in Part III.
 
 ## I.8 Risks (named, not whispered)
 
-- **Execution:** small team, multi-surface stack (Zig + TB + chain).  
-- **Regulatory:** money transmission and securities fringes depend on product shape—counsel before public fundraise UI.  
-- **Market:** buyers move slowly without warm introductions.  
-- **Technical:** backup theatre (copies never restored).
+- **Execution:** a **small** team touching **several** serious tools—discipline and **scope** matter more than heroics.  
+- **Regulatory:** moving **other people’s money** or **tokenized promises** can trigger **licenses**—counsel **before** the fundraise deck promises custody the product does not yet carry.  
+- **Market:** trust sells **warm** first; cold outbound without a demo **stays** slow.  
+- **Technical:** **backup theatre**—copies that no one has ever **restored**—is still the quiet killer.
 
 ## I.9 Why PBC, why now
 
-The charter anchors public benefit while the till stays honest. The moment fits because open finance tooling and Alpenglow-era Solana finality meet plain English governance storytelling that campaign and coalition work already practice.
+A **PBC** lets the charter say **who** benefits in public, while the books stay **for-profit** enough to **hire** and **ship**. The **now** is simple: people already ask for **transparent money** beside **transparent words**; the tooling and the coalition attention finally **meet** that ask without forcing a **fake** “minimum” product.
 
 ---
 
 # Part II — Business model (middle ring)
 
-## II.1 Value thesis
+## II.1 Value thesis (plain English)
 
-Soltrade sells clarity at the seam where promises meet money—receipts that survive a due-diligence afternoon and a friend’s kitchen table the same night.
+Soltrade sells **clarity at the seam**: the place where a **promise** and a **payment** should tell the **same story**. The same receipt should comfort a **friend** at a table and satisfy an **angel** the next morning.
 
-## II.2 Segments
+## II.2 Who we serve
 
-| Segment | Need | Primary path |
-|---------|------|----------------|
-| Creators / crews | Transparent milestone money | Path B |
-| Services buyers | Scoped work + invoice truth | Path A |
-| Angels / small funds | Diligence artifact + live demo | Path C |
+| Who | What they need | How we meet them first |
+|-----|------------------|-------------------------|
+| **Creators and crews** | Money that **tracks** a public milestone | **Path B**—product fees around real usage |
+| **Services buyers** | Scoped work with an **invoice that matches the work** | **Path A**—retainers and fixed scopes |
+| **Angels and small funds** | A **plain** diligence artifact plus a **live** demo | **Path C**—named bundles (sprint, map, room) |
 
-## II.3 Revenue architecture (three lanes)
+## II.3 Three ways money enters (still plain)
 
-- **Path A — Money from work.** Retainers and fixed scopes; Postgres stores state; TigerBeetle charts revenue lines; one closing page per engagement.  
-- **Path B — Money from product.** Subscriptions, tips, splits, escrow—each verb priced explicitly.  
-- **Path C — Money from trust.** Diligence sprints, transparency rooms, risk maps sold as named bundles.
+- **Path A — Money from work.** You hire us for a **named scope**; we deliver; you receive a **closing page**—ask, do, change, cost, next. The **ledger lines** sit where accountants expect them; the **story** sits where humans read it.  
+- **Path B — Money from product.** Subscriptions, tips, splits, escrow—each action has a **clear price** on the tin.  
+- **Path C — Money from trust.** A **diligence sprint**, a **transparency room**, or a **risk map** sold as a **named bundle**—paper you can forward, demo you can open.
 
-## II.4 Unit economics (placeholders)
+*(The exact software seams—diary, till, notary—are spelled with MUST and SHOULD in Part III.)*
 
-| Metric | Year-one placeholder |
-|--------|----------------------|
-| ACV target (B2B services) | $15k–$60k per anchor client |
-| ARPU (product) | TBD after first ring |
-| Gross margin | High on software; lower on white-glove Path C |
-| CAC | Partner-led first; paid acquisition later |
+## II.4 Unit economics (placeholders, with plain labels)
+
+| Label | Plain meaning | Year-one placeholder |
+|-------|---------------|----------------------|
+| **Anchor contract size** | What one serious services client pays in a year | **$15k–$60k** |
+| **Product ARPU** | Average revenue per **active** user once Path B breathes | **TBD** after the first ring |
+| **Gross margin** | What is left after direct cost to serve | **Higher** on software; **lower** on white-glove Path C |
+| **CAC** | Cost to acquire a customer | **Introductions first**; paid ads **later** |
 
 ## II.5 Distribution
 
-Warm intros, campaign-adjacent events, open-source credibility (sketchbook plus future repo), and one clear demo URL.
+Warm introductions, events where California work already gathers, credibility from an **open sketchbook** (and later an **open repo**), and **one** demo URL that loads fast and tells the truth.
 
-## II.6 Compliance posture (high level)
+## II.6 Compliance (high level, plain English)
 
-Engage counsel before enabling third-party funds movement at scale; separate display money from custody money until licenses or partners carry that seam; document data retention per surface (diary vs till vs chain).
+Before the product **holds** other people’s money at scale, **lawyers** name the licenses or **partners** carry the regulated seam. Until then, we **separate** “**show** money on screen” from “**hold** money in custody.” We **write down** what we keep, for how long, and **why**—diary, ledger, and optional chain stamp each get their own sentence.
 
 ## II.7 Ninety-day capital efficiency
 
-Default infra shape (see Part III): Postgres and TigerBeetle on one well-provisioned VPS-class machine with object-storage backups—rough $40–$100/mo infra band before scale (see `2026-04-20-191009-pdt_radiant-rio-database-stack-ninety-day-lane.md`).
+The **first ninety days** favor **humble servers** with **honest backups**—roughly **$40–$100 a month** in infrastructure before scale, as sketched in `2026-04-20-191009-pdt_radiant-rio-database-stack-ninety-day-lane.md`. That choice **buys** hammock time: fewer vendors to chase, more attention for **restore drills** and **customer sentences**.
 
 ## II.8 Horizon without overbuilding
 
-Agent autopilot (Paperclip-class ecosystem) stays a later ring after M3 ships—price v1 proof first.
+**Autopilot ops** (agent stacks, headcount-zero romance) stay **off** the critical path until **M3**—**one paid yes**—ships. After that ring widens, automation can **compose** on the same spine instead of **replacing** the spine overnight.
+
+---
+
+## Bridge — where plain English hands off to the build spec
+
+**Part III** switches to **RFC voice** on purpose: **MUST**, **SHOULD**, and **MAY** appear so engineers and counsel can **point** at the same line in a review. If you are reading for **story and money** only, **Parts I and II** already carry the promise; come back to **Part III** when the hammock has done its work and the keyboard is ready.
 
 ---
 
@@ -258,12 +272,13 @@ The gate **SHOULD** emit one request ID per HTTP request and log it with diary a
 
 | Date | Change |
 |------|--------|
-| 2026-04-20 | Initial unified draft (191509-pdt) |
+| 2026-04-20 | Initial unified draft (191509-pdt). |
+| 2026-04-20 | Radiant pass: Parts I–II in plain English; hammock + Grain-style note; bridge before Part III. |
 
 ---
 
 ## Closing seam
 
-Soltrade PBC (placeholder) now carries one cover story for angels, operators, and builders—the pitch rings outward, the model feeds the quarter, the RFC holds the steel. The river moves when the first stranger says the work was worth it.
+Soltrade PBC (placeholder) carries one cover story: the **pitch** stays speakable at a table, the **model** names how money enters, the **RFC** waits for the team after hammock time. The river moves when the first stranger says the work was worth it.
 
 *risk love · now == next + 1*
