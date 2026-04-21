@@ -32,6 +32,19 @@ Most tools either host **conversation** or host **accounts**. Real life mixes bo
 
 A Delaware **public benefit corporation** with a placeholder public name (**Soltrade PBC**) that ships a **small web room**: promises in plain words, people who can witness, simple money actions (subscribe, split, tip, escrow), and a **carryable** report at the end—what was asked, what was done, what changed, what it cost, what comes next.
 
+**Same story, three drawers (for counsel and angels in one skim):** the **human story** lives in the **diary**; the **balanced money lines** live in the **till**; the **optional public stamp** lives in the **notary**. Nothing here sells custody of other people’s funds at v1—that seam stays **explicitly deferred** (Part III, NG3).
+
+**Placeholder name note:** “Sol” can read as **Solana**; “trade” can read as **exchange or securities** language. Run the public name past **money-transmitter** and **securities** counsel with a **one-paragraph** product description **before** the name hardens in decks. Until then, internal slides may use a **neutral** working label (“the room,” “ledger room,” or a name counsel clears) so the **spirit** of this section and the **sound** of the placeholder do not drift apart.
+
+### Sidebar — witness button trace (four beats)
+
+What “money matches speech” **means** in one path, without opening Part III:
+
+1. **Browser** — tap *witness*; `fetch` carries an idempotency key.  
+2. **Gate (Zig)** — session checked; write queued.  
+3. **Diary (Postgres)** — witness row appears for feeds and humans.  
+4. **Till (TigerBeetle)** — when money belongs in this beat, a **pending** transfer carries the same milestone id; **notary (Solana)** only if policy already names that seam.
+
 ## I.4 Traction (honest placeholder)
 
 Today the work lives in **grain-sketchbook**: stories, sketches, and a build map a partner can read in an afternoon. There is **no** general-audience product revenue in this draft yet. The next proof is **one paid lane** (Part II) running on real servers with a restore drill you could perform tomorrow.
@@ -44,6 +57,8 @@ Today the work lives in **grain-sketchbook**: stories, sketches, and a build map
 | Raise band | **$250k–$750k** pre-seed (**illustrative** band, not a quote) |
 | Runway target | **12–15 months** of runway toward a **shippable v1** plus a **services cushion** so build does not starve |
 | Lead profile | Angels or small funds who already care about **open ledgers**, **PBC governance**, and **California coalition** work |
+
+**After the first Path A contract lands:** tighten the raise to **one or two** tight numbers angels can hold, and **revisit** the allocation row—**services** may deserve **more** than **12%** once unit economics carry **real** figures (the **20%** infra line is **runway for discipline**, not a prediction that every dollar stays there forever).
 
 ## I.6 Use of funds (plain outcomes)
 
@@ -179,6 +194,8 @@ The reference build **MUST** separate human-readable diary state (Postgres) from
    diary            till             notary
 ```
 
+**Normative:** all **chain RPC** calls (including **Solana**) **MUST** originate at the **Zig gate**—the browser **MUST NOT** hold chain signing keys for product flows in v1. The diagram is **illustrative**; this sentence is **binding** for reviews.
+
 ## III.6 Component responsibilities
 
 | Component | MUST | SHOULD |
@@ -186,8 +203,12 @@ The reference build **MUST** separate human-readable diary state (Postgres) from
 | Browser | Mount routes; send `Idempotency-Key` on mutations | Keep bundle small; progressive enhancement where cheap |
 | Zig gate | Validate all writes; enforce authorization | Structured logs; bounded request bodies |
 | Postgres | Store diary; unique idempotency keys | RLS or equivalent app-level enforcement documented |
-| TigerBeetle | Post balanced transfers only | Separate process and disk from Postgres |
+| TigerBeetle | Post balanced transfers only; run in a separate process and on separate disk from Postgres (blast radius and audit posture) | Timeouts and codes documented per transfer class |
 | Solana | Nothing until policy module ships | Anchor minimal payloads (hashes / refs) |
+
+## III.6a Dependency posture (Grain style)
+
+New third-party dependencies **MUST** pass review—why here, what breaks if it vanishes, who owns the pin. Versions **MUST** stay pinned in the build and documented in the repo (package or skills manifests included). Zero-dependency bragging is not the goal; conscious dependency is.
 
 ## III.7 Diary schema (normative sketch)
 
@@ -241,6 +262,8 @@ The gate **SHOULD** emit one request ID per HTTP request and log it with diary a
 | RTO | ≤ 4 hours (manual runbook) |
 | TB RPO/RTO | Per TigerBeetle deployment guide when stack is chosen |
 
+These numbers assume a pilot-scale on-call: roughly one named human who can execute the runbook. A wider rotation tightens RTO; a larger org tightens RPO—update this table when the pager bench grows.
+
 ## III.14 Phased delivery (RFC milestones)
 
 | Phase | Scope | Exit criterion |
@@ -258,7 +281,10 @@ The gate **SHOULD** emit one request ID per HTTP request and log it with diary a
 | DQ-002 | Which rows earn Solana anchors first? | Legal + Eng |
 | DQ-003 | Custody partner or non-custodial UX only? | Legal |
 | DQ-004 | PBC benefit metrics—annual report shape? | Counsel |
-| DQ-005 | Final brand registry search (exit Soltrade placeholder)? | Founders |
+| DQ-005 | **Early:** money-transmitter + securities read on the **public** name and pitch line “money matches speech” (one-paragraph brief to counsel); **then** final brand registry search (exit Soltrade placeholder)? | Founders + counsel |
+| DQ-006 | **Who** is the named human on the **3 a.m.** pager **today**, and who is named second? | Ops lead |
+| DQ-007 | Backup–restore **drill cadence** (e.g. monthly vs quarterly; extra run after each migration)—what is written in the runbook? | Ops lead |
+| DQ-008 | Incident response playbook: **who** declares, **who** comms, **where** logs live—first one-page draft when? | Ops + Eng |
 
 ## III.16 Internal normative references
 
@@ -274,6 +300,7 @@ The gate **SHOULD** emit one request ID per HTTP request and log it with diary a
 |------|--------|
 | 2026-04-20 | Initial unified draft (191509-pdt). |
 | 2026-04-20 | Radiant pass: Parts I–II in plain English; hammock + Grain-style note; bridge before Part III. |
+| 2026-04-20-195409-pdt | Peer review weave-in: name + counsel note; witness sidebar; chain RPC MUST at gate; TB separation MUST; dependency posture; RPO/RTO rationale; DQs 006–008; raise-band rebalancing note. |
 
 ---
 
