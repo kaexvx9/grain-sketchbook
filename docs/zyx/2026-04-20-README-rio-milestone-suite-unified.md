@@ -50,7 +50,7 @@ Read **1 → 2** when you need **clarity**. Add **3** when you need **cash from 
 
 | File | What it gives you |
 |------|-------------------|
-| `2026-04-20-191509-pdt_litetrade-pbc-pitch-model-rfc-unified.md` | **Dense cover doc** under placeholder **Litetrade PBC**—byte-for-byte sibling of **soltrade** dense file with alternate public name. |
+| `2026-04-20-191509-pdt_litetrade-pbc-pitch-model-rfc-unified.md` | **Dense cover doc** under placeholder **Litetrade PBC**—content fork of **soltrade** dense file (plus lineage header + changelog row). |
 | `2026-04-20-201109-pdt_litetrade-pbc-pitch-model-rfc-readable-edition.md` | **Readable twin** (**Litetrade** filenames): sibling of **soltrade** readable edition. Each **litetrade** file states **name lineage** back to **soltrade** paths. |
 
 ---
