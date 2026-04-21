@@ -38,6 +38,7 @@ Read **1 → 2** when you need **clarity**. Add **3** when you need **cash from 
 | `2026-04-20-182409-pdt_prompt-essay-serverless-db-cost-vs-agentic-self-host.md` | **Cost + agents prompt:** Radiant notes and copy-paste block for other models. |
 | `2026-04-20-190009-pdt_archive-claude-opus-database-stack-decision-formatted.md` | **Opus archive:** formatted model output for the stack decision. |
 | `2026-04-20-191009-pdt_radiant-rio-database-stack-ninety-day-lane.md` | **Ninety-day lane:** Rio pass after Opus—(iii) default, constellation for (i)(ii)(iv). |
+| `2026-04-20-225125-pst_aligned-incentives-pass-rio-milestone-suite-2026-04-20.md` | **Aligned incentives pass:** Reya’s Oregon incentive-design essay applied as a **review matrix** across every `2026-04-20-*` suite doc ([source on Codeberg](https://codeberg.org/groupproject9/xy-mathematics/raw/branch/main/questions/2026-02-26-155300-pst-aligned-incentives.md)). |
 
 ### Capstone — PBC pitch + RFC (**Soltrade** filenames = original links)
 
