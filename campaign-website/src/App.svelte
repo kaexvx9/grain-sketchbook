@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import Header from './lib/components/Header.svelte';
+  import ThreeGunasNav from './lib/components/ThreeGunasNav.svelte';
   import Footer from './lib/components/Footer.svelte';
   import Hero from './lib/components/Hero.svelte';
   import Section from './lib/components/Section.svelte';
@@ -39,13 +40,14 @@
 <div class="app">
   <ThemeToggle />
   <Header />
+  <ThreeGunasNav />
   <main id="home">
     <Hero />
     
     <AboutSection />
     
-    <!-- Vision Section with Custom SVGs -->
-    <section id="vision" class="vision-section">
+    <!-- SATTVA: Explore Ideas (policy, DAG, research) -->
+    <section id="gunas-sattva" class="vision-section">
       <VisionHero />
       <PermacultureSection />
       <TraditionalUrbanismSection />
@@ -79,7 +81,21 @@
       {/if}
     </Section>
     
-    <GetInvolvedSection />
+    <!-- RAJAS: Get Involved (volunteer, events, donate) -->
+    <section id="gunas-rajas">
+      <GetInvolvedSection />
+    </section>
+    
+    <!-- TAMAS: Ask AI / Reflect (chat, reflection - stub) -->
+    <section id="gunas-tamas" class="tamas-section">
+      <Section>
+        <h2>Ask AI / Reflect</h2>
+        <p>Clarify confusion on issues. Understand the candidate's philosophy. Personal reflection prompts.</p>
+        <div class="stub-notice">
+          <p><em>AI chat (Claude API) and reflection prompts coming soon.</em></p>
+        </div>
+      </Section>
+    </section>
   </main>
   <Footer />
 </div>

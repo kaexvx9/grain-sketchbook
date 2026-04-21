@@ -56,6 +56,15 @@
   --spacing-md: 2rem;
   --spacing-lg: 4rem;
   
+  /* Three Gunas (Rajas / Sattva / Tamas) - Campaign navigation */
+  --gunas-rajas-light: #FF6B35;       /* Apricot - Get Involved */
+  --gunas-rajas-dark: #CC4A2B;        /* Neonlit crimson */
+  --gunas-sattva-light: #D2B48C;      /* Grain - Explore Ideas (hemp tan) */
+  --gunas-sattva-gold: #F9A825;       /* Harvest gold */
+  --gunas-sattva-dark: #8B6F47;       /* Dark whole grain brown */
+  --gunas-tamas-light: #FF1744;       /* Glow - Ask AI (strawberry red) */
+  --gunas-tamas-dark: #8B0000;        /* Black cherry crimson */
+  
   /* Layout */
   --container-max-width: 1200px;
   
