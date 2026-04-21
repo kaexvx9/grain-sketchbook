@@ -27,12 +27,13 @@ Symlinks you may use: `~/github/kaexvx9/grain-sketchbook` and `~/codeberg/kaexvx
 | 3 | `2026-04-20-130709-pdt_radiant-rio-premium-services-for-angels-services-as-the-new-software.md` | **Bek / ColdIQ lane:** sell **work** to angels and funds—SKU table, retainers, receipts. |
 | 4 | `2026-04-20-114309-pdt_plant_aligned_investor_radar-grain-os-outreach.md` | **Capital map:** zip imports, Silken Ground + Gentle Field copies, first-call targets. |
 | 5 | `2026-04-20-133809-pdt_radiant-rio-social-defi-milestone-walk-as-web-app-concept.md` | **Build concept:** “walk turned into a room”—social + open-finance app; vanilla JS, Zig, Postgres, Solana (Alpenglow-era), TigerBeetle when the till must sing. |
+| 6 | `2026-04-20-180909-pdt_engineering-consensus-sketch-zig-postgres-tigerbeetle-vanilla-spa.md` | **Engineering sketch:** meeting consensus—Zig shapes, Postgres + TB sketches, vanilla hash SPA routing, one stack trace. |
 
-Read **1 → 2** when you need **clarity**. Add **3** when you need **cash from services**. Add **4** when you open a **partner** file. Add **5** when you open an **editor**.
+Read **1 → 2** when you need **clarity**. Add **3** when you need **cash from services**. Add **4** when you open a **partner** file. Add **5** when you open an **editor**. Add **6** when you open a **terminal or schema** beside the essay.
 
 ---
 
-## Related docs outside this five-pack
+## Related docs outside this six-step suite
 
 - **Toroidal kernel / Rye–Basin–Vantage:** `docs/2026-03-27-002209-edt-rye-basin-vantage-toroidal-kernel-whitepaper.md`  
 - **Older zyx imports (sovereign materials, Four Rivers, etc.):** other files in this same `docs/zyx/` folder with `2026-03-31-*` prefixes.

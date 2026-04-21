@@ -5,7 +5,7 @@
 **Time stamp:** 2026-04-20-133809-pdt  
 **License:** CC BY-SA 4.0  
 
-**Purpose:** A concept essay in the **same rhythm** as `2026-04-20-131109-pdt_radiant-rio-keaton-walk-to-first-milestone-story.md`, but the trail is now **software**: a **social** layer where people tell the truth in public, and an **open-finance** layer where **money matches speech**—receipts you can point at, stairs you can climb together, **one first win** still the north star. **Suite index:** `2026-04-20-README-rio-milestone-suite-unified.md`. Stack in plain clothes: **vanilla JavaScript** in the browser, **Zig** on the server, **Postgres** for the living archive, **Solana** (designed for the **Alpenglow** consensus era—fast finality, cleaner settlement air) for the chain spine, **TigerBeetle** for the **double-entry heart** when cents and trust need machine-grade honesty.
+**Purpose:** This essay carries the **same rhythm** as `2026-04-20-131109-pdt_radiant-rio-keaton-walk-to-first-milestone-story.md`, with the trail now **software**: a **social** layer where people speak in public, and an **open-finance** layer where **money matches speech**—receipts you can point at, stairs you climb together, **one first win** still the north star. **Suite index:** `2026-04-20-README-rio-milestone-suite-unified.md`. The stack stays in plain clothes: **vanilla JavaScript** in the browser, **Zig** on the server, **Postgres** as the living archive, **Solana** (the **Alpenglow** consensus horizon—fast finality, cleaner settlement air) as the chain spine, **TigerBeetle** as the **double-entry heart** wherever cents and trust need machine-grade honesty.
 
 ---
 
@@ -17,7 +17,7 @@ A **small** web place where a person or a crew posts a **milestone promise** in 
 
 ## Why vanilla JS on the skin
 
-The front door should stay **light**. Vanilla JS keeps the bundle **honest**: fewer moving parts, easier audits, faster loads on phones that already carry enough weight. Pages can be **documents** again—forms, lists, a little animation for warmth—**Radiant** in the sense that what you see is what runs. When the product proves love, you can **wrap** hot spots later; **plain pages carry you across the threshold**—a framework can wait.
+The front door stays **light**. Vanilla JS keeps the bundle **honest**: fewer moving parts, easier audits, faster loads on phones that already carry enough weight. Pages return as **documents**—forms, lists, a little animation for warmth—**Radiant** in the plain sense: what you see is what runs. After the product proves love, the team **wraps** hot spots where it helps; **plain pages carry you across the threshold**, and the framework waits its turn.
 
 ---
 
@@ -29,23 +29,23 @@ Zig carries **clarity and speed** in one current. For a server that must **sign*
 
 ## Postgres as the diary
 
-Postgres holds what humans need to **read** day to day: accounts, posts, milestone text, witness links, attachments, audit trails for moderation and care. It is the **long memory** of the app: search, profiles, “what happened this week,” export. The chain holds what must be **shared where strangers still need proof**; Postgres holds what must be **soft and fast** beside human sentences.
+Postgres is the **long memory** people touch every day: search, profiles, “what happened this week,” export. It stores accounts, posts, milestone text, witness links, attachments, and audit trails for moderation and care—**soft and fast** beside human sentences. The chain carries what belongs **in shared daylight** when strangers still need proof; Postgres carries the **kitchen-table** detail that makes the week legible.
 
 ---
 
 ## Solana and the Alpenglow horizon
 
-**Alpenglow** is Solana’s **great consensus rewrite**—the path toward **very fast finality** and a cleaner vote path so more block space serves **people’s work** instead of only validator chatter. For this app, that horizon matters because **social money** wants **snappy** feedback: “the split landed,” “the escrow released,” “the tip arrived”—**patience optional**, respect **required**.
+**Alpenglow** is Solana’s **great consensus rewrite**—**very fast finality** and a cleaner vote path so more block space serves **people’s work** alongside validator work. This app lives there because **social money** deserves **snappy** feedback: “the split landed,” “the escrow released,” “the tip arrived”—**patience optional**, respect **required**.
 
-**Today:** you build against **current** Solana devnet and mainnet patterns your team trusts—wallets, programs, receipts. **Tomorrow:** you **ride** Alpenglow-class finality as it reaches the network you deploy on, so **microflows** feel as immediate as a **like**—only this like **carries weight**.
+**Now:** the build rests on **today’s** Solana devnet and mainnet patterns the team trusts—wallets, programs, receipts. **Next:** the same product **rides** Alpenglow-class finality as it reaches the network you deploy on, so **microflows** feel as immediate as a **like**—and this like **carries weight**.
 
 ---
 
 ## TigerBeetle when the till must sing
 
-When more than one pocket touches the same dollar—**creator, witness, platform, charity slice**—you want **double-entry** semantics: every debit paired, every credit traced, **deterministic** replay. TigerBeetle fits that **till** role: bounded, serious, built for money that **speaks one consistent arithmetic story**. Postgres can show the **story**; TigerBeetle holds the **arithmetic truth** that backs the story when lawyers, angels, or neighbors ask for the **receipt chain**.
+When more than one pocket touches the same dollar—**creator, witness, platform, charity slice**—the till needs **double-entry** semantics: every debit paired, every credit traced, **deterministic** replay. TigerBeetle fills that **till** role: bounded, serious, built for money that **speaks one consistent arithmetic story**. Postgres shows the **story**; TigerBeetle holds the **arithmetic truth** behind it when lawyers, angels, or neighbors ask for the **receipt chain**.
 
-**If** the first milestone only needs **simple** splits, you can **start** with Postgres plus on-chain events, then **lift** the hot path into TigerBeetle when volume or partners ask for **proof-grade** books. The architecture stays **honest** either way.
+Early milestones ship fine with **simple** splits in Postgres plus on-chain events; the same architecture **lifts** the hot path into TigerBeetle when volume or partners call for **proof-grade** books. The handshake stays the same in both chapters: what the button does, what the receipt says, what the week **proved**.
 
 ---
 
@@ -65,19 +65,19 @@ Same dependencies as the walk essay—**now routes**:
 
 ## The first shipped win (still small)
 
-The app’s own milestone is the **same** as yours: **one paid ring** where strangers say **“that was worth it.”** Maybe the first win is **one** transparency circle for **creators and sponsors**. Maybe it is **one** cooperative **CSA ledger** window. Maybe it is **one** diligence room for an angel table—**money + story** in the same frame. Pick **one** lane for ninety days; let the code **earn** the next lane.
+The app’s own milestone matches yours: **one paid ring** where strangers say **“that was worth it.”** Three lanes sit on the table—**one** transparency circle for **creators and sponsors**, **one** cooperative **CSA ledger** window, **one** diligence room for an angel table with **money + story** in the same frame. The team **names one** lane for ninety days and lets the code **earn** the next.
 
 ---
 
 ## Names and law
 
-A Delaware **PBC** still fits the body: public benefit in the charter, for-profit discipline in the kitchen. The brand can stay in **cofounder lab**; the app can ship as a **plain name** that ages well. What matters first is **the handshake**: what the button does, what the receipt says, what the week **proved**.
+A Delaware **PBC** fits the body: public benefit in the charter, for-profit discipline in the kitchen. The brand stays in **cofounder lab**; the app ships under a **plain name** that ages well. What ships first is **the handshake**: what the button does, what the receipt says, what the week **proved**.
 
 ---
 
 ## Silken Ground on the wire
 
-Ask the same three beneath every feature: **nourish**, **circulate**, **return what it takes**. When a feed pattern costs sleep, **reshape** the rhythm. When a fee sits in shadow, **bring it into the light**. When a user steps away, **gift** them their row export and keys. **Care** as **latency** and **law** together.
+Beneath every feature sit the same three: **nourish**, **circulate**, **return what it takes**. A feed pattern that costs sleep **gets a new rhythm**. A fee in shadow **moves into the light**. A user who steps away **receives** their row export and keys. **Care** shows up as **latency** and **law** in the same seam.
 
 ---
 
@@ -88,7 +88,8 @@ Ask the same three beneath every feature: **nourish**, **circulate**, **return w
 - `2026-04-20-131109-pdt_radiant-rio-keaton-walk-to-first-milestone-story.md` — the walk in words.  
 - `2026-04-20-125209-pdt_radiant-rio-software-pbc-zero-to-one-strategy.md` — rings and phases.  
 - `2026-04-20-130709-pdt_radiant-rio-premium-services-for-angels-services-as-the-new-software.md` — services budget to angels.  
-- `2026-04-20-114309-pdt_plant_aligned_investor_radar-grain-os-outreach.md` — investor radar and narrative imports.
+- `2026-04-20-114309-pdt_plant_aligned_investor_radar-grain-os-outreach.md` — investor radar and narrative imports.  
+- `2026-04-20-180909-pdt_engineering-consensus-sketch-zig-postgres-tigerbeetle-vanilla-spa.md` — stack shapes and vanilla SPA routing (step **6** in the index).
 
 ---
 
